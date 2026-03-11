@@ -174,6 +174,12 @@ tr:hover{background:rgba(139,32,32,.03)}
 <div class="form-group"><label>Termination Date</label><input id="empTermDate" type="date"></div>
 <div class="form-group"><label>Notes</label><input id="empNotes" placeholder="Optional notes"></div>
 </div>
+<hr class="separator">
+<h4 style="color:var(--accent);margin-bottom:12px">Project Allocations</h4>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Assign to one or more projects. Allocations should total 100%.</p>
+<div id="empAllocRows"></div>
+<div style="margin-top:8px"><button class="btn btn-sm" id="btnAddEmpAlloc" type="button">+ Add Project Allocation</button></div>
+<div id="empAllocInfo" style="margin-top:8px"></div>
 <div style="margin-top:16px;display:flex;gap:8px">
 <button class="btn btn-primary" id="btnSaveEmp">Add Employee</button>
 <button class="btn" id="btnCancelEmp" style="display:none">Cancel</button>
@@ -183,36 +189,29 @@ tr:hover{background:rgba(139,32,32,.03)}
 <input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:320px">
 </div>
 <div class="table-wrap"><table id="empTable"><thead><tr>
-<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Hire Date</th><th>Term Date</th><th>Alloc</th><th>Actions</th>
+<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Project(s)</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Hire Date</th><th>Term Date</th><th>Alloc</th><th>Actions</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
 <!-- PROJECTS -->
 <div id="tab-projects" class="tab-content">
 <div class="card" style="margin-bottom:20px">
-<h3 class="section-title">Manage Projects</h3>
+<h3 class="section-title">Add Project</h3>
 <div class="form-grid">
-<div class="form-group"><label>Product Category</label><input id="projCategory" placeholder="e.g. Enterprise Software"></div>
-<div class="form-group"><label>Product</label><input id="projProduct" placeholder="e.g. Analytics Suite"></div>
 <div class="form-group"><label>Project Code</label><input id="projCode" placeholder="e.g. PRJ-001"></div>
+<div class="form-group"><label>Product</label><input id="projProduct" placeholder="e.g. Analytics Suite"></div>
+<div class="form-group"><label>Product Category</label><input id="projCategory" placeholder="e.g. Enterprise Software"></div>
+<div class="form-group"><label>Description</label><input id="projDesc" placeholder="Brief description"></div>
 </div>
 <div style="margin-top:16px;display:flex;gap:8px">
 <button class="btn btn-primary" id="btnAddProject">Add Project</button>
 </div>
 </div>
-<div class="card" style="margin-bottom:20px">
-<h3 class="section-title">Employee Allocations</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Assign employees to projects with allocation percentages. Allocations should sum to 100% per employee.</p>
-<div id="allocWarnings" style="margin-bottom:12px"></div>
-<div class="table-wrap"><table class="projects-table" id="allocTable"><thead><tr>
-<th>Employee</th><th>Project</th><th>Allocation %</th><th>Actions</th>
-</tr></thead><tbody></tbody></table></div>
-<div style="margin-top:12px"><button class="btn btn-primary btn-sm" id="btnAddAlloc">Add Allocation</button></div>
-</div>
 <div class="card">
-<h3 class="section-title">Projects Directory</h3>
+<h3 class="section-title">Project Directory</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Map project codes to products and categories. Assign employees to projects in the Employees tab.</p>
 <div class="table-wrap"><table id="projectsTable"><thead><tr>
-<th>Product Category</th><th>Product</th><th>Project Code</th><th>Allocated Headcount</th><th>Allocated Cost</th><th>Actions</th>
+<th>Project Code</th><th>Product</th><th>Product Category</th><th>Description</th><th>Allocated FTE</th><th>Allocated Cost</th><th>Actions</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 </div>
@@ -378,13 +377,12 @@ function loadState(){
     {name:'James Park',country:'Canada',seniority:'Staff',function:'DevOps/SRE'},
     {name:'Maria Rodriguez',country:'Germany',seniority:'Senior',function:'Data Science'}
   ];
-  const employees=samples.map(e=>({id:uid(),name:e.name,country:e.country,seniority:e.seniority,function:e.function,salary:benchmark(e.seniority,e.function,e.country),notes:'',hireDate:'',termDate:''}));
+  const employees=samples.map(e=>({id:uid(),name:e.name,country:e.country,seniority:e.seniority,function:e.function,salary:benchmark(e.seniority,e.function,e.country),notes:'',hireDate:'',termDate:'',allocations:[]}));
   const projects=[
-    {id:uid(),category:'Enterprise Software',product:'Analytics Suite',code:'PRJ-001'},
-    {id:uid(),category:'Enterprise Software',product:'Data Platform',code:'PRJ-002'},
-    {id:uid(),category:'Consumer Products',product:'Mobile App',code:'PRJ-003'}
+    {id:uid(),category:'Enterprise Software',product:'Analytics Suite',code:'PRJ-001',description:'Core analytics platform'},
+    {id:uid(),category:'Enterprise Software',product:'Data Platform',code:'PRJ-002',description:'Data ingestion and processing'},
+    {id:uid(),category:'Consumer Products',product:'Mobile App',code:'PRJ-003',description:'Consumer mobile application'}
   ];
-  const allocations=[];
   const forecastAssumptions={
     attrition:FORECAST_YEARS.map(()=>12),
     hires:FORECAST_YEARS.map(()=>5),
@@ -394,12 +392,12 @@ function loadState(){
     toggles:{attrition:true,hires:true,merit:true,market:true,ai:true}
   };
   const allocOverrides={};
-  state={employees,bonusMatrix,benefitsMatrix,benefitsCountryMult,projects,allocations,forecastAssumptions,allocOverrides};
+  state={employees,bonusMatrix,benefitsMatrix,benefitsCountryMult,projects,forecastAssumptions,allocOverrides};
   saveState();
 }
 function ensureStateFields(){
   if(!state.projects)state.projects=[];
-  if(!state.allocations)state.allocations=[];
+  state.projects.forEach(p=>{if(!p.description)p.description=''});
   if(!state.benefitsMatrix){
     state.benefitsMatrix={};
     SENIORITY.forEach(s=>{state.benefitsMatrix[s]={};FUNCTIONS.forEach(f=>{state.benefitsMatrix[s][f]=DEFAULT_BENEFITS[s]})});
@@ -414,9 +412,21 @@ function ensureStateFields(){
     };
   }
   if(!state.allocOverrides)state.allocOverrides={};
+  // Migrate old allocations array to per-employee allocations
+  if(state.allocations){
+    state.allocations.forEach(a=>{
+      const emp=state.employees.find(e=>e.id===a.empId);
+      if(emp){
+        if(!emp.allocations)emp.allocations=[];
+        emp.allocations.push({projId:a.projId,pct:a.pct});
+      }
+    });
+    delete state.allocations;
+  }
   state.employees.forEach(e=>{
     if(!e.hireDate)e.hireDate='';
     if(!e.termDate)e.termDate='';
+    if(!e.allocations)e.allocations=[];
   });
 }
 function saveState(){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
@@ -432,15 +442,26 @@ function getTotalComp(emp){return emp.salary+getBonusAmt(emp)+getBenefitsAmt(emp
 
 // Allocation helpers
 function getEmpAllocTotal(empId){
-  return state.allocations.filter(a=>a.empId===empId).reduce((s,a)=>s+a.pct,0);
+  const emp=state.employees.find(e=>e.id===empId);
+  if(!emp||!emp.allocations||!emp.allocations.length)return 0;
+  return emp.allocations.reduce((s,a)=>s+a.pct,0);
 }
 function getAllocFlag(empId){
-  const total=getEmpAllocTotal(empId);
-  const hasAllocs=state.allocations.some(a=>a.empId===empId);
-  if(!hasAllocs)return null;
+  const emp=state.employees.find(e=>e.id===empId);
+  if(!emp||!emp.allocations||!emp.allocations.length)return null;
+  const total=emp.allocations.reduce((s,a)=>s+a.pct,0);
   if(Math.abs(total-100)<0.01)return{ok:true,total};
   return{ok:false,total,overridden:!!state.allocOverrides[empId]};
 }
+function getEmpProjectCodes(emp){
+  if(!emp.allocations||!emp.allocations.length)return '—';
+  return emp.allocations.map(a=>{
+    const p=state.projects.find(p=>p.id===a.projId);
+    return p?`${p.code} (${a.pct}%)`:'?';
+  }).join(', ');
+}
+function getProjectByCode(code){return state.projects.find(p=>p.code===code)}
+function getProjectById(id){return state.projects.find(p=>p.id===id)}
 
 // ── NAV ──
 document.querySelectorAll('#mainNav button').forEach(b=>{
@@ -501,14 +522,13 @@ function getFilteredEmployees(){
   if(s)emps=emps.filter(e=>e.seniority===s);
   if(f)emps=emps.filter(e=>e.function===f);
   if(pc||pr||pj){
-    const matchProjects=state.projects.filter(p=>{
+    const matchProjIds=new Set(state.projects.filter(p=>{
       if(pc&&p.category!==pc)return false;
       if(pr&&p.product!==pr)return false;
       if(pj&&p.code!==pj)return false;
       return true;
-    }).map(p=>p.id);
-    const matchEmpIds=new Set(state.allocations.filter(a=>matchProjects.includes(a.projId)).map(a=>a.empId));
-    emps=emps.filter(e=>matchEmpIds.has(e.id));
+    }).map(p=>p.id));
+    emps=emps.filter(e=>e.allocations&&e.allocations.some(a=>matchProjIds.has(a.projId)));
   }
   return emps;
 }
@@ -593,15 +613,16 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const hireDate=document.getElementById('empHireDate').value;
   const termDate=document.getElementById('empTermDate').value;
   if(!name||!country||!seniority||!func){alert('Please fill required fields');return}
+  const allocations=getFormAllocations();
   if(editingId){
     const emp=state.employees.find(e=>e.id===editingId);
-    if(emp){Object.assign(emp,{name,country,seniority,function:func,salary,notes,hireDate,termDate})}
+    if(emp){Object.assign(emp,{name,country,seniority,function:func,salary,notes,hireDate,termDate,allocations})}
     editingId=null;
     document.getElementById('formTitle').textContent='Add Employee';
     document.getElementById('btnSaveEmp').textContent='Add Employee';
     document.getElementById('btnCancelEmp').style.display='none';
   } else {
-    state.employees.push({id:uid(),name,country,seniority,function:func,salary,notes,hireDate,termDate});
+    state.employees.push({id:uid(),name,country,seniority,function:func,salary,notes,hireDate,termDate,allocations});
   }
   saveState();clearForm();renderEmployees();
 });
@@ -614,7 +635,50 @@ document.getElementById('btnCancelEmp').addEventListener('click',()=>{
 function clearForm(){['empName','empSalary','empNotes','empHireDate','empTermDate'].forEach(id=>document.getElementById(id).value='');
   ['empCountry','empSeniority','empFunction'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('benchmarkBadge').innerHTML='';
+  renderFormAllocations([]);
 }
+// ── Form allocation rows ──
+let formAllocations=[];
+function renderFormAllocations(allocs){
+  formAllocations=allocs||[];
+  const container=document.getElementById('empAllocRows');
+  container.innerHTML=formAllocations.map((a,i)=>{
+    const proj=getProjectById(a.projId);
+    const product=proj?proj.product:'';
+    const category=proj?proj.category:'';
+    return `<div class="form-grid" style="margin-bottom:8px;align-items:end;grid-template-columns:1fr 1fr 1fr 80px auto">
+      <div class="form-group"><label>Project Code</label><select class="fa-proj" data-idx="${i}" onchange="onFormAllocProjChange(${i},this.value)">
+        <option value="">Select…</option>
+        ${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>Product</label><input value="${product}" disabled style="background:var(--panel-inset);color:var(--text-dim)"></div>
+      <div class="form-group"><label>Category</label><input value="${category}" disabled style="background:var(--panel-inset);color:var(--text-dim)"></div>
+      <div class="form-group"><label>Alloc %</label><input type="number" min="0" max="100" value="${a.pct}" class="fa-pct" data-idx="${i}" onchange="onFormAllocPctChange(${i},this.value)"></div>
+      <div class="form-group"><label>&nbsp;</label><button class="btn btn-sm btn-danger" type="button" onclick="removeFormAlloc(${i})">Del</button></div>
+    </div>`;
+  }).join('');
+  updateFormAllocInfo();
+}
+function onFormAllocProjChange(idx,projId){formAllocations[idx].projId=projId;renderFormAllocations(formAllocations)}
+function onFormAllocPctChange(idx,val){formAllocations[idx].pct=parseFloat(val)||0;updateFormAllocInfo()}
+function removeFormAlloc(idx){formAllocations.splice(idx,1);renderFormAllocations(formAllocations)}
+function updateFormAllocInfo(){
+  const total=formAllocations.reduce((s,a)=>s+a.pct,0);
+  const el=document.getElementById('empAllocInfo');
+  if(!formAllocations.length){el.innerHTML='';return}
+  if(Math.abs(total-100)<0.01){
+    el.innerHTML='<span class="alloc-flag ok">Total: '+total+'% — Balanced</span>';
+  } else {
+    el.innerHTML='<span class="alloc-flag">Total: '+total+'% — Expected 100%</span>';
+  }
+}
+function getFormAllocations(){
+  return formAllocations.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct}));
+}
+document.getElementById('btnAddEmpAlloc').addEventListener('click',()=>{
+  formAllocations.push({projId:'',pct:100});
+  renderFormAllocations(formAllocations);
+});
 function startEdit(id){
   const emp=state.employees.find(e=>e.id===id);if(!emp)return;
   editingId=id;
@@ -626,13 +690,14 @@ function startEdit(id){
   document.getElementById('empNotes').value=emp.notes||'';
   document.getElementById('empHireDate').value=emp.hireDate||'';
   document.getElementById('empTermDate').value=emp.termDate||'';
+  renderFormAllocations(emp.allocations?emp.allocations.map(a=>({...a})):[]);
   document.getElementById('formTitle').textContent='Edit Employee';
   document.getElementById('btnSaveEmp').textContent='Save Changes';
   document.getElementById('btnCancelEmp').style.display='inline-block';
   updateBenchmarkBadge();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);state.allocations=state.allocations.filter(a=>a.empId!==id);delete state.allocOverrides[id];saveState();renderEmployees()}}
+function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);delete state.allocOverrides[id];saveState();renderEmployees()}}
 
 let inlineEditId=null;
 function startInlineEdit(id){inlineEditId=id;renderEmployees()}
@@ -667,12 +732,14 @@ function renderEmployees(){
         }
       }
     }
+    const projCodes=getEmpProjectCodes(e);
     if(inlineEditId===e.id){
       return `<tr data-id="${e.id}" class="inline-edit">
         <td><input class="ie-name" value="${e.name}"></td>
         <td><select class="ie-country">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
         <td><select class="ie-seniority">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
         <td><select class="ie-function">${FUNCTIONS.map(f=>`<option${f===e.function?' selected':''}>${f}</option>`).join('')}</select></td>
+        <td style="font-size:.78rem">${projCodes}</td>
         <td><input class="ie-salary" type="number" value="${e.salary}"></td>
         <td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td>${fmt(tc)}</td>
         <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
@@ -681,6 +748,7 @@ function renderEmployees(){
     }
     return `<tr data-id="${e.id}">
       <td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
+      <td style="font-size:.78rem">${projCodes}</td>
       <td>${fmt(e.salary)}</td><td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td style="font-weight:600;color:var(--accent)">${fmt(tc)}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
       <td><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
@@ -691,32 +759,27 @@ document.getElementById('empSearch').addEventListener('input',renderEmployees);
 
 // ── PROJECTS ──
 document.getElementById('btnAddProject').addEventListener('click',()=>{
-  const category=document.getElementById('projCategory').value.trim();
-  const product=document.getElementById('projProduct').value.trim();
   const code=document.getElementById('projCode').value.trim();
-  if(!category||!product||!code){alert('Please fill all project fields');return}
-  state.projects.push({id:uid(),category,product,code});
+  const product=document.getElementById('projProduct').value.trim();
+  const category=document.getElementById('projCategory').value.trim();
+  const description=document.getElementById('projDesc').value.trim();
+  if(!code||!product||!category){alert('Please fill project code, product, and category');return}
+  if(state.projects.some(p=>p.code===code)){alert('Project code already exists');return}
+  state.projects.push({id:uid(),code,product,category,description});
   saveState();
-  document.getElementById('projCategory').value='';
-  document.getElementById('projProduct').value='';
-  document.getElementById('projCode').value='';
+  ['projCode','projProduct','projCategory','projDesc'].forEach(id=>document.getElementById(id).value='');
   renderProjects();refreshProjectFilters();
 });
 
-document.getElementById('btnAddAlloc').addEventListener('click',()=>{
-  if(!state.employees.length||!state.projects.length){alert('Need at least one employee and one project');return}
-  state.allocations.push({id:uid(),empId:state.employees[0].id,projId:state.projects[0].id,pct:100});
-  saveState();renderProjects();
-});
-
 function deleteProject(id){
-  if(confirm('Delete this project and its allocations?')){
+  if(confirm('Delete this project? Employee allocations referencing it will be removed.')){
+    state.employees.forEach(e=>{
+      if(e.allocations)e.allocations=e.allocations.filter(a=>a.projId!==id);
+    });
     state.projects=state.projects.filter(p=>p.id!==id);
-    state.allocations=state.allocations.filter(a=>a.projId!==id);
     saveState();renderProjects();refreshProjectFilters();
   }
 }
-function deleteAlloc(id){state.allocations=state.allocations.filter(a=>a.id!==id);saveState();renderProjects()}
 function toggleAllocOverride(empId){
   if(state.allocOverrides[empId])delete state.allocOverrides[empId];
   else state.allocOverrides[empId]=true;
@@ -724,53 +787,26 @@ function toggleAllocOverride(empId){
 }
 
 function renderProjects(){
-  // Allocation warnings
-  const warnDiv=document.getElementById('allocWarnings');
-  const empIds=[...new Set(state.allocations.map(a=>a.empId))];
-  const warnings=[];
-  empIds.forEach(eid=>{
-    const flag=getAllocFlag(eid);
-    const emp=state.employees.find(e=>e.id===eid);
-    if(flag&&!flag.ok&&!flag.overridden&&emp){
-      warnings.push(`<span class="alloc-flag">${emp.name}: ${flag.total}% allocated (expected 100%)</span> <span class="alloc-override" onclick="toggleAllocOverride('${eid}')">Override OK</span>`);
-    } else if(flag&&!flag.ok&&flag.overridden&&emp){
-      warnings.push(`<span class="alloc-flag ok">${emp.name}: ${flag.total}% — overridden</span> <span class="alloc-override" onclick="toggleAllocOverride('${eid}')">Remove override</span>`);
-    }
-  });
-  warnDiv.innerHTML=warnings.length?warnings.join('<br>'):'<span style="color:var(--success);font-size:.85rem">All allocations balanced</span>';
-
-  // Allocations table
-  const tbody=document.querySelector('#allocTable tbody');
-  tbody.innerHTML=state.allocations.map(a=>{
-    const emp=state.employees.find(e=>e.id===a.empId);
-    const proj=state.projects.find(p=>p.id===a.projId);
-    return `<tr>
-      <td><select onchange="updateAlloc('${a.id}','empId',this.value)">${state.employees.map(e=>`<option value="${e.id}"${e.id===a.empId?' selected':''}>${e.name}</option>`).join('')}</select></td>
-      <td><select onchange="updateAlloc('${a.id}','projId',this.value)">${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code} — ${p.product}</option>`).join('')}</select></td>
-      <td><input type="number" min="0" max="100" value="${a.pct}" style="width:80px;text-align:center" onchange="updateAlloc('${a.id}','pct',parseFloat(this.value)||0)">%</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteAlloc('${a.id}')">Del</button></td>
-    </tr>`;
-  }).join('');
-
-  // Projects directory
   const ptbody=document.querySelector('#projectsTable tbody');
   ptbody.innerHTML=state.projects.map(p=>{
-    const projAllocs=state.allocations.filter(a=>a.projId===p.id);
-    const allocHC=projAllocs.reduce((s,a)=>s+a.pct/100,0).toFixed(1);
-    const allocCost=projAllocs.reduce((s,a)=>{
-      const emp=state.employees.find(e=>e.id===a.empId);
-      return emp?s+getTotalComp(emp)*a.pct/100:s;
-    },0);
+    // Compute allocated FTE and cost from employee-level allocations
+    let allocFTE=0,allocCost=0;
+    state.employees.forEach(e=>{
+      if(!e.allocations)return;
+      e.allocations.forEach(a=>{
+        if(a.projId===p.id){
+          allocFTE+=a.pct/100;
+          allocCost+=getTotalComp(e)*a.pct/100;
+        }
+      });
+    });
     return `<tr>
-      <td>${p.category}</td><td>${p.product}</td><td style="font-weight:600;color:var(--accent)">${p.code}</td>
-      <td>${allocHC} FTE</td><td>${fmt(allocCost)}</td>
+      <td style="font-weight:600;color:var(--accent)">${p.code}</td><td>${p.product}</td><td>${p.category}</td>
+      <td style="font-size:.82rem;color:var(--text-dim)">${p.description||'—'}</td>
+      <td>${allocFTE.toFixed(1)} FTE</td><td>${fmt(allocCost)}</td>
       <td><button class="btn btn-sm btn-danger" onclick="deleteProject('${p.id}')">Del</button></td>
     </tr>`;
   }).join('');
-}
-function updateAlloc(allocId,field,value){
-  const alloc=state.allocations.find(a=>a.id===allocId);
-  if(alloc){alloc[field]=value;saveState();renderProjects()}
 }
 
 // ── BONUS ASSUMPTIONS ──
@@ -989,16 +1025,14 @@ function downloadCSV(content,filename){
 }
 document.getElementById('btnExportFull').addEventListener('click',()=>{
   let csv='COMPENSATION PLAN - FULL EXPORT\n\n';
-  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Base Salary,Bonus %,Bonus Amount,Benefits Amount,Total Comp,Hire Date,Term Date\n';
-  state.employees.forEach(e=>{const bp=getBonusPct(e);csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}",${e.salary},${bp}%,${getBonusAmt(e)},${getBenefitsAmt(e)},${getTotalComp(e)},${e.hireDate||''},${e.termDate||''}\n`});
+  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Project(s),Base Salary,Bonus %,Bonus Amount,Benefits Amount,Total Comp,Hire Date,Term Date\n';
+  state.employees.forEach(e=>{const bp=getBonusPct(e);const projs=e.allocations?e.allocations.map(a=>{const p=getProjectById(a.projId);return p?p.code+':'+a.pct+'%':'?'}).join(';'):'';csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}","${projs}",${e.salary},${bp}%,${getBonusAmt(e)},${getBenefitsAmt(e)},${getTotalComp(e)},${e.hireDate||''},${e.termDate||''}\n`});
   csv+='\nBONUS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
   SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.bonusMatrix[s]?.[f]??'')+'%');csv+='\n'});
   csv+='\nBENEFITS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
   SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.benefitsMatrix[s]?.[f]??'')+'%');csv+='\n'});
-  csv+='\nPROJECTS\nCategory,Product,Code\n';
-  state.projects.forEach(p=>csv+=`"${p.category}","${p.product}","${p.code}"\n`);
-  csv+='\nALLOCATIONS\nEmployee,Project,Allocation%\n';
-  state.allocations.forEach(a=>{const emp=state.employees.find(e=>e.id===a.empId);const proj=state.projects.find(p=>p.id===a.projId);csv+=`"${emp?.name||''}","${proj?.code||''}",${a.pct}%\n`});
+  csv+='\nPROJECTS\nCode,Product,Category,Description\n';
+  state.projects.forEach(p=>csv+=`"${p.code}","${p.product}","${p.category}","${p.description||''}"\n`);
   csv+='\nMONTHLY SPREAD (SUMMARY)\nMonth,Base,Bonus,Benefits,Total\n';
   const tb=state.employees.reduce((a,e)=>a+e.salary,0),tbn=state.employees.reduce((a,e)=>a+getBonusAmt(e),0),tbe=state.employees.reduce((a,e)=>a+getBenefitsAmt(e),0);
   MONTHS.forEach(m=>csv+=`${m},${Math.round(tb/12)},${Math.round(tbn/12)},${Math.round(tbe/12)},${Math.round((tb+tbn+tbe)/12)}\n`);
@@ -1016,8 +1050,8 @@ document.getElementById('btnPrint').addEventListener('click',()=>{
   const w=window.open('','_blank');
   let h='<html><head><title>Comp Plan Print</title><style>body{font-family:sans-serif;padding:20px;font-size:12px;color:#2d2d2d}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}th{background:#f0f0f0;color:#8b2020}h1,h2{color:#8b2020}@media print{body{font-size:10px}}</style></head><body>';
   h+='<h1>Compensation Plan</h1>';
-  h+='<h2>Employee Roster</h2><table><tr><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Base</th><th>Bonus%</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>Hire</th><th>Term</th></tr>';
-  state.employees.forEach(e=>h+=`<tr><td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td><td>${fmt(e.salary)}</td><td>${getBonusPct(e)}%</td><td>${fmt(getBonusAmt(e))}</td><td>${fmt(getBenefitsAmt(e))}</td><td>${fmt(getTotalComp(e))}</td><td>${e.hireDate||''}</td><td>${e.termDate||''}</td></tr>`);
+  h+='<h2>Employee Roster</h2><table><tr><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Projects</th><th>Base</th><th>Bonus%</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>Hire</th><th>Term</th></tr>';
+  state.employees.forEach(e=>{const projs=getEmpProjectCodes(e);h+=`<tr><td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td><td>${projs}</td><td>${fmt(e.salary)}</td><td>${getBonusPct(e)}%</td><td>${fmt(getBonusAmt(e))}</td><td>${fmt(getBenefitsAmt(e))}</td><td>${fmt(getTotalComp(e))}</td><td>${e.hireDate||''}</td><td>${e.termDate||''}</td></tr>`});
   h+='</table>';
   h+='<h2>Bonus Matrix</h2><table><tr><th></th>';FUNCTIONS.forEach((f,i)=>h+=`<th>${FUNC_SHORT[i]}</th>`);h+='</tr>';
   SENIORITY.forEach(s=>{h+=`<tr><th>${s}</th>`;FUNCTIONS.forEach(f=>h+=`<td>${state.bonusMatrix[s]?.[f]??''}%</td>`);h+='</tr>'});
@@ -1025,8 +1059,8 @@ document.getElementById('btnPrint').addEventListener('click',()=>{
   h+='<h2>Benefits Matrix</h2><table><tr><th></th>';FUNCTIONS.forEach((f,i)=>h+=`<th>${FUNC_SHORT[i]}</th>`);h+='</tr>';
   SENIORITY.forEach(s=>{h+=`<tr><th>${s}</th>`;FUNCTIONS.forEach(f=>h+=`<td>${state.benefitsMatrix[s]?.[f]??''}%</td>`);h+='</tr>'});
   h+='</table>';
-  h+='<h2>Projects</h2><table><tr><th>Category</th><th>Product</th><th>Code</th></tr>';
-  state.projects.forEach(p=>h+=`<tr><td>${p.category}</td><td>${p.product}</td><td>${p.code}</td></tr>`);
+  h+='<h2>Projects</h2><table><tr><th>Code</th><th>Product</th><th>Category</th><th>Description</th></tr>';
+  state.projects.forEach(p=>h+=`<tr><td>${p.code}</td><td>${p.product}</td><td>${p.category}</td><td>${p.description||''}</td></tr>`);
   h+='</table>';
   h+='<h2>Monthly Spread</h2><table><tr><th>Month</th><th>Total</th></tr>';
   const tot=state.employees.reduce((a,e)=>a+getTotalComp(e),0);
