@@ -144,6 +144,7 @@ html.dark .ws-list li:hover{background:rgba(212,82,77,.05)}
 /* Operations mode: hide individual comp values */
 body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
 body.ops-mode .comp-sensitive::selection{color:transparent}
+body.ops-mode .ops-hide{display:none!important}
 /* Toggle row in header */
 .header-toggles{display:flex;gap:12px;align-items:center;margin-left:auto}
 .header-toggle{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-dim);cursor:pointer;white-space:nowrap}
@@ -302,11 +303,20 @@ body.ops-mode .comp-sensitive::selection{color:transparent}
 <div class="controls">
 <div class="toggle-group" id="monthlyToggle">
 <button class="btn active" data-mode="summary">Summary</button>
-<button class="btn" data-mode="detail">Detail</button>
+<button class="btn ops-hide" data-mode="detail">Detail</button>
 </div>
-<div class="form-group" style="min-width:200px" id="monthlyFilterWrap">
+<div class="form-group ops-hide" style="min-width:200px" id="monthlyFilterWrap">
 <select id="monthlyFilter"><option value="">All Employees</option></select>
 </div>
+</div>
+<div class="controls ops-hide" id="monthlyColToggles" style="margin-top:-8px;flex-wrap:wrap;gap:8px">
+<span style="font-size:.78rem;color:var(--text-dim)">Columns:</span>
+<label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="country"> Country</label>
+<label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="seniority"> Seniority</label>
+<label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="function"> Function</label>
+<label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="project"> Project</label>
+<label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="product"> Product</label>
+<label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="category"> Category</label>
 </div>
 <div class="card table-wrap"><table class="monthly-table" id="monthlyTable"></table></div>
 </div>
@@ -1153,31 +1163,95 @@ document.getElementById('btnResetBenefits').addEventListener('click',()=>{
 // ── MONTHLY SPREAD ──
 let monthlyMode='summary';
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function getMonthlyColToggles(){
+  const cols=[];
+  document.querySelectorAll('.monthly-col:checked').forEach(cb=>cols.push(cb.value));
+  return cols;
+}
+function getEmpColValue(e,col){
+  if(col==='country')return e.country||'—';
+  if(col==='seniority')return e.seniority||'—';
+  if(col==='function')return e.function||'—';
+  const proj=getEmpProject(e);
+  if(col==='project')return proj?proj.code:'—';
+  if(col==='product')return proj?proj.product:'—';
+  if(col==='category')return proj?proj.category:'—';
+  return '—';
+}
+const COL_LABELS={country:'Country',seniority:'Seniority',function:'Function',project:'Project',product:'Product',category:'Category'};
+
 function renderMonthly(){
+  // In ops mode, force summary and clear individual filter
+  const isOps=document.body.classList.contains('ops-mode');
+  if(isOps&&monthlyMode==='detail'){
+    monthlyMode='summary';
+    document.querySelectorAll('#monthlyToggle .btn').forEach(x=>{x.classList.toggle('active',x.dataset.mode==='summary')});
+  }
+  if(isOps)document.getElementById('monthlyFilter').value='';
+
   const filterVal=document.getElementById('monthlyFilter').value;
   let emps=state.employees;
-  if(filterVal)emps=emps.filter(e=>e.id===filterVal);
+  if(filterVal&&!isOps)emps=emps.filter(e=>e.id===filterVal);
   const sel=document.getElementById('monthlyFilter');
   const cv=sel.value;
   sel.innerHTML='<option value="">All Employees</option>'+state.employees.map(e=>`<option value="${e.id}"${e.id===cv?' selected':''}>${e.name}</option>`).join('');
 
   const tbl=document.getElementById('monthlyTable');
+  const cols=getMonthlyColToggles();
+
   if(monthlyMode==='summary'){
-    let annBase=0,annBonus=0,annBen=0;
-    let html='<thead><tr><th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th></tr></thead><tbody>';
-    MONTHS.forEach((m,mi)=>{
-      const mBase=emps.reduce((a,e)=>a+getMonthlyBase(e,mi),0);
-      const mBonus=emps.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);
-      const mBen=emps.reduce((a,e)=>a+getMonthlyBenefits(e,mi),0);
-      const mTotal=mBase+mBonus+mBen;
-      annBase+=mBase;annBonus+=mBonus;annBen+=mBen;
-      html+=`<tr><td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td></tr>`;
-    });
-    html+=`</tbody><tfoot><tr><td>Annual Total</td><td>${fmt(annBase)}</td><td>${fmt(annBonus)}</td><td>${fmt(annBen)}</td><td style="color:var(--accent)">${fmt(annBase+annBonus+annBen)}</td></tr></tfoot>`;
-    tbl.innerHTML=html;
+    // Build summary rows — optionally grouped by toggled columns
+    if(cols.length===0){
+      // Simple summary: one row per month
+      let annBase=0,annBonus=0,annBen=0;
+      let html='<thead><tr><th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th></tr></thead><tbody>';
+      MONTHS.forEach((m,mi)=>{
+        const mBase=emps.reduce((a,e)=>a+getMonthlyBase(e,mi),0);
+        const mBonus=emps.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);
+        const mBen=emps.reduce((a,e)=>a+getMonthlyBenefits(e,mi),0);
+        const mTotal=mBase+mBonus+mBen;
+        annBase+=mBase;annBonus+=mBonus;annBen+=mBen;
+        html+=`<tr><td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td></tr>`;
+      });
+      html+=`</tbody><tfoot><tr><td>Annual Total</td><td>${fmt(annBase)}</td><td>${fmt(annBonus)}</td><td>${fmt(annBen)}</td><td style="color:var(--accent)">${fmt(annBase+annBonus+annBen)}</td></tr></tfoot>`;
+      tbl.innerHTML=html;
+    } else {
+      // Grouped summary: rows per month per unique combination of toggled fields
+      const groupKey=e=>cols.map(c=>getEmpColValue(e,c)).join('||');
+      const groupMap={};
+      emps.forEach(e=>{const k=groupKey(e);if(!groupMap[k])groupMap[k]={emps:[],labels:cols.map(c=>getEmpColValue(e,c))};groupMap[k].emps.push(e)});
+      const groups=Object.values(groupMap).sort((a,b)=>a.labels.join('').localeCompare(b.labels.join('')));
+
+      let html='<thead><tr>';
+      cols.forEach(c=>html+=`<th>${COL_LABELS[c]}</th>`);
+      html+='<th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th></tr></thead><tbody>';
+      const annTotals={base:0,bonus:0,ben:0};
+      groups.forEach(g=>{
+        MONTHS.forEach((m,mi)=>{
+          const mBase=g.emps.reduce((a,e)=>a+getMonthlyBase(e,mi),0);
+          const mBonus=g.emps.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);
+          const mBen=g.emps.reduce((a,e)=>a+getMonthlyBenefits(e,mi),0);
+          const mTotal=mBase+mBonus+mBen;
+          annTotals.base+=mBase;annTotals.bonus+=mBonus;annTotals.ben+=mBen;
+          html+='<tr>';
+          if(mi===0){cols.forEach((c,ci)=>html+=`<td rowspan="12" style="font-weight:600;vertical-align:top;border-right:1px solid var(--border-light)">${g.labels[ci]}</td>`)}
+          html+=`<td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td></tr>`;
+        });
+      });
+      html+=`</tbody><tfoot><tr>`;
+      cols.forEach(()=>html+='<td></td>');
+      html+=`<td>Annual Total</td><td>${fmt(annTotals.base)}</td><td>${fmt(annTotals.bonus)}</td><td>${fmt(annTotals.ben)}</td><td style="color:var(--accent)">${fmt(annTotals.base+annTotals.bonus+annTotals.ben)}</td></tr></tfoot>`;
+      tbl.innerHTML=html;
+    }
   } else {
+    // Detail mode — individual employees with optional roster columns
     let html='<thead><tr><th>Month</th>';
-    emps.forEach(e=>html+=`<th>${e.name}</th>`);
+    emps.forEach(e=>{
+      let label=e.name;
+      if(cols.length)label+=`<br><span style="font-size:.7rem;color:var(--text-dim);font-weight:400">${cols.map(c=>getEmpColValue(e,c)).join(' / ')}</span>`;
+      html+=`<th>${label}</th>`;
+    });
     html+='<th>Total</th></tr></thead><tbody>';
     let annuals=emps.map(()=>0);let grandTotal=0;
     MONTHS.forEach((m,mi)=>{
@@ -1197,6 +1271,7 @@ document.querySelectorAll('#monthlyToggle .btn').forEach(b=>b.addEventListener('
   document.querySelectorAll('#monthlyToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');monthlyMode=b.dataset.mode;renderMonthly();
 }));
 document.getElementById('monthlyFilter').addEventListener('change',renderMonthly);
+document.querySelectorAll('.monthly-col').forEach(cb=>cb.addEventListener('change',renderMonthly));
 
 // ── LONG TERM FORECAST ──
 let forecastChart=null;
@@ -1522,6 +1597,7 @@ toggleDark.addEventListener('change',()=>{
 toggleOps.addEventListener('change',()=>{
   document.body.classList.toggle('ops-mode',toggleOps.checked);
   sessionStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
+  renderMonthly();
 });
 // Restore preferences
 if(sessionStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;document.documentElement.classList.add('dark')}
