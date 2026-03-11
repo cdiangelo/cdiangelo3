@@ -129,7 +129,30 @@ tr:hover{background:rgba(139,32,32,.03)}
 .modal{background:var(--panel);border-radius:12px;padding:24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 .modal h3{color:var(--accent);margin-bottom:16px;font-size:1.1rem}
 .modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
-@media(max-width:768px){.stat-cards{grid-template-columns:1fr 1fr}.controls{flex-direction:column;align-items:stretch}nav{flex-wrap:wrap}}
+/* Dark mode */
+html.dark{
+  --bg:#1a1a1e;--panel:#252529;--panel-inset:#1e1e22;
+  --accent:#d4524d;--accent-light:#e06560;--secondary:#8a9bb0;
+  --text:#d4d4d8;--text-dim:#8a8a8e;--text-dark:#eaeaea;
+  --border:#3a3a3f;--border-light:#2f2f34;
+  --danger:#cf4444;--success:#4a9d54;--warning:#d4a020;
+  --flag-bg:#3a3020;--flag-border:#6a5a2a;
+}
+html.dark select,html.dark input,html.dark textarea{background:#2a2a2e;border-color:var(--border);color:var(--text)}
+html.dark tr:hover{background:rgba(212,82,77,.05)}
+html.dark .ws-list li:hover{background:rgba(212,82,77,.05)}
+/* Operations mode: hide individual comp values */
+body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
+body.ops-mode .comp-sensitive::selection{color:transparent}
+/* Toggle row in header */
+.header-toggles{display:flex;gap:12px;align-items:center;margin-left:auto}
+.header-toggle{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-dim);cursor:pointer;white-space:nowrap}
+.header-toggle input[type=checkbox]{display:none}
+.toggle-track{width:36px;height:20px;background:var(--border);border-radius:10px;position:relative;transition:background .2s;flex-shrink:0}
+.toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s}
+.header-toggle input:checked+.toggle-track{background:var(--accent)}
+.header-toggle input:checked+.toggle-track::after{transform:translateX(16px)}
+@media(max-width:768px){.stat-cards{grid-template-columns:1fr 1fr}.controls{flex-direction:column;align-items:stretch}nav{flex-wrap:wrap}.header-toggles{margin-left:0;margin-top:4px}}
 </style>
 </head>
 <body>
@@ -147,6 +170,10 @@ tr:hover{background:rgba(139,32,32,.03)}
 <button data-tab="benefits">Benefits Assumptions</button>
 <button data-tab="export">Export</button>
 </nav>
+<div class="header-toggles">
+<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
+<label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
+</div>
 </div>
 </header>
 <main class="container">
@@ -925,8 +952,8 @@ function renderEmployees(){
         <td><select class="ie-project"><option value="">—</option>${state.projects.map(p=>`<option value="${p.id}"${p.id===e.projectId?' selected':''}>${p.code}</option>`).join('')}</select></td>
         <td style="font-size:.78rem;color:var(--text-dim)">${proj?proj.product:'—'}</td>
         <td style="font-size:.78rem;color:var(--text-dim)">${proj?proj.category:'—'}</td>
-        <td><input class="ie-salary" type="number" value="${e.salary}"></td>
-        <td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td>${fmt(tc)}</td>
+        <td class="comp-sensitive"><input class="ie-salary" type="number" value="${e.salary}"></td>
+        <td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive">${fmt(tc)}</td>
         <td><input class="ie-hire" type="date" value="${e.hireDate||''}"></td>
         <td><input class="ie-term" type="date" value="${e.termDate||''}"></td>
         <td style="min-width:160px">${allocEditHtml}</td>
@@ -936,7 +963,7 @@ function renderEmployees(){
     return `<tr data-id="${e.id}">
       <td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
       <td style="font-weight:600;color:var(--accent)">${projCode}</td><td style="font-size:.82rem;color:var(--text-dim)">${projProduct}</td><td style="font-size:.82rem;color:var(--text-dim)">${projCategory}</td>
-      <td>${fmt(e.salary)}</td><td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
+      <td class="comp-sensitive">${fmt(e.salary)}</td><td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
       <td><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
     </tr>`;
@@ -1104,12 +1131,12 @@ function renderMonthly(){
     MONTHS.forEach((m,mi)=>{
       html+=`<tr><td>${m}</td>`;
       let rowTotal=0;
-      emps.forEach((e,i)=>{const v=getMonthlyComp(e,mi);annuals[i]+=v;rowTotal+=v;html+=`<td>${fmt(v)}</td>`});
+      emps.forEach((e,i)=>{const v=getMonthlyComp(e,mi);annuals[i]+=v;rowTotal+=v;html+=`<td class="comp-sensitive">${fmt(v)}</td>`});
       grandTotal+=rowTotal;
       html+=`<td style="font-weight:600;color:var(--accent)">${fmt(rowTotal)}</td></tr>`;
     });
     html+='</tbody><tfoot><tr><td>Annual Total</td>';
-    emps.forEach((e,i)=>html+=`<td>${fmt(annuals[i])}</td>`);
+    emps.forEach((e,i)=>html+=`<td class="comp-sensitive">${fmt(annuals[i])}</td>`);
     html+=`<td style="color:var(--accent)">${fmt(grandTotal)}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   }
@@ -1430,6 +1457,23 @@ document.getElementById('jsonFileInput').addEventListener('change',e=>{
   reader.onload=ev=>{try{state=JSON.parse(ev.target.result);ensureStateFields();saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
   reader.readAsText(file);
 });
+
+// ── DARK MODE & OPS VIEW ──
+const toggleDark=document.getElementById('toggleDark');
+const toggleOps=document.getElementById('toggleOps');
+toggleDark.addEventListener('change',()=>{
+  document.documentElement.classList.toggle('dark',toggleDark.checked);
+  localStorage.setItem('compPlanDark',toggleDark.checked?'1':'0');
+  // Re-render chart with updated colors
+  renderForecast();
+});
+toggleOps.addEventListener('change',()=>{
+  document.body.classList.toggle('ops-mode',toggleOps.checked);
+  localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
+});
+// Restore preferences
+if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;document.documentElement.classList.add('dark')}
+if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
 
 // ── WORKSPACES ──
 const WS_INDEX_KEY='compPlanWorkspaces';
