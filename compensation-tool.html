@@ -699,6 +699,10 @@ function ensureStateFields(){
   state.projects.forEach(p=>{if(!p.description)p.description='';if(!p.marketCode)p.marketCode=''});
   if(!state.markets)state.markets=DEFAULT_MARKETS.map(m=>({...m}));
   if(!state.bizLines)state.bizLines=DEFAULT_BIZ_LINES.map(b=>({...b}));
+  // Ensure a default "General" project exists for unallocated employees
+  if(!state.projects.some(p=>p.code==='GEN-000')){
+    state.projects.unshift({id:uid(),name:'General / Unallocated',code:'GEN-000',description:'Default coding string for employees without a project allocation',category:'',marketCode:'GL0000',capPct:0});
+  }
   // Migrate old string businessLine values to numeric codes
   const bizNameToCode={};
   state.bizLines.forEach(b=>{bizNameToCode[b.name.toLowerCase()]=b.code});
@@ -707,7 +711,21 @@ function ensureStateFields(){
       const mapped=bizNameToCode[e.businessLine.toLowerCase()];
       if(mapped)e.businessLine=mapped;
     }
+    // Default business unit from country
     if(!e.businessUnit)e.businessUnit=COUNTRY_BU[e.country]||'';
+    // Default business line: first available code
+    if(!e.businessLine&&state.bizLines.length)e.businessLine=state.bizLines[0].code;
+    // Default seniority/function if somehow missing
+    if(!e.seniority||!SENIORITY.includes(e.seniority))e.seniority=e.seniority||'Mid-Level';
+    if(!e.function||!FUNCTIONS.includes(e.function))e.function=e.function||'Software Engineering';
+    if(!e.country||!COUNTRIES.includes(e.country))e.country=e.country||'United States';
+    // Auto-derive salary from benchmarks when not provided
+    if(!e.salary||e.salary<=0){
+      e.salary=benchmark(e.seniority,e.function,e.country);
+    }
+    // Ensure capPct is a valid number
+    if(e.capPct===undefined||e.capPct===null||e.capPct==='')e.capPct=0;
+    e.capPct=parseFloat(e.capPct)||0;
   });
   if(!state.benefitsMatrix){
     state.benefitsMatrix={};
@@ -753,18 +771,32 @@ function ensureStateFields(){
     }
     // Ensure exactly one primary if allocations exist
     if(e.allocations.length&&!e.allocations.some(a=>a.primary)){e.allocations[0].primary=true}
+    // Assign default coding string (GEN-000) if no allocations at all
+    if(!e.allocations.length){
+      const genProj=state.projects.find(p=>p.code==='GEN-000');
+      if(genProj)e.allocations=[{projId:genProj.id,pct:100,primary:true}];
+    }
+    // Validate allocation projIds — remove any referencing deleted projects
+    e.allocations=e.allocations.filter(a=>state.projects.some(p=>p.id===a.projId));
+    if(e.allocations.length&&!e.allocations.some(a=>a.primary))e.allocations[0].primary=true;
+    // Re-assign default if all allocations were pruned
+    if(!e.allocations.length){
+      const genProj=state.projects.find(p=>p.code==='GEN-000');
+      if(genProj)e.allocations=[{projId:genProj.id,pct:100,primary:true}];
+    }
   });
 }
 function saveState(){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
-function getBonusPct(emp){return state.bonusMatrix[emp.seniority]?.[emp.function]??DEFAULT_BONUS[emp.seniority]??10}
-function getBonusAmt(emp){return Math.round(emp.salary*getBonusPct(emp)/100)}
+function getBonusPct(emp){if(!emp||!emp.seniority)return 10;return state.bonusMatrix[emp.seniority]?.[emp.function]??DEFAULT_BONUS[emp.seniority]??10}
+function getBonusAmt(emp){if(!emp)return 0;return Math.round((emp.salary||0)*getBonusPct(emp)/100)}
 function getBenefitsPct(emp){
+  if(!emp||!emp.seniority)return 20;
   const base=state.benefitsMatrix[emp.seniority]?.[emp.function]??DEFAULT_BENEFITS[emp.seniority]??20;
-  const countryMult=state.benefitsCountryMult[emp.country]??1;
+  const countryMult=state.benefitsCountryMult[emp.country]??BENEFITS_COUNTRY_MULT[emp.country]??1;
   return Math.round(base*countryMult*10)/10;
 }
-function getBenefitsAmt(emp){return Math.round(emp.salary*getBenefitsPct(emp)/100)}
-function getTotalComp(emp){return emp.salary+getBonusAmt(emp)+getBenefitsAmt(emp)}
+function getBenefitsAmt(emp){if(!emp)return 0;return Math.round((emp.salary||0)*getBenefitsPct(emp)/100)}
+function getTotalComp(emp){if(!emp)return 0;return (emp.salary||0)+getBonusAmt(emp)+getBenefitsAmt(emp)}
 
 // ── Date proration helpers ──
 const CURRENT_YEAR=new Date().getFullYear();
@@ -795,18 +827,18 @@ function getAnnualFactor(emp,year){
   for(let m=0;m<12;m++)total+=getMonthFactor(emp,m,year);
   return total/12;
 }
-function getProratedBase(emp,year){return Math.round(emp.salary*getAnnualFactor(emp,year))}
-function getProratedBonus(emp,year){return Math.round(getBonusAmt(emp)*getAnnualFactor(emp,year))}
-function getProratedBenefits(emp,year){return Math.round(getBenefitsAmt(emp)*getAnnualFactor(emp,year))}
-function getProratedComp(emp,year){return getProratedBase(emp,year)+getProratedBonus(emp,year)+getProratedBenefits(emp,year)}
-function getMonthlyBase(emp,monthIdx,year){return Math.round(emp.salary/12*getMonthFactor(emp,monthIdx,year))}
-function getMonthlyBonus(emp,monthIdx,year){return Math.round(getBonusAmt(emp)/12*getMonthFactor(emp,monthIdx,year))}
-function getMonthlyBenefits(emp,monthIdx,year){return Math.round(getBenefitsAmt(emp)/12*getMonthFactor(emp,monthIdx,year))}
-function getMonthlyComp(emp,monthIdx,year){return getMonthlyBase(emp,monthIdx,year)+getMonthlyBonus(emp,monthIdx,year)+getMonthlyBenefits(emp,monthIdx,year)}
+function getProratedBase(emp,year){if(!emp)return 0;return Math.round((emp.salary||0)*getAnnualFactor(emp,year))}
+function getProratedBonus(emp,year){if(!emp)return 0;return Math.round(getBonusAmt(emp)*getAnnualFactor(emp,year))}
+function getProratedBenefits(emp,year){if(!emp)return 0;return Math.round(getBenefitsAmt(emp)*getAnnualFactor(emp,year))}
+function getProratedComp(emp,year){if(!emp)return 0;return getProratedBase(emp,year)+getProratedBonus(emp,year)+getProratedBenefits(emp,year)}
+function getMonthlyBase(emp,monthIdx,year){if(!emp)return 0;return Math.round((emp.salary||0)/12*getMonthFactor(emp,monthIdx,year))}
+function getMonthlyBonus(emp,monthIdx,year){if(!emp)return 0;return Math.round(getBonusAmt(emp)/12*getMonthFactor(emp,monthIdx,year))}
+function getMonthlyBenefits(emp,monthIdx,year){if(!emp)return 0;return Math.round(getBenefitsAmt(emp)/12*getMonthFactor(emp,monthIdx,year))}
+function getMonthlyComp(emp,monthIdx,year){if(!emp)return 0;return getMonthlyBase(emp,monthIdx,year)+getMonthlyBonus(emp,monthIdx,year)+getMonthlyBenefits(emp,monthIdx,year)}
 // CapEx / OpEx helpers
-function getCapPct(emp){return parseFloat(emp.capPct)||0}
-function getCapEx(emp){return Math.round(getTotalComp(emp)*getCapPct(emp)/100)}
-function getOpEx(emp){return getTotalComp(emp)-getCapEx(emp)}
+function getCapPct(emp){if(!emp)return 0;return parseFloat(emp.capPct)||0}
+function getCapEx(emp){if(!emp)return 0;return Math.round(getTotalComp(emp)*getCapPct(emp)/100)}
+function getOpEx(emp){if(!emp)return 0;return getTotalComp(emp)-getCapEx(emp)}
 function getProratedCapEx(emp,year){return Math.round(getProratedComp(emp,year)*getCapPct(emp)/100)}
 function getProratedOpEx(emp,year){return getProratedComp(emp,year)-getProratedCapEx(emp,year)}
 function getMonthlyCapEx(emp,monthIdx,year){return Math.round(getMonthlyComp(emp,monthIdx,year)*getCapPct(emp)/100)}
@@ -1265,13 +1297,19 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const func=document.getElementById('empFunction').value;
   const businessLine=document.getElementById('empBusinessLine').value;
   const businessUnit=COUNTRY_BU[country]||'';
-  const salary=parseFloat(document.getElementById('empSalary').value)||0;
+  const rawSalary=parseFloat(document.getElementById('empSalary').value)||0;
+  const salary=rawSalary>0?rawSalary:benchmark(seniority,func,country);
   const capPct=parseFloat(document.getElementById('empCapPct').value)||0;
   const notes=document.getElementById('empNotes').value.trim();
   const hireDate=document.getElementById('empHireDate').value;
   const termDate=document.getElementById('empTermDate').value;
   if(!name||!country||!seniority||!func){alert('Please fill required fields');return}
-  const allocations=getFormAllocations();
+  let allocations=getFormAllocations();
+  // Default coding string if no allocations provided
+  if(!allocations.length){
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    if(genProj)allocations=[{projId:genProj.id,pct:100,primary:true}];
+  }
   if(editingId){
     const emp=state.employees.find(e=>e.id===editingId);
     if(emp){Object.assign(emp,{name,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations})}
@@ -1399,7 +1437,8 @@ function saveInlineEdit(id){
   emp.function=row.querySelector('.ie-function').value;
   const ieBiz=row.querySelector('.ie-bizline');
   if(ieBiz)emp.businessLine=ieBiz.value;
-  emp.salary=parseFloat(row.querySelector('.ie-salary').value)||emp.salary;
+  const rawSal=parseFloat(row.querySelector('.ie-salary').value)||0;
+  emp.salary=rawSal>0?rawSal:benchmark(emp.seniority,emp.function,emp.country);
   const ieCap=row.querySelector('.ie-cappct');
   if(ieCap)emp.capPct=parseFloat(ieCap.value)||0;
   const ieHire=row.querySelector('.ie-hire');
@@ -1418,6 +1457,12 @@ function saveInlineEdit(id){
     });
     emp.allocations=inlineEditAllocs.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:!!a.primary}));
   }
+  // Ensure default coding string if allocations ended up empty
+  if(!emp.allocations||!emp.allocations.length){
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    if(genProj)emp.allocations=[{projId:genProj.id,pct:100,primary:true}];
+  }
+  if(emp.allocations.length&&!emp.allocations.some(a=>a.primary))emp.allocations[0].primary=true;
   inlineEditId=null;inlineEditAllocs=null;saveState();renderEmployees();
 }
 function cancelInlineEdit(){inlineEditId=null;inlineEditAllocs=null;renderEmployees()}
@@ -2834,7 +2879,12 @@ document.getElementById('rosterFileInput').addEventListener('change',function(){
     function flushEmp(){
       if(!currentEmp)return;
       currentEmp.allocations=pendingAllocs.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:false}));
-      if(currentEmp.allocations.length)currentEmp.allocations[0].primary=true;
+      if(currentEmp.allocations.length){currentEmp.allocations[0].primary=true}
+      else {
+        // Auto-assign default coding string (GEN-000) when no project provided
+        const genProj=state.projects.find(p=>p.code==='GEN-000');
+        if(genProj)currentEmp.allocations=[{projId:genProj.id,pct:100,primary:true}];
+      }
       pendingAllocs=[];
       currentEmp=null;
     }
@@ -2867,7 +2917,8 @@ document.getElementById('rosterFileInput').addEventListener('change',function(){
       if(!SENIORITY.includes(seniority)){errors.push(`Row ${ri+2}: Unknown seniority "${seniority}"`);skipped++;return}
       if(!FUNCTIONS.includes(func)){errors.push(`Row ${ri+2}: Unknown function "${func}"`);skipped++;return}
 
-      const salary=parseFloat(r['Base Salary'])||0;
+      const rawSalary=parseFloat(r['Base Salary'])||0;
+      const salary=rawSalary>0?rawSalary:benchmark(seniority,func,country);
       const capPct=parseFloat(r['Capitalization %'])||0;
       const bizLine=(r['Business Line Code']||'').toString().trim().split(' ')[0]; // handle "100 — Platform Engineering"
       const hireDate=parseExcelDate(r['Hire Date']);
@@ -2878,10 +2929,10 @@ document.getElementById('rosterFileInput').addEventListener('change',function(){
       // Find existing employee by name
       let emp=state.employees.find(e=>e.name.toLowerCase()===name.toLowerCase());
       if(emp){
-        Object.assign(emp,{name,country,seniority,function:func,salary:salary||emp.salary,capPct,businessLine:bizLine||emp.businessLine,businessUnit,notes:notes||emp.notes,hireDate:hireDate||emp.hireDate,termDate:termDate||emp.termDate});
+        Object.assign(emp,{name,country,seniority,function:func,salary:salary||emp.salary,capPct,businessLine:bizLine||emp.businessLine||state.bizLines[0]?.code||'',businessUnit,notes:notes||emp.notes,hireDate:hireDate||emp.hireDate,termDate:termDate||emp.termDate});
         currentEmp=emp;updated++;
       } else {
-        emp={id:uid(),name,country,seniority,function:func,salary,capPct,businessLine:bizLine,businessUnit,notes,hireDate,termDate,allocations:[]};
+        emp={id:uid(),name,country,seniority,function:func,salary,capPct,businessLine:bizLine||state.bizLines[0]?.code||'',businessUnit,notes,hireDate,termDate,allocations:[]};
         state.employees.push(emp);
         currentEmp=emp;added++;
       }
