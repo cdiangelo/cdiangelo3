@@ -900,27 +900,20 @@ function renderStats(emps){
 }
 const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a','#5e7a8b','#8b7a5e','#6b8b7a','#7a8b5e'];
 function hexToRgba(hex,alpha){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${alpha})`}
-function fteTooltipCallbacks(datasets){
-  return {
-    mode:'index',
-    intersect:false,
-    callbacks:{
-      label(ctx){
-        const val=ctx.parsed.y;
-        const total=datasets.reduce((s,ds)=>{const v=ds.data[ctx.dataIndex];return s+(typeof v==='number'?v:0)},0);
-        const pct=total?Math.round(val/total*100):0;
-        if(datasets.length<=1)return `${ctx.dataset.label}: ${val} FTEs`;
-        return `${ctx.dataset.label}: ${val} FTEs (${pct}%)`;
-      },
-      afterBody(items){
-        if(!items.length)return '';
-        const idx=items[0].dataIndex;
-        const total=datasets.reduce((s,ds)=>{const v=ds.data[idx];return s+(typeof v==='number'?v:0)},0);
-        return `\nTotal: ${Math.round(total*10)/10} FTEs`;
-      }
+const FTE_TOOLTIP={
+  mode:'index',intersect:false,
+  callbacks:{
+    label(ctx){return `${ctx.dataset.label}: ${ctx.parsed.y} FTEs`},
+    afterBody(items){
+      if(!items.length)return '';
+      const chart=items[0].chart;
+      const idx=items[0].dataIndex;
+      let total=0;
+      chart.data.datasets.forEach(ds=>{const v=ds.data[idx];if(typeof v==='number')total+=v});
+      return `\nTotal: ${Math.round(total*10)/10} FTEs`;
     }
-  };
-}
+  }
+};
 function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return '$'+n}
 function stackedBarDatalabels(datasets,tickColor){
   // Show total label on topmost positive bar and bottommost negative bar per x-index
@@ -1114,11 +1107,23 @@ function renderDashboard(){
       const data=MONTH_SHORT.map((_,mi)=>Math.round(emps.reduce((a,e)=>a+empFte(e,mi),0)*10)/10);
       fteDatasets=[{label:'Allocated FTEs',data,borderColor:isDark?'#a38b5e':'#8b5e5e',backgroundColor:hexToRgba(isDark?'#a38b5e':'#8b5e5e',0.15),fill:true,tension:0.4,pointRadius:2,borderWidth:2}];
     }
+    // Add total data label on topmost FTE dataset
+    fteDatasets.forEach((ds,i)=>{
+      if(i===fteDatasets.length-1){
+        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:9,weight:'bold'},
+          formatter:(_,ctx)=>{
+            let sum=0;fteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
+            return sum?Math.round(sum*10)/10:'';
+          }};
+      } else {
+        ds.datalabels={display:false};
+      }
+    });
     fteChart=new Chart(document.getElementById('fteChart'),{
       type:'line',
       data:{labels:MONTH_SHORT,datasets:fteDatasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:{display:false},tooltip:fteTooltipCallbacks(fteDatasets)},
+        plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
           x:{ticks:{color:tickColor,font:{size:10}},grid:{display:false},stacked:true},
           y:{beginAtZero:true,stacked:true,ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor},title:{display:true,text:'Allocated FTEs',color:tickColor,font:{size:10}}}
@@ -2095,11 +2100,23 @@ function renderForecastProjection(){
     } else {
       fcFteDatasets=[{label:'Projected FTEs',data:totalRows.map(r=>r.hc),borderColor:isDark2?'#a38b5e':'#8b5e5e',backgroundColor:hexToRgba(isDark2?'#a38b5e':'#8b5e5e',0.15),fill:true,tension:0.4,pointRadius:3,borderWidth:2}];
     }
+    // Add total data label on topmost forecast FTE dataset
+    fcFteDatasets.forEach((ds,i)=>{
+      if(i===fcFteDatasets.length-1){
+        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor2,font:{size:9,weight:'bold'},
+          formatter:(_,ctx)=>{
+            let sum=0;fcFteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
+            return sum||'';
+          }};
+      } else {
+        ds.datalabels={display:false};
+      }
+    });
     window._forecastFteChart=new Chart(document.getElementById('forecastFteChart'),{
       type:'line',
       data:{labels:fteLabels,datasets:fcFteDatasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:fcFteDatasets.length>1,labels:{color:tickColor2,boxWidth:10,font:{size:9}}},datalabels:{display:false},tooltip:fteTooltipCallbacks(fcFteDatasets)},
+        plugins:{legend:{display:fcFteDatasets.length>1,labels:{color:tickColor2,boxWidth:10,font:{size:9}}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
           x:{ticks:{color:tickColor2,font:{size:10}},grid:{display:false},stacked:true},
           y:{beginAtZero:true,stacked:true,ticks:{color:tickColor2,font:{size:10}},grid:{color:gridColor2},title:{display:true,text:'Projected FTEs',color:tickColor2,font:{size:10}}}
