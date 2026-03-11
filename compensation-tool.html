@@ -222,7 +222,7 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="form-group"><label>Country</label><select id="empCountry"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Seniority</label><select id="empSeniority"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Job Function</label><select id="empFunction"><option value="">Select…</option></select></div>
-<div class="form-group"><label>Market Code</label><input id="empMarketCode" readonly placeholder="Auto from projects" style="background:var(--panel-inset);cursor:default;font-size:.82rem"></div>
+<div class="form-group"><label>Market Code</label><input id="empMarketCode" readonly placeholder="Global (default)" style="background:var(--panel-inset);cursor:default;font-size:.82rem"></div>
 <div class="form-group"><label>Business Line</label><select id="empBusinessLine"><option value="">Select…</option></select></div>
 <div class="form-group ops-hide"><label>Business Unit</label><input id="empBusinessUnit" readonly placeholder="Auto from country" style="background:var(--panel-inset);cursor:default"></div>
 <div class="form-group"><label>Base Salary (USD)</label><input id="empSalary" type="number" placeholder="0"><div id="benchmarkBadge"></div></div>
@@ -1008,7 +1008,8 @@ function updateFormMarketDisplay(){
     const existing=mkts.find(m=>m.code===mkt);
     if(existing)existing.pct+=a.pct;else mkts.push({code:mkt,pct:a.pct});
   });
-  const display=mkts.length?mkts.map(m=>m.code+(mkts.length>1?` (${m.pct}%)`:'')).join(', '):'GL0000';
+  function mktLabel(code){const m=state.markets.find(x=>x.code===code);return m?`${code} — ${m.name}`:code}
+  const display=mkts.length?mkts.map(m=>mktLabel(m.code)+(mkts.length>1?` (${m.pct}%)`:'')).join(', '):'Global (GL0000)';
   document.getElementById('empMarketCode').value=display;
 }
 function updateFormAllocInfo(){
