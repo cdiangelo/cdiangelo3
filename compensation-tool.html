@@ -108,6 +108,11 @@ tr:hover{background:rgba(139,32,32,.03)}
 .forecast-table td:first-child,.forecast-table th:first-child{text-align:left}
 .forecast-table tfoot{font-weight:700;border-top:2px solid var(--accent)}
 .projects-table input,.projects-table select{padding:4px 6px;font-size:.82rem}
+.expand-select{display:inline-block;margin-left:16px;font-size:.8rem}
+.expand-select select{width:auto;padding:4px 8px;font-size:.78rem;display:inline}
+.expand-select label{display:inline;margin-right:4px;font-size:.78rem;color:var(--text-dim)}
+.forecast-group-row{margin-bottom:12px;padding:10px;background:var(--panel);border:1px solid var(--border-light);border-radius:6px}
+.forecast-group-row .group-label{font-size:.82rem;font-weight:600;color:var(--accent);margin-bottom:6px}
 @media(max-width:768px){.stat-cards{grid-template-columns:1fr 1fr}.controls{flex-direction:column;align-items:stretch}nav{flex-wrap:wrap}}
 </style>
 </head>
@@ -119,10 +124,10 @@ tr:hover{background:rgba(139,32,32,.03)}
 <button class="active" data-tab="dashboard">Dashboard</button>
 <button data-tab="employees">Employees</button>
 <button data-tab="projects">Projects</button>
-<button data-tab="bonuses">Bonus Assumptions</button>
-<button data-tab="benefits">Benefits Assumptions</button>
 <button data-tab="monthly">Monthly Spread</button>
 <button data-tab="forecast">Long Term Forecast</button>
+<button data-tab="bonuses">Bonus Assumptions</button>
+<button data-tab="benefits">Benefits Assumptions</button>
 <button data-tab="export">Export</button>
 </nav>
 </div>
@@ -146,6 +151,7 @@ tr:hover{background:rgba(139,32,32,.03)}
 <div class="toggle-group" id="stackToggle">
 <button class="btn active" data-stack="baseBonus">Base vs Bonus</button>
 <button class="btn" data-stack="seniority">Seniority</button>
+<button class="btn" data-stack="country">Country</button>
 </div>
 </div>
 </div>
@@ -267,41 +273,46 @@ tr:hover{background:rgba(139,32,32,.03)}
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togAttrition" checked><span class="toggle-slider"></span></label>
 <label><strong>Annual Attrition Rate (%)</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandAttrition" onchange="onExpandChange('attrition',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
-<div class="forecast-grid" id="attritionInputs"></div>
+<div id="attritionInputs"></div>
 </div>
 
 <div class="card-inset forecast-section">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togHires" checked><span class="toggle-slider"></span></label>
 <label><strong>Annual New Hires (Headcount)</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandHires" onchange="onExpandChange('hires',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
-<div class="forecast-grid" id="hiresInputs"></div>
+<div id="hiresInputs"></div>
 </div>
 
 <div class="card-inset forecast-section">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togMerit" checked><span class="toggle-slider"></span></label>
 <label><strong>Annual Merit Increase (%)</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandMerit" onchange="onExpandChange('merit',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
-<div class="forecast-grid" id="meritInputs"></div>
+<div id="meritInputs"></div>
 </div>
 
 <div class="card-inset forecast-section">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togMarket" checked><span class="toggle-slider"></span></label>
 <label><strong>Market Rate Growth (%)</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandMarket" onchange="onExpandChange('market',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
-<div class="forecast-grid" id="marketInputs"></div>
+<div id="marketInputs"></div>
 </div>
 
 <div class="card-inset forecast-section">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togAI" checked><span class="toggle-slider"></span></label>
 <label><strong>AI Productivity Gearing Factor</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandAI" onchange="onExpandChange('ai',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
 <p style="color:var(--text-dim);font-size:.8rem;margin-bottom:12px">Tiered multiplier: reduces required headcount growth by this factor (1.0 = no effect, 0.8 = 20% fewer hires needed)</p>
-<div class="forecast-grid" id="aiInputs"></div>
+<div id="aiInputs"></div>
 </div>
 </div>
 
@@ -423,6 +434,8 @@ function ensureStateFields(){
       toggles:{attrition:true,hires:true,merit:true,market:true,ai:true}
     };
   }
+  if(!state.forecastAssumptions.expandBy)state.forecastAssumptions.expandBy={attrition:'total',hires:'total',merit:'total',market:'total',ai:'total'};
+  if(!state.forecastAssumptions.overrides)state.forecastAssumptions.overrides={};
   if(!state.allocOverrides)state.allocOverrides={};
   // Migrate old allocations array to per-employee allocations
   if(state.allocations){
@@ -588,6 +601,11 @@ function renderDashboard(){
       {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,e)=>a+getBonusAmt(e),0)),backgroundColor:'#6b8da3'},
       {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,e)=>a+getBenefitsAmt(e),0)),backgroundColor:'#a38b5e'}
     ];
+  } else if(stackBy==='country'){
+    COUNTRIES.forEach((c,i)=>{
+      const data=labels.map(l=>groups[l].filter(e=>e.country===c).reduce((a,e)=>a+getTotalComp(e),0));
+      if(data.some(v=>v>0))datasets.push({label:c,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
+    });
   } else {
     SENIORITY.forEach((s,i)=>{
       const data=labels.map(l=>groups[l].filter(e=>e.seniority===s).reduce((a,e)=>a+getTotalComp(e),0));
@@ -729,7 +747,8 @@ function startEdit(id){
 function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);delete state.allocOverrides[id];saveState();renderEmployees()}}
 
 let inlineEditId=null;
-function startInlineEdit(id){inlineEditId=id;renderEmployees()}
+let inlineEditAllocs=null;
+function startInlineEdit(id){inlineEditId=id;inlineEditAllocs=null;renderEmployees()}
 function saveInlineEdit(id){
   const row=document.querySelector(`tr[data-id="${id}"]`);if(!row)return;
   const emp=state.employees.find(e=>e.id===id);if(!emp)return;
@@ -740,9 +759,46 @@ function saveInlineEdit(id){
   emp.salary=parseFloat(row.querySelector('.ie-salary').value)||emp.salary;
   const ieProjEl=row.querySelector('.ie-project');
   if(ieProjEl)emp.projectId=ieProjEl.value;
-  inlineEditId=null;saveState();renderEmployees();
+  const ieHire=row.querySelector('.ie-hire');
+  if(ieHire)emp.hireDate=ieHire.value;
+  const ieTerm=row.querySelector('.ie-term');
+  if(ieTerm)emp.termDate=ieTerm.value;
+  // Save inline alloc edits
+  if(inlineEditAllocs){
+    row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{
+      const idx=parseInt(sel.dataset.ai);
+      if(inlineEditAllocs[idx])inlineEditAllocs[idx].projId=sel.value;
+    });
+    row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{
+      const idx=parseInt(inp.dataset.ai);
+      if(inlineEditAllocs[idx])inlineEditAllocs[idx].pct=parseFloat(inp.value)||0;
+    });
+    emp.allocations=inlineEditAllocs.filter(a=>a.projId);
+  }
+  inlineEditId=null;inlineEditAllocs=null;saveState();renderEmployees();
 }
-function cancelInlineEdit(){inlineEditId=null;renderEmployees()}
+function cancelInlineEdit(){inlineEditId=null;inlineEditAllocs=null;renderEmployees()}
+function addInlineAlloc(){
+  if(!inlineEditAllocs)inlineEditAllocs=[];
+  // Capture current values from DOM before re-render
+  const row=document.querySelector(`tr[data-id="${inlineEditId}"]`);
+  if(row){
+    row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{const idx=parseInt(sel.dataset.ai);if(inlineEditAllocs[idx])inlineEditAllocs[idx].projId=sel.value});
+    row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{const idx=parseInt(inp.dataset.ai);if(inlineEditAllocs[idx])inlineEditAllocs[idx].pct=parseFloat(inp.value)||0});
+  }
+  inlineEditAllocs.push({projId:'',pct:100});
+  renderEmployees();
+}
+function removeInlineAlloc(idx){
+  if(!inlineEditAllocs)return;
+  const row=document.querySelector(`tr[data-id="${inlineEditId}"]`);
+  if(row){
+    row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{const i=parseInt(sel.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].projId=sel.value});
+    row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{const i=parseInt(inp.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].pct=parseFloat(inp.value)||0});
+  }
+  inlineEditAllocs.splice(idx,1);
+  renderEmployees();
+}
 
 function renderEmployees(){
   const search=document.getElementById('empSearch').value.toLowerCase();
@@ -768,6 +824,19 @@ function renderEmployees(){
     const projProduct=proj?proj.product:'—';
     const projCategory=proj?proj.category:'—';
     if(inlineEditId===e.id){
+      const ieAllocs=inlineEditAllocs||(e.allocations?e.allocations.map(a=>({...a})):[]);
+      if(!inlineEditAllocs)inlineEditAllocs=ieAllocs;
+      let allocEditHtml=ieAllocs.map((a,i)=>{
+        const ap=getProjectById(a.projId);
+        return `<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px">
+          <select class="ie-alloc-proj" data-ai="${i}" style="width:100px;padding:3px;font-size:.78rem">
+            <option value="">—</option>${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code}</option>`).join('')}
+          </select>
+          <input type="number" class="ie-alloc-pct" data-ai="${i}" value="${a.pct}" min="0" max="100" style="width:55px;padding:3px;font-size:.78rem">%
+          <button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:.7rem" onclick="removeInlineAlloc(${i})">×</button>
+        </div>`;
+      }).join('');
+      allocEditHtml+=`<button class="btn btn-sm" style="padding:2px 8px;font-size:.72rem;margin-top:2px" onclick="addInlineAlloc()">+ Split</button>`;
       return `<tr data-id="${e.id}" class="inline-edit">
         <td><input class="ie-name" value="${e.name}"></td>
         <td><select class="ie-country">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
@@ -778,7 +847,9 @@ function renderEmployees(){
         <td style="font-size:.78rem;color:var(--text-dim)">${proj?proj.category:'—'}</td>
         <td><input class="ie-salary" type="number" value="${e.salary}"></td>
         <td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td>${fmt(tc)}</td>
-        <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
+        <td><input class="ie-hire" type="date" value="${e.hireDate||''}"></td>
+        <td><input class="ie-term" type="date" value="${e.termDate||''}"></td>
+        <td style="min-width:160px">${allocEditHtml}</td>
         <td><button class="btn btn-sm btn-primary" onclick="saveInlineEdit('${e.id}')">Save</button> <button class="btn btn-sm" onclick="cancelInlineEdit()">Cancel</button></td>
       </tr>`;
     }
@@ -972,22 +1043,83 @@ document.querySelectorAll('#forecastSplitToggle .btn').forEach(b=>b.addEventList
   document.querySelectorAll('#forecastSplitToggle .btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');forecastSplit=b.dataset.split;renderForecastProjection();
 }));
+function getExpandGroups(expandBy){
+  if(expandBy==='project'){
+    const groups=state.projects.map(p=>({key:p.id,label:p.code}));
+    return groups;
+  } else if(expandBy==='function'){
+    return FUNCTIONS.filter(f=>state.employees.some(e=>e.function===f)).map(f=>({key:f,label:f.length>20?f.slice(0,18)+'…':f}));
+  } else if(expandBy==='country'){
+    return COUNTRIES.filter(c=>state.employees.some(e=>e.country===c)).map(c=>({key:c,label:c}));
+  }
+  return [];
+}
+function getOverrideVal(key,groupKey,idx){
+  const ov=state.forecastAssumptions.overrides;
+  if(ov[key]&&ov[key][groupKey])return ov[key][groupKey][idx];
+  return state.forecastAssumptions[key][idx];
+}
+function setOverrideVal(key,groupKey,idx,val){
+  const ov=state.forecastAssumptions.overrides;
+  if(!ov[key])ov[key]={};
+  if(!ov[key][groupKey])ov[key][groupKey]=[...state.forecastAssumptions[key]];
+  ov[key][groupKey][idx]=val;
+  saveState();renderForecastProjection();
+}
+function onExpandChange(key,val){
+  state.forecastAssumptions.expandBy[key]=val;
+  saveState();renderForecastInputs();renderForecastProjection();
+}
 function renderForecastInputs(){
   const fa=state.forecastAssumptions;
+  if(!fa.expandBy)fa.expandBy={attrition:'total',hires:'total',merit:'total',market:'total',ai:'total'};
+  if(!fa.overrides)fa.overrides={};
   ['attrition','hires','merit','market','ai'].forEach(key=>{
     const container=document.getElementById(key+'Inputs');
-    const suffix=key==='hires'?'':'%';
+    const suffix=key==='hires'?'':key==='ai'?'x':'%';
     const step=key==='ai'?'0.01':'1';
-    container.innerHTML=FORECAST_YEARS.map((y,i)=>`
-      <div class="forecast-input-group">
-        <label>${y}</label>
-        <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${key!=='ai'&&key!=='hires'?'%':key==='ai'?'x':''}
-      </div>
-    `).join('');
+    const expandBy=fa.expandBy[key]||'total';
+    // Set expand dropdown
+    const expandIdMap={attrition:'Attrition',hires:'Hires',merit:'Merit',market:'Market',ai:'AI'};
+    const expandEl=document.getElementById('expand'+expandIdMap[key]);
+    if(expandEl)expandEl.value=expandBy;
+
+    if(expandBy==='total'){
+      container.innerHTML='<div class="forecast-grid">'+FORECAST_YEARS.map((y,i)=>`
+        <div class="forecast-input-group">
+          <label>${y}</label>
+          <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${suffix}
+        </div>
+      `).join('')+'</div>';
+    } else {
+      const groups=getExpandGroups(expandBy);
+      let html='<div class="forecast-grid" style="margin-bottom:8px"><div class="forecast-input-group" style="grid-column:1/-1"><span class="group-label" style="font-size:.78rem;color:var(--text-dim);font-style:italic">Default (all groups)</span></div></div>';
+      html+='<div class="forecast-grid" style="margin-bottom:12px">'+FORECAST_YEARS.map((y,i)=>`
+        <div class="forecast-input-group">
+          <label>${y}</label>
+          <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${suffix}
+        </div>
+      `).join('')+'</div>';
+      groups.forEach(g=>{
+        html+=`<div class="forecast-group-row"><div class="group-label">${g.label}</div><div class="forecast-grid">`;
+        html+=FORECAST_YEARS.map((y,i)=>{
+          const val=getOverrideVal(key,g.key,i);
+          return `<div class="forecast-input-group">
+            <label>${y}</label>
+            <input type="number" step="${step}" value="${val}" data-key="${key}" data-group="${g.key}" data-idx="${i}" class="forecast-override">${suffix}
+          </div>`;
+        }).join('');
+        html+='</div></div>';
+      });
+      container.innerHTML=html;
+    }
   });
   document.querySelectorAll('.forecast-param').forEach(inp=>inp.addEventListener('change',()=>{
     state.forecastAssumptions[inp.dataset.key][parseInt(inp.dataset.idx)]=parseFloat(inp.value)||0;
     saveState();renderForecastProjection();
+  }));
+  document.querySelectorAll('.forecast-override').forEach(inp=>inp.addEventListener('change',()=>{
+    setOverrideVal(inp.dataset.key,inp.dataset.group,parseInt(inp.dataset.idx),parseFloat(inp.value)||0);
   }));
   ['Attrition','Hires','Merit','Market','AI'].forEach(label=>{
     const key=label.toLowerCase();
@@ -999,7 +1131,14 @@ function renderForecastInputs(){
     });
   });
 }
-function projectForecast(emps){
+function getAssumptionVal(key,groupKey,idx){
+  const fa=state.forecastAssumptions;
+  if(groupKey&&fa.overrides&&fa.overrides[key]&&fa.overrides[key][groupKey]){
+    return fa.overrides[key][groupKey][idx];
+  }
+  return fa[key][idx];
+}
+function projectForecast(emps,groupKey){
   const fa=state.forecastAssumptions;
   const tog=fa.toggles;
   const currentHC=emps.length;
@@ -1013,11 +1152,12 @@ function projectForecast(emps){
   const rows=[{year:'Current',hc:currentHC,total:currentTotal}];
   let hc=currentHC;let salaryGrowth=1;
   FORECAST_YEARS.forEach((y,i)=>{
-    const attrRate=tog.attrition?fa.attrition[i]/100:0;
-    const newHires=tog.hires?Math.round(fa.hires[i]*(currentHC/Math.max(state.employees.length,1))):0;
-    const meritRate=tog.merit?fa.merit[i]/100:0;
-    const marketRate=tog.market?fa.market[i]/100:0;
-    const aiGear=tog.ai?fa.ai[i]:1;
+    const attrRate=tog.attrition?getAssumptionVal('attrition',groupKey,i)/100:0;
+    const rawHires=tog.hires?getAssumptionVal('hires',groupKey,i):0;
+    const newHires=groupKey?rawHires:Math.round(rawHires*(currentHC/Math.max(state.employees.length,1)));
+    const meritRate=tog.merit?getAssumptionVal('merit',groupKey,i)/100:0;
+    const marketRate=tog.market?getAssumptionVal('market',groupKey,i)/100:0;
+    const aiGear=tog.ai?getAssumptionVal('ai',groupKey,i):1;
     hc=Math.max(0,hc-Math.round(hc*attrRate)+Math.round(newHires*aiGear));
     salaryGrowth*=(1+meritRate+marketRate);
     const base=Math.round(hc*avgSalary*salaryGrowth);
@@ -1032,19 +1172,20 @@ function renderForecastProjection(){
   // Build total forecast
   const totalRows=projectForecast(state.employees);
 
-  // Determine split groups
+  // Determine split groups — each entry has {emps, groupKey} for override lookups
   let splitGroups=null;
+  let splitGroupKeys={};
   if(forecastSplit==='project'){
     splitGroups={};
-    state.projects.forEach(p=>{splitGroups[p.code]=state.employees.filter(e=>e.projectId===p.id)});
+    state.projects.forEach(p=>{splitGroups[p.code]=state.employees.filter(e=>e.projectId===p.id);splitGroupKeys[p.code]=p.id});
     const unassigned=state.employees.filter(e=>!e.projectId);
-    if(unassigned.length)splitGroups['Unassigned']=unassigned;
+    if(unassigned.length){splitGroups['Unassigned']=unassigned;splitGroupKeys['Unassigned']=null}
   } else if(forecastSplit==='function'){
     splitGroups={};
-    FUNCTIONS.forEach(f=>{const emps=state.employees.filter(e=>e.function===f);if(emps.length)splitGroups[f]=emps});
+    FUNCTIONS.forEach(f=>{const emps=state.employees.filter(e=>e.function===f);if(emps.length){splitGroups[f]=emps;splitGroupKeys[f]=f}});
   } else if(forecastSplit==='country'){
     splitGroups={};
-    COUNTRIES.forEach(c=>{const emps=state.employees.filter(e=>e.country===c);if(emps.length)splitGroups[c]=emps});
+    COUNTRIES.forEach(c=>{const emps=state.employees.filter(e=>e.country===c);if(emps.length){splitGroups[c]=emps;splitGroupKeys[c]=c}});
   }
 
   // Table
@@ -1095,7 +1236,7 @@ function renderForecastProjection(){
     // Split view
     const groupNames=Object.keys(splitGroups);
     const groupForecasts={};
-    groupNames.forEach(g=>groupForecasts[g]=projectForecast(splitGroups[g]));
+    groupNames.forEach(g=>groupForecasts[g]=projectForecast(splitGroups[g],splitGroupKeys[g]));
     const yearLabels=['Current',...FORECAST_YEARS];
 
     // Table
