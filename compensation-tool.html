@@ -519,7 +519,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 // ── STATE ──
 let state;
 function loadState(){
-  const raw=localStorage.getItem('compPlanState_v2');
+  const raw=sessionStorage.getItem('compPlanState_v2');
   if(raw){state=JSON.parse(raw);ensureStateFields();return}
   const bonusMatrix={};
   SENIORITY.forEach(s=>{bonusMatrix[s]={};FUNCTIONS.forEach(f=>{bonusMatrix[s][f]=DEFAULT_BONUS[s]})});
@@ -588,7 +588,7 @@ function ensureStateFields(){
     if(!e.allocations)e.allocations=[];
   });
 }
-function saveState(){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
+function saveState(){sessionStorage.setItem('compPlanState_v2',JSON.stringify(state))}
 function getBonusPct(emp){return state.bonusMatrix[emp.seniority]?.[emp.function]??DEFAULT_BONUS[emp.seniority]??10}
 function getBonusAmt(emp){return Math.round(emp.salary*getBonusPct(emp)/100)}
 function getBenefitsPct(emp){
@@ -1577,27 +1577,27 @@ const toggleDark=document.getElementById('toggleDark');
 const toggleOps=document.getElementById('toggleOps');
 toggleDark.addEventListener('change',()=>{
   document.documentElement.classList.toggle('dark',toggleDark.checked);
-  localStorage.setItem('compPlanDark',toggleDark.checked?'1':'0');
+  sessionStorage.setItem('compPlanDark',toggleDark.checked?'1':'0');
   // Re-render chart with updated colors
   renderForecast();
 });
 toggleOps.addEventListener('change',()=>{
   document.body.classList.toggle('ops-mode',toggleOps.checked);
-  localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
+  sessionStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
 });
 // Restore preferences
-if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;document.documentElement.classList.add('dark')}
-if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
+if(sessionStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;document.documentElement.classList.add('dark')}
+if(sessionStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
 
 // ── WORKSPACES ──
 const WS_INDEX_KEY='compPlanWorkspaces';
 let currentWorkspaceName='Default';
 
 function getWorkspaceIndex(){
-  const raw=localStorage.getItem(WS_INDEX_KEY);
+  const raw=sessionStorage.getItem(WS_INDEX_KEY);
   return raw?JSON.parse(raw):[];
 }
-function saveWorkspaceIndex(idx){localStorage.setItem(WS_INDEX_KEY,JSON.stringify(idx))}
+function saveWorkspaceIndex(idx){sessionStorage.setItem(WS_INDEX_KEY,JSON.stringify(idx))}
 
 function updateWsDisplay(){
   document.getElementById('wsNameDisplay').textContent=currentWorkspaceName;
@@ -1611,24 +1611,24 @@ function saveWorkspaceAs(name){
   const existing=idx.find(w=>w.key===key);
   const meta={key,name,savedAt:new Date().toISOString(),employees:state.employees.length,projects:state.projects.length};
   if(existing){Object.assign(existing,meta)}else{idx.push(meta)}
-  localStorage.setItem(key,JSON.stringify(state));
+  sessionStorage.setItem(key,JSON.stringify(state));
   saveWorkspaceIndex(idx);
   currentWorkspaceName=name;
   // Also save as current active workspace
-  localStorage.setItem('compPlanActiveWS',name);
+  sessionStorage.setItem('compPlanActiveWS',name);
   saveState();
   updateWsDisplay();
   renderWorkspaceList();
 }
 
 function loadWorkspace(key,name){
-  const raw=localStorage.getItem(key);
+  const raw=sessionStorage.getItem(key);
   if(!raw){alert('Workspace data not found');return}
   if(!confirm(`Load workspace "${name}"? Any unsaved changes to "${currentWorkspaceName}" will be lost.`))return;
   state=JSON.parse(raw);
   ensureStateFields();
   currentWorkspaceName=name;
-  localStorage.setItem('compPlanActiveWS',name);
+  sessionStorage.setItem('compPlanActiveWS',name);
   saveState();
   updateWsDisplay();
   initDropdowns();
@@ -1638,7 +1638,7 @@ function loadWorkspace(key,name){
 
 function deleteWorkspace(key,name){
   if(!confirm(`Delete workspace "${name}"? This cannot be undone.`))return;
-  localStorage.removeItem(key);
+  sessionStorage.removeItem(key);
   let idx=getWorkspaceIndex();
   idx=idx.filter(w=>w.key!==key);
   saveWorkspaceIndex(idx);
@@ -1655,23 +1655,23 @@ function renameWorkspace(key,oldName){
   const entry=idx.find(w=>w.key===key);
   if(!entry)return;
   if(newKey!==key){
-    const data=localStorage.getItem(key);
-    localStorage.setItem(newKey,data);
-    localStorage.removeItem(key);
+    const data=sessionStorage.getItem(key);
+    sessionStorage.setItem(newKey,data);
+    sessionStorage.removeItem(key);
     entry.key=newKey;
   }
   entry.name=trimmed;
   saveWorkspaceIndex(idx);
   if(currentWorkspaceName===oldName){
     currentWorkspaceName=trimmed;
-    localStorage.setItem('compPlanActiveWS',trimmed);
+    sessionStorage.setItem('compPlanActiveWS',trimmed);
     updateWsDisplay();
   }
   renderWorkspaceList();
 }
 
 function duplicateWorkspace(key,name){
-  const raw=localStorage.getItem(key);
+  const raw=sessionStorage.getItem(key);
   if(!raw)return;
   const newName=prompt('Name for the copy:',name+' (Copy)');
   if(!newName||!newName.trim())return;
@@ -1679,7 +1679,7 @@ function duplicateWorkspace(key,name){
   const idx=getWorkspaceIndex();
   if(idx.find(w=>w.key===newKey)){alert('A workspace with that name already exists');return}
   const data=JSON.parse(raw);
-  localStorage.setItem(newKey,JSON.stringify(data));
+  sessionStorage.setItem(newKey,JSON.stringify(data));
   idx.push({key:newKey,name:newName.trim(),savedAt:new Date().toISOString(),employees:data.employees?.length||0,projects:data.projects?.length||0});
   saveWorkspaceIndex(idx);
   renderWorkspaceList();
@@ -1753,7 +1753,7 @@ document.getElementById('btnWsQuickSave').addEventListener('click',()=>{
 // ── INIT ──
 function renderAll(){renderDashboard();renderEmployees();renderProjects();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
 loadState();
-currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
+currentWorkspaceName=sessionStorage.getItem('compPlanActiveWS')||'Default';
 updateWsDisplay();
 initDropdowns();renderAll();
 </script>
