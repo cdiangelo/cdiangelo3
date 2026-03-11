@@ -219,6 +219,7 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="form-group"><label>Project Code</label><select id="dashProject"><option value="">All Projects</option></select></div>
 </div>
 <div class="card"><div class="chart-container"><canvas id="dashChart"></canvas></div></div>
+<div class="card" style="margin-top:12px"><div style="height:120px;position:relative"><canvas id="fteChart"></canvas></div></div>
 </div>
 
 <!-- EMPLOYEES -->
@@ -851,6 +852,7 @@ function refreshProjectDropdown(){
 
 // ── DASHBOARD ──
 let dashChart=null;
+let fteChart=null;
 let groupBy='function',stackBy='baseBonus',compView='total';
 function getFilteredEmployees(){
   let emps=state.employees;
@@ -1017,6 +1019,40 @@ function renderDashboard(){
         x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
         y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
       }}
+    });
+    // ── FTE sparkline chart ──
+    if(fteChart)fteChart.destroy();
+    const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fteData=MONTH_SHORT.map((_,mi)=>{
+      let fte=0;
+      emps.forEach(e=>{
+        const mf=getMonthFactor(e,mi);
+        if(mf<=0)return;
+        const allocTotal=e.allocations&&e.allocations.length?e.allocations.reduce((s,a)=>s+a.pct,0)/100:0;
+        fte+=mf*allocTotal;
+      });
+      return Math.round(fte*10)/10;
+    });
+    fteChart=new Chart(document.getElementById('fteChart'),{
+      type:'line',
+      data:{labels:MONTH_SHORT,datasets:[{
+        label:'Allocated FTEs',
+        data:fteData,
+        borderColor:isDark?'#a38b5e':'#8b5e5e',
+        backgroundColor:hexToRgba(isDark?'#a38b5e':'#8b5e5e',0.1),
+        fill:true,
+        tension:0.4,
+        pointRadius:3,
+        pointHoverRadius:5,
+        borderWidth:2
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} FTEs`}}},
+        scales:{
+          x:{ticks:{color:tickColor,font:{size:10}},grid:{display:false}},
+          y:{beginAtZero:true,ticks:{color:tickColor,font:{size:10},stepSize:1},grid:{color:gridColor},title:{display:true,text:'Allocated FTEs',color:tickColor,font:{size:10}}}
+        }
+      }
     });
   }
 }
