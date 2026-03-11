@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Compensation Planning Tool</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="window._chartFailed=true"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -414,6 +414,11 @@ body.ops-mode .ops-hide{display:none!important}
 <button class="btn" id="btnImportJSON">Import JSON</button>
 <input type="file" id="jsonFileInput" accept=".json" style="display:none">
 </div>
+<div class="export-card">
+<h3>Share as HTML</h3>
+<p>Download a self-contained HTML file with all current data embedded. Recipients can open it directly in any browser — no server needed.</p>
+<button class="btn btn-primary" id="btnExportHTML">Download Shareable HTML</button>
+</div>
 </div>
 <div class="card" style="margin-top:24px">
 <h3 class="section-title">Workspaces</h3>
@@ -772,15 +777,17 @@ function renderDashboard(){
       if(data.some(v=>v>0))datasets.push({label:s,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
     });
   }
-  if(dashChart)dashChart.destroy();
-  dashChart=new Chart(document.getElementById('dashChart'),{
-    type:'bar',
-    data:{labels:labels.map(l=>l.length>18?l.slice(0,16)+'…':l),datasets},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
-      x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
-      y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
-    }}
-  });
+  if(typeof Chart!=='undefined'){
+    if(dashChart)dashChart.destroy();
+    dashChart=new Chart(document.getElementById('dashChart'),{
+      type:'bar',
+      data:{labels:labels.map(l=>l.length>18?l.slice(0,16)+'…':l),datasets},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
+        x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+        y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
+      }}
+    });
+  }
 }
 document.querySelectorAll('#groupToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#groupToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');groupBy=b.dataset.group;renderDashboard();
@@ -1482,22 +1489,24 @@ function renderForecastProjection(){
     tbl.innerHTML=html;
 
     // Chart - stacked base/bonus/benefits
-    const isDark=document.documentElement.classList.contains('dark');
-    const tickColor=isDark?'#8a8a8e':'#5a5a5a';
-    const gridColor=isDark?'#3a3a3f':'#ddd';
-    if(forecastChart)forecastChart.destroy();
-    forecastChart=new Chart(document.getElementById('forecastChart'),{
-      type:'bar',
-      data:{labels:rows.map(r=>r.year),datasets:[
-        {label:'Base',data:rows.map(r=>r.base),backgroundColor:'#8b5e5e'},
-        {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:'#6b8da3'},
-        {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:'#a38b5e'}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
-        x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
-        y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
-      }}
-    });
+    if(typeof Chart!=='undefined'){
+      const isDark=document.documentElement.classList.contains('dark');
+      const tickColor=isDark?'#8a8a8e':'#5a5a5a';
+      const gridColor=isDark?'#3a3a3f':'#ddd';
+      if(forecastChart)forecastChart.destroy();
+      forecastChart=new Chart(document.getElementById('forecastChart'),{
+        type:'bar',
+        data:{labels:rows.map(r=>r.year),datasets:[
+          {label:'Base',data:rows.map(r=>r.base),backgroundColor:'#8b5e5e'},
+          {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:'#6b8da3'},
+          {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:'#a38b5e'}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
+          x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+          y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
+        }}
+      });
+    }
   } else {
     // Split view
     const groupNames=Object.keys(splitGroups);
@@ -1519,23 +1528,25 @@ function renderForecastProjection(){
     tbl.innerHTML=html;
 
     // Chart - stacked by group
-    const isDark=document.documentElement.classList.contains('dark');
-    const tickColor=isDark?'#8a8a8e':'#5a5a5a';
-    const gridColor=isDark?'#3a3a3f':'#ddd';
-    if(forecastChart)forecastChart.destroy();
-    const datasets=groupNames.map((g,i)=>({
-      label:g.length>20?g.slice(0,18)+'…':g,
-      data:yearLabels.map((_,yi)=>groupForecasts[g][yi]?.total||0),
-      backgroundColor:CHART_COLORS[i%CHART_COLORS.length]
-    }));
-    forecastChart=new Chart(document.getElementById('forecastChart'),{
-      type:'bar',
-      data:{labels:yearLabels,datasets},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
-        x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
-        y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
-      }}
-    });
+    if(typeof Chart!=='undefined'){
+      const isDark=document.documentElement.classList.contains('dark');
+      const tickColor=isDark?'#8a8a8e':'#5a5a5a';
+      const gridColor=isDark?'#3a3a3f':'#ddd';
+      if(forecastChart)forecastChart.destroy();
+      const datasets=groupNames.map((g,i)=>({
+        label:g.length>20?g.slice(0,18)+'…':g,
+        data:yearLabels.map((_,yi)=>groupForecasts[g][yi]?.total||0),
+        backgroundColor:CHART_COLORS[i%CHART_COLORS.length]
+      }));
+      forecastChart=new Chart(document.getElementById('forecastChart'),{
+        type:'bar',
+        data:{labels:yearLabels,datasets},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
+          x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+          y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
+        }}
+      });
+    }
   }
 }
 function renderForecast(){renderForecastInputs();renderForecastProjection()}
@@ -1599,6 +1610,21 @@ document.getElementById('jsonFileInput').addEventListener('change',e=>{
   const reader=new FileReader();
   reader.onload=ev=>{try{state=JSON.parse(ev.target.result);ensureStateFields();saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
   reader.readAsText(file);
+});
+document.getElementById('btnExportHTML').addEventListener('click',()=>{
+  // Build a self-contained HTML file with current data embedded
+  const html=document.documentElement.outerHTML;
+  // Inject state data as a pre-load script right after the opening <script> tag
+  const stateJSON=JSON.stringify(state);
+  const embedScript=`<script>localStorage.setItem('compPlanState_v2',${JSON.stringify(stateJSON)});localStorage.setItem('compPlanActiveWS',${JSON.stringify(currentWorkspaceName)});<\/script>`;
+  // Insert the embed script right before the closing </head>
+  const modified=html.replace('</head>',embedScript+'</head>');
+  const blob=new Blob(['<!DOCTYPE html>\n<html lang="en">'+modified.slice(modified.indexOf('<head'))],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const name=(currentWorkspaceName||'compplan').replace(/[^a-zA-Z0-9_-]/g,'_');
+  a.download=`${name}_${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
 });
 
 // ── DARK MODE & OPS VIEW ──
