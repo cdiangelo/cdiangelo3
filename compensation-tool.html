@@ -159,7 +159,60 @@ body.ops-mode .ops-hide{display:none!important}
 .toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s}
 .header-toggle input:checked+.toggle-track{background:var(--accent)}
 .header-toggle input:checked+.toggle-track::after{transform:translateX(16px)}
-@media(max-width:768px){.stat-cards{grid-template-columns:1fr 1fr}.controls{flex-direction:column;align-items:stretch}nav{flex-wrap:wrap}.header-toggles{margin-left:0;margin-top:4px}}
+/* ── Mobile Responsive ── */
+@media(max-width:768px){
+  .stat-cards{grid-template-columns:1fr 1fr}
+  .controls{flex-direction:column;align-items:stretch}
+  nav{display:flex;flex-direction:column;gap:6px}
+  .nav-group{width:100%}
+  .nav-group-btns{flex-wrap:wrap}
+  nav button{padding:6px 10px;font-size:.75rem}
+  .header-toggles{margin-left:0;margin-top:4px;flex-wrap:wrap}
+  header .container{flex-direction:column;align-items:flex-start}
+  header h1{font-size:1.1rem}
+  .container{padding:0 10px}
+  .tab-content{padding:12px 0}
+  .card{padding:12px}
+  .toggle-group{flex-wrap:wrap}
+  .toggle-group .btn{padding:5px 8px;font-size:.75rem}
+  .form-grid{grid-template-columns:1fr}
+  .filter-row{flex-direction:column}
+  .filter-row .form-group{min-width:100%;width:100%}
+  .chart-container{height:280px}
+  .export-grid{grid-template-columns:1fr}
+  .modal{width:95%;padding:16px;max-height:90vh}
+  .forecast-grid{grid-template-columns:1fr 1fr}
+  .table-wrap{-webkit-overflow-scrolling:touch}
+  th,td{padding:6px 8px;font-size:.78rem}
+  .stat-card .value{font-size:1.2rem}
+  .stat-card{padding:12px}
+  .search-input{max-width:100%}
+  #tab-scratch>div{grid-template-columns:1fr!important;min-height:auto!important}
+}
+@media(max-width:480px){
+  .stat-cards{grid-template-columns:1fr}
+  nav button{font-size:.7rem;padding:5px 8px}
+  .toggle-group .btn{font-size:.7rem;padding:4px 6px}
+  .chart-container{height:220px}
+  header h1{font-size:1rem}
+  .forecast-grid{grid-template-columns:1fr}
+}
+/* ── Exec View ── */
+.exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
+.exec-pane h3{color:var(--accent);font-size:1rem;font-weight:700;margin-bottom:16px}
+.exec-roster-cat{margin-bottom:16px}
+.exec-roster-cat .cat-header{font-weight:700;color:var(--accent);font-size:.95rem;padding:8px 0;border-bottom:2px solid var(--accent);margin-bottom:4px}
+.exec-roster-prod{margin-left:12px;margin-bottom:8px}
+.exec-roster-prod .prod-header{font-weight:600;color:var(--text-dark);font-size:.88rem;padding:4px 0;border-bottom:1px solid var(--border-light);margin-bottom:2px}
+.exec-roster-person{display:flex;justify-content:space-between;padding:3px 8px;font-size:.82rem;border-bottom:1px solid var(--border-light)}
+.exec-roster-person:last-child{border-bottom:none}
+.exec-roster-person .person-name{color:var(--text)}
+.exec-roster-person .person-metrics{color:var(--text-dim);text-align:right;white-space:nowrap}
+@media(max-width:768px){
+  .exec-pane{padding:12px}
+  .exec-roster-person{flex-direction:column;gap:2px}
+  .exec-roster-person .person-metrics{text-align:left;font-size:.75rem}
+}
 </style>
 </head>
 <body>
@@ -172,6 +225,7 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="nav-group-label">Summaries</div>
 <div class="nav-group-btns">
 <button class="active" data-tab="dashboard">Dashboard</button>
+<button data-tab="exec">Exec View</button>
 <button data-tab="monthly">Monthly Spread</button>
 <button data-tab="export">Export</button>
 <button data-tab="scratch">Scratch Pad</button>
@@ -250,6 +304,72 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 <div class="card"><div class="chart-container"><canvas id="dashChart"></canvas></div></div>
 <div class="card" style="margin-top:12px"><div style="height:120px;position:relative"><canvas id="fteChart"></canvas></div></div>
+</div>
+
+<!-- EXEC VIEW -->
+<div id="tab-exec" class="tab-content">
+<div class="stat-cards" id="execStatCards"></div>
+
+<!-- Pane 1: Monthly Dashboard with split-by -->
+<div class="exec-pane">
+<h3>Monthly Compensation Overview</h3>
+<div class="controls" style="margin-bottom:12px">
+<div>
+<label>Split By</label>
+<div class="toggle-group" id="execSplitToggle">
+<button class="btn active" data-esplit="none">Total</button>
+<button class="btn" data-esplit="function">Function</button>
+<button class="btn" data-esplit="seniority">Seniority</button>
+<button class="btn" data-esplit="country">Country</button>
+<button class="btn" data-esplit="category">Product Category</button>
+<button class="btn" data-esplit="product">Product</button>
+<button class="btn" data-esplit="project">Project</button>
+<button class="btn" data-esplit="bizline">Business Line</button>
+</div>
+</div>
+<div>
+<label>View</label>
+<div class="toggle-group" id="execViewToggle">
+<button class="btn active" data-eview="total">Total Comp</button>
+<button class="btn" data-eview="opex">P&amp;L (OpEx)</button>
+<button class="btn" data-eview="headcount">Headcount</button>
+</div>
+</div>
+</div>
+<div class="chart-container"><canvas id="execMonthlyChart"></canvas></div>
+<div class="table-wrap"><table class="monthly-table" id="execMonthlyTable"></table></div>
+</div>
+
+<!-- Pane 2: Long Term Forecast -->
+<div class="exec-pane">
+<h3>Long Term Forecast</h3>
+<div class="controls" style="margin-bottom:12px">
+<div>
+<label>Split By</label>
+<div class="toggle-group" id="execFcSplitToggle">
+<button class="btn active" data-efsplit="total">Total</button>
+<button class="btn" data-efsplit="project">Project</button>
+<button class="btn" data-efsplit="function">Function</button>
+<button class="btn" data-efsplit="country">Country</button>
+</div>
+</div>
+<div>
+<label>View</label>
+<div class="toggle-group" id="execFcViewToggle">
+<button class="btn active" data-efview="total">Total Investment</button>
+<button class="btn" data-efview="opex">P&amp;L (OpEx)</button>
+</div>
+</div>
+</div>
+<div class="chart-container"><canvas id="execForecastChart"></canvas></div>
+<div class="table-wrap"><table class="forecast-table" id="execForecastTable"></table></div>
+</div>
+
+<!-- Pane 3: Roster by Product Category / Product -->
+<div class="exec-pane">
+<h3>Roster by Product Category &amp; Product</h3>
+<div id="execRosterPane"></div>
+</div>
 </div>
 
 <!-- EMPLOYEES -->
@@ -900,6 +1020,7 @@ document.querySelectorAll('#mainNav button').forEach(b=>{
     if(b.dataset.tab==='benefits')renderBenefitsMatrix();
     if(b.dataset.tab==='monthly')renderMonthly();
     if(b.dataset.tab==='forecast')renderForecast();
+    if(b.dataset.tab==='exec')renderExecView();
     if(b.dataset.tab==='scratch')initScratchPad();
   });
 });
@@ -3328,6 +3449,253 @@ setInterval(()=>{
     saveWorkspaceAs(currentWorkspaceName);
   }
 },60000);
+
+// ── EXEC VIEW ──
+let execSplit='none',execView='total',execFcSplit='total',execFcView='total';
+let execMonthlyChart=null,execForecastChart=null;
+
+document.querySelectorAll('#execSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#execSplitToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execSplit=b.dataset.esplit;renderExecView();
+}));
+document.querySelectorAll('#execViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#execViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execView=b.dataset.eview;renderExecView();
+}));
+document.querySelectorAll('#execFcSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#execFcSplitToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcSplit=b.dataset.efsplit;renderExecView();
+}));
+document.querySelectorAll('#execFcViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#execFcViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcView=b.dataset.efview;renderExecView();
+}));
+
+function getEmpSplitKey(emp,splitBy){
+  if(splitBy==='function')return emp.function;
+  if(splitBy==='seniority')return emp.seniority;
+  if(splitBy==='country')return emp.country;
+  if(splitBy==='category'){const p=getEmpProject(emp);return p?p.category||'Uncategorized':'Uncategorized'}
+  if(splitBy==='product'){const p=getEmpProject(emp);return p?p.product||'Unassigned':'Unassigned'}
+  if(splitBy==='project'){const p=getEmpProject(emp);return p?p.code+' '+p.product:'Unassigned'}
+  if(splitBy==='bizline'){
+    const bl=state.bizLines.find(b=>b.code===emp.businessLine);
+    return bl?bl.code+' '+bl.name:'Unassigned';
+  }
+  return 'Total';
+}
+
+function renderExecView(){
+  const emps=getFilteredEmployees();
+  const isDark=document.documentElement.classList.contains('dark');
+  const tickColor=isDark?'#8a8a8e':'#5a5a5a';
+  const gridColor=isDark?'#3a3a3f':'#ddd';
+  const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // ── Stat cards ──
+  const totalComp=emps.reduce((a,e)=>a+getProratedComp(e),0);
+  const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
+  const totalOpEx=totalComp-totalCapEx;
+  document.getElementById('execStatCards').innerHTML=
+    `<div class="stat-card"><div class="label">Headcount</div><div class="value">${emps.length}</div></div>`+
+    `<div class="stat-card"><div class="label">Total Comp</div><div class="value">${fmt(totalComp)}</div></div>`+
+    `<div class="stat-card"><div class="label">CapEx</div><div class="value">${fmt(totalCapEx)}</div></div>`+
+    `<div class="stat-card"><div class="label">OpEx (P&L)</div><div class="value" style="color:var(--success)">${fmt(totalOpEx)}</div></div>`;
+
+  // ── Pane 1: Monthly chart split by selected dimension ──
+  const splitGroups={};
+  emps.forEach(e=>{
+    const key=getEmpSplitKey(e,execSplit);
+    if(!splitGroups[key])splitGroups[key]=[];
+    splitGroups[key].push(e);
+  });
+  const groupNames=Object.keys(splitGroups).sort();
+
+  // Build monthly data per group
+  const monthlyData={};
+  groupNames.forEach(g=>{
+    monthlyData[g]=MONTH_SHORT.map((_,mi)=>{
+      const gEmps=splitGroups[g];
+      if(execView==='headcount')return gEmps.filter(e=>getMonthFactor(e,mi)>0).length;
+      return gEmps.reduce((a,e)=>{
+        if(execView==='opex'){
+          const comp=getMonthlyComp(e,mi);
+          const cap=getMonthlyCapEx(e,mi);
+          return a+comp-cap;
+        }
+        return a+getMonthlyComp(e,mi);
+      },0);
+    });
+  });
+
+  // Chart
+  if(typeof Chart!=='undefined'){
+    if(execMonthlyChart)execMonthlyChart.destroy();
+    const datasets=groupNames.map((g,i)=>{
+      const color=execSplit==='none'?(isDark?'#d4524d':'#8b2020'):CHART_COLORS[i%CHART_COLORS.length];
+      return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1};
+    });
+    if(execSplit!=='none')stackedBarDatalabels(datasets,tickColor);
+    execMonthlyChart=new Chart(document.getElementById('execMonthlyChart'),{
+      type:execSplit==='none'?'bar':'bar',
+      data:{labels:MONTH_SHORT,datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:execSplit!=='none',labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:execSplit==='none'?{display:false}:{}},
+        scales:{
+          x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
+          y:{stacked:execSplit!=='none',beginAtZero:true,ticks:{color:tickColor,callback:v=>execView==='headcount'?v:'$'+v.toLocaleString()},grid:{color:gridColor}}
+        }
+      }
+    });
+  }
+
+  // Monthly table
+  const tbl=document.getElementById('execMonthlyTable');
+  if(execSplit==='none'){
+    let html='<thead><tr><th>Month</th><th>'+( execView==='headcount'?'HC':'Amount')+'</th></tr></thead><tbody>';
+    let annual=0;
+    MONTH_SHORT.forEach((m,mi)=>{const v=monthlyData['Total'][mi];annual+=v;html+=`<tr><td>${m}</td><td style="text-align:right">${execView==='headcount'?v:fmt(v)}</td></tr>`});
+    html+=`</tbody><tfoot><tr><td>Annual</td><td style="text-align:right;font-weight:700;color:var(--accent)">${execView==='headcount'?'—':fmt(annual)}</td></tr></tfoot>`;
+    tbl.innerHTML=html;
+  } else {
+    let html='<thead><tr><th>Month</th>';
+    groupNames.forEach(g=>html+=`<th style="text-align:right">${g.length>14?g.slice(0,12)+'…':g}</th>`);
+    html+='<th style="text-align:right">Total</th></tr></thead><tbody>';
+    const annuals=groupNames.map(()=>0);
+    let grandAnnual=0;
+    MONTH_SHORT.forEach((m,mi)=>{
+      html+=`<tr><td>${m}</td>`;
+      let rowTotal=0;
+      groupNames.forEach((g,gi)=>{const v=monthlyData[g][mi];annuals[gi]+=v;rowTotal+=v;html+=`<td style="text-align:right">${execView==='headcount'?v:fmt(v)}</td>`});
+      grandAnnual+=rowTotal;
+      html+=`<td style="text-align:right;font-weight:600">${execView==='headcount'?rowTotal:fmt(rowTotal)}</td></tr>`;
+    });
+    html+='</tbody><tfoot><tr><td>Annual</td>';
+    groupNames.forEach((_,gi)=>html+=`<td style="text-align:right">${execView==='headcount'?'—':fmt(annuals[gi])}</td>`);
+    html+=`<td style="text-align:right;font-weight:700;color:var(--accent)">${execView==='headcount'?'—':fmt(grandAnnual)}</td></tr></tfoot>`;
+    tbl.innerHTML=html;
+  }
+
+  // ── Pane 2: Long term forecast ──
+  let fcSplitGroups=null,fcGroupKeys={};
+  if(execFcSplit==='project'){
+    fcSplitGroups={};
+    state.projects.forEach(p=>{const e=emps.filter(e=>e.allocations&&e.allocations.some(a=>a.projId===p.id));if(e.length){fcSplitGroups[p.code]=e;fcGroupKeys[p.code]=p.id}});
+  } else if(execFcSplit==='function'){
+    fcSplitGroups={};
+    FUNCTIONS.forEach(f=>{const e=emps.filter(e=>e.function===f);if(e.length){fcSplitGroups[f]=e;fcGroupKeys[f]=f}});
+  } else if(execFcSplit==='country'){
+    fcSplitGroups={};
+    COUNTRIES.forEach(c=>{const e=emps.filter(e=>e.country===c);if(e.length){fcSplitGroups[c]=e;fcGroupKeys[c]=c}});
+  }
+
+  const totalFcRows=projectForecast(emps);
+  const yearLabels=['Current',...FORECAST_YEARS];
+  const fcTbl=document.getElementById('execForecastTable');
+  const showFcOpex=execFcView==='opex';
+
+  if(!fcSplitGroups){
+    // Total view
+    let html='<thead><tr><th>Year</th><th>HC</th><th>Total Comp</th><th>CapEx</th><th>OpEx</th></tr></thead><tbody>';
+    totalFcRows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${r.year}</td><td>${r.hc}</td><td>${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
+    html+='</tbody>';
+    fcTbl.innerHTML=html;
+
+    if(typeof Chart!=='undefined'){
+      if(execForecastChart)execForecastChart.destroy();
+      const ds=showFcOpex?[
+        {label:'OpEx',data:totalFcRows.map(r=>r.opex),backgroundColor:isDark?'#4a9d54':'#3a7d44'},
+        {label:'CapEx',data:totalFcRows.map(r=>-r.capex),backgroundColor:hexToRgba(isDark?'#d4524d':'#8b2020',0.4)}
+      ]:[
+        {label:'Total Comp',data:totalFcRows.map(r=>r.total),backgroundColor:isDark?'#d4524d':'#8b2020'}
+      ];
+      stackedBarDatalabels(ds,tickColor);
+      execForecastChart=new Chart(document.getElementById('execForecastChart'),{
+        type:'bar',data:{labels:yearLabels,datasets:ds},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+          x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+          y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
+        }}
+      });
+    }
+  } else {
+    const gNames=Object.keys(fcSplitGroups);
+    const gForecasts={};
+    gNames.forEach(g=>gForecasts[g]=projectForecast(fcSplitGroups[g],fcGroupKeys[g]));
+
+    let html='<thead><tr><th>Year</th>';
+    gNames.forEach(g=>html+=`<th style="text-align:right">${g.length>14?g.slice(0,12)+'…':g}</th>`);
+    html+='<th style="text-align:right">Total</th></tr></thead><tbody>';
+    yearLabels.forEach((y,yi)=>{
+      html+=`<tr><td style="font-weight:600;color:var(--accent)">${y}</td>`;
+      let rowTotal=0;
+      gNames.forEach(g=>{const r=gForecasts[g][yi];const v=r?(showFcOpex?r.opex:r.total):0;rowTotal+=v;html+=`<td style="text-align:right">${fmt(v)}</td>`});
+      html+=`<td style="text-align:right;font-weight:600;color:var(--accent)">${fmt(rowTotal)}</td></tr>`;
+    });
+    html+='</tbody>';
+    fcTbl.innerHTML=html;
+
+    if(typeof Chart!=='undefined'){
+      if(execForecastChart)execForecastChart.destroy();
+      const ds=gNames.map((g,i)=>({
+        label:g.length>20?g.slice(0,18)+'…':g,
+        data:yearLabels.map((_,yi)=>{const r=gForecasts[g][yi];return r?(showFcOpex?r.opex:r.total):0}),
+        backgroundColor:CHART_COLORS[i%CHART_COLORS.length]
+      }));
+      stackedBarDatalabels(ds,tickColor);
+      execForecastChart=new Chart(document.getElementById('execForecastChart'),{
+        type:'bar',data:{labels:yearLabels,datasets:ds},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:{}},scales:{
+          x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+          y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
+        }}
+      });
+    }
+  }
+
+  // ── Pane 3: Roster by Category > Product > People ──
+  const rosterPane=document.getElementById('execRosterPane');
+  // Build category > product > [{emp, alloc}] tree
+  const tree={};
+  emps.forEach(emp=>{
+    (emp.allocations||[]).forEach(alloc=>{
+      const proj=getProjectById(alloc.projId);
+      if(!proj)return;
+      const cat=proj.category||'Uncategorized';
+      const prod=proj.product||proj.name||proj.code;
+      if(!tree[cat])tree[cat]={};
+      if(!tree[cat][prod])tree[cat][prod]=[];
+      const annualComp=getProratedComp(emp);
+      const capEx=getProratedCapEx(emp);
+      tree[cat][prod].push({
+        name:emp.name,
+        seniority:emp.seniority,
+        function:emp.function,
+        allocPct:alloc.pct,
+        capEx:Math.round(capEx*alloc.pct/100),
+        opEx:Math.round((annualComp-capEx)*alloc.pct/100),
+        totalComp:Math.round(annualComp*alloc.pct/100)
+      });
+    });
+  });
+
+  const cats=Object.keys(tree).sort();
+  if(!cats.length){rosterPane.innerHTML='<p style="color:var(--text-dim)">No project allocations found.</p>';return}
+
+  let rHtml='';
+  cats.forEach(cat=>{
+    rHtml+=`<div class="exec-roster-cat"><div class="cat-header">${cat}</div>`;
+    const prods=Object.keys(tree[cat]).sort();
+    prods.forEach(prod=>{
+      const people=tree[cat][prod];
+      const prodCapEx=people.reduce((a,p)=>a+p.capEx,0);
+      const prodTotal=people.reduce((a,p)=>a+p.totalComp,0);
+      rHtml+=`<div class="exec-roster-prod"><div class="prod-header">${prod} <span style="font-weight:400;font-size:.78rem;color:var(--text-dim)">(${people.length} people &middot; ${fmt(prodTotal)} total &middot; ${fmt(prodCapEx)} CapEx)</span></div>`;
+      people.sort((a,b)=>b.allocPct-a.allocPct).forEach(p=>{
+        rHtml+=`<div class="exec-roster-person"><span class="person-name">${p.name} <span style="color:var(--text-dim);font-size:.75rem">${p.seniority}, ${p.function}</span></span><span class="person-metrics">${p.allocPct}% alloc &middot; ${fmt(p.capEx)} CapEx &middot; ${fmt(p.opEx)} OpEx</span></div>`;
+      });
+      rHtml+=`</div>`;
+    });
+    rHtml+=`</div>`;
+  });
+  rosterPane.innerHTML=rHtml;
+}
 
 // ── INIT ──
 function renderAll(){renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
