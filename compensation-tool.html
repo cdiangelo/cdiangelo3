@@ -169,6 +169,7 @@ tr:hover{background:rgba(139,32,32,.03)}
 <div class="form-group"><label>Country</label><select id="empCountry"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Seniority</label><select id="empSeniority"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Job Function</label><select id="empFunction"><option value="">Select…</option></select></div>
+<div class="form-group"><label>Project Code</label><select id="empProject"><option value="">Select…</option></select><div id="projectInfo" style="margin-top:4px"></div></div>
 <div class="form-group"><label>Base Salary (USD)</label><input id="empSalary" type="number" placeholder="0"><div id="benchmarkBadge"></div></div>
 <div class="form-group"><label>Hire Date</label><input id="empHireDate" type="date"></div>
 <div class="form-group"><label>Termination Date</label><input id="empTermDate" type="date"></div>
@@ -189,7 +190,7 @@ tr:hover{background:rgba(139,32,32,.03)}
 <input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:320px">
 </div>
 <div class="table-wrap"><table id="empTable"><thead><tr>
-<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Project(s)</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Hire Date</th><th>Term Date</th><th>Alloc</th><th>Actions</th>
+<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Project</th><th>Product</th><th>Category</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Hire Date</th><th>Term Date</th><th>Alloc</th><th>Actions</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
@@ -306,6 +307,17 @@ tr:hover{background:rgba(139,32,32,.03)}
 
 <div class="card">
 <h3 class="section-title">5-Year Projection</h3>
+<div class="controls" style="margin-bottom:16px">
+<div>
+<label>Split By</label>
+<div class="toggle-group" id="forecastSplitToggle">
+<button class="btn active" data-split="total">Total</button>
+<button class="btn" data-split="project">Project</button>
+<button class="btn" data-split="function">Function</button>
+<button class="btn" data-split="country">Country</button>
+</div>
+</div>
+</div>
 <div class="chart-container"><canvas id="forecastChart"></canvas></div>
 <div class="table-wrap"><table class="forecast-table" id="forecastTable"></table></div>
 </div>
@@ -426,6 +438,7 @@ function ensureStateFields(){
   state.employees.forEach(e=>{
     if(!e.hireDate)e.hireDate='';
     if(!e.termDate)e.termDate='';
+    if(!e.projectId)e.projectId='';
     if(!e.allocations)e.allocations=[];
   });
 }
@@ -453,15 +466,9 @@ function getAllocFlag(empId){
   if(Math.abs(total-100)<0.01)return{ok:true,total};
   return{ok:false,total,overridden:!!state.allocOverrides[empId]};
 }
-function getEmpProjectCodes(emp){
-  if(!emp.allocations||!emp.allocations.length)return '—';
-  return emp.allocations.map(a=>{
-    const p=state.projects.find(p=>p.id===a.projId);
-    return p?`${p.code} (${a.pct}%)`:'?';
-  }).join(', ');
-}
 function getProjectByCode(code){return state.projects.find(p=>p.code===code)}
 function getProjectById(id){return state.projects.find(p=>p.id===id)}
+function getEmpProject(emp){return emp.projectId?getProjectById(emp.projectId):null}
 
 // ── NAV ──
 document.querySelectorAll('#mainNav button').forEach(b=>{
@@ -496,6 +503,7 @@ function initDropdowns(){
   populateSelect(document.getElementById('empCountry'),COUNTRIES);
   populateSelect(document.getElementById('empSeniority'),SENIORITY);
   populateSelect(document.getElementById('empFunction'),FUNCTIONS);
+  refreshProjectDropdown();
   refreshProjectFilters();
 }
 function refreshProjectFilters(){
@@ -505,6 +513,22 @@ function refreshProjectFilters(){
   populateSelect(document.getElementById('dashProdCat'),cats,true);
   populateSelect(document.getElementById('dashProduct'),prods,true);
   populateSelect(document.getElementById('dashProject'),codes,true);
+}
+function refreshProjectDropdown(){
+  const el=document.getElementById('empProject');
+  const v=el.value;
+  el.innerHTML='<option value="">Select…</option>'+state.projects.map(p=>`<option value="${p.id}">${p.code}</option>`).join('');
+  if(v)el.value=v;
+  updateProjectInfo();
+}
+function updateProjectInfo(){
+  const projId=document.getElementById('empProject').value;
+  const el=document.getElementById('projectInfo');
+  if(projId){
+    const p=getProjectById(projId);
+    if(p){el.innerHTML=`<span style="font-size:.78rem;color:var(--text-dim)">${p.product} — ${p.category}</span>`}
+    else{el.innerHTML=''}
+  } else {el.innerHTML=''}
 }
 
 // ── DASHBOARD ──
@@ -602,6 +626,7 @@ function updateBenchmarkBadge(){
   } else {el.innerHTML=''}
 }
 ['empCountry','empSeniority','empFunction'].forEach(id=>document.getElementById(id).addEventListener('change',updateBenchmarkBadge));
+document.getElementById('empProject').addEventListener('change',updateProjectInfo);
 
 document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const name=document.getElementById('empName').value.trim();
@@ -612,17 +637,18 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const notes=document.getElementById('empNotes').value.trim();
   const hireDate=document.getElementById('empHireDate').value;
   const termDate=document.getElementById('empTermDate').value;
+  const projectId=document.getElementById('empProject').value;
   if(!name||!country||!seniority||!func){alert('Please fill required fields');return}
   const allocations=getFormAllocations();
   if(editingId){
     const emp=state.employees.find(e=>e.id===editingId);
-    if(emp){Object.assign(emp,{name,country,seniority,function:func,salary,notes,hireDate,termDate,allocations})}
+    if(emp){Object.assign(emp,{name,country,seniority,function:func,salary,notes,hireDate,termDate,projectId,allocations})}
     editingId=null;
     document.getElementById('formTitle').textContent='Add Employee';
     document.getElementById('btnSaveEmp').textContent='Add Employee';
     document.getElementById('btnCancelEmp').style.display='none';
   } else {
-    state.employees.push({id:uid(),name,country,seniority,function:func,salary,notes,hireDate,termDate,allocations});
+    state.employees.push({id:uid(),name,country,seniority,function:func,salary,notes,hireDate,termDate,projectId,allocations});
   }
   saveState();clearForm();renderEmployees();
 });
@@ -633,8 +659,9 @@ document.getElementById('btnCancelEmp').addEventListener('click',()=>{
   document.getElementById('btnCancelEmp').style.display='none';
 });
 function clearForm(){['empName','empSalary','empNotes','empHireDate','empTermDate'].forEach(id=>document.getElementById(id).value='');
-  ['empCountry','empSeniority','empFunction'].forEach(id=>document.getElementById(id).value='');
+  ['empCountry','empSeniority','empFunction','empProject'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('benchmarkBadge').innerHTML='';
+  document.getElementById('projectInfo').innerHTML='';
   renderFormAllocations([]);
 }
 // ── Form allocation rows ──
@@ -690,6 +717,8 @@ function startEdit(id){
   document.getElementById('empNotes').value=emp.notes||'';
   document.getElementById('empHireDate').value=emp.hireDate||'';
   document.getElementById('empTermDate').value=emp.termDate||'';
+  document.getElementById('empProject').value=emp.projectId||'';
+  updateProjectInfo();
   renderFormAllocations(emp.allocations?emp.allocations.map(a=>({...a})):[]);
   document.getElementById('formTitle').textContent='Edit Employee';
   document.getElementById('btnSaveEmp').textContent='Save Changes';
@@ -709,6 +738,8 @@ function saveInlineEdit(id){
   emp.seniority=row.querySelector('.ie-seniority').value;
   emp.function=row.querySelector('.ie-function').value;
   emp.salary=parseFloat(row.querySelector('.ie-salary').value)||emp.salary;
+  const ieProjEl=row.querySelector('.ie-project');
+  if(ieProjEl)emp.projectId=ieProjEl.value;
   inlineEditId=null;saveState();renderEmployees();
 }
 function cancelInlineEdit(){inlineEditId=null;renderEmployees()}
@@ -716,7 +747,7 @@ function cancelInlineEdit(){inlineEditId=null;renderEmployees()}
 function renderEmployees(){
   const search=document.getElementById('empSearch').value.toLowerCase();
   let emps=state.employees;
-  if(search)emps=emps.filter(e=>[e.name,e.country,e.seniority,e.function].some(v=>v.toLowerCase().includes(search)));
+  if(search)emps=emps.filter(e=>{const proj=getEmpProject(e);return [e.name,e.country,e.seniority,e.function,proj?proj.code:'',proj?proj.product:''].some(v=>v.toLowerCase().includes(search))});
   const tbody=document.querySelector('#empTable tbody');
   tbody.innerHTML=emps.map(e=>{
     const bp=getBonusPct(e),ba=getBonusAmt(e),ben=getBenefitsAmt(e),tc=getTotalComp(e);
@@ -732,14 +763,19 @@ function renderEmployees(){
         }
       }
     }
-    const projCodes=getEmpProjectCodes(e);
+    const proj=getEmpProject(e);
+    const projCode=proj?proj.code:'—';
+    const projProduct=proj?proj.product:'—';
+    const projCategory=proj?proj.category:'—';
     if(inlineEditId===e.id){
       return `<tr data-id="${e.id}" class="inline-edit">
         <td><input class="ie-name" value="${e.name}"></td>
         <td><select class="ie-country">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
         <td><select class="ie-seniority">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
         <td><select class="ie-function">${FUNCTIONS.map(f=>`<option${f===e.function?' selected':''}>${f}</option>`).join('')}</select></td>
-        <td style="font-size:.78rem">${projCodes}</td>
+        <td><select class="ie-project"><option value="">—</option>${state.projects.map(p=>`<option value="${p.id}"${p.id===e.projectId?' selected':''}>${p.code}</option>`).join('')}</select></td>
+        <td style="font-size:.78rem;color:var(--text-dim)">${proj?proj.product:'—'}</td>
+        <td style="font-size:.78rem;color:var(--text-dim)">${proj?proj.category:'—'}</td>
         <td><input class="ie-salary" type="number" value="${e.salary}"></td>
         <td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td>${fmt(tc)}</td>
         <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
@@ -748,7 +784,7 @@ function renderEmployees(){
     }
     return `<tr data-id="${e.id}">
       <td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
-      <td style="font-size:.78rem">${projCodes}</td>
+      <td style="font-weight:600;color:var(--accent)">${projCode}</td><td style="font-size:.82rem;color:var(--text-dim)">${projProduct}</td><td style="font-size:.82rem;color:var(--text-dim)">${projCategory}</td>
       <td>${fmt(e.salary)}</td><td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td style="font-weight:600;color:var(--accent)">${fmt(tc)}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
       <td><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
@@ -768,16 +804,17 @@ document.getElementById('btnAddProject').addEventListener('click',()=>{
   state.projects.push({id:uid(),code,product,category,description});
   saveState();
   ['projCode','projProduct','projCategory','projDesc'].forEach(id=>document.getElementById(id).value='');
-  renderProjects();refreshProjectFilters();
+  renderProjects();refreshProjectFilters();refreshProjectDropdown();
 });
 
 function deleteProject(id){
   if(confirm('Delete this project? Employee allocations referencing it will be removed.')){
     state.employees.forEach(e=>{
       if(e.allocations)e.allocations=e.allocations.filter(a=>a.projId!==id);
+      if(e.projectId===id)e.projectId='';
     });
     state.projects=state.projects.filter(p=>p.id!==id);
-    saveState();renderProjects();refreshProjectFilters();
+    saveState();renderProjects();refreshProjectFilters();refreshProjectDropdown();
   }
 }
 function toggleAllocOverride(empId){
@@ -930,6 +967,11 @@ document.getElementById('monthlyFilter').addEventListener('change',renderMonthly
 
 // ── LONG TERM FORECAST ──
 let forecastChart=null;
+let forecastSplit='total';
+document.querySelectorAll('#forecastSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#forecastSplitToggle .btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');forecastSplit=b.dataset.split;renderForecastProjection();
+}));
 function renderForecastInputs(){
   const fa=state.forecastAssumptions;
   ['attrition','hires','merit','market','ai'].forEach(key=>{
@@ -957,65 +999,134 @@ function renderForecastInputs(){
     });
   });
 }
-function renderForecastProjection(){
+function projectForecast(emps){
   const fa=state.forecastAssumptions;
   const tog=fa.toggles;
-  const currentHC=state.employees.length;
-  const currentBase=state.employees.reduce((a,e)=>a+e.salary,0);
-  const currentBonus=state.employees.reduce((a,e)=>a+getBonusAmt(e),0);
-  const currentBenefits=state.employees.reduce((a,e)=>a+getBenefitsAmt(e),0);
+  const currentHC=emps.length;
+  const currentBase=emps.reduce((a,e)=>a+e.salary,0);
+  const currentBonus=emps.reduce((a,e)=>a+getBonusAmt(e),0);
+  const currentBenefits=emps.reduce((a,e)=>a+getBenefitsAmt(e),0);
   const currentTotal=currentBase+currentBonus+currentBenefits;
   const avgSalary=currentHC?currentBase/currentHC:100000;
-  const avgBonusRate=currentHC?currentBonus/currentBase:0.1;
-  const avgBenRate=currentHC?currentBenefits/currentBase:0.2;
-
-  const rows=[{year:'Current',hc:currentHC,base:currentBase,bonus:currentBonus,benefits:currentBenefits,total:currentTotal}];
-  let hc=currentHC;
-  let salaryGrowth=1;
-
+  const avgBonusRate=currentHC&&currentBase?currentBonus/currentBase:0.1;
+  const avgBenRate=currentHC&&currentBase?currentBenefits/currentBase:0.2;
+  const rows=[{year:'Current',hc:currentHC,total:currentTotal}];
+  let hc=currentHC;let salaryGrowth=1;
   FORECAST_YEARS.forEach((y,i)=>{
     const attrRate=tog.attrition?fa.attrition[i]/100:0;
-    const newHires=tog.hires?fa.hires[i]:0;
+    const newHires=tog.hires?Math.round(fa.hires[i]*(currentHC/Math.max(state.employees.length,1))):0;
     const meritRate=tog.merit?fa.merit[i]/100:0;
     const marketRate=tog.market?fa.market[i]/100:0;
     const aiGear=tog.ai?fa.ai[i]:1;
-
-    const attrited=Math.round(hc*attrRate);
-    const effectiveHires=Math.round(newHires*aiGear);
-    hc=hc-attrited+effectiveHires;
-    if(hc<0)hc=0;
+    hc=Math.max(0,hc-Math.round(hc*attrRate)+Math.round(newHires*aiGear));
     salaryGrowth*=(1+meritRate+marketRate);
-
     const base=Math.round(hc*avgSalary*salaryGrowth);
-    const bonus=Math.round(base*avgBonusRate);
-    const benefits=Math.round(base*avgBenRate);
-    rows.push({year:y,hc,base,bonus,benefits,total:base+bonus+benefits});
+    rows.push({year:y,hc,total:Math.round(base*(1+avgBonusRate+avgBenRate))});
   });
+  return rows;
+}
+function renderForecastProjection(){
+  const fa=state.forecastAssumptions;
+  const tog=fa.toggles;
+
+  // Build total forecast
+  const totalRows=projectForecast(state.employees);
+
+  // Determine split groups
+  let splitGroups=null;
+  if(forecastSplit==='project'){
+    splitGroups={};
+    state.projects.forEach(p=>{splitGroups[p.code]=state.employees.filter(e=>e.projectId===p.id)});
+    const unassigned=state.employees.filter(e=>!e.projectId);
+    if(unassigned.length)splitGroups['Unassigned']=unassigned;
+  } else if(forecastSplit==='function'){
+    splitGroups={};
+    FUNCTIONS.forEach(f=>{const emps=state.employees.filter(e=>e.function===f);if(emps.length)splitGroups[f]=emps});
+  } else if(forecastSplit==='country'){
+    splitGroups={};
+    COUNTRIES.forEach(c=>{const emps=state.employees.filter(e=>e.country===c);if(emps.length)splitGroups[c]=emps});
+  }
 
   // Table
   const tbl=document.getElementById('forecastTable');
-  let html='<thead><tr><th>Year</th><th>Headcount</th><th>Base Cost</th><th>Bonus Cost</th><th>Benefits Cost</th><th>Total Comp</th></tr></thead><tbody>';
-  rows.forEach(r=>{
-    html+=`<tr><td style="font-weight:600;color:var(--accent)">${r.year}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td></tr>`;
-  });
-  html+='</tbody>';
-  tbl.innerHTML=html;
+  if(!splitGroups){
+    // Total view with base/bonus/benefits breakdown
+    const rows=[];
+    const currentHC=state.employees.length;
+    const currentBase=state.employees.reduce((a,e)=>a+e.salary,0);
+    const currentBonus=state.employees.reduce((a,e)=>a+getBonusAmt(e),0);
+    const currentBenefits=state.employees.reduce((a,e)=>a+getBenefitsAmt(e),0);
+    const avgSalary=currentHC?currentBase/currentHC:100000;
+    const avgBonusRate=currentHC&&currentBase?currentBonus/currentBase:0.1;
+    const avgBenRate=currentHC&&currentBase?currentBenefits/currentBase:0.2;
+    rows.push({year:'Current',hc:currentHC,base:currentBase,bonus:currentBonus,benefits:currentBenefits,total:currentBase+currentBonus+currentBenefits});
+    let hc=currentHC;let sg=1;
+    FORECAST_YEARS.forEach((y,i)=>{
+      const attrRate=tog.attrition?fa.attrition[i]/100:0;
+      const newHires=tog.hires?fa.hires[i]:0;
+      const aiGear=tog.ai?fa.ai[i]:1;
+      hc=Math.max(0,hc-Math.round(hc*attrRate)+Math.round(newHires*aiGear));
+      sg*=(1+(tog.merit?fa.merit[i]/100:0)+(tog.market?fa.market[i]/100:0));
+      const base=Math.round(hc*avgSalary*sg);
+      const bonus=Math.round(base*avgBonusRate);
+      const benefits=Math.round(base*avgBenRate);
+      rows.push({year:y,hc,base,bonus,benefits,total:base+bonus+benefits});
+    });
+    let html='<thead><tr><th>Year</th><th>Headcount</th><th>Base Cost</th><th>Bonus Cost</th><th>Benefits Cost</th><th>Total Comp</th></tr></thead><tbody>';
+    rows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${r.year}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td></tr>`);
+    html+='</tbody>';
+    tbl.innerHTML=html;
 
-  // Chart
-  if(forecastChart)forecastChart.destroy();
-  const labels=rows.map(r=>r.year);
-  forecastChart=new Chart(document.getElementById('forecastChart'),{
-    type:'bar',
-    data:{labels,datasets:[
-      {label:'Base',data:rows.map(r=>r.base),backgroundColor:'#8b5e5e'},
-      {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:'#6b8da3'},
-      {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:'#a38b5e'}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5a5a5a'}}},scales:{
-      x:{stacked:true,ticks:{color:'#5a5a5a'},grid:{color:'#ddd'}},
-      y:{stacked:true,ticks:{color:'#5a5a5a',callback:v=>'$'+v.toLocaleString()},grid:{color:'#ddd'}}
-    }}
-  });
+    // Chart - stacked base/bonus/benefits
+    if(forecastChart)forecastChart.destroy();
+    forecastChart=new Chart(document.getElementById('forecastChart'),{
+      type:'bar',
+      data:{labels:rows.map(r=>r.year),datasets:[
+        {label:'Base',data:rows.map(r=>r.base),backgroundColor:'#8b5e5e'},
+        {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:'#6b8da3'},
+        {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:'#a38b5e'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5a5a5a'}}},scales:{
+        x:{stacked:true,ticks:{color:'#5a5a5a'},grid:{color:'#ddd'}},
+        y:{stacked:true,ticks:{color:'#5a5a5a',callback:v=>'$'+v.toLocaleString()},grid:{color:'#ddd'}}
+      }}
+    });
+  } else {
+    // Split view
+    const groupNames=Object.keys(splitGroups);
+    const groupForecasts={};
+    groupNames.forEach(g=>groupForecasts[g]=projectForecast(splitGroups[g]));
+    const yearLabels=['Current',...FORECAST_YEARS];
+
+    // Table
+    let html='<thead><tr><th>Year</th>';
+    groupNames.forEach(g=>html+=`<th>${g.length>16?g.slice(0,14)+'…':g}</th>`);
+    html+='<th>Total</th></tr></thead><tbody>';
+    yearLabels.forEach((y,yi)=>{
+      html+=`<tr><td style="font-weight:600;color:var(--accent)">${y}</td>`;
+      let rowTotal=0;
+      groupNames.forEach(g=>{const v=groupForecasts[g][yi]?.total||0;rowTotal+=v;html+=`<td>${fmt(v)}</td>`});
+      html+=`<td style="font-weight:600;color:var(--accent)">${fmt(rowTotal)}</td></tr>`;
+    });
+    html+='</tbody>';
+    tbl.innerHTML=html;
+
+    // Chart - stacked by group
+    if(forecastChart)forecastChart.destroy();
+    const datasets=groupNames.map((g,i)=>({
+      label:g.length>20?g.slice(0,18)+'…':g,
+      data:yearLabels.map((_,yi)=>groupForecasts[g][yi]?.total||0),
+      backgroundColor:CHART_COLORS[i%CHART_COLORS.length]
+    }));
+    forecastChart=new Chart(document.getElementById('forecastChart'),{
+      type:'bar',
+      data:{labels:yearLabels,datasets},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5a5a5a'}}},scales:{
+        x:{stacked:true,ticks:{color:'#5a5a5a'},grid:{color:'#ddd'}},
+        y:{stacked:true,ticks:{color:'#5a5a5a',callback:v=>'$'+v.toLocaleString()},grid:{color:'#ddd'}}
+      }}
+    });
+  }
 }
 function renderForecast(){renderForecastInputs();renderForecastProjection()}
 
@@ -1025,8 +1136,8 @@ function downloadCSV(content,filename){
 }
 document.getElementById('btnExportFull').addEventListener('click',()=>{
   let csv='COMPENSATION PLAN - FULL EXPORT\n\n';
-  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Project(s),Base Salary,Bonus %,Bonus Amount,Benefits Amount,Total Comp,Hire Date,Term Date\n';
-  state.employees.forEach(e=>{const bp=getBonusPct(e);const projs=e.allocations?e.allocations.map(a=>{const p=getProjectById(a.projId);return p?p.code+':'+a.pct+'%':'?'}).join(';'):'';csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}","${projs}",${e.salary},${bp}%,${getBonusAmt(e)},${getBenefitsAmt(e)},${getTotalComp(e)},${e.hireDate||''},${e.termDate||''}\n`});
+  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Project Code,Product,Category,Base Salary,Bonus %,Bonus Amount,Benefits Amount,Total Comp,Hire Date,Term Date\n';
+  state.employees.forEach(e=>{const bp=getBonusPct(e);const proj=getEmpProject(e);csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}","${proj?proj.code:''}","${proj?proj.product:''}","${proj?proj.category:''}",${e.salary},${bp}%,${getBonusAmt(e)},${getBenefitsAmt(e)},${getTotalComp(e)},${e.hireDate||''},${e.termDate||''}\n`});
   csv+='\nBONUS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
   SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.bonusMatrix[s]?.[f]??'')+'%');csv+='\n'});
   csv+='\nBENEFITS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
@@ -1050,8 +1161,8 @@ document.getElementById('btnPrint').addEventListener('click',()=>{
   const w=window.open('','_blank');
   let h='<html><head><title>Comp Plan Print</title><style>body{font-family:sans-serif;padding:20px;font-size:12px;color:#2d2d2d}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}th{background:#f0f0f0;color:#8b2020}h1,h2{color:#8b2020}@media print{body{font-size:10px}}</style></head><body>';
   h+='<h1>Compensation Plan</h1>';
-  h+='<h2>Employee Roster</h2><table><tr><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Projects</th><th>Base</th><th>Bonus%</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>Hire</th><th>Term</th></tr>';
-  state.employees.forEach(e=>{const projs=getEmpProjectCodes(e);h+=`<tr><td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td><td>${projs}</td><td>${fmt(e.salary)}</td><td>${getBonusPct(e)}%</td><td>${fmt(getBonusAmt(e))}</td><td>${fmt(getBenefitsAmt(e))}</td><td>${fmt(getTotalComp(e))}</td><td>${e.hireDate||''}</td><td>${e.termDate||''}</td></tr>`});
+  h+='<h2>Employee Roster</h2><table><tr><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Project</th><th>Product</th><th>Category</th><th>Base</th><th>Bonus%</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>Hire</th><th>Term</th></tr>';
+  state.employees.forEach(e=>{const proj=getEmpProject(e);h+=`<tr><td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td><td>${proj?proj.code:''}</td><td>${proj?proj.product:''}</td><td>${proj?proj.category:''}</td><td>${fmt(e.salary)}</td><td>${getBonusPct(e)}%</td><td>${fmt(getBonusAmt(e))}</td><td>${fmt(getBenefitsAmt(e))}</td><td>${fmt(getTotalComp(e))}</td><td>${e.hireDate||''}</td><td>${e.termDate||''}</td></tr>`});
   h+='</table>';
   h+='<h2>Bonus Matrix</h2><table><tr><th></th>';FUNCTIONS.forEach((f,i)=>h+=`<th>${FUNC_SHORT[i]}</th>`);h+='</tr>';
   SENIORITY.forEach(s=>{h+=`<tr><th>${s}</th>`;FUNCTIONS.forEach(f=>h+=`<td>${state.bonusMatrix[s]?.[f]??''}%</td>`);h+='</tr>'});
