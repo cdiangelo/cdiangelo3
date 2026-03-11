@@ -1482,6 +1482,9 @@ function renderForecastProjection(){
     tbl.innerHTML=html;
 
     // Chart - stacked base/bonus/benefits
+    const isDark=document.documentElement.classList.contains('dark');
+    const tickColor=isDark?'#8a8a8e':'#5a5a5a';
+    const gridColor=isDark?'#3a3a3f':'#ddd';
     if(forecastChart)forecastChart.destroy();
     forecastChart=new Chart(document.getElementById('forecastChart'),{
       type:'bar',
@@ -1490,9 +1493,9 @@ function renderForecastProjection(){
         {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:'#6b8da3'},
         {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:'#a38b5e'}
       ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5a5a5a'}}},scales:{
-        x:{stacked:true,ticks:{color:'#5a5a5a'},grid:{color:'#ddd'}},
-        y:{stacked:true,ticks:{color:'#5a5a5a',callback:v=>'$'+v.toLocaleString()},grid:{color:'#ddd'}}
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
+        x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+        y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
       }}
     });
   } else {
@@ -1516,6 +1519,9 @@ function renderForecastProjection(){
     tbl.innerHTML=html;
 
     // Chart - stacked by group
+    const isDark=document.documentElement.classList.contains('dark');
+    const tickColor=isDark?'#8a8a8e':'#5a5a5a';
+    const gridColor=isDark?'#3a3a3f':'#ddd';
     if(forecastChart)forecastChart.destroy();
     const datasets=groupNames.map((g,i)=>({
       label:g.length>20?g.slice(0,18)+'…':g,
@@ -1525,9 +1531,9 @@ function renderForecastProjection(){
     forecastChart=new Chart(document.getElementById('forecastChart'),{
       type:'bar',
       data:{labels:yearLabels,datasets},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5a5a5a'}}},scales:{
-        x:{stacked:true,ticks:{color:'#5a5a5a'},grid:{color:'#ddd'}},
-        y:{stacked:true,ticks:{color:'#5a5a5a',callback:v=>'$'+v.toLocaleString()},grid:{color:'#ddd'}}
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
+        x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+        y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
       }}
     });
   }
