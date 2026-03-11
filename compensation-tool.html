@@ -113,6 +113,22 @@ tr:hover{background:rgba(139,32,32,.03)}
 .expand-select label{display:inline;margin-right:4px;font-size:.78rem;color:var(--text-dim)}
 .forecast-group-row{margin-bottom:12px;padding:10px;background:var(--panel);border:1px solid var(--border-light);border-radius:6px}
 .forecast-group-row .group-label{font-size:.82rem;font-weight:600;color:var(--accent);margin-bottom:6px}
+.workspace-indicator{font-size:.78rem;color:var(--text-dim);margin-left:12px;display:inline-flex;align-items:center;gap:6px}
+.workspace-indicator .ws-name{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.workspace-indicator .ws-name:hover{color:var(--accent-light)}
+.ws-list{list-style:none;margin:0;padding:0}
+.ws-list li{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border-light);gap:12px}
+.ws-list li:last-child{border-bottom:none}
+.ws-list li:hover{background:rgba(139,32,32,.03)}
+.ws-list .ws-info{flex:1;min-width:0}
+.ws-list .ws-title{font-weight:600;color:var(--text-dark);font-size:.9rem}
+.ws-list .ws-meta{font-size:.75rem;color:var(--text-dim);margin-top:2px}
+.ws-list .ws-active{color:var(--success);font-size:.75rem;font-weight:600}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--panel);border-radius:12px;padding:24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal h3{color:var(--accent);margin-bottom:16px;font-size:1.1rem}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
 @media(max-width:768px){.stat-cards{grid-template-columns:1fr 1fr}.controls{flex-direction:column;align-items:stretch}nav{flex-wrap:wrap}}
 </style>
 </head>
@@ -120,6 +136,7 @@ tr:hover{background:rgba(139,32,32,.03)}
 <header>
 <div class="container">
 <h1>Comp<span>Plan</span></h1>
+<span class="workspace-indicator">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span></span>
 <nav id="mainNav">
 <button class="active" data-tab="dashboard">Dashboard</button>
 <button data-tab="employees">Employees</button>
@@ -354,10 +371,33 @@ tr:hover{background:rgba(139,32,32,.03)}
 </div>
 <div class="export-card">
 <h3>JSON Backup</h3>
-<p>Export or import full application state as JSON.</p>
+<p>Export or import full application state as JSON file.</p>
 <button class="btn btn-primary" id="btnExportJSON">Export JSON</button>
 <button class="btn" id="btnImportJSON">Import JSON</button>
 <input type="file" id="jsonFileInput" accept=".json" style="display:none">
+</div>
+</div>
+<div class="card" style="margin-top:24px">
+<h3 class="section-title">Workspaces</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Save multiple named copies of your comp plan. Each workspace stores a complete snapshot of all data. Switch between them to compare scenarios.</p>
+<div class="controls" style="margin-bottom:16px">
+<input id="wsSaveName" placeholder="Workspace name…" style="max-width:280px">
+<button class="btn btn-primary" id="btnWsSave">Save As</button>
+<button class="btn btn-success" id="btnWsQuickSave">Quick Save</button>
+</div>
+<div class="card-inset" id="wsListContainer">
+<p style="color:var(--text-dim);font-size:.85rem">No saved workspaces yet.</p>
+</div>
+</div>
+</div>
+
+<!-- WORKSPACE MODAL -->
+<div class="modal-overlay" id="wsModal">
+<div class="modal">
+<h3 id="wsModalTitle">Manage Workspaces</h3>
+<div id="wsModalContent"></div>
+<div class="modal-actions">
+<button class="btn" onclick="closeWorkspaceModal()">Close</button>
 </div>
 </div>
 </div>
@@ -1391,9 +1431,147 @@ document.getElementById('jsonFileInput').addEventListener('change',e=>{
   reader.readAsText(file);
 });
 
+// ── WORKSPACES ──
+const WS_INDEX_KEY='compPlanWorkspaces';
+let currentWorkspaceName='Default';
+
+function getWorkspaceIndex(){
+  const raw=localStorage.getItem(WS_INDEX_KEY);
+  return raw?JSON.parse(raw):[];
+}
+function saveWorkspaceIndex(idx){localStorage.setItem(WS_INDEX_KEY,JSON.stringify(idx))}
+
+function updateWsDisplay(){
+  document.getElementById('wsNameDisplay').textContent=currentWorkspaceName;
+}
+
+function saveWorkspaceAs(name){
+  if(!name||!name.trim())return;
+  name=name.trim();
+  const idx=getWorkspaceIndex();
+  const key='compPlanWS_'+name.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const existing=idx.find(w=>w.key===key);
+  const meta={key,name,savedAt:new Date().toISOString(),employees:state.employees.length,projects:state.projects.length};
+  if(existing){Object.assign(existing,meta)}else{idx.push(meta)}
+  localStorage.setItem(key,JSON.stringify(state));
+  saveWorkspaceIndex(idx);
+  currentWorkspaceName=name;
+  // Also save as current active workspace
+  localStorage.setItem('compPlanActiveWS',name);
+  saveState();
+  updateWsDisplay();
+  renderWorkspaceList();
+}
+
+function loadWorkspace(key,name){
+  const raw=localStorage.getItem(key);
+  if(!raw){alert('Workspace data not found');return}
+  if(!confirm(`Load workspace "${name}"? Any unsaved changes to "${currentWorkspaceName}" will be lost.`))return;
+  state=JSON.parse(raw);
+  ensureStateFields();
+  currentWorkspaceName=name;
+  localStorage.setItem('compPlanActiveWS',name);
+  saveState();
+  updateWsDisplay();
+  initDropdowns();
+  renderAll();
+  renderWorkspaceList();
+}
+
+function deleteWorkspace(key,name){
+  if(!confirm(`Delete workspace "${name}"? This cannot be undone.`))return;
+  localStorage.removeItem(key);
+  let idx=getWorkspaceIndex();
+  idx=idx.filter(w=>w.key!==key);
+  saveWorkspaceIndex(idx);
+  renderWorkspaceList();
+}
+
+function duplicateWorkspace(key,name){
+  const raw=localStorage.getItem(key);
+  if(!raw)return;
+  const newName=prompt('Name for the copy:',name+' (Copy)');
+  if(!newName||!newName.trim())return;
+  const newKey='compPlanWS_'+newName.trim().replace(/[^a-zA-Z0-9_-]/g,'_');
+  const idx=getWorkspaceIndex();
+  if(idx.find(w=>w.key===newKey)){alert('A workspace with that name already exists');return}
+  const data=JSON.parse(raw);
+  localStorage.setItem(newKey,JSON.stringify(data));
+  idx.push({key:newKey,name:newName.trim(),savedAt:new Date().toISOString(),employees:data.employees?.length||0,projects:data.projects?.length||0});
+  saveWorkspaceIndex(idx);
+  renderWorkspaceList();
+}
+
+function renderWorkspaceList(){
+  const idx=getWorkspaceIndex();
+  const container=document.getElementById('wsListContainer');
+  if(!idx.length){
+    container.innerHTML='<p style="color:var(--text-dim);font-size:.85rem">No saved workspaces yet. Use "Save As" above to create your first workspace.</p>';
+    return;
+  }
+  let html='<ul class="ws-list">';
+  idx.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)).forEach(w=>{
+    const isActive=w.name===currentWorkspaceName;
+    const date=new Date(w.savedAt);
+    const dateStr=date.toLocaleDateString()+' '+date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    html+=`<li>
+      <div class="ws-info">
+        <div class="ws-title">${w.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
+        <div class="ws-meta">${w.employees||0} employees, ${w.projects||0} projects — Saved ${dateStr}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadWorkspace('${w.key}','${w.name.replace(/'/g,"\\'")}')">Load</button>`:''}
+        <button class="btn btn-sm" onclick="duplicateWorkspace('${w.key}','${w.name.replace(/'/g,"\\'")}')">Copy</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteWorkspace('${w.key}','${w.name.replace(/'/g,"\\'")}')">Del</button>
+      </div>
+    </li>`;
+  });
+  html+='</ul>';
+  container.innerHTML=html;
+}
+
+function openWorkspaceModal(){
+  const modal=document.getElementById('wsModal');
+  const idx=getWorkspaceIndex();
+  let html='<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Current: <strong style="color:var(--accent)">'+currentWorkspaceName+'</strong></p>';
+  if(idx.length){
+    html+='<ul class="ws-list" style="border:1px solid var(--border-light);border-radius:6px;max-height:300px;overflow-y:auto">';
+    idx.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)).forEach(w=>{
+      const isActive=w.name===currentWorkspaceName;
+      html+=`<li>
+        <div class="ws-info">
+          <div class="ws-title">${w.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
+          <div class="ws-meta">${w.employees||0} employees, ${w.projects||0} projects</div>
+        </div>
+        ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadWorkspace('${w.key}','${w.name.replace(/'/g,"\\'")}');closeWorkspaceModal()">Load</button>`:''}
+      </li>`;
+    });
+    html+='</ul>';
+  } else {
+    html+='<p style="color:var(--text-dim);font-size:.85rem">No saved workspaces. Go to the Export tab to save one.</p>';
+  }
+  document.getElementById('wsModalContent').innerHTML=html;
+  modal.classList.add('show');
+}
+function closeWorkspaceModal(){document.getElementById('wsModal').classList.remove('show')}
+document.getElementById('wsModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeWorkspaceModal()});
+
+document.getElementById('btnWsSave').addEventListener('click',()=>{
+  const name=document.getElementById('wsSaveName').value.trim();
+  if(!name){alert('Please enter a workspace name');return}
+  saveWorkspaceAs(name);
+  document.getElementById('wsSaveName').value='';
+});
+document.getElementById('btnWsQuickSave').addEventListener('click',()=>{
+  saveWorkspaceAs(currentWorkspaceName);
+});
+
 // ── INIT ──
-function renderAll(){renderDashboard();renderEmployees();renderProjects();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast()}
-loadState();initDropdowns();renderAll();
+function renderAll(){renderDashboard();renderEmployees();renderProjects();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
+loadState();
+currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
+updateWsDisplay();
+initDropdowns();renderAll();
 </script>
 </body>
 </html>
