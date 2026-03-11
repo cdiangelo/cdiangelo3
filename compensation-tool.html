@@ -201,6 +201,13 @@ body.ops-mode .ops-hide{display:none!important}
 <button class="btn" data-stack="category">Product Category</button>
 </div>
 </div>
+<div>
+<label>View</label>
+<div class="toggle-group" id="compViewToggle">
+<button class="btn active" data-view="total">Total Investment</button>
+<button class="btn" data-view="opex">P&amp;L (OpEx)</button>
+</div>
+</div>
 </div>
 <div class="filter-row controls" id="dashFilters">
 <div class="form-group"><label>Country</label><select id="dashCountry"><option value="">All Countries</option></select></div>
@@ -226,6 +233,7 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="form-group"><label>Business Line</label><select id="empBusinessLine"><option value="">Select…</option></select></div>
 <div class="form-group ops-hide"><label>Business Unit</label><input id="empBusinessUnit" readonly placeholder="Auto from country" style="background:var(--panel-inset);cursor:default"></div>
 <div class="form-group"><label>Base Salary (USD)</label><input id="empSalary" type="number" placeholder="0"><div id="benchmarkBadge"></div></div>
+<div class="form-group"><label>Capitalization %</label><input id="empCapPct" type="number" min="0" max="100" value="0" placeholder="0"><p style="color:var(--text-dim);font-size:.72rem;margin-top:2px">% of comp capitalizable as CapEx</p></div>
 <div class="form-group"><label>Hire Date</label><input id="empHireDate" type="date"></div>
 <div class="form-group"><label>Termination Date</label><input id="empTermDate" type="date"></div>
 <div class="form-group"><label>Notes</label><input id="empNotes" placeholder="Optional notes"></div>
@@ -245,7 +253,7 @@ body.ops-mode .ops-hide{display:none!important}
 <input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:320px">
 </div>
 <div class="table-wrap"><table id="empTable"><thead><tr>
-<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Business Line</th><th class="ops-hide">Bus Unit</th><th>Projects</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Hire Date</th><th>Term Date</th><th>Actions</th>
+<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Business Line</th><th class="ops-hide">Bus Unit</th><th>Projects</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Cap %</th><th>OpEx</th><th>CapEx</th><th>Hire Date</th><th>Term Date</th><th>Actions</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
@@ -403,6 +411,16 @@ body.ops-mode .ops-hide{display:none!important}
 <p style="color:var(--text-dim);font-size:.8rem;margin-bottom:12px">Tiered multiplier: reduces required headcount growth by this factor (1.0 = no effect, 0.8 = 20% fewer hires needed)</p>
 <div id="aiInputs"></div>
 </div>
+
+<div class="card-inset forecast-section">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togCapitalization" checked><span class="toggle-slider"></span></label>
+<label><strong>Capitalization Rate (%)</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandCapitalization" onchange="onExpandChange('capitalization',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
+</div>
+<p style="color:var(--text-dim);font-size:.8rem;margin-bottom:12px">Projected capitalization rate applied to total comp to derive CapEx offsets in the forecast. Overrides per-employee cap% in projections.</p>
+<div id="capitalizationInputs"></div>
+</div>
 </div>
 
 <div class="card">
@@ -415,6 +433,13 @@ body.ops-mode .ops-hide{display:none!important}
 <button class="btn" data-split="project">Project</button>
 <button class="btn" data-split="function">Function</button>
 <button class="btn" data-split="country">Country</button>
+</div>
+</div>
+<div>
+<label>View</label>
+<div class="toggle-group" id="forecastViewToggle">
+<button class="btn active" data-fview="total">Total Investment</button>
+<button class="btn" data-fview="opex">P&amp;L (OpEx)</button>
 </div>
 </div>
 </div>
@@ -546,7 +571,8 @@ function loadState(){
     merit:FORECAST_YEARS.map(()=>3),
     market:FORECAST_YEARS.map(()=>2),
     ai:FORECAST_YEARS.map((_,i)=>Math.max(0.7,1-i*0.05)),
-    toggles:{attrition:true,hires:true,merit:true,market:true,ai:true}
+    capitalization:FORECAST_YEARS.map(()=>0),
+    toggles:{attrition:true,hires:true,merit:true,market:true,ai:true,capitalization:true}
   };
   const allocOverrides={};
   const markets=DEFAULT_MARKETS.map(m=>({...m}));
@@ -583,6 +609,9 @@ function ensureStateFields(){
     };
   }
   if(!state.forecastAssumptions.expandBy)state.forecastAssumptions.expandBy={attrition:'total',hires:'total',merit:'total',market:'total',ai:'total'};
+  if(!state.forecastAssumptions.capitalization)state.forecastAssumptions.capitalization=FORECAST_YEARS.map(()=>0);
+  if(!state.forecastAssumptions.expandBy.capitalization)state.forecastAssumptions.expandBy.capitalization='total';
+  if(state.forecastAssumptions.toggles.capitalization===undefined)state.forecastAssumptions.toggles.capitalization=true;
   if(!state.forecastAssumptions.overrides)state.forecastAssumptions.overrides={};
   if(!state.allocOverrides)state.allocOverrides={};
   // Migrate old allocations array to per-employee allocations
@@ -660,6 +689,14 @@ function getMonthlyBase(emp,monthIdx,year){return Math.round(emp.salary/12*getMo
 function getMonthlyBonus(emp,monthIdx,year){return Math.round(getBonusAmt(emp)/12*getMonthFactor(emp,monthIdx,year))}
 function getMonthlyBenefits(emp,monthIdx,year){return Math.round(getBenefitsAmt(emp)/12*getMonthFactor(emp,monthIdx,year))}
 function getMonthlyComp(emp,monthIdx,year){return getMonthlyBase(emp,monthIdx,year)+getMonthlyBonus(emp,monthIdx,year)+getMonthlyBenefits(emp,monthIdx,year)}
+// CapEx / OpEx helpers
+function getCapPct(emp){return parseFloat(emp.capPct)||0}
+function getCapEx(emp){return Math.round(getTotalComp(emp)*getCapPct(emp)/100)}
+function getOpEx(emp){return getTotalComp(emp)-getCapEx(emp)}
+function getProratedCapEx(emp,year){return Math.round(getProratedComp(emp,year)*getCapPct(emp)/100)}
+function getProratedOpEx(emp,year){return getProratedComp(emp,year)-getProratedCapEx(emp,year)}
+function getMonthlyCapEx(emp,monthIdx,year){return Math.round(getMonthlyComp(emp,monthIdx,year)*getCapPct(emp)/100)}
+function getMonthlyOpEx(emp,monthIdx,year){return getMonthlyComp(emp,monthIdx,year)-getMonthlyCapEx(emp,monthIdx,year)}
 
 // Allocation helpers
 function getEmpAllocTotal(empId){
@@ -778,7 +815,7 @@ function refreshProjectDropdown(){
 
 // ── DASHBOARD ──
 let dashChart=null;
-let groupBy='function',stackBy='baseBonus';
+let groupBy='function',stackBy='baseBonus',compView='total';
 function getFilteredEmployees(){
   let emps=state.employees;
   const c=document.getElementById('dashCountry').value;
@@ -808,13 +845,17 @@ function renderStats(emps){
   const totalBonus=emps.reduce((a,e)=>a+getProratedBonus(e),0);
   const totalBenefits=emps.reduce((a,e)=>a+getProratedBenefits(e),0);
   const totalComp=emps.reduce((a,e)=>a+getProratedComp(e),0);
+  const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
+  const totalOpEx=totalComp-totalCapEx;
   document.getElementById('statCards').innerHTML=`
     <div class="stat-card"><div class="label">Total Headcount</div><div class="value">${totalHC}</div></div>
     <div class="stat-card"><div class="label">${CURRENT_YEAR} Base Cost</div><div class="value">${fmt(totalBase)}</div></div>
     <div class="stat-card"><div class="label">Avg Base Salary</div><div class="value">${fmt(avgBase)}</div></div>
     <div class="stat-card"><div class="label">${CURRENT_YEAR} Bonus Cost</div><div class="value">${fmt(totalBonus)}</div></div>
     <div class="stat-card"><div class="label">${CURRENT_YEAR} Benefits Cost</div><div class="value">${fmt(totalBenefits)}</div></div>
-    <div class="stat-card"><div class="label">${CURRENT_YEAR} Total Comp</div><div class="value">${fmt(totalComp)}</div></div>`;
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} Total Comp</div><div class="value">${fmt(totalComp)}</div></div>
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} OpEx (P&L)</div><div class="value">${fmt(totalOpEx)}</div></div>
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} CapEx Offset</div><div class="value">${fmt(totalCapEx)}</div></div>`;
 }
 const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a','#5e7a8b','#8b7a5e','#6b8b7a','#7a8b5e'];
 function renderDashboard(){
@@ -848,22 +889,40 @@ function renderDashboard(){
   const benVal=(entry)=>isMonth?getMonthlyBenefits(entry.emp,entry.mi):getProratedBenefits(entry);
   const empOf=(entry)=>isMonth?entry.emp:entry;
 
+  const capExVal=(entry)=>isMonth?getMonthlyCapEx(empOf(entry),entry.mi):getProratedCapEx(entry);
+
   if(stackBy==='baseBonus'){
-    datasets=[
-      {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x),0)),backgroundColor:'#8b5e5e'},
-      {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x),0)),backgroundColor:'#6b8da3'},
-      {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x),0)),backgroundColor:'#a38b5e'}
-    ];
+    if(compView==='opex'){
+      // OpEx view: show opex breakdown + capex as negative bars below 0
+      datasets=[
+        {label:'Base (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x)-Math.round(baseVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:'#8b5e5e',stack:'pos'},
+        {label:'Bonus (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x)-Math.round(bonusVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:'#6b8da3',stack:'pos'},
+        {label:'Benefits (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x)-Math.round(benVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:'#a38b5e',stack:'pos'},
+        {label:'CapEx Offset',data:labels.map(l=>-groups[l].reduce((a,x)=>a+capExVal(x),0)),backgroundColor:'#3a7d44',stack:'neg'}
+      ];
+    } else {
+      datasets=[
+        {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x),0)),backgroundColor:'#8b5e5e'},
+        {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x),0)),backgroundColor:'#6b8da3'},
+        {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x),0)),backgroundColor:'#a38b5e'}
+      ];
+    }
   } else if(stackBy==='country'){
+    const opexAdjComp=(x)=>compView==='opex'?compVal(x)-capExVal(x):compVal(x);
     COUNTRIES.forEach((c,i)=>{
-      const data=labels.map(l=>groups[l].filter(x=>empOf(x).country===c).reduce((a,x)=>a+compVal(x),0));
-      if(data.some(v=>v>0))datasets.push({label:c,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
+      const data=labels.map(l=>groups[l].filter(x=>empOf(x).country===c).reduce((a,x)=>a+opexAdjComp(x),0));
+      if(data.some(v=>v>0))datasets.push({label:c,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length],stack:'pos'});
     });
+    if(compView==='opex'){
+      const capData=labels.map(l=>-groups[l].reduce((a,x)=>a+capExVal(x),0));
+      if(capData.some(v=>v<0))datasets.push({label:'CapEx Offset',data:capData,backgroundColor:'#3a7d44',stack:'neg'});
+    }
   } else if(stackBy==='category'){
     function getEffectiveAllocs(e){
       if(e.allocations&&e.allocations.length)return e.allocations;
       return[];
     }
+    const opexAdjComp2=(x)=>compView==='opex'?compVal(x)-capExVal(x):compVal(x);
     const cats=[...new Set(state.projects.map(p=>p.category).filter(Boolean))];
     cats.forEach((cat,i)=>{
       const catProjIds=new Set(state.projects.filter(p=>p.category===cat).map(p=>p.id));
@@ -871,24 +930,32 @@ function renderDashboard(){
         const allocs=getEffectiveAllocs(empOf(x));
         if(!allocs.length)return a;
         const allocPct=allocs.filter(al=>catProjIds.has(al.projId)).reduce((s,al)=>s+al.pct,0)/100;
-        return a+Math.round(compVal(x)*allocPct);
+        return a+Math.round(opexAdjComp2(x)*allocPct);
       },0));
-      if(data.some(v=>v>0))datasets.push({label:cat,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
+      if(data.some(v=>v>0))datasets.push({label:cat,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length],stack:'pos'});
     });
-    // Unallocated portion — only for employees with no project assignment at all or partial allocations
     const unData=labels.map(l=>groups[l].reduce((a,x)=>{
       const allocs=getEffectiveAllocs(empOf(x));
-      if(!allocs.length)return a+compVal(x);
+      if(!allocs.length)return a+opexAdjComp2(x);
       const allocPct=allocs.reduce((s,al)=>s+al.pct,0)/100;
       if(allocPct>=1)return a;
-      return a+Math.round(compVal(x)*(1-allocPct));
+      return a+Math.round(opexAdjComp2(x)*(1-allocPct));
     },0));
-    if(unData.some(v=>v>0))datasets.push({label:'Unallocated',data:unData,backgroundColor:'#999'});
+    if(unData.some(v=>v>0))datasets.push({label:'Unallocated',data:unData,backgroundColor:'#999',stack:'pos'});
+    if(compView==='opex'){
+      const capData=labels.map(l=>-groups[l].reduce((a,x)=>a+capExVal(x),0));
+      if(capData.some(v=>v<0))datasets.push({label:'CapEx Offset',data:capData,backgroundColor:'#3a7d44',stack:'neg'});
+    }
   } else {
+    const opexAdjComp3=(x)=>compView==='opex'?compVal(x)-capExVal(x):compVal(x);
     SENIORITY.forEach((s,i)=>{
-      const data=labels.map(l=>groups[l].filter(x=>empOf(x).seniority===s).reduce((a,x)=>a+compVal(x),0));
-      if(data.some(v=>v>0))datasets.push({label:s,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
+      const data=labels.map(l=>groups[l].filter(x=>empOf(x).seniority===s).reduce((a,x)=>a+opexAdjComp3(x),0));
+      if(data.some(v=>v>0))datasets.push({label:s,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length],stack:'pos'});
     });
+    if(compView==='opex'){
+      const capData=labels.map(l=>-groups[l].reduce((a,x)=>a+capExVal(x),0));
+      if(capData.some(v=>v<0))datasets.push({label:'CapEx Offset',data:capData,backgroundColor:'#3a7d44',stack:'neg'});
+    }
   }
   if(typeof Chart!=='undefined'){
     if(dashChart)dashChart.destroy();
@@ -904,6 +971,9 @@ function renderDashboard(){
 }
 document.querySelectorAll('#groupToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#groupToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');groupBy=b.dataset.group;renderDashboard();
+}));
+document.querySelectorAll('#compViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#compViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');compView=b.dataset.view;renderDashboard();
 }));
 document.querySelectorAll('#stackToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#stackToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');stackBy=b.dataset.stack;renderDashboard();
@@ -937,6 +1007,7 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const businessLine=document.getElementById('empBusinessLine').value;
   const businessUnit=COUNTRY_BU[country]||'';
   const salary=parseFloat(document.getElementById('empSalary').value)||0;
+  const capPct=parseFloat(document.getElementById('empCapPct').value)||0;
   const notes=document.getElementById('empNotes').value.trim();
   const hireDate=document.getElementById('empHireDate').value;
   const termDate=document.getElementById('empTermDate').value;
@@ -944,13 +1015,13 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const allocations=getFormAllocations();
   if(editingId){
     const emp=state.employees.find(e=>e.id===editingId);
-    if(emp){Object.assign(emp,{name,country,seniority,function:func,businessLine,businessUnit,salary,notes,hireDate,termDate,allocations})}
+    if(emp){Object.assign(emp,{name,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations})}
     editingId=null;
     document.getElementById('formTitle').textContent='Add Employee';
     document.getElementById('btnSaveEmp').textContent='Add Employee';
     document.getElementById('btnCancelEmp').style.display='none';
   } else {
-    state.employees.push({id:uid(),name,country,seniority,function:func,businessLine,businessUnit,salary,notes,hireDate,termDate,allocations});
+    state.employees.push({id:uid(),name,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations});
   }
   saveState();clearForm();renderEmployees();
 });
@@ -961,6 +1032,7 @@ document.getElementById('btnCancelEmp').addEventListener('click',()=>{
   document.getElementById('btnCancelEmp').style.display='none';
 });
 function clearForm(){['empName','empSalary','empNotes','empHireDate','empTermDate','empBusinessUnit','empMarketCode'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('empCapPct').value=0;
   ['empCountry','empSeniority','empFunction','empBusinessLine'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('benchmarkBadge').innerHTML='';
   renderFormAllocations([]);
@@ -1042,6 +1114,7 @@ function startEdit(id){
   document.getElementById('empBusinessLine').value=emp.businessLine||'';
   document.getElementById('empBusinessUnit').value=emp.businessUnit||COUNTRY_BU[emp.country]||'';
   document.getElementById('empSalary').value=emp.salary;
+  document.getElementById('empCapPct').value=emp.capPct||0;
   document.getElementById('empNotes').value=emp.notes||'';
   document.getElementById('empHireDate').value=emp.hireDate||'';
   document.getElementById('empTermDate').value=emp.termDate||'';
@@ -1068,6 +1141,8 @@ function saveInlineEdit(id){
   const ieBiz=row.querySelector('.ie-bizline');
   if(ieBiz)emp.businessLine=ieBiz.value;
   emp.salary=parseFloat(row.querySelector('.ie-salary').value)||emp.salary;
+  const ieCap=row.querySelector('.ie-cappct');
+  if(ieCap)emp.capPct=parseFloat(ieCap.value)||0;
   const ieHire=row.querySelector('.ie-hire');
   if(ieHire)emp.hireDate=ieHire.value;
   const ieTerm=row.querySelector('.ie-term');
@@ -1176,6 +1251,8 @@ function renderEmployees(){
         <td style="min-width:200px">${allocEditHtml}</td>
         <td class="comp-sensitive"><input class="ie-salary" type="number" value="${e.salary}"></td>
         <td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive">${fmt(tc)}</td>
+        <td><input class="ie-cappct" type="number" min="0" max="100" value="${e.capPct||0}" style="width:55px"></td>
+        <td class="comp-sensitive">${fmt(getOpEx(e))}</td><td class="comp-sensitive">${fmt(getCapEx(e))}</td>
         <td><input class="ie-hire" type="date" value="${e.hireDate||''}"></td>
         <td><input class="ie-term" type="date" value="${e.termDate||''}"></td>
         <td><button class="btn btn-sm btn-primary" onclick="saveInlineEdit('${e.id}')">Save</button> <button class="btn btn-sm" onclick="cancelInlineEdit()">Cancel</button></td>
@@ -1187,6 +1264,7 @@ function renderEmployees(){
       <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||'—'}</td>
       <td style="min-width:180px">${projHtml}</td>
       <td class="comp-sensitive">${fmt(e.salary)}</td><td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
+      <td>${getCapPct(e)}%</td><td class="comp-sensitive">${fmt(getProratedOpEx(e))}</td><td class="comp-sensitive">${fmt(getProratedCapEx(e))}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td>
       <td><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
     </tr>`;
@@ -1470,17 +1548,18 @@ function renderMonthly(){
     // Build summary rows — optionally grouped by toggled columns
     if(cols.length===0){
       // Simple summary: one row per month
-      let annBase=0,annBonus=0,annBen=0;
-      let html='<thead><tr><th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th></tr></thead><tbody>';
+      let annBase=0,annBonus=0,annBen=0,annCapEx=0;
+      let html='<thead><tr><th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>CapEx</th><th>OpEx (P&L)</th></tr></thead><tbody>';
       MONTHS.forEach((m,mi)=>{
         const mBase=emps.reduce((a,e)=>a+getMonthlyBase(e,mi),0);
         const mBonus=emps.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);
         const mBen=emps.reduce((a,e)=>a+getMonthlyBenefits(e,mi),0);
+        const mCapEx=emps.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0);
         const mTotal=mBase+mBonus+mBen;
-        annBase+=mBase;annBonus+=mBonus;annBen+=mBen;
-        html+=`<tr><td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td></tr>`;
+        annBase+=mBase;annBonus+=mBonus;annBen+=mBen;annCapEx+=mCapEx;
+        html+=`<tr><td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td><td>${fmt(mCapEx)}</td><td style="color:var(--success)">${fmt(mTotal-mCapEx)}</td></tr>`;
       });
-      html+=`</tbody><tfoot><tr><td>Annual Total</td><td>${fmt(annBase)}</td><td>${fmt(annBonus)}</td><td>${fmt(annBen)}</td><td style="color:var(--accent)">${fmt(annBase+annBonus+annBen)}</td></tr></tfoot>`;
+      html+=`</tbody><tfoot><tr><td>Annual Total</td><td>${fmt(annBase)}</td><td>${fmt(annBonus)}</td><td>${fmt(annBen)}</td><td style="color:var(--accent)">${fmt(annBase+annBonus+annBen)}</td><td>${fmt(annCapEx)}</td><td style="color:var(--success)">${fmt(annBase+annBonus+annBen-annCapEx)}</td></tr></tfoot>`;
       tbl.innerHTML=html;
     } else {
       // Grouped summary: rows per month per unique combination of toggled fields
@@ -1491,23 +1570,24 @@ function renderMonthly(){
 
       let html='<thead><tr>';
       cols.forEach(c=>html+=`<th>${COL_LABELS[c]}</th>`);
-      html+='<th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th></tr></thead><tbody>';
-      const annTotals={base:0,bonus:0,ben:0};
+      html+='<th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>CapEx</th><th>OpEx (P&L)</th></tr></thead><tbody>';
+      const annTotals={base:0,bonus:0,ben:0,capex:0};
       groups.forEach(g=>{
         MONTHS.forEach((m,mi)=>{
           const mBase=g.emps.reduce((a,e)=>a+getMonthlyBase(e,mi),0);
           const mBonus=g.emps.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);
           const mBen=g.emps.reduce((a,e)=>a+getMonthlyBenefits(e,mi),0);
+          const mCapEx=g.emps.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0);
           const mTotal=mBase+mBonus+mBen;
-          annTotals.base+=mBase;annTotals.bonus+=mBonus;annTotals.ben+=mBen;
+          annTotals.base+=mBase;annTotals.bonus+=mBonus;annTotals.ben+=mBen;annTotals.capex+=mCapEx;
           html+='<tr>';
           if(mi===0){cols.forEach((c,ci)=>html+=`<td rowspan="12" style="font-weight:600;vertical-align:top;border-right:1px solid var(--border-light)">${g.labels[ci]}</td>`)}
-          html+=`<td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td></tr>`;
+          html+=`<td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td><td>${fmt(mCapEx)}</td><td style="color:var(--success)">${fmt(mTotal-mCapEx)}</td></tr>`;
         });
       });
       html+=`</tbody><tfoot><tr>`;
       cols.forEach(()=>html+='<td></td>');
-      html+=`<td>Annual Total</td><td>${fmt(annTotals.base)}</td><td>${fmt(annTotals.bonus)}</td><td>${fmt(annTotals.ben)}</td><td style="color:var(--accent)">${fmt(annTotals.base+annTotals.bonus+annTotals.ben)}</td></tr></tfoot>`;
+      html+=`<td>Annual Total</td><td>${fmt(annTotals.base)}</td><td>${fmt(annTotals.bonus)}</td><td>${fmt(annTotals.ben)}</td><td style="color:var(--accent)">${fmt(annTotals.base+annTotals.bonus+annTotals.ben)}</td><td>${fmt(annTotals.capex)}</td><td style="color:var(--success)">${fmt(annTotals.base+annTotals.bonus+annTotals.ben-annTotals.capex)}</td></tr></tfoot>`;
       tbl.innerHTML=html;
     }
   } else {
@@ -1542,9 +1622,14 @@ document.querySelectorAll('.monthly-col').forEach(cb=>cb.addEventListener('chang
 // ── LONG TERM FORECAST ──
 let forecastChart=null;
 let forecastSplit='total';
+let forecastView='total';
 document.querySelectorAll('#forecastSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#forecastSplitToggle .btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');forecastSplit=b.dataset.split;renderForecastProjection();
+}));
+document.querySelectorAll('#forecastViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#forecastViewToggle .btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');forecastView=b.dataset.fview;renderForecastProjection();
 }));
 function getExpandGroups(expandBy){
   if(expandBy==='project'){
@@ -1575,15 +1660,15 @@ function onExpandChange(key,val){
 }
 function renderForecastInputs(){
   const fa=state.forecastAssumptions;
-  if(!fa.expandBy)fa.expandBy={attrition:'total',hires:'total',merit:'total',market:'total',ai:'total'};
+  if(!fa.expandBy)fa.expandBy={attrition:'total',hires:'total',merit:'total',market:'total',ai:'total',capitalization:'total'};
   if(!fa.overrides)fa.overrides={};
-  ['attrition','hires','merit','market','ai'].forEach(key=>{
+  ['attrition','hires','merit','market','ai','capitalization'].forEach(key=>{
     const container=document.getElementById(key+'Inputs');
     const suffix=key==='hires'?'':key==='ai'?'x':'%';
     const step=key==='ai'?'0.01':'1';
     const expandBy=fa.expandBy[key]||'total';
     // Set expand dropdown
-    const expandIdMap={attrition:'Attrition',hires:'Hires',merit:'Merit',market:'Market',ai:'AI'};
+    const expandIdMap={attrition:'Attrition',hires:'Hires',merit:'Merit',market:'Market',ai:'AI',capitalization:'Capitalization'};
     const expandEl=document.getElementById('expand'+expandIdMap[key]);
     if(expandEl)expandEl.value=expandBy;
 
@@ -1624,7 +1709,7 @@ function renderForecastInputs(){
   document.querySelectorAll('.forecast-override').forEach(inp=>inp.addEventListener('change',()=>{
     setOverrideVal(inp.dataset.key,inp.dataset.group,parseInt(inp.dataset.idx),parseFloat(inp.value)||0);
   }));
-  ['Attrition','Hires','Merit','Market','AI'].forEach(label=>{
+  ['Attrition','Hires','Merit','Market','AI','Capitalization'].forEach(label=>{
     const key=label.toLowerCase();
     const tog=document.getElementById('tog'+label);
     tog.checked=fa.toggles[key]!==false;
@@ -1655,6 +1740,7 @@ function projectForecast(emps,groupKey){
   const currentBonus=activeEmps.reduce((a,e)=>a+getProratedBonus(e),0);
   const currentBenefits=activeEmps.reduce((a,e)=>a+getProratedBenefits(e),0);
   const currentTotal=currentBase+currentBonus+currentBenefits;
+  const currentCapEx=activeEmps.reduce((a,e)=>a+getProratedCapEx(e),0);
   // For projecting forward, use full annual rates of active employees (those not terminated in current year)
   const forwardEmps=activeEmps.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
   const forwardHC=forwardEmps.length;
@@ -1663,7 +1749,9 @@ function projectForecast(emps,groupKey){
   const avgSalary=forwardHC?forwardBase/forwardHC:100000;
   const avgBonusRate=forwardHC&&forwardBase?forwardBonus/forwardBase:0.1;
   const avgBenRate=forwardHC&&forwardBase?forwardEmps.reduce((a,e)=>a+getBenefitsAmt(e),0)/forwardBase:0.2;
-  const rows=[{year:'Current',hc:currentHC,total:currentTotal}];
+  // Current year cap rate from actual employee data
+  const currentCapRate=currentTotal?currentCapEx/currentTotal:0;
+  const rows=[{year:'Current',hc:currentHC,total:currentTotal,capex:currentCapEx,opex:currentTotal-currentCapEx}];
   let hc=forwardHC;let salaryGrowth=1;
   FORECAST_YEARS.forEach((y,i)=>{
     const attrRate=tog.attrition?getAssumptionVal('attrition',groupKey,i)/100:0;
@@ -1673,10 +1761,13 @@ function projectForecast(emps,groupKey){
     const meritRate=tog.merit?getAssumptionVal('merit',groupKey,i)/100:0;
     const marketRate=tog.market?getAssumptionVal('market',groupKey,i)/100:0;
     const aiGear=tog.ai?getAssumptionVal('ai',groupKey,i):1;
+    const capRate=tog.capitalization?getAssumptionVal('capitalization',groupKey,i)/100:currentCapRate;
     hc=Math.max(0,hc-Math.round(hc*attrRate)+Math.round(newHires*aiGear));
     salaryGrowth*=(1+meritRate+marketRate);
     const base=Math.round(hc*avgSalary*salaryGrowth);
-    rows.push({year:y,hc,total:Math.round(base*(1+avgBonusRate+avgBenRate))});
+    const total=Math.round(base*(1+avgBonusRate+avgBenRate));
+    const capex=Math.round(total*capRate);
+    rows.push({year:y,hc,total,capex,opex:total-capex});
   });
   return rows;
 }
@@ -1713,13 +1804,16 @@ function renderForecastProjection(){
     const currentBase=activeEmps.reduce((a,e)=>a+getProratedBase(e),0);
     const currentBonus=activeEmps.reduce((a,e)=>a+getProratedBonus(e),0);
     const currentBenefits=activeEmps.reduce((a,e)=>a+getProratedBenefits(e),0);
+    const currentCapEx=activeEmps.reduce((a,e)=>a+getProratedCapEx(e),0);
     const forwardEmps=activeEmps.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
     const forwardHC=forwardEmps.length;
     const forwardBase=forwardEmps.reduce((a,e)=>a+e.salary,0);
     const avgSalary=forwardHC?forwardBase/forwardHC:100000;
     const avgBonusRate=forwardHC&&forwardBase?forwardEmps.reduce((a,e)=>a+getBonusAmt(e),0)/forwardBase:0.1;
     const avgBenRate=forwardHC&&forwardBase?forwardEmps.reduce((a,e)=>a+getBenefitsAmt(e),0)/forwardBase:0.2;
-    rows.push({year:'Current',hc:currentHC,base:currentBase,bonus:currentBonus,benefits:currentBenefits,total:currentBase+currentBonus+currentBenefits});
+    const currentTotal=currentBase+currentBonus+currentBenefits;
+    const currentCapRate=currentTotal?currentCapEx/currentTotal:0;
+    rows.push({year:'Current',hc:currentHC,base:currentBase,bonus:currentBonus,benefits:currentBenefits,total:currentTotal,capex:currentCapEx,opex:currentTotal-currentCapEx});
     let hc=forwardHC;let sg=1;
     FORECAST_YEARS.forEach((y,i)=>{
       const attrRate=tog.attrition?fa.attrition[i]/100:0;
@@ -1730,26 +1824,40 @@ function renderForecastProjection(){
       const base=Math.round(hc*avgSalary*sg);
       const bonus=Math.round(base*avgBonusRate);
       const benefits=Math.round(base*avgBenRate);
-      rows.push({year:y,hc,base,bonus,benefits,total:base+bonus+benefits});
+      const total=base+bonus+benefits;
+      const capRate=tog.capitalization?fa.capitalization[i]/100:currentCapRate;
+      const capex=Math.round(total*capRate);
+      rows.push({year:y,hc,base,bonus,benefits,total,capex,opex:total-capex});
     });
-    let html='<thead><tr><th>Year</th><th>Headcount</th><th>Base Cost</th><th>Bonus Cost</th><th>Benefits Cost</th><th>Total Comp</th></tr></thead><tbody>';
-    rows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${r.year}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td></tr>`);
+    let html='<thead><tr><th>Year</th><th>Headcount</th><th>Base Cost</th><th>Bonus Cost</th><th>Benefits Cost</th><th>Total Comp</th><th>CapEx</th><th>OpEx (P&L)</th></tr></thead><tbody>';
+    rows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${r.year}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
     html+='</tbody>';
     tbl.innerHTML=html;
 
-    // Chart - stacked base/bonus/benefits
+    // Chart - stacked base/bonus/benefits with capex view support
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
       const tickColor=isDark?'#8a8a8e':'#5a5a5a';
       const gridColor=isDark?'#3a3a3f':'#ddd';
       if(forecastChart)forecastChart.destroy();
-      forecastChart=new Chart(document.getElementById('forecastChart'),{
-        type:'bar',
-        data:{labels:rows.map(r=>r.year),datasets:[
+      let fDatasets;
+      if(forecastView==='opex'){
+        fDatasets=[
+          {label:'Base (OpEx)',data:rows.map(r=>Math.round(r.base*(1-r.capex/Math.max(r.total,1)))),backgroundColor:'#8b5e5e',stack:'pos'},
+          {label:'Bonus (OpEx)',data:rows.map(r=>Math.round(r.bonus*(1-r.capex/Math.max(r.total,1)))),backgroundColor:'#6b8da3',stack:'pos'},
+          {label:'Benefits (OpEx)',data:rows.map(r=>Math.round(r.benefits*(1-r.capex/Math.max(r.total,1)))),backgroundColor:'#a38b5e',stack:'pos'},
+          {label:'CapEx Offset',data:rows.map(r=>-r.capex),backgroundColor:'#3a7d44',stack:'neg'}
+        ];
+      } else {
+        fDatasets=[
           {label:'Base',data:rows.map(r=>r.base),backgroundColor:'#8b5e5e'},
           {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:'#6b8da3'},
           {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:'#a38b5e'}
-        ]},
+        ];
+      }
+      forecastChart=new Chart(document.getElementById('forecastChart'),{
+        type:'bar',
+        data:{labels:rows.map(r=>r.year),datasets:fDatasets},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
@@ -1764,14 +1872,17 @@ function renderForecastProjection(){
     const yearLabels=['Current',...FORECAST_YEARS];
 
     // Table
+    const showOpex=forecastView==='opex';
     let html='<thead><tr><th>Year</th>';
     groupNames.forEach(g=>html+=`<th>${g.length>16?g.slice(0,14)+'…':g}</th>`);
-    html+='<th>Total</th></tr></thead><tbody>';
+    html+=`<th>Total</th>${showOpex?'<th>CapEx</th><th>OpEx</th>':''}</tr></thead><tbody>`;
     yearLabels.forEach((y,yi)=>{
       html+=`<tr><td style="font-weight:600;color:var(--accent)">${y}</td>`;
-      let rowTotal=0;
-      groupNames.forEach(g=>{const v=groupForecasts[g][yi]?.total||0;rowTotal+=v;html+=`<td>${fmt(v)}</td>`});
-      html+=`<td style="font-weight:600;color:var(--accent)">${fmt(rowTotal)}</td></tr>`;
+      let rowTotal=0,rowCapex=0;
+      groupNames.forEach(g=>{const r=groupForecasts[g][yi];const v=r?r.total:0;rowTotal+=v;rowCapex+=(r?r.capex:0);html+=`<td>${fmt(showOpex?(r?r.opex:0):v)}</td>`});
+      html+=`<td style="font-weight:600;color:var(--accent)">${fmt(showOpex?rowTotal-rowCapex:rowTotal)}</td>`;
+      if(showOpex)html+=`<td>${fmt(rowCapex)}</td><td style="color:var(--success)">${fmt(rowTotal-rowCapex)}</td>`;
+      html+='</tr>';
     });
     html+='</tbody>';
     tbl.innerHTML=html;
@@ -1784,9 +1895,14 @@ function renderForecastProjection(){
       if(forecastChart)forecastChart.destroy();
       const datasets=groupNames.map((g,i)=>({
         label:g.length>20?g.slice(0,18)+'…':g,
-        data:yearLabels.map((_,yi)=>groupForecasts[g][yi]?.total||0),
-        backgroundColor:CHART_COLORS[i%CHART_COLORS.length]
+        data:yearLabels.map((_,yi)=>{const r=groupForecasts[g][yi];return r?(showOpex?r.opex:r.total):0}),
+        backgroundColor:CHART_COLORS[i%CHART_COLORS.length],
+        stack:'pos'
       }));
+      if(showOpex){
+        const capData=yearLabels.map((_,yi)=>-groupNames.reduce((a,g)=>{const r=groupForecasts[g][yi];return a+(r?r.capex:0)},0));
+        if(capData.some(v=>v<0))datasets.push({label:'CapEx Offset',data:capData,backgroundColor:'#3a7d44',stack:'neg'});
+      }
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
         data:{labels:yearLabels,datasets},
@@ -1806,18 +1922,18 @@ function downloadCSV(content,filename){
 }
 document.getElementById('btnExportFull').addEventListener('click',()=>{
   let csv='COMPENSATION PLAN - FULL EXPORT\n\n';
-  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Market Code,Business Line,Business Unit,Project Code,Product,Category,Base Salary (Annual),Bonus %,Bonus (Annual),Benefits (Annual),Total Comp (Annual),Prorated Total Comp,Proration %,Hire Date,Term Date\n';
-  state.employees.forEach(e=>{const bp=getBonusPct(e);const proj=getEmpProject(e);const af=getAnnualFactor(e);const mkts=getEmpMarkets(e).map(m=>m.code).join('; ');csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}","${mkts}","${getBizLineName(e.businessLine)}",${e.businessUnit||''},"${proj?proj.code:''}","${proj?proj.product:''}","${proj?proj.category:''}",${e.salary},${bp}%,${getBonusAmt(e)},${getBenefitsAmt(e)},${getTotalComp(e)},${getProratedComp(e)},${Math.round(af*100)}%,${e.hireDate||''},${e.termDate||''}\n`});
+  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Market Code,Business Line,Business Unit,Project Code,Product,Category,Base Salary (Annual),Bonus %,Bonus (Annual),Benefits (Annual),Total Comp (Annual),Cap %,CapEx,OpEx (P&L),Prorated Total Comp,Proration %,Hire Date,Term Date\n';
+  state.employees.forEach(e=>{const bp=getBonusPct(e);const proj=getEmpProject(e);const af=getAnnualFactor(e);const mkts=getEmpMarkets(e).map(m=>m.code).join('; ');csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}","${mkts}","${getBizLineName(e.businessLine)}",${e.businessUnit||''},"${proj?proj.code:''}","${proj?proj.product:''}","${proj?proj.category:''}",${e.salary},${bp}%,${getBonusAmt(e)},${getBenefitsAmt(e)},${getTotalComp(e)},${getCapPct(e)}%,${getProratedCapEx(e)},${getProratedOpEx(e)},${getProratedComp(e)},${Math.round(af*100)}%,${e.hireDate||''},${e.termDate||''}\n`});
   csv+='\nBONUS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
   SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.bonusMatrix[s]?.[f]??'')+'%');csv+='\n'});
   csv+='\nBENEFITS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
   SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.benefitsMatrix[s]?.[f]??'')+'%');csv+='\n'});
   csv+='\nPROJECTS\nCode,Market Code,Product,Category,Description\n';
   state.projects.forEach(p=>csv+=`"${p.code}",${p.marketCode||''},"${p.product}","${p.category}","${p.description||''}"\n`);
-  csv+='\nMONTHLY SPREAD (SUMMARY - PRORATED)\nMonth,Base,Bonus,Benefits,Total\n';
-  let csvAnnBase=0,csvAnnBonus=0,csvAnnBen=0;
-  MONTHS.forEach((m,mi)=>{const mb=state.employees.reduce((a,e)=>a+getMonthlyBase(e,mi),0);const mbn=state.employees.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);const mbe=state.employees.reduce((a,e)=>a+getMonthlyBenefits(e,mi),0);csvAnnBase+=mb;csvAnnBonus+=mbn;csvAnnBen+=mbe;csv+=`${m},${mb},${mbn},${mbe},${mb+mbn+mbe}\n`});
-  csv+=`Annual Total,${csvAnnBase},${csvAnnBonus},${csvAnnBen},${csvAnnBase+csvAnnBonus+csvAnnBen}\n`;
+  csv+='\nMONTHLY SPREAD (SUMMARY - PRORATED)\nMonth,Base,Bonus,Benefits,Total,CapEx,OpEx (P&L)\n';
+  let csvAnnBase=0,csvAnnBonus=0,csvAnnBen=0,csvAnnCapEx=0;
+  MONTHS.forEach((m,mi)=>{const mb=state.employees.reduce((a,e)=>a+getMonthlyBase(e,mi),0);const mbn=state.employees.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);const mbe=state.employees.reduce((a,e)=>a+getMonthlyBenefits(e,mi),0);const mcx=state.employees.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0);const mt=mb+mbn+mbe;csvAnnBase+=mb;csvAnnBonus+=mbn;csvAnnBen+=mbe;csvAnnCapEx+=mcx;csv+=`${m},${mb},${mbn},${mbe},${mt},${mcx},${mt-mcx}\n`});
+  csv+=`Annual Total,${csvAnnBase},${csvAnnBonus},${csvAnnBen},${csvAnnBase+csvAnnBonus+csvAnnBen},${csvAnnCapEx},${csvAnnBase+csvAnnBonus+csvAnnBen-csvAnnCapEx}\n`;
   csv+='\nBENCHMARK REFERENCE TABLE\nCountry,Seniority,Function,Benchmark Salary\n';
   COUNTRIES.forEach(c=>SENIORITY.forEach(s=>FUNCTIONS.forEach(f=>csv+=`${c},${s},"${f}",${benchmark(s,f,c)}\n`)));
   downloadCSV(csv,'comp-plan-full.csv');
@@ -1831,8 +1947,8 @@ document.getElementById('btnPrint').addEventListener('click',()=>{
   const w=window.open('','_blank');
   let h='<html><head><title>Comp Plan Print</title><style>body{font-family:sans-serif;padding:20px;font-size:12px;color:#2d2d2d}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}th{background:#f0f0f0;color:#8b2020}h1,h2{color:#8b2020}@media print{body{font-size:10px}}</style></head><body>';
   h+='<h1>Compensation Plan</h1>';
-  h+='<h2>Employee Roster</h2><table><tr><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Biz Line</th><th>Bus Unit</th><th>Project</th><th>Product</th><th>Category</th><th>Base</th><th>Bonus%</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>Hire</th><th>Term</th></tr>';
-  state.employees.forEach(e=>{const proj=getEmpProject(e);const mkts=getEmpMarkets(e).map(m=>m.code).join(', ');h+=`<tr><td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td><td>${mkts}</td><td>${getBizLineName(e.businessLine)}</td><td>${e.businessUnit||''}</td><td>${proj?proj.code:''}</td><td>${proj?proj.product:''}</td><td>${proj?proj.category:''}</td><td>${fmt(e.salary)}</td><td>${getBonusPct(e)}%</td><td>${fmt(getBonusAmt(e))}</td><td>${fmt(getBenefitsAmt(e))}</td><td>${fmt(getTotalComp(e))}</td><td>${e.hireDate||''}</td><td>${e.termDate||''}</td></tr>`});
+  h+='<h2>Employee Roster</h2><table><tr><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Biz Line</th><th>Bus Unit</th><th>Project</th><th>Product</th><th>Category</th><th>Base</th><th>Bonus%</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>Cap%</th><th>OpEx</th><th>CapEx</th><th>Hire</th><th>Term</th></tr>';
+  state.employees.forEach(e=>{const proj=getEmpProject(e);const mkts=getEmpMarkets(e).map(m=>m.code).join(', ');h+=`<tr><td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td><td>${mkts}</td><td>${getBizLineName(e.businessLine)}</td><td>${e.businessUnit||''}</td><td>${proj?proj.code:''}</td><td>${proj?proj.product:''}</td><td>${proj?proj.category:''}</td><td>${fmt(e.salary)}</td><td>${getBonusPct(e)}%</td><td>${fmt(getBonusAmt(e))}</td><td>${fmt(getBenefitsAmt(e))}</td><td>${fmt(getTotalComp(e))}</td><td>${getCapPct(e)}%</td><td>${fmt(getOpEx(e))}</td><td>${fmt(getCapEx(e))}</td><td>${e.hireDate||''}</td><td>${e.termDate||''}</td></tr>`});
   h+='</table>';
   h+='<h2>Bonus Matrix</h2><table><tr><th></th>';FUNCTIONS.forEach((f,i)=>h+=`<th>${FUNC_SHORT[i]}</th>`);h+='</tr>';
   SENIORITY.forEach(s=>{h+=`<tr><th>${s}</th>`;FUNCTIONS.forEach(f=>h+=`<td>${state.bonusMatrix[s]?.[f]??''}%</td>`);h+='</tr>'});
