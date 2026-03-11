@@ -735,23 +735,29 @@ function renderDashboard(){
       if(data.some(v=>v>0))datasets.push({label:c,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
     });
   } else if(stackBy==='category'){
+    // Build effective allocations: use allocations array if present, else fall back to primary projectId at 100%
+    function getEffectiveAllocs(e){
+      if(e.allocations&&e.allocations.length)return e.allocations;
+      if(e.projectId)return[{projId:e.projectId,pct:100}];
+      return[];
+    }
     const cats=[...new Set(state.projects.map(p=>p.category).filter(Boolean))];
     cats.forEach((cat,i)=>{
       const catProjIds=new Set(state.projects.filter(p=>p.category===cat).map(p=>p.id));
       const data=labels.map(l=>groups[l].reduce((a,x)=>{
-        const e=empOf(x);
-        if(!e.allocations||!e.allocations.length)return a;
-        const allocPct=e.allocations.filter(al=>catProjIds.has(al.projId)).reduce((s,al)=>s+al.pct,0)/100;
+        const allocs=getEffectiveAllocs(empOf(x));
+        if(!allocs.length)return a;
+        const allocPct=allocs.filter(al=>catProjIds.has(al.projId)).reduce((s,al)=>s+al.pct,0)/100;
         return a+Math.round(compVal(x)*allocPct);
       },0));
       if(data.some(v=>v>0))datasets.push({label:cat,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
     });
-    // Unallocated portion
-    const allProjIds=new Set(state.projects.map(p=>p.id));
+    // Unallocated portion — only for employees with no project assignment at all or partial allocations
     const unData=labels.map(l=>groups[l].reduce((a,x)=>{
-      const e=empOf(x);
-      if(!e.allocations||!e.allocations.length)return a+compVal(x);
-      const allocPct=e.allocations.filter(al=>allProjIds.has(al.projId)).reduce((s,al)=>s+al.pct,0)/100;
+      const allocs=getEffectiveAllocs(empOf(x));
+      if(!allocs.length)return a+compVal(x);
+      const allocPct=allocs.reduce((s,al)=>s+al.pct,0)/100;
+      if(allocPct>=1)return a;
       return a+Math.round(compVal(x)*(1-allocPct));
     },0));
     if(unData.some(v=>v>0))datasets.push({label:'Unallocated',data:unData,backgroundColor:'#999'});
