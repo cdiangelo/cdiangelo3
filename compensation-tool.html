@@ -7,55 +7,71 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0f1117;--panel:#1a1d27;--accent:#6366f1;--secondary:#22d3ee;--text:#e2e8f0;--text-dim:#94a3b8;--border:#2d3748;--danger:#ef4444;--success:#22c55e;--warning:#f59e0b}
+:root{
+  --bg:#e8e8e8;
+  --panel:#f5f5f0;
+  --panel-inset:#edeee9;
+  --accent:#8b2020;
+  --accent-light:#a83232;
+  --secondary:#6b7a8d;
+  --text:#2d2d2d;
+  --text-dim:#5a5a5a;
+  --text-dark:#1a1a1a;
+  --border:#ccc;
+  --border-light:#ddd;
+  --danger:#b83030;
+  --success:#3a7d44;
+  --warning:#b8860b;
+  --flag-bg:#fff3cd;
+  --flag-border:#e6c65a;
+}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 a{color:var(--accent)}
 .container{max-width:1400px;margin:0 auto;padding:0 20px}
-header{background:var(--panel);border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;z-index:100}
-header .container{display:flex;align-items:center;justify-content:space-between}
+header{background:var(--panel);border-bottom:2px solid var(--border);padding:16px 0;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+header .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 header h1{font-size:1.3rem;color:var(--accent)}
 header h1 span{color:var(--secondary)}
-nav{display:flex;gap:4px}
-nav button{background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 18px;border-radius:6px;cursor:pointer;font-size:.875rem;transition:all .2s}
-nav button:hover{border-color:var(--accent);color:var(--text)}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .2s}
+nav button:hover{border-color:var(--accent);color:var(--text-dark)}
 nav button.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .tab-content{display:none;padding:24px 0}
 .tab-content.active{display:block}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px}
-.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.card-inset{background:var(--panel-inset);border:1px solid var(--border-light);border-radius:8px;padding:16px}
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
 .stat-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px}
 .stat-card .label{font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-.stat-card .value{font-size:1.6rem;font-weight:700;color:var(--accent)}
-.stat-card:nth-child(2) .value,.stat-card:nth-child(4) .value{color:var(--secondary)}
+.stat-card .value{font-size:1.5rem;font-weight:700;color:var(--accent)}
 .controls{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:center}
 .btn{padding:8px 16px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-size:.85rem;transition:all .2s}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.active,.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn-primary:hover{background:#5558e6}
+.btn-primary:hover{background:var(--accent-light)}
 .btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
-.btn-danger:hover{background:#dc2626}
+.btn-danger:hover{background:#a02828}
 .btn-success{background:var(--success);border-color:var(--success);color:#fff}
 .btn-sm{padding:5px 10px;font-size:.8rem}
-select,input,textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:.875rem;width:100%}
+select,input,textarea{background:#fff;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:.875rem;width:100%}
 select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent)}
 label{font-size:.8rem;color:var(--text-dim);margin-bottom:4px;display:block}
 table{width:100%;border-collapse:collapse}
-th{background:var(--bg);color:var(--text-dim);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;text-align:left;position:sticky;top:0}
-td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:.875rem}
-tr:hover{background:rgba(99,102,241,.05)}
-.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+th{background:var(--panel-inset);color:var(--accent);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;text-align:left;position:sticky;top:0}
+td{padding:10px 12px;border-bottom:1px solid var(--border-light);font-size:.875rem}
+tr:hover{background:rgba(139,32,32,.03)}
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);background:var(--panel)}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-.form-group{display:flex;flex-direction:column}
-.benchmark-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(34,211,238,.1);border:1px solid var(--secondary);color:var(--secondary);padding:4px 10px;border-radius:20px;font-size:.8rem;cursor:pointer;margin-top:6px;transition:all .2s}
-.benchmark-badge:hover{background:rgba(34,211,238,.2)}
+.benchmark-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(139,32,32,.08);border:1px solid var(--accent);color:var(--accent);padding:4px 10px;border-radius:20px;font-size:.8rem;cursor:pointer;margin-top:6px;transition:all .2s}
+.benchmark-badge:hover{background:rgba(139,32,32,.15)}
 .search-input{max-width:300px}
 .matrix-table{font-size:.8rem}
 .matrix-table input{width:60px;text-align:center;padding:4px;font-size:.8rem}
 .matrix-table th,.matrix-table td{padding:6px 8px;text-align:center}
 .matrix-table th{white-space:nowrap}
-.toggle-group{display:flex;gap:4px;background:var(--bg);border-radius:6px;padding:3px;border:1px solid var(--border)}
-.toggle-group .btn{border:none;background:none;padding:6px 14px}
-.toggle-group .btn.active{background:var(--accent);border-radius:4px}
+.toggle-group{display:flex;gap:4px;background:var(--panel-inset);border-radius:6px;padding:3px;border:1px solid var(--border)}
+.toggle-group .btn{border:none;background:none;padding:6px 14px;color:var(--text-dim)}
+.toggle-group .btn.active{background:var(--accent);border-radius:4px;color:#fff}
 .monthly-table{font-size:.85rem}
 .monthly-table td,.monthly-table th{text-align:right;padding:8px 12px}
 .monthly-table td:first-child,.monthly-table th:first-child{text-align:left}
@@ -69,6 +85,29 @@ tr:hover{background:rgba(99,102,241,.05)}
 .filter-row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
 .filter-row .form-group{min-width:160px}
 .separator{border:none;border-top:1px solid var(--border);margin:16px 0}
+.section-title{color:var(--accent);font-size:1.05rem;font-weight:700;margin-bottom:16px}
+.alloc-flag{display:inline-flex;align-items:center;gap:6px;background:var(--flag-bg);border:1px solid var(--flag-border);color:#856404;padding:3px 10px;border-radius:4px;font-size:.78rem;font-weight:600}
+.alloc-flag.ok{background:#d4edda;border-color:#a3d9b1;color:#155724}
+.alloc-override{font-size:.75rem;color:var(--text-dim);cursor:pointer;text-decoration:underline;margin-left:6px}
+.forecast-section{margin-bottom:24px}
+.forecast-section h4{color:var(--accent);margin-bottom:12px;font-size:.95rem}
+.forecast-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.forecast-input-group{display:flex;flex-direction:column;gap:4px}
+.forecast-input-group label{font-size:.75rem;color:var(--text-dim)}
+.forecast-input-group input{width:100%;text-align:center}
+.toggle-switch{position:relative;display:inline-block;width:40px;height:22px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border);border-radius:22px;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent)}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(18px)}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.toggle-row label{margin-bottom:0;font-size:.85rem;color:var(--text)}
+.forecast-table{font-size:.85rem}
+.forecast-table td,.forecast-table th{text-align:right;padding:8px 10px}
+.forecast-table td:first-child,.forecast-table th:first-child{text-align:left}
+.forecast-table tfoot{font-weight:700;border-top:2px solid var(--accent)}
+.projects-table input,.projects-table select{padding:4px 6px;font-size:.82rem}
 @media(max-width:768px){.stat-cards{grid-template-columns:1fr 1fr}.controls{flex-direction:column;align-items:stretch}nav{flex-wrap:wrap}}
 </style>
 </head>
@@ -79,8 +118,11 @@ tr:hover{background:rgba(99,102,241,.05)}
 <nav id="mainNav">
 <button class="active" data-tab="dashboard">Dashboard</button>
 <button data-tab="employees">Employees</button>
-<button data-tab="bonuses">Bonuses</button>
+<button data-tab="projects">Projects</button>
+<button data-tab="bonuses">Bonus Assumptions</button>
+<button data-tab="benefits">Benefits Assumptions</button>
 <button data-tab="monthly">Monthly Spread</button>
+<button data-tab="forecast">Long Term Forecast</button>
 <button data-tab="export">Export</button>
 </nav>
 </div>
@@ -111,6 +153,9 @@ tr:hover{background:rgba(99,102,241,.05)}
 <div class="form-group"><label>Country</label><select id="dashCountry"><option value="">All Countries</option></select></div>
 <div class="form-group"><label>Seniority</label><select id="dashSeniority"><option value="">All Seniority</option></select></div>
 <div class="form-group"><label>Function</label><select id="dashFunction"><option value="">All Functions</option></select></div>
+<div class="form-group"><label>Product Category</label><select id="dashProdCat"><option value="">All Categories</option></select></div>
+<div class="form-group"><label>Product</label><select id="dashProduct"><option value="">All Products</option></select></div>
+<div class="form-group"><label>Project Code</label><select id="dashProject"><option value="">All Projects</option></select></div>
 </div>
 <div class="card"><div class="chart-container"><canvas id="dashChart"></canvas></div></div>
 </div>
@@ -118,13 +163,15 @@ tr:hover{background:rgba(99,102,241,.05)}
 <!-- EMPLOYEES -->
 <div id="tab-employees" class="tab-content">
 <div class="card" style="margin-bottom:20px">
-<h3 style="margin-bottom:16px" id="formTitle">Add Employee</h3>
+<h3 class="section-title" id="formTitle">Add Employee</h3>
 <div class="form-grid">
 <div class="form-group"><label>Name</label><input id="empName" placeholder="Full name"></div>
 <div class="form-group"><label>Country</label><select id="empCountry"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Seniority</label><select id="empSeniority"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Job Function</label><select id="empFunction"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Base Salary (USD)</label><input id="empSalary" type="number" placeholder="0"><div id="benchmarkBadge"></div></div>
+<div class="form-group"><label>Hire Date</label><input id="empHireDate" type="date"></div>
+<div class="form-group"><label>Termination Date</label><input id="empTermDate" type="date"></div>
 <div class="form-group"><label>Notes</label><input id="empNotes" placeholder="Optional notes"></div>
 </div>
 <div style="margin-top:16px;display:flex;gap:8px">
@@ -136,17 +183,64 @@ tr:hover{background:rgba(99,102,241,.05)}
 <input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:320px">
 </div>
 <div class="table-wrap"><table id="empTable"><thead><tr>
-<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Base</th><th>Bonus %</th><th>Bonus Amt</th><th>Total Comp</th><th>Actions</th>
+<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Hire Date</th><th>Term Date</th><th>Alloc</th><th>Actions</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
-<!-- BONUSES -->
+<!-- PROJECTS -->
+<div id="tab-projects" class="tab-content">
+<div class="card" style="margin-bottom:20px">
+<h3 class="section-title">Manage Projects</h3>
+<div class="form-grid">
+<div class="form-group"><label>Product Category</label><input id="projCategory" placeholder="e.g. Enterprise Software"></div>
+<div class="form-group"><label>Product</label><input id="projProduct" placeholder="e.g. Analytics Suite"></div>
+<div class="form-group"><label>Project Code</label><input id="projCode" placeholder="e.g. PRJ-001"></div>
+</div>
+<div style="margin-top:16px;display:flex;gap:8px">
+<button class="btn btn-primary" id="btnAddProject">Add Project</button>
+</div>
+</div>
+<div class="card" style="margin-bottom:20px">
+<h3 class="section-title">Employee Allocations</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Assign employees to projects with allocation percentages. Allocations should sum to 100% per employee.</p>
+<div id="allocWarnings" style="margin-bottom:12px"></div>
+<div class="table-wrap"><table class="projects-table" id="allocTable"><thead><tr>
+<th>Employee</th><th>Project</th><th>Allocation %</th><th>Actions</th>
+</tr></thead><tbody></tbody></table></div>
+<div style="margin-top:12px"><button class="btn btn-primary btn-sm" id="btnAddAlloc">Add Allocation</button></div>
+</div>
+<div class="card">
+<h3 class="section-title">Projects Directory</h3>
+<div class="table-wrap"><table id="projectsTable"><thead><tr>
+<th>Product Category</th><th>Product</th><th>Project Code</th><th>Allocated Headcount</th><th>Allocated Cost</th><th>Actions</th>
+</tr></thead><tbody></tbody></table></div>
+</div>
+</div>
+
+<!-- BONUS ASSUMPTIONS -->
 <div id="tab-bonuses" class="tab-content">
 <div class="controls">
 <button class="btn btn-primary" id="btnApplyBonuses">Apply to All Employees</button>
 <button class="btn btn-danger" id="btnResetBonuses">Reset Defaults</button>
 </div>
 <div class="card table-wrap"><table class="matrix-table" id="bonusMatrix"></table></div>
+</div>
+
+<!-- BENEFITS ASSUMPTIONS -->
+<div id="tab-benefits" class="tab-content">
+<div class="card" style="margin-bottom:20px">
+<h3 class="section-title">Benefits Cost Assumptions</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Define benefits as a percentage of base salary by seniority level. Benefits are included in total compensation calculations.</p>
+</div>
+<div class="controls">
+<button class="btn btn-danger" id="btnResetBenefits">Reset Defaults</button>
+</div>
+<div class="card table-wrap"><table class="matrix-table" id="benefitsMatrix"></table></div>
+<div class="card-inset" style="margin-top:20px;padding:16px">
+<h4 style="color:var(--accent);margin-bottom:12px">Benefits Breakdown by Country</h4>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Country multipliers applied to base benefits rate to account for regional cost differences.</p>
+<div class="table-wrap"><table class="matrix-table" id="benefitsCountryTable"></table></div>
+</div>
 </div>
 
 <!-- MONTHLY SPREAD -->
@@ -163,12 +257,67 @@ tr:hover{background:rgba(99,102,241,.05)}
 <div class="card table-wrap"><table class="monthly-table" id="monthlyTable"></table></div>
 </div>
 
+<!-- LONG TERM FORECAST -->
+<div id="tab-forecast" class="tab-content">
+<div class="card" style="margin-bottom:20px">
+<h3 class="section-title">Long Term Forecast Assumptions</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:20px">Configure assumptions to project compensation costs over the next 5 years. Toggle each factor on/off.</p>
+
+<div class="card-inset forecast-section">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togAttrition" checked><span class="toggle-slider"></span></label>
+<label><strong>Annual Attrition Rate (%)</strong></label>
+</div>
+<div class="forecast-grid" id="attritionInputs"></div>
+</div>
+
+<div class="card-inset forecast-section">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togHires" checked><span class="toggle-slider"></span></label>
+<label><strong>Annual New Hires (Headcount)</strong></label>
+</div>
+<div class="forecast-grid" id="hiresInputs"></div>
+</div>
+
+<div class="card-inset forecast-section">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togMerit" checked><span class="toggle-slider"></span></label>
+<label><strong>Annual Merit Increase (%)</strong></label>
+</div>
+<div class="forecast-grid" id="meritInputs"></div>
+</div>
+
+<div class="card-inset forecast-section">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togMarket" checked><span class="toggle-slider"></span></label>
+<label><strong>Market Rate Growth (%)</strong></label>
+</div>
+<div class="forecast-grid" id="marketInputs"></div>
+</div>
+
+<div class="card-inset forecast-section">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togAI" checked><span class="toggle-slider"></span></label>
+<label><strong>AI Productivity Gearing Factor</strong></label>
+</div>
+<p style="color:var(--text-dim);font-size:.8rem;margin-bottom:12px">Tiered multiplier: reduces required headcount growth by this factor (1.0 = no effect, 0.8 = 20% fewer hires needed)</p>
+<div class="forecast-grid" id="aiInputs"></div>
+</div>
+</div>
+
+<div class="card">
+<h3 class="section-title">5-Year Projection</h3>
+<div class="chart-container"><canvas id="forecastChart"></canvas></div>
+<div class="table-wrap"><table class="forecast-table" id="forecastTable"></table></div>
+</div>
+</div>
+
 <!-- EXPORT -->
 <div id="tab-export" class="tab-content">
 <div class="export-grid">
 <div class="export-card">
 <h3>Full CSV Comp Sheet</h3>
-<p>Complete roster, bonus matrix, monthly spread, and full benchmark reference table.</p>
+<p>Complete roster, bonus matrix, benefits, monthly spread, and benchmark table.</p>
 <button class="btn btn-primary" id="btnExportFull">Download CSV</button>
 </div>
 <div class="export-card">
@@ -204,6 +353,9 @@ const SENIORITY_BASE = {Junior:88000,'Mid-Level':118000,Senior:155000,Staff:1900
 const FUNCTION_MULT = {'Software Engineering':1.00,'Data Engineering':0.97,'DevOps/SRE':0.95,'Product Management':0.93,'QA Engineering':0.75,'Data Science':1.02,'IT Operations':0.68,'Security Engineering':1.06,'Cloud Architecture':1.04,'Technical Program Management':0.88};
 const COUNTRY_MULT = {'United States':1.00,'United Kingdom':0.72,Canada:0.80,Germany:0.70,India:0.22,Australia:0.82,Singapore:0.85,Netherlands:0.72,Brazil:0.28,Poland:0.38};
 const DEFAULT_BONUS = {Junior:5,'Mid-Level':8,Senior:12,Staff:15,Principal:18,Manager:20,Director:25,'VP/Head':30};
+const DEFAULT_BENEFITS = {Junior:18,'Mid-Level':20,Senior:22,Staff:24,Principal:26,Manager:23,Director:28,'VP/Head':32};
+const BENEFITS_COUNTRY_MULT = {'United States':1.00,'United Kingdom':0.85,Canada:0.90,Germany:0.95,India:0.40,Australia:0.88,Singapore:0.75,Netherlands:0.92,Brazil:0.50,Poland:0.55};
+const FORECAST_YEARS = [2026,2027,2028,2029,2030];
 
 function benchmark(s,f,c){return Math.round(SENIORITY_BASE[s]*FUNCTION_MULT[f]*COUNTRY_MULT[c])}
 function fmt(n){return '$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:0})}
@@ -212,11 +364,13 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 // ── STATE ──
 let state;
 function loadState(){
-  const raw=localStorage.getItem('compPlanState');
-  if(raw){state=JSON.parse(raw);return}
-  // Init
+  const raw=localStorage.getItem('compPlanState_v2');
+  if(raw){state=JSON.parse(raw);ensureStateFields();return}
   const bonusMatrix={};
   SENIORITY.forEach(s=>{bonusMatrix[s]={};FUNCTIONS.forEach(f=>{bonusMatrix[s][f]=DEFAULT_BONUS[s]})});
+  const benefitsMatrix={};
+  SENIORITY.forEach(s=>{benefitsMatrix[s]={};FUNCTIONS.forEach(f=>{benefitsMatrix[s][f]=DEFAULT_BENEFITS[s]})});
+  const benefitsCountryMult={...BENEFITS_COUNTRY_MULT};
   const samples=[
     {name:'Alice Chen',country:'United States',seniority:'Senior',function:'Software Engineering'},
     {name:'Bob Kumar',country:'India',seniority:'Mid-Level',function:'Data Engineering'},
@@ -224,14 +378,69 @@ function loadState(){
     {name:'James Park',country:'Canada',seniority:'Staff',function:'DevOps/SRE'},
     {name:'Maria Rodriguez',country:'Germany',seniority:'Senior',function:'Data Science'}
   ];
-  const employees=samples.map(e=>({id:uid(),name:e.name,country:e.country,seniority:e.seniority,function:e.function,salary:benchmark(e.seniority,e.function,e.country),notes:''}));
-  state={employees,bonusMatrix};
+  const employees=samples.map(e=>({id:uid(),name:e.name,country:e.country,seniority:e.seniority,function:e.function,salary:benchmark(e.seniority,e.function,e.country),notes:'',hireDate:'',termDate:''}));
+  const projects=[
+    {id:uid(),category:'Enterprise Software',product:'Analytics Suite',code:'PRJ-001'},
+    {id:uid(),category:'Enterprise Software',product:'Data Platform',code:'PRJ-002'},
+    {id:uid(),category:'Consumer Products',product:'Mobile App',code:'PRJ-003'}
+  ];
+  const allocations=[];
+  const forecastAssumptions={
+    attrition:FORECAST_YEARS.map(()=>12),
+    hires:FORECAST_YEARS.map(()=>5),
+    merit:FORECAST_YEARS.map(()=>3),
+    market:FORECAST_YEARS.map(()=>2),
+    ai:FORECAST_YEARS.map((_,i)=>Math.max(0.7,1-i*0.05)),
+    toggles:{attrition:true,hires:true,merit:true,market:true,ai:true}
+  };
+  const allocOverrides={};
+  state={employees,bonusMatrix,benefitsMatrix,benefitsCountryMult,projects,allocations,forecastAssumptions,allocOverrides};
   saveState();
 }
-function saveState(){localStorage.setItem('compPlanState',JSON.stringify(state))}
+function ensureStateFields(){
+  if(!state.projects)state.projects=[];
+  if(!state.allocations)state.allocations=[];
+  if(!state.benefitsMatrix){
+    state.benefitsMatrix={};
+    SENIORITY.forEach(s=>{state.benefitsMatrix[s]={};FUNCTIONS.forEach(f=>{state.benefitsMatrix[s][f]=DEFAULT_BENEFITS[s]})});
+  }
+  if(!state.benefitsCountryMult)state.benefitsCountryMult={...BENEFITS_COUNTRY_MULT};
+  if(!state.forecastAssumptions){
+    state.forecastAssumptions={
+      attrition:FORECAST_YEARS.map(()=>12),hires:FORECAST_YEARS.map(()=>5),
+      merit:FORECAST_YEARS.map(()=>3),market:FORECAST_YEARS.map(()=>2),
+      ai:FORECAST_YEARS.map((_,i)=>Math.max(0.7,1-i*0.05)),
+      toggles:{attrition:true,hires:true,merit:true,market:true,ai:true}
+    };
+  }
+  if(!state.allocOverrides)state.allocOverrides={};
+  state.employees.forEach(e=>{
+    if(!e.hireDate)e.hireDate='';
+    if(!e.termDate)e.termDate='';
+  });
+}
+function saveState(){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
 function getBonusPct(emp){return state.bonusMatrix[emp.seniority]?.[emp.function]??DEFAULT_BONUS[emp.seniority]??10}
 function getBonusAmt(emp){return Math.round(emp.salary*getBonusPct(emp)/100)}
-function getTotalComp(emp){return emp.salary+getBonusAmt(emp)}
+function getBenefitsPct(emp){
+  const base=state.benefitsMatrix[emp.seniority]?.[emp.function]??DEFAULT_BENEFITS[emp.seniority]??20;
+  const countryMult=state.benefitsCountryMult[emp.country]??1;
+  return Math.round(base*countryMult*10)/10;
+}
+function getBenefitsAmt(emp){return Math.round(emp.salary*getBenefitsPct(emp)/100)}
+function getTotalComp(emp){return emp.salary+getBonusAmt(emp)+getBenefitsAmt(emp)}
+
+// Allocation helpers
+function getEmpAllocTotal(empId){
+  return state.allocations.filter(a=>a.empId===empId).reduce((s,a)=>s+a.pct,0);
+}
+function getAllocFlag(empId){
+  const total=getEmpAllocTotal(empId);
+  const hasAllocs=state.allocations.some(a=>a.empId===empId);
+  if(!hasAllocs)return null;
+  if(Math.abs(total-100)<0.01)return{ok:true,total};
+  return{ok:false,total,overridden:!!state.allocOverrides[empId]};
+}
 
 // ── NAV ──
 document.querySelectorAll('#mainNav button').forEach(b=>{
@@ -242,8 +451,11 @@ document.querySelectorAll('#mainNav button').forEach(b=>{
     document.getElementById('tab-'+b.dataset.tab).classList.add('active');
     if(b.dataset.tab==='dashboard')renderDashboard();
     if(b.dataset.tab==='employees')renderEmployees();
+    if(b.dataset.tab==='projects')renderProjects();
     if(b.dataset.tab==='bonuses')renderBonusMatrix();
+    if(b.dataset.tab==='benefits')renderBenefitsMatrix();
     if(b.dataset.tab==='monthly')renderMonthly();
+    if(b.dataset.tab==='forecast')renderForecast();
   });
 });
 
@@ -255,6 +467,7 @@ function populateSelect(el,items,addAll){
   el.innerHTML=opts.join('');
   if(v)el.value=v;
 }
+function getUniqueValues(arr,key){return [...new Set(arr.map(i=>i[key]).filter(Boolean))].sort()}
 function initDropdowns(){
   populateSelect(document.getElementById('dashCountry'),COUNTRIES,true);
   populateSelect(document.getElementById('dashSeniority'),SENIORITY,true);
@@ -262,6 +475,15 @@ function initDropdowns(){
   populateSelect(document.getElementById('empCountry'),COUNTRIES);
   populateSelect(document.getElementById('empSeniority'),SENIORITY);
   populateSelect(document.getElementById('empFunction'),FUNCTIONS);
+  refreshProjectFilters();
+}
+function refreshProjectFilters(){
+  const cats=getUniqueValues(state.projects,'category');
+  const prods=getUniqueValues(state.projects,'product');
+  const codes=getUniqueValues(state.projects,'code');
+  populateSelect(document.getElementById('dashProdCat'),cats,true);
+  populateSelect(document.getElementById('dashProduct'),prods,true);
+  populateSelect(document.getElementById('dashProject'),codes,true);
 }
 
 // ── DASHBOARD ──
@@ -272,9 +494,22 @@ function getFilteredEmployees(){
   const c=document.getElementById('dashCountry').value;
   const s=document.getElementById('dashSeniority').value;
   const f=document.getElementById('dashFunction').value;
+  const pc=document.getElementById('dashProdCat').value;
+  const pr=document.getElementById('dashProduct').value;
+  const pj=document.getElementById('dashProject').value;
   if(c)emps=emps.filter(e=>e.country===c);
   if(s)emps=emps.filter(e=>e.seniority===s);
   if(f)emps=emps.filter(e=>e.function===f);
+  if(pc||pr||pj){
+    const matchProjects=state.projects.filter(p=>{
+      if(pc&&p.category!==pc)return false;
+      if(pr&&p.product!==pr)return false;
+      if(pj&&p.code!==pj)return false;
+      return true;
+    }).map(p=>p.id);
+    const matchEmpIds=new Set(state.allocations.filter(a=>matchProjects.includes(a.projId)).map(a=>a.empId));
+    emps=emps.filter(e=>matchEmpIds.has(e.id));
+  }
   return emps;
 }
 function renderStats(emps){
@@ -282,13 +517,17 @@ function renderStats(emps){
   const totalBase=emps.reduce((a,e)=>a+e.salary,0);
   const avgBase=totalHC?Math.round(totalBase/totalHC):0;
   const totalBonus=emps.reduce((a,e)=>a+getBonusAmt(e),0);
+  const totalBenefits=emps.reduce((a,e)=>a+getBenefitsAmt(e),0);
+  const totalComp=emps.reduce((a,e)=>a+getTotalComp(e),0);
   document.getElementById('statCards').innerHTML=`
     <div class="stat-card"><div class="label">Total Headcount</div><div class="value">${totalHC}</div></div>
     <div class="stat-card"><div class="label">Annual Base Cost</div><div class="value">${fmt(totalBase)}</div></div>
     <div class="stat-card"><div class="label">Avg Base Salary</div><div class="value">${fmt(avgBase)}</div></div>
-    <div class="stat-card"><div class="label">Total Bonus Cost</div><div class="value">${fmt(totalBonus)}</div></div>`;
+    <div class="stat-card"><div class="label">Total Bonus Cost</div><div class="value">${fmt(totalBonus)}</div></div>
+    <div class="stat-card"><div class="label">Total Benefits Cost</div><div class="value">${fmt(totalBenefits)}</div></div>
+    <div class="stat-card"><div class="label">Total Comp</div><div class="value">${fmt(totalComp)}</div></div>`;
 }
-const CHART_COLORS=['#6366f1','#22d3ee','#f59e0b','#ef4444','#22c55e','#a855f7','#ec4899','#f97316','#14b8a6','#84cc16'];
+const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a','#5e7a8b','#8b7a5e','#6b8b7a','#7a8b5e'];
 function renderDashboard(){
   const emps=getFilteredEmployees();
   renderStats(emps);
@@ -301,8 +540,9 @@ function renderDashboard(){
   let datasets=[];
   if(stackBy==='baseBonus'){
     datasets=[
-      {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,e)=>a+e.salary,0)),backgroundColor:'#6366f1'},
-      {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,e)=>a+getBonusAmt(e),0)),backgroundColor:'#22d3ee'}
+      {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,e)=>a+e.salary,0)),backgroundColor:'#8b5e5e'},
+      {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,e)=>a+getBonusAmt(e),0)),backgroundColor:'#6b8da3'},
+      {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,e)=>a+getBenefitsAmt(e),0)),backgroundColor:'#a38b5e'}
     ];
   } else {
     SENIORITY.forEach((s,i)=>{
@@ -314,9 +554,9 @@ function renderDashboard(){
   dashChart=new Chart(document.getElementById('dashChart'),{
     type:'bar',
     data:{labels:labels.map(l=>l.length>18?l.slice(0,16)+'…':l),datasets},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}}},scales:{
-      x:{stacked:true,ticks:{color:'#94a3b8'},grid:{color:'#2d3748'}},
-      y:{stacked:true,ticks:{color:'#94a3b8',callback:v=>'$'+v.toLocaleString()},grid:{color:'#2d3748'}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5a5a5a'}}},scales:{
+      x:{stacked:true,ticks:{color:'#5a5a5a'},grid:{color:'#ddd'}},
+      y:{stacked:true,ticks:{color:'#5a5a5a',callback:v=>'$'+v.toLocaleString()},grid:{color:'#ddd'}}
     }}
   });
 }
@@ -326,7 +566,7 @@ document.querySelectorAll('#groupToggle .btn').forEach(b=>b.addEventListener('cl
 document.querySelectorAll('#stackToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#stackToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');stackBy=b.dataset.stack;renderDashboard();
 }));
-['dashCountry','dashSeniority','dashFunction'].forEach(id=>document.getElementById(id).addEventListener('change',renderDashboard));
+['dashCountry','dashSeniority','dashFunction','dashProdCat','dashProduct','dashProject'].forEach(id=>document.getElementById(id).addEventListener('change',renderDashboard));
 
 // ── EMPLOYEES ──
 let editingId=null;
@@ -350,16 +590,18 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const func=document.getElementById('empFunction').value;
   const salary=parseFloat(document.getElementById('empSalary').value)||0;
   const notes=document.getElementById('empNotes').value.trim();
+  const hireDate=document.getElementById('empHireDate').value;
+  const termDate=document.getElementById('empTermDate').value;
   if(!name||!country||!seniority||!func){alert('Please fill required fields');return}
   if(editingId){
     const emp=state.employees.find(e=>e.id===editingId);
-    if(emp){Object.assign(emp,{name,country,seniority,function:func,salary,notes})}
+    if(emp){Object.assign(emp,{name,country,seniority,function:func,salary,notes,hireDate,termDate})}
     editingId=null;
     document.getElementById('formTitle').textContent='Add Employee';
     document.getElementById('btnSaveEmp').textContent='Add Employee';
     document.getElementById('btnCancelEmp').style.display='none';
   } else {
-    state.employees.push({id:uid(),name,country,seniority,function:func,salary,notes});
+    state.employees.push({id:uid(),name,country,seniority,function:func,salary,notes,hireDate,termDate});
   }
   saveState();clearForm();renderEmployees();
 });
@@ -369,7 +611,7 @@ document.getElementById('btnCancelEmp').addEventListener('click',()=>{
   document.getElementById('btnSaveEmp').textContent='Add Employee';
   document.getElementById('btnCancelEmp').style.display='none';
 });
-function clearForm(){['empName','empSalary','empNotes'].forEach(id=>document.getElementById(id).value='');
+function clearForm(){['empName','empSalary','empNotes','empHireDate','empTermDate'].forEach(id=>document.getElementById(id).value='');
   ['empCountry','empSeniority','empFunction'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('benchmarkBadge').innerHTML='';
 }
@@ -382,15 +624,16 @@ function startEdit(id){
   document.getElementById('empFunction').value=emp.function;
   document.getElementById('empSalary').value=emp.salary;
   document.getElementById('empNotes').value=emp.notes||'';
+  document.getElementById('empHireDate').value=emp.hireDate||'';
+  document.getElementById('empTermDate').value=emp.termDate||'';
   document.getElementById('formTitle').textContent='Edit Employee';
   document.getElementById('btnSaveEmp').textContent='Save Changes';
   document.getElementById('btnCancelEmp').style.display='inline-block';
   updateBenchmarkBadge();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);saveState();renderEmployees()}}
+function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);state.allocations=state.allocations.filter(a=>a.empId!==id);delete state.allocOverrides[id];saveState();renderEmployees()}}
 
-// Inline editing
 let inlineEditId=null;
 function startInlineEdit(id){inlineEditId=id;renderEmployees()}
 function saveInlineEdit(id){
@@ -411,7 +654,19 @@ function renderEmployees(){
   if(search)emps=emps.filter(e=>[e.name,e.country,e.seniority,e.function].some(v=>v.toLowerCase().includes(search)));
   const tbody=document.querySelector('#empTable tbody');
   tbody.innerHTML=emps.map(e=>{
-    const bp=getBonusPct(e),ba=getBonusAmt(e),tc=getTotalComp(e);
+    const bp=getBonusPct(e),ba=getBonusAmt(e),ben=getBenefitsAmt(e),tc=getTotalComp(e);
+    const flag=getAllocFlag(e.id);
+    let allocHtml='<span style="color:var(--text-dim);font-size:.8rem">—</span>';
+    if(flag){
+      if(flag.ok){
+        allocHtml=`<span class="alloc-flag ok">${flag.total}%</span>`;
+      } else {
+        allocHtml=`<span class="alloc-flag">${flag.total}%</span>`;
+        if(flag.overridden){
+          allocHtml+=`<span style="font-size:.7rem;color:var(--success);margin-left:4px">OK'd</span>`;
+        }
+      }
+    }
     if(inlineEditId===e.id){
       return `<tr data-id="${e.id}" class="inline-edit">
         <td><input class="ie-name" value="${e.name}"></td>
@@ -419,27 +674,113 @@ function renderEmployees(){
         <td><select class="ie-seniority">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
         <td><select class="ie-function">${FUNCTIONS.map(f=>`<option${f===e.function?' selected':''}>${f}</option>`).join('')}</select></td>
         <td><input class="ie-salary" type="number" value="${e.salary}"></td>
-        <td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(tc)}</td>
+        <td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td>${fmt(tc)}</td>
+        <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
         <td><button class="btn btn-sm btn-primary" onclick="saveInlineEdit('${e.id}')">Save</button> <button class="btn btn-sm" onclick="cancelInlineEdit()">Cancel</button></td>
       </tr>`;
     }
     return `<tr data-id="${e.id}">
       <td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
-      <td>${fmt(e.salary)}</td><td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(tc)}</td>
+      <td>${fmt(e.salary)}</td><td>${bp}%</td><td>${fmt(ba)}</td><td>${fmt(ben)}</td><td style="font-weight:600;color:var(--accent)">${fmt(tc)}</td>
+      <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
       <td><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
     </tr>`;
   }).join('');
 }
 document.getElementById('empSearch').addEventListener('input',renderEmployees);
 
-// ── BONUSES ──
+// ── PROJECTS ──
+document.getElementById('btnAddProject').addEventListener('click',()=>{
+  const category=document.getElementById('projCategory').value.trim();
+  const product=document.getElementById('projProduct').value.trim();
+  const code=document.getElementById('projCode').value.trim();
+  if(!category||!product||!code){alert('Please fill all project fields');return}
+  state.projects.push({id:uid(),category,product,code});
+  saveState();
+  document.getElementById('projCategory').value='';
+  document.getElementById('projProduct').value='';
+  document.getElementById('projCode').value='';
+  renderProjects();refreshProjectFilters();
+});
+
+document.getElementById('btnAddAlloc').addEventListener('click',()=>{
+  if(!state.employees.length||!state.projects.length){alert('Need at least one employee and one project');return}
+  state.allocations.push({id:uid(),empId:state.employees[0].id,projId:state.projects[0].id,pct:100});
+  saveState();renderProjects();
+});
+
+function deleteProject(id){
+  if(confirm('Delete this project and its allocations?')){
+    state.projects=state.projects.filter(p=>p.id!==id);
+    state.allocations=state.allocations.filter(a=>a.projId!==id);
+    saveState();renderProjects();refreshProjectFilters();
+  }
+}
+function deleteAlloc(id){state.allocations=state.allocations.filter(a=>a.id!==id);saveState();renderProjects()}
+function toggleAllocOverride(empId){
+  if(state.allocOverrides[empId])delete state.allocOverrides[empId];
+  else state.allocOverrides[empId]=true;
+  saveState();renderProjects();renderEmployees();
+}
+
+function renderProjects(){
+  // Allocation warnings
+  const warnDiv=document.getElementById('allocWarnings');
+  const empIds=[...new Set(state.allocations.map(a=>a.empId))];
+  const warnings=[];
+  empIds.forEach(eid=>{
+    const flag=getAllocFlag(eid);
+    const emp=state.employees.find(e=>e.id===eid);
+    if(flag&&!flag.ok&&!flag.overridden&&emp){
+      warnings.push(`<span class="alloc-flag">${emp.name}: ${flag.total}% allocated (expected 100%)</span> <span class="alloc-override" onclick="toggleAllocOverride('${eid}')">Override OK</span>`);
+    } else if(flag&&!flag.ok&&flag.overridden&&emp){
+      warnings.push(`<span class="alloc-flag ok">${emp.name}: ${flag.total}% — overridden</span> <span class="alloc-override" onclick="toggleAllocOverride('${eid}')">Remove override</span>`);
+    }
+  });
+  warnDiv.innerHTML=warnings.length?warnings.join('<br>'):'<span style="color:var(--success);font-size:.85rem">All allocations balanced</span>';
+
+  // Allocations table
+  const tbody=document.querySelector('#allocTable tbody');
+  tbody.innerHTML=state.allocations.map(a=>{
+    const emp=state.employees.find(e=>e.id===a.empId);
+    const proj=state.projects.find(p=>p.id===a.projId);
+    return `<tr>
+      <td><select onchange="updateAlloc('${a.id}','empId',this.value)">${state.employees.map(e=>`<option value="${e.id}"${e.id===a.empId?' selected':''}>${e.name}</option>`).join('')}</select></td>
+      <td><select onchange="updateAlloc('${a.id}','projId',this.value)">${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code} — ${p.product}</option>`).join('')}</select></td>
+      <td><input type="number" min="0" max="100" value="${a.pct}" style="width:80px;text-align:center" onchange="updateAlloc('${a.id}','pct',parseFloat(this.value)||0)">%</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteAlloc('${a.id}')">Del</button></td>
+    </tr>`;
+  }).join('');
+
+  // Projects directory
+  const ptbody=document.querySelector('#projectsTable tbody');
+  ptbody.innerHTML=state.projects.map(p=>{
+    const projAllocs=state.allocations.filter(a=>a.projId===p.id);
+    const allocHC=projAllocs.reduce((s,a)=>s+a.pct/100,0).toFixed(1);
+    const allocCost=projAllocs.reduce((s,a)=>{
+      const emp=state.employees.find(e=>e.id===a.empId);
+      return emp?s+getTotalComp(emp)*a.pct/100:s;
+    },0);
+    return `<tr>
+      <td>${p.category}</td><td>${p.product}</td><td style="font-weight:600;color:var(--accent)">${p.code}</td>
+      <td>${allocHC} FTE</td><td>${fmt(allocCost)}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteProject('${p.id}')">Del</button></td>
+    </tr>`;
+  }).join('');
+}
+function updateAlloc(allocId,field,value){
+  const alloc=state.allocations.find(a=>a.id===allocId);
+  if(alloc){alloc[field]=value;saveState();renderProjects()}
+}
+
+// ── BONUS ASSUMPTIONS ──
 function renderBonusMatrix(){
   const tbl=document.getElementById('bonusMatrix');
   let html='<thead><tr><th>Seniority \\ Function</th>';
   FUNCTIONS.forEach((f,i)=>html+=`<th>${FUNC_SHORT[i]}</th>`);
   html+='</tr></thead><tbody>';
   SENIORITY.forEach(s=>{
-    html+=`<tr><td style="text-align:left;white-space:nowrap;font-weight:600">${s}</td>`;
+    html+=`<tr><td style="text-align:left;white-space:nowrap;font-weight:600;color:var(--accent)">${s}</td>`;
     FUNCTIONS.forEach(f=>{
       const v=state.bonusMatrix[s]?.[f]??DEFAULT_BONUS[s];
       html+=`<td><input type="number" min="0" max="100" value="${v}" data-s="${s}" data-f="${f}" class="bonus-input">%</td>`;
@@ -455,10 +796,55 @@ function renderBonusMatrix(){
     saveState();
   }));
 }
-document.getElementById('btnApplyBonuses').addEventListener('click',()=>{saveState();renderEmployees();alert('Bonus percentages applied to all employees.')});
+document.getElementById('btnApplyBonuses').addEventListener('click',()=>{saveState();renderEmployees();alert('Bonus percentages applied.')});
 document.getElementById('btnResetBonuses').addEventListener('click',()=>{
   SENIORITY.forEach(s=>{state.bonusMatrix[s]={};FUNCTIONS.forEach(f=>{state.bonusMatrix[s][f]=DEFAULT_BONUS[s]})});
   saveState();renderBonusMatrix();
+});
+
+// ── BENEFITS ASSUMPTIONS ──
+function renderBenefitsMatrix(){
+  const tbl=document.getElementById('benefitsMatrix');
+  let html='<thead><tr><th>Seniority \\ Function</th>';
+  FUNCTIONS.forEach((f,i)=>html+=`<th>${FUNC_SHORT[i]}</th>`);
+  html+='</tr></thead><tbody>';
+  SENIORITY.forEach(s=>{
+    html+=`<tr><td style="text-align:left;white-space:nowrap;font-weight:600;color:var(--accent)">${s}</td>`;
+    FUNCTIONS.forEach(f=>{
+      const v=state.benefitsMatrix[s]?.[f]??DEFAULT_BENEFITS[s];
+      html+=`<td><input type="number" min="0" max="100" value="${v}" data-s="${s}" data-f="${f}" class="benefits-input">%</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody>';
+  tbl.innerHTML=html;
+  tbl.querySelectorAll('.benefits-input').forEach(inp=>inp.addEventListener('change',()=>{
+    const s=inp.dataset.s,f=inp.dataset.f;
+    if(!state.benefitsMatrix[s])state.benefitsMatrix[s]={};
+    state.benefitsMatrix[s][f]=parseFloat(inp.value)||0;
+    saveState();
+  }));
+
+  // Country multipliers
+  const ctbl=document.getElementById('benefitsCountryTable');
+  let chtml='<thead><tr><th>Country</th>';
+  COUNTRIES.forEach(c=>chtml+=`<th>${COUNTRY_SHORT[COUNTRIES.indexOf(c)]}</th>`);
+  chtml+='</tr></thead><tbody><tr><td style="text-align:left;font-weight:600;color:var(--accent)">Multiplier</td>';
+  COUNTRIES.forEach(c=>{
+    const v=state.benefitsCountryMult[c]??1;
+    chtml+=`<td><input type="number" min="0" max="3" step="0.01" value="${v}" data-c="${c}" class="ben-country-input" style="width:70px"></td>`;
+  });
+  chtml+='</tr></tbody>';
+  ctbl.innerHTML=chtml;
+  ctbl.querySelectorAll('.ben-country-input').forEach(inp=>inp.addEventListener('change',()=>{
+    state.benefitsCountryMult[inp.dataset.c]=parseFloat(inp.value)||0;
+    saveState();
+  }));
+}
+document.getElementById('btnResetBenefits').addEventListener('click',()=>{
+  SENIORITY.forEach(s=>{state.benefitsMatrix[s]={};FUNCTIONS.forEach(f=>{state.benefitsMatrix[s][f]=DEFAULT_BENEFITS[s]})});
+  state.benefitsCountryMult={...BENEFITS_COUNTRY_MULT};
+  saveState();renderBenefitsMatrix();
 });
 
 // ── MONTHLY SPREAD ──
@@ -468,21 +854,20 @@ function renderMonthly(){
   const filterVal=document.getElementById('monthlyFilter').value;
   let emps=state.employees;
   if(filterVal)emps=emps.filter(e=>e.id===filterVal);
-  // Populate filter
   const sel=document.getElementById('monthlyFilter');
   const cv=sel.value;
   sel.innerHTML='<option value="">All Employees</option>'+state.employees.map(e=>`<option value="${e.id}"${e.id===cv?' selected':''}>${e.name}</option>`).join('');
 
   const tbl=document.getElementById('monthlyTable');
   if(monthlyMode==='summary'){
-    const totalAnnual=emps.reduce((a,e)=>a+getTotalComp(e),0);
-    const monthly=Math.round(totalAnnual/12);
     const totalBase=emps.reduce((a,e)=>a+e.salary,0);
     const totalBonus=emps.reduce((a,e)=>a+getBonusAmt(e),0);
-    const mBase=Math.round(totalBase/12),mBonus=Math.round(totalBonus/12);
-    let html='<thead><tr><th>Month</th><th>Base</th><th>Bonus</th><th>Total</th></tr></thead><tbody>';
-    MONTHS.forEach(m=>html+=`<tr><td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(monthly)}</td></tr>`);
-    html+=`</tbody><tfoot><tr><td>Annual Total</td><td>${fmt(totalBase)}</td><td>${fmt(totalBonus)}</td><td>${fmt(totalAnnual)}</td></tr></tfoot>`;
+    const totalBenefits=emps.reduce((a,e)=>a+getBenefitsAmt(e),0);
+    const totalAnnual=totalBase+totalBonus+totalBenefits;
+    const mBase=Math.round(totalBase/12),mBonus=Math.round(totalBonus/12),mBen=Math.round(totalBenefits/12),mTotal=Math.round(totalAnnual/12);
+    let html='<thead><tr><th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th></tr></thead><tbody>';
+    MONTHS.forEach(m=>html+=`<tr><td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td></tr>`);
+    html+=`</tbody><tfoot><tr><td>Annual Total</td><td>${fmt(totalBase)}</td><td>${fmt(totalBonus)}</td><td>${fmt(totalBenefits)}</td><td style="color:var(--accent)">${fmt(totalAnnual)}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   } else {
     let html='<thead><tr><th>Month</th>';
@@ -494,11 +879,11 @@ function renderMonthly(){
       let rowTotal=0;
       emps.forEach((e,i)=>{const v=Math.round(getTotalComp(e)/12);annuals[i]+=v;rowTotal+=v;html+=`<td>${fmt(v)}</td>`});
       grandTotal+=rowTotal;
-      html+=`<td>${fmt(rowTotal)}</td></tr>`;
+      html+=`<td style="font-weight:600;color:var(--accent)">${fmt(rowTotal)}</td></tr>`;
     });
     html+='</tbody><tfoot><tr><td>Annual Total</td>';
     emps.forEach((e,i)=>html+=`<td>${fmt(annuals[i])}</td>`);
-    html+=`<td>${fmt(grandTotal)}</td></tr></tfoot>`;
+    html+=`<td style="color:var(--accent)">${fmt(grandTotal)}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   }
 }
@@ -507,42 +892,141 @@ document.querySelectorAll('#monthlyToggle .btn').forEach(b=>b.addEventListener('
 }));
 document.getElementById('monthlyFilter').addEventListener('change',renderMonthly);
 
+// ── LONG TERM FORECAST ──
+let forecastChart=null;
+function renderForecastInputs(){
+  const fa=state.forecastAssumptions;
+  ['attrition','hires','merit','market','ai'].forEach(key=>{
+    const container=document.getElementById(key+'Inputs');
+    const suffix=key==='hires'?'':'%';
+    const step=key==='ai'?'0.01':'1';
+    container.innerHTML=FORECAST_YEARS.map((y,i)=>`
+      <div class="forecast-input-group">
+        <label>${y}</label>
+        <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${key!=='ai'&&key!=='hires'?'%':key==='ai'?'x':''}
+      </div>
+    `).join('');
+  });
+  document.querySelectorAll('.forecast-param').forEach(inp=>inp.addEventListener('change',()=>{
+    state.forecastAssumptions[inp.dataset.key][parseInt(inp.dataset.idx)]=parseFloat(inp.value)||0;
+    saveState();renderForecastProjection();
+  }));
+  ['Attrition','Hires','Merit','Market','AI'].forEach(label=>{
+    const key=label.toLowerCase();
+    const tog=document.getElementById('tog'+label);
+    tog.checked=fa.toggles[key]!==false;
+    tog.addEventListener('change',()=>{
+      state.forecastAssumptions.toggles[key]=tog.checked;
+      saveState();renderForecastProjection();
+    });
+  });
+}
+function renderForecastProjection(){
+  const fa=state.forecastAssumptions;
+  const tog=fa.toggles;
+  const currentHC=state.employees.length;
+  const currentBase=state.employees.reduce((a,e)=>a+e.salary,0);
+  const currentBonus=state.employees.reduce((a,e)=>a+getBonusAmt(e),0);
+  const currentBenefits=state.employees.reduce((a,e)=>a+getBenefitsAmt(e),0);
+  const currentTotal=currentBase+currentBonus+currentBenefits;
+  const avgSalary=currentHC?currentBase/currentHC:100000;
+  const avgBonusRate=currentHC?currentBonus/currentBase:0.1;
+  const avgBenRate=currentHC?currentBenefits/currentBase:0.2;
+
+  const rows=[{year:'Current',hc:currentHC,base:currentBase,bonus:currentBonus,benefits:currentBenefits,total:currentTotal}];
+  let hc=currentHC;
+  let salaryGrowth=1;
+
+  FORECAST_YEARS.forEach((y,i)=>{
+    const attrRate=tog.attrition?fa.attrition[i]/100:0;
+    const newHires=tog.hires?fa.hires[i]:0;
+    const meritRate=tog.merit?fa.merit[i]/100:0;
+    const marketRate=tog.market?fa.market[i]/100:0;
+    const aiGear=tog.ai?fa.ai[i]:1;
+
+    const attrited=Math.round(hc*attrRate);
+    const effectiveHires=Math.round(newHires*aiGear);
+    hc=hc-attrited+effectiveHires;
+    if(hc<0)hc=0;
+    salaryGrowth*=(1+meritRate+marketRate);
+
+    const base=Math.round(hc*avgSalary*salaryGrowth);
+    const bonus=Math.round(base*avgBonusRate);
+    const benefits=Math.round(base*avgBenRate);
+    rows.push({year:y,hc,base,bonus,benefits,total:base+bonus+benefits});
+  });
+
+  // Table
+  const tbl=document.getElementById('forecastTable');
+  let html='<thead><tr><th>Year</th><th>Headcount</th><th>Base Cost</th><th>Bonus Cost</th><th>Benefits Cost</th><th>Total Comp</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    html+=`<tr><td style="font-weight:600;color:var(--accent)">${r.year}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td></tr>`;
+  });
+  html+='</tbody>';
+  tbl.innerHTML=html;
+
+  // Chart
+  if(forecastChart)forecastChart.destroy();
+  const labels=rows.map(r=>r.year);
+  forecastChart=new Chart(document.getElementById('forecastChart'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Base',data:rows.map(r=>r.base),backgroundColor:'#8b5e5e'},
+      {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:'#6b8da3'},
+      {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:'#a38b5e'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5a5a5a'}}},scales:{
+      x:{stacked:true,ticks:{color:'#5a5a5a'},grid:{color:'#ddd'}},
+      y:{stacked:true,ticks:{color:'#5a5a5a',callback:v=>'$'+v.toLocaleString()},grid:{color:'#ddd'}}
+    }}
+  });
+}
+function renderForecast(){renderForecastInputs();renderForecastProjection()}
+
 // ── EXPORT ──
 function downloadCSV(content,filename){
   const blob=new Blob([content],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
 }
 document.getElementById('btnExportFull').addEventListener('click',()=>{
   let csv='COMPENSATION PLAN - FULL EXPORT\n\n';
-  // Roster
-  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Base Salary,Bonus %,Bonus Amount,Total Comp\n';
-  state.employees.forEach(e=>{const bp=getBonusPct(e);csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}",${e.salary},${bp}%,${getBonusAmt(e)},${getTotalComp(e)}\n`});
-  // Bonus matrix
+  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Base Salary,Bonus %,Bonus Amount,Benefits Amount,Total Comp,Hire Date,Term Date\n';
+  state.employees.forEach(e=>{const bp=getBonusPct(e);csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}",${e.salary},${bp}%,${getBonusAmt(e)},${getBenefitsAmt(e)},${getTotalComp(e)},${e.hireDate||''},${e.termDate||''}\n`});
   csv+='\nBONUS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
   SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.bonusMatrix[s]?.[f]??'')+'%');csv+='\n'});
-  // Monthly
-  csv+='\nMONTHLY SPREAD (SUMMARY)\nMonth,Base,Bonus,Total\n';
-  const tb=state.employees.reduce((a,e)=>a+e.salary,0),tbn=state.employees.reduce((a,e)=>a+getBonusAmt(e),0);
-  MONTHS.forEach(m=>csv+=`${m},${Math.round(tb/12)},${Math.round(tbn/12)},${Math.round((tb+tbn)/12)}\n`);
-  csv+=`Annual Total,${tb},${tbn},${tb+tbn}\n`;
-  // Benchmark ref
+  csv+='\nBENEFITS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
+  SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.benefitsMatrix[s]?.[f]??'')+'%');csv+='\n'});
+  csv+='\nPROJECTS\nCategory,Product,Code\n';
+  state.projects.forEach(p=>csv+=`"${p.category}","${p.product}","${p.code}"\n`);
+  csv+='\nALLOCATIONS\nEmployee,Project,Allocation%\n';
+  state.allocations.forEach(a=>{const emp=state.employees.find(e=>e.id===a.empId);const proj=state.projects.find(p=>p.id===a.projId);csv+=`"${emp?.name||''}","${proj?.code||''}",${a.pct}%\n`});
+  csv+='\nMONTHLY SPREAD (SUMMARY)\nMonth,Base,Bonus,Benefits,Total\n';
+  const tb=state.employees.reduce((a,e)=>a+e.salary,0),tbn=state.employees.reduce((a,e)=>a+getBonusAmt(e),0),tbe=state.employees.reduce((a,e)=>a+getBenefitsAmt(e),0);
+  MONTHS.forEach(m=>csv+=`${m},${Math.round(tb/12)},${Math.round(tbn/12)},${Math.round(tbe/12)},${Math.round((tb+tbn+tbe)/12)}\n`);
+  csv+=`Annual Total,${tb},${tbn},${tbe},${tb+tbn+tbe}\n`;
   csv+='\nBENCHMARK REFERENCE TABLE\nCountry,Seniority,Function,Benchmark Salary\n';
   COUNTRIES.forEach(c=>SENIORITY.forEach(s=>FUNCTIONS.forEach(f=>csv+=`${c},${s},"${f}",${benchmark(s,f,c)}\n`)));
   downloadCSV(csv,'comp-plan-full.csv');
 });
 document.getElementById('btnExportTemplate').addEventListener('click',()=>{
-  let csv='Name,Country,Seniority,Function,Base Salary (Benchmark Pre-filled),Notes\n';
-  COUNTRIES.forEach(c=>SENIORITY.forEach(s=>FUNCTIONS.forEach(f=>csv+=`,"${c}","${s}","${f}",${benchmark(s,f,c)},\n`)));
+  let csv='Name,Country,Seniority,Function,Base Salary (Benchmark Pre-filled),Hire Date,Term Date,Notes\n';
+  COUNTRIES.forEach(c=>SENIORITY.forEach(s=>FUNCTIONS.forEach(f=>csv+=`,"${c}","${s}","${f}",${benchmark(s,f,c)},,,\n`)));
   downloadCSV(csv,'comp-plan-template.csv');
 });
 document.getElementById('btnPrint').addEventListener('click',()=>{
   const w=window.open('','_blank');
-  let h='<html><head><title>Comp Plan Print</title><style>body{font-family:sans-serif;padding:20px;font-size:12px}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}th{background:#f0f0f0}h2{margin-top:20px}@media print{body{font-size:10px}}</style></head><body>';
+  let h='<html><head><title>Comp Plan Print</title><style>body{font-family:sans-serif;padding:20px;font-size:12px;color:#2d2d2d}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}th{background:#f0f0f0;color:#8b2020}h1,h2{color:#8b2020}@media print{body{font-size:10px}}</style></head><body>';
   h+='<h1>Compensation Plan</h1>';
-  h+='<h2>Employee Roster</h2><table><tr><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Base</th><th>Bonus%</th><th>Bonus Amt</th><th>Total</th></tr>';
-  state.employees.forEach(e=>h+=`<tr><td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td><td>${fmt(e.salary)}</td><td>${getBonusPct(e)}%</td><td>${fmt(getBonusAmt(e))}</td><td>${fmt(getTotalComp(e))}</td></tr>`);
+  h+='<h2>Employee Roster</h2><table><tr><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Base</th><th>Bonus%</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>Hire</th><th>Term</th></tr>';
+  state.employees.forEach(e=>h+=`<tr><td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td><td>${fmt(e.salary)}</td><td>${getBonusPct(e)}%</td><td>${fmt(getBonusAmt(e))}</td><td>${fmt(getBenefitsAmt(e))}</td><td>${fmt(getTotalComp(e))}</td><td>${e.hireDate||''}</td><td>${e.termDate||''}</td></tr>`);
   h+='</table>';
   h+='<h2>Bonus Matrix</h2><table><tr><th></th>';FUNCTIONS.forEach((f,i)=>h+=`<th>${FUNC_SHORT[i]}</th>`);h+='</tr>';
   SENIORITY.forEach(s=>{h+=`<tr><th>${s}</th>`;FUNCTIONS.forEach(f=>h+=`<td>${state.bonusMatrix[s]?.[f]??''}%</td>`);h+='</tr>'});
+  h+='</table>';
+  h+='<h2>Benefits Matrix</h2><table><tr><th></th>';FUNCTIONS.forEach((f,i)=>h+=`<th>${FUNC_SHORT[i]}</th>`);h+='</tr>';
+  SENIORITY.forEach(s=>{h+=`<tr><th>${s}</th>`;FUNCTIONS.forEach(f=>h+=`<td>${state.benefitsMatrix[s]?.[f]??''}%</td>`);h+='</tr>'});
+  h+='</table>';
+  h+='<h2>Projects</h2><table><tr><th>Category</th><th>Product</th><th>Code</th></tr>';
+  state.projects.forEach(p=>h+=`<tr><td>${p.category}</td><td>${p.product}</td><td>${p.code}</td></tr>`);
   h+='</table>';
   h+='<h2>Monthly Spread</h2><table><tr><th>Month</th><th>Total</th></tr>';
   const tot=state.employees.reduce((a,e)=>a+getTotalComp(e),0);
@@ -558,12 +1042,12 @@ document.getElementById('btnImportJSON').addEventListener('click',()=>document.g
 document.getElementById('jsonFileInput').addEventListener('change',e=>{
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{try{state=JSON.parse(ev.target.result);saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
+  reader.onload=ev=>{try{state=JSON.parse(ev.target.result);ensureStateFields();saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
   reader.readAsText(file);
 });
 
 // ── INIT ──
-function renderAll(){renderDashboard();renderEmployees();renderBonusMatrix();renderMonthly()}
+function renderAll(){renderDashboard();renderEmployees();renderProjects();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast()}
 loadState();initDropdowns();renderAll();
 </script>
 </body>
