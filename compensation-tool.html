@@ -1889,7 +1889,10 @@ function initScratchPad(){
   // ── Spreadsheet ──
   let sRows=8,sCols=6;
   const sData=[];// sData[r][c] = raw input string
-  for(let r=0;r<sRows;r++){sData.push(Array(sCols).fill(''))}
+  const sColHeaders=[];// editable column headers
+  const sRowNames=[];// editable row names
+  for(let r=0;r<sRows;r++){sData.push(Array(sCols).fill(''));sRowNames.push('')}
+  for(let c=0;c<sCols;c++){sColHeaders.push('')}
   const grid=document.getElementById('scratchGrid');
 
   function colLabel(c){let s='';c++;while(c>0){c--;s=String.fromCharCode(65+c%26)+s;c=Math.floor(c/26)}return s}
@@ -1916,11 +1919,16 @@ function initScratchPad(){
 
   let showFormulas=false;
   function renderGrid(){
-    let h='<table class="comp-table" style="font-size:.8rem"><thead><tr><th style="width:30px"></th>';
-    for(let c=0;c<sCols;c++)h+=`<th style="min-width:80px;text-align:center">${colLabel(c)}</th>`;
+    let h='<table class="comp-table" style="font-size:.8rem"><thead><tr><th style="width:30px"></th><th style="width:90px;background:var(--panel)"></th>';
+    for(let c=0;c<sCols;c++){
+      const hdr=sColHeaders[c]||colLabel(c);
+      h+=`<th class="scratch-col-hdr" data-c="${c}" style="min-width:80px;text-align:center;cursor:text;font-weight:600;color:${sColHeaders[c]?'var(--text-dark)':'var(--text-dim)'}">${hdr}</th>`;
+    }
     h+='</tr></thead><tbody>';
     for(let r=0;r<sRows;r++){
-      h+=`<tr><td style="font-weight:600;color:var(--text-dim);text-align:center;background:var(--panel)">${r+1}</td>`;
+      const rName=sRowNames[r]||String(r+1);
+      h+=`<tr><td style="font-weight:600;color:var(--text-dim);text-align:center;background:var(--panel);font-size:.7rem">${r+1}</td>`;
+      h+=`<td class="scratch-row-name" data-r="${r}" style="cursor:text;background:var(--panel);font-weight:600;font-size:.75rem;padding:2px 6px;color:${sRowNames[r]?'var(--text-dark)':'var(--text-dim)'};white-space:nowrap">${sRowNames[r]||'Row '+(r+1)}</td>`;
       for(let c=0;c<sCols;c++){
         const val=evalCell(r,c,new Set());
         const display=typeof val==='number'?Math.round(val*100)/100:val;
@@ -1932,6 +1940,33 @@ function initScratchPad(){
     }
     h+='</tbody></table>';
     grid.innerHTML=h;
+    // Editable column headers
+    grid.querySelectorAll('.scratch-col-hdr').forEach(th=>{
+      th.addEventListener('dblclick',()=>{
+        const c=+th.dataset.c;
+        const inp=document.createElement('input');
+        inp.type='text';inp.value=sColHeaders[c]||'';inp.placeholder=colLabel(c);
+        inp.style.cssText='width:100%;border:none;outline:2px solid var(--accent);background:var(--bg);color:var(--text-dark);font-size:.8rem;padding:2px 4px;box-sizing:border-box;text-align:center;font-weight:600';
+        th.textContent='';th.appendChild(inp);inp.focus();inp.select();
+        const finish=()=>{sColHeaders[c]=inp.value;renderGrid()};
+        inp.addEventListener('blur',finish);
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();finish()}if(e.key==='Escape'){inp.value=sColHeaders[c];finish()}});
+      });
+    });
+    // Editable row names
+    grid.querySelectorAll('.scratch-row-name').forEach(td=>{
+      td.addEventListener('dblclick',()=>{
+        const r=+td.dataset.r;
+        const inp=document.createElement('input');
+        inp.type='text';inp.value=sRowNames[r]||'';inp.placeholder='Row '+(r+1);
+        inp.style.cssText='width:100%;border:none;outline:2px solid var(--accent);background:var(--bg);color:var(--text-dark);font-size:.75rem;padding:2px 4px;box-sizing:border-box;font-weight:600';
+        td.textContent='';td.appendChild(inp);inp.focus();inp.select();
+        const finish=()=>{sRowNames[r]=inp.value;renderGrid()};
+        inp.addEventListener('blur',finish);
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();finish()}if(e.key==='Escape'){inp.value=sRowNames[r];finish()}});
+      });
+    });
+    // Editable cells
     grid.querySelectorAll('.scratch-cell').forEach(td=>{
       td.addEventListener('dblclick',()=>{
         const r=+td.dataset.r,c=+td.dataset.c;
@@ -1948,8 +1983,8 @@ function initScratchPad(){
     });
   }
   renderGrid();
-  document.getElementById('scratchAddRow').addEventListener('click',()=>{sRows++;sData.push(Array(sCols).fill(''));renderGrid()});
-  document.getElementById('scratchAddCol').addEventListener('click',()=>{sCols++;sData.forEach(r=>r.push(''));renderGrid()});
+  document.getElementById('scratchAddRow').addEventListener('click',()=>{sRows++;sData.push(Array(sCols).fill(''));sRowNames.push('');renderGrid()});
+  document.getElementById('scratchAddCol').addEventListener('click',()=>{sCols++;sData.forEach(r=>r.push(''));sColHeaders.push('');renderGrid()});
   document.getElementById('scratchClear').addEventListener('click',()=>{sData.forEach(r=>r.fill(''));renderGrid()});
   document.getElementById('scratchShowFormulas').addEventListener('click',()=>{showFormulas=!showFormulas;document.getElementById('scratchShowFormulas').classList.toggle('active',showFormulas);renderGrid()});
 
@@ -2001,11 +2036,72 @@ function initScratchPad(){
   function getPos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
   const shapeSelect=document.getElementById('wbShape');
 
+  // Find bounding box of connected non-transparent pixels at a point
+  function findObjectAt(startX,startY){
+    if(startX<0||startX>=canvas.width||startY<0||startY>=canvas.height)return null;
+    const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const d=imgData.data;const w=canvas.width;const h=canvas.height;
+    const idx=(startY*w+startX)*4;
+    if(d[idx+3]<10)return null;// clicked on empty area
+    // Flood-fill to find all connected non-transparent pixels
+    const visited=new Uint8Array(w*h);
+    const stack=[[startX,startY]];
+    let minX=startX,maxX=startX,minY=startY,maxY=startY;
+    while(stack.length){
+      const [cx,cy]=stack.pop();
+      const ci=cy*w+cx;
+      if(visited[ci])continue;
+      const pi=ci*4;
+      if(d[pi+3]<10){visited[ci]=1;continue}// transparent
+      visited[ci]=1;
+      if(cx<minX)minX=cx;if(cx>maxX)maxX=cx;
+      if(cy<minY)minY=cy;if(cy>maxY)maxY=cy;
+      if(cx>0)stack.push([cx-1,cy]);
+      if(cx<w-1)stack.push([cx+1,cy]);
+      if(cy>0)stack.push([cx,cy-1]);
+      if(cy<h-1)stack.push([cx,cy+1]);
+    }
+    // Add small padding
+    const pad=3;
+    minX=Math.max(0,minX-pad);minY=Math.max(0,minY-pad);
+    maxX=Math.min(w-1,maxX+pad);maxY=Math.min(h-1,maxY+pad);
+    return{x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+  }
+
+  function stampSelection(){
+    if(!wbSelImg||!wbSelection)return;
+    // Draw selection onto the current background and save to history
+    ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
+    ctx.drawImage(wbSelCanvas,wbSelection.x,wbSelection.y);
+    wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+  }
+
+  function drawSelBorder(){
+    if(!wbSelection)return;
+    ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#2980b9';ctx.lineWidth=1;
+    ctx.strokeRect(wbSelection.x,wbSelection.y,wbSelection.w,wbSelection.h);ctx.restore();
+  }
+
+  function redrawGridRegion(x,y,w,h){
+    ctx.save();ctx.strokeStyle='rgba(200,200,200,0.3)';ctx.lineWidth=0.5;
+    for(let gx=Math.floor(x/20)*20;gx<x+w;gx+=20){ctx.beginPath();ctx.moveTo(gx,y);ctx.lineTo(gx,y+h);ctx.stroke()}
+    for(let gy=Math.floor(y/20)*20;gy<y+h;gy+=20){ctx.beginPath();ctx.moveTo(x,gy);ctx.lineTo(x+w,gy);ctx.stroke()}
+    ctx.restore();
+  }
+
   function setCursorForTool(){
     const v=shapeSelect.value;
     canvas.style.cursor=v==='hand'?'grab':v==='eraser'?'cell':v==='text'?'text':'crosshair';
   }
-  shapeSelect.addEventListener('change',setCursorForTool);
+  shapeSelect.addEventListener('change',()=>{
+    // Stamp any floating selection when switching tools
+    if(wbSelImg&&wbSelection){stampSelection();wbSelImg=null;wbSelection=null;wbSelOffset=null}
+    setCursorForTool();
+  });
+  // Escape to stamp/deselect
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&wbSelImg&&wbSelection){stampSelection();wbSelImg=null;wbSelection=null;wbSelOffset=null;setCursorForTool()}
+  });
 
   canvas.addEventListener('mousedown',e=>{
     const pos=getPos(e);wbDrawing=true;
@@ -2024,14 +2120,35 @@ function initScratchPad(){
           canvas.style.cursor='grabbing';
           return;
         }
-        // Click outside: stamp selection in place and start new selection
-        saveState();
-        ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
-        ctx.drawImage(wbSelCanvas,wbSelection.x,wbSelection.y);
-        wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+        // Click outside: stamp selection permanently into history
+        stampSelection();
         wbSelImg=null;wbSelection=null;wbSelOffset=null;
       }
-      // Start new selection rectangle
+      // Try to auto-select an object at click point
+      const found=findObjectAt(Math.round(pos.x),Math.round(pos.y));
+      if(found){
+        saveState();
+        // Cut the found region into floating selection
+        wbSelCanvas.width=found.w;wbSelCanvas.height=found.h;
+        const selCtx=wbSelCanvas.getContext('2d');
+        selCtx.clearRect(0,0,found.w,found.h);
+        selCtx.drawImage(canvas,found.x,found.y,found.w,found.h,0,0,found.w,found.h);
+        wbSelImg=true;
+        wbSelection={x:found.x,y:found.y,w:found.w,h:found.h};
+        // Clear from background
+        ctx.clearRect(found.x,found.y,found.w,found.h);
+        if(wbShowGrid)redrawGridRegion(found.x,found.y,found.w,found.h);
+        // Save cleaned background as current history state
+        wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+        // Draw floating selection + border
+        ctx.drawImage(wbSelCanvas,found.x,found.y);
+        drawSelBorder();
+        wbSelOffset={x:pos.x-found.x,y:pos.y-found.y};
+        canvas.style.cursor='grabbing';
+        wbDrawing=true;
+        return;
+      }
+      // No object found — start manual selection rectangle
       saveState();wbShapeStart=pos;
       canvas.style.cursor='crosshair';
     } else if(tool==='text'){
@@ -2083,16 +2200,14 @@ function initScratchPad(){
     const tool=shapeSelect.value;
 
     if(tool==='hand'&&wbSelImg&&wbSelOffset){
-      // Dragging floating selection
+      // Dragging floating selection — restore clean background first
       wbSelection.x=pos.x-wbSelOffset.x;
       wbSelection.y=pos.y-wbSelOffset.y;
-      // Redraw background + floating selection
-      if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
-      else{ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid()}
+      // Restore the clean background (without the selection content)
+      ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
+      // Draw the floating selection at new position
       ctx.drawImage(wbSelCanvas,wbSelection.x,wbSelection.y);
-      // Draw selection border
-      ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='var(--accent)';ctx.lineWidth=1;
-      ctx.strokeRect(wbSelection.x,wbSelection.y,wbSelection.w,wbSelection.h);ctx.restore();
+      drawSelBorder();
       return;
     }
 
@@ -2139,24 +2254,21 @@ function initScratchPad(){
       const w=Math.abs(pos.x-wbShapeStart.x),h=Math.abs(pos.y-wbShapeStart.y);
       wbShapeStart=null;
       if(w<4||h<4){canvas.style.cursor='grab';return}// too small
-      // Capture selection
+      // Capture selection into offscreen canvas
       wbSelCanvas.width=w;wbSelCanvas.height=h;
       const selCtx=wbSelCanvas.getContext('2d');
+      selCtx.clearRect(0,0,w,h);
       selCtx.drawImage(canvas,x,y,w,h,0,0,w,h);
       wbSelImg=true;
       wbSelection={x,y,w,h};
       // Clear the selected area from the background
       ctx.clearRect(x,y,w,h);
-      if(wbShowGrid){ctx.save();ctx.strokeStyle='rgba(200,200,200,0.3)';ctx.lineWidth=0.5;
-        for(let gx=Math.floor(x/20)*20;gx<x+w;gx+=20){ctx.beginPath();ctx.moveTo(gx,y);ctx.lineTo(gx,y+h);ctx.stroke()}
-        for(let gy=Math.floor(y/20)*20;gy<y+h;gy+=20){ctx.beginPath();ctx.moveTo(x,gy);ctx.lineTo(x+w,gy);ctx.stroke()}
-        ctx.restore();
-      }
+      if(wbShowGrid)redrawGridRegion(x,y,w,h);
+      // Save cleaned background as history state
       wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
-      // Draw floating selection + border
+      // Draw floating selection + border on top
       ctx.drawImage(wbSelCanvas,x,y);
-      ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#2980b9';ctx.lineWidth=1;
-      ctx.strokeRect(x,y,w,h);ctx.restore();
+      drawSelBorder();
       canvas.style.cursor='grab';
       return;
     }
