@@ -211,6 +211,7 @@ body.ops-mode .ops-hide{display:none!important}
 <button class="btn active" data-group="function">Function</button>
 <button class="btn" data-group="seniority">Seniority</button>
 <button class="btn" data-group="country">Country</button>
+<button class="btn" data-group="quarter">Quarter</button>
 <button class="btn" data-group="month">Month</button>
 </div>
 </div>
@@ -1049,7 +1050,7 @@ function stackedBarDatalabels(datasets,tickColor){
 function renderDashboard(){
   const emps=getFilteredEmployees();
   renderStats(emps);
-  document.getElementById('periodToggleWrap').style.display=groupBy==='month'?'':'none';
+  document.getElementById('periodToggleWrap').style.display=(groupBy==='month'||groupBy==='quarter')?'':'none';
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?'#8a8a8e':'#5a5a5a';
   const gridColor=isDark?'#3a3a3f':'#ddd';
@@ -1061,6 +1062,17 @@ function renderDashboard(){
     MONTH_SHORT.forEach(m=>groups[m]=[]);
     // For month grouping, each "group" holds {emp, monthIdx} pairs
     emps.forEach(e=>MONTH_SHORT.forEach((m,mi)=>{groups[m].push({emp:e,mi})}));
+  } else if(groupBy==='quarter'){
+    const Q_LABELS=['Q1','Q2','Q3','Q4'];
+    labels=Q_LABELS;
+    groups={};
+    Q_LABELS.forEach(q=>groups[q]=[]);
+    // Each quarter holds {emp, mi} pairs for its 3 months
+    emps.forEach(e=>{
+      Q_LABELS.forEach((q,qi)=>{
+        for(let m=qi*3;m<qi*3+3;m++){groups[q].push({emp:e,mi:m})}
+      });
+    });
   } else {
     const groupKey=groupBy==='function'?'function':groupBy==='seniority'?'seniority':'country';
     const groupLabels=groupBy==='function'?FUNCTIONS:groupBy==='seniority'?SENIORITY:COUNTRIES;
@@ -1070,7 +1082,7 @@ function renderDashboard(){
     labels=groupLabels.filter(l=>groups[l].length>0||emps.length===0);
   }
   let datasets=[];
-  const isMonth=groupBy==='month';
+  const isMonth=groupBy==='month'||groupBy==='quarter';
   // Helper: get comp for a group entry depending on mode
   const compVal=(entry)=>isMonth?getMonthlyComp(entry.emp,entry.mi):getProratedComp(entry);
   const baseVal=(entry)=>isMonth?getMonthlyBase(entry.emp,entry.mi):getProratedBase(entry);
@@ -1173,6 +1185,14 @@ function renderDashboard(){
           cumul.push(qi===0?v:(cumul[i-1]||0)+v);
         }
       });
+      ds.data=cumul;
+    });
+  }
+  // Apply YTD cumulative for quarter grouping
+  if(groupBy==='quarter'&&periodMode==='ytd'){
+    datasets.forEach(ds=>{
+      const cumul=[];
+      ds.data.forEach((v,i)=>{cumul.push((cumul[i-1]||0)+v)});
       ds.data=cumul;
     });
   }
