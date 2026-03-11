@@ -34,7 +34,10 @@ header{background:var(--panel);border-bottom:2px solid var(--border);padding:16p
 header .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 header h1{font-size:1.3rem;color:var(--accent)}
 header h1 span{color:var(--secondary)}
-nav{display:flex;gap:4px;flex-wrap:wrap}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.nav-group{display:flex;flex-direction:column;gap:4px}
+.nav-group-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);font-weight:600;padding:0 4px;margin-bottom:2px}
+.nav-group-btns{display:flex;gap:4px;flex-wrap:wrap}
 nav button{background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .2s}
 nav button:hover{border-color:var(--accent);color:var(--text-dark)}
 nav button.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -165,14 +168,30 @@ body.ops-mode .ops-hide{display:none!important}
 <h1>Comp<span>Plan</span></h1>
 <span class="workspace-indicator">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span></span>
 <nav id="mainNav">
+<div class="nav-group">
+<div class="nav-group-label">Summaries</div>
+<div class="nav-group-btns">
 <button class="active" data-tab="dashboard">Dashboard</button>
-<button data-tab="employees">Employees</button>
 <button data-tab="monthly">Monthly Spread</button>
+<button data-tab="export">Export</button>
+<button data-tab="scratch">Scratch Pad</button>
+</div>
+</div>
+<div class="nav-group">
+<div class="nav-group-label">Template Inputs</div>
+<div class="nav-group-btns">
+<button data-tab="employees">Employees</button>
 <button data-tab="forecast">Long Term Forecast</button>
+</div>
+</div>
+<div class="nav-group">
+<div class="nav-group-label">Dimension Management</div>
+<div class="nav-group-btns">
 <button data-tab="projects">Project / Market Mapping</button>
 <button data-tab="bonuses">Bonus Assumptions</button>
 <button data-tab="benefits">Benefits Assumptions</button>
-<button data-tab="export">Export</button>
+</div>
+</div>
 </nav>
 <div class="header-toggles">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
@@ -193,6 +212,14 @@ body.ops-mode .ops-hide{display:none!important}
 <button class="btn" data-group="seniority">Seniority</button>
 <button class="btn" data-group="country">Country</button>
 <button class="btn" data-group="month">Month</button>
+</div>
+</div>
+<div id="periodToggleWrap" style="display:none">
+<label>Period</label>
+<div class="toggle-group" id="periodToggle">
+<button class="btn active" data-period="mtd">MTD</button>
+<button class="btn" data-period="qtd">QTD</button>
+<button class="btn" data-period="ytd">YTD</button>
 </div>
 </div>
 <div>
@@ -533,6 +560,47 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 </div>
 
+<div id="tab-scratch" class="tab-content">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:600px">
+<!-- Spreadsheet pane -->
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+<h3 class="section-title" style="margin:0">Scratch Sheet</h3>
+<div style="display:flex;gap:4px">
+<button class="btn" id="scratchAddRow" title="Add row" style="padding:4px 10px;font-size:.8rem">+ Row</button>
+<button class="btn" id="scratchAddCol" title="Add column" style="padding:4px 10px;font-size:.8rem">+ Col</button>
+<button class="btn" id="scratchClear" title="Clear all" style="padding:4px 10px;font-size:.8rem">Clear</button>
+</div>
+</div>
+<p style="color:var(--text-dim);font-size:.75rem;margin:0 0 6px">Use <code>=A1+B2</code> or <code>=A1*B2</code> formulas. Supports +, -, *, / and cell references (A1-Z99).</p>
+<div id="scratchGrid" style="flex:1;overflow:auto"></div>
+</div>
+<!-- Whiteboard pane -->
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+<h3 class="section-title" style="margin:0">Whiteboard</h3>
+<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+<label style="font-size:.75rem;color:var(--text-dim)">Size:</label>
+<input type="range" id="wbSize" min="1" max="20" value="3" style="width:60px">
+<span id="wbColorSwatches" style="display:flex;gap:2px"></span>
+<label style="font-size:.75rem;color:var(--text-dim);margin-left:4px">Opacity:</label>
+<input type="range" id="wbOpacity" min="10" max="100" value="100" step="10" style="width:50px">
+<button class="btn" id="wbGrid" title="Toggle grid" style="padding:4px 8px;font-size:.75rem">Grid</button>
+<select id="wbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
+<option value="">Pen</option>
+<option value="rect">Rect</option>
+<option value="circle">Circle</option>
+<option value="line">Line</option>
+</select>
+<button class="btn" id="wbUndo" title="Undo" style="padding:4px 8px;font-size:.75rem">Undo</button>
+<button class="btn" id="wbClearBtn" title="Clear canvas" style="padding:4px 8px;font-size:.75rem">Clear</button>
+</div>
+</div>
+<canvas id="wbCanvas" style="flex:1;border:1px solid var(--border);border-radius:6px;cursor:crosshair;background:#fff"></canvas>
+</div>
+</div>
+</div>
+
 <!-- WORKSPACE MODAL -->
 <div class="modal-overlay" id="wsModal">
 <div class="modal">
@@ -793,6 +861,7 @@ document.querySelectorAll('#mainNav button').forEach(b=>{
     if(b.dataset.tab==='benefits')renderBenefitsMatrix();
     if(b.dataset.tab==='monthly')renderMonthly();
     if(b.dataset.tab==='forecast')renderForecast();
+    if(b.dataset.tab==='scratch')initScratchPad();
   });
 });
 
@@ -942,6 +1011,7 @@ function stackedBarDatalabels(datasets,tickColor){
 function renderDashboard(){
   const emps=getFilteredEmployees();
   renderStats(emps);
+  document.getElementById('periodToggleWrap').style.display=groupBy==='month'?'':'none';
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?'#8a8a8e':'#5a5a5a';
   const gridColor=isDark?'#3a3a3f':'#ddd';
@@ -1052,6 +1122,22 @@ function renderDashboard(){
       });
     }
   }
+  // Apply cumulative transform for QTD/YTD when grouped by month
+  if(groupBy==='month'&&periodMode!=='mtd'){
+    datasets.forEach(ds=>{
+      const cumul=[];
+      ds.data.forEach((v,i)=>{
+        if(periodMode==='ytd'){
+          cumul.push((cumul[i-1]||0)+v);
+        } else {
+          // QTD: reset at quarter boundaries (0,3,6,9)
+          const qi=i%3;
+          cumul.push(qi===0?v:(cumul[i-1]||0)+v);
+        }
+      });
+      ds.data=cumul;
+    });
+  }
   if(typeof Chart!=='undefined'){
     if(dashChart)dashChart.destroy();
     stackedBarDatalabels(datasets,tickColor);
@@ -1142,6 +1228,10 @@ document.querySelectorAll('#stackToggle .btn').forEach(b=>b.addEventListener('cl
   document.querySelectorAll('#stackToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');stackBy=b.dataset.stack;renderDashboard();
 }));
 ['dashCountry','dashSeniority','dashFunction','dashProdCat','dashProduct','dashProject'].forEach(id=>document.getElementById(id).addEventListener('change',renderDashboard));
+let periodMode='mtd';
+document.querySelectorAll('#periodToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#periodToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');periodMode=b.dataset.period;renderDashboard();
+}));
 
 // ── EMPLOYEES ──
 let editingId=null;
@@ -1736,6 +1826,7 @@ function renderMonthly(){
       html+='<th>Month</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>Total</th><th>CapEx</th><th>OpEx (P&L)</th></tr></thead><tbody>';
       const annTotals={base:0,bonus:0,ben:0,capex:0};
       groups.forEach(g=>{
+        let gBase=0,gBonus=0,gBen=0,gCapEx=0;
         MONTHS.forEach((m,mi)=>{
           const mBase=g.emps.reduce((a,e)=>a+getMonthlyBase(e,mi),0);
           const mBonus=g.emps.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);
@@ -1743,10 +1834,14 @@ function renderMonthly(){
           const mCapEx=g.emps.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0);
           const mTotal=mBase+mBonus+mBen;
           annTotals.base+=mBase;annTotals.bonus+=mBonus;annTotals.ben+=mBen;annTotals.capex+=mCapEx;
+          gBase+=mBase;gBonus+=mBonus;gBen+=mBen;gCapEx+=mCapEx;
           html+='<tr>';
-          if(mi===0){cols.forEach((c,ci)=>html+=`<td rowspan="12" style="font-weight:600;vertical-align:top;border-right:1px solid var(--border-light)">${g.labels[ci]}</td>`)}
+          if(mi===0){cols.forEach((c,ci)=>html+=`<td rowspan="13" style="font-weight:600;vertical-align:top;border-right:1px solid var(--border-light)">${g.labels[ci]}</td>`)}
           html+=`<td>${m}</td><td>${fmt(mBase)}</td><td>${fmt(mBonus)}</td><td>${fmt(mBen)}</td><td style="font-weight:600;color:var(--accent)">${fmt(mTotal)}</td><td>${fmt(mCapEx)}</td><td style="color:var(--success)">${fmt(mTotal-mCapEx)}</td></tr>`;
         });
+        // Subtotal row for this group
+        const gTotal=gBase+gBonus+gBen;
+        html+=`<tr style="background:var(--panel);font-weight:600;border-top:2px solid var(--border)"><td>Subtotal</td><td>${fmt(gBase)}</td><td>${fmt(gBonus)}</td><td>${fmt(gBen)}</td><td style="color:var(--accent)">${fmt(gTotal)}</td><td>${fmt(gCapEx)}</td><td style="color:var(--success)">${fmt(gTotal-gCapEx)}</td></tr>`;
       });
       html+=`</tbody><tfoot><tr>`;
       cols.forEach(()=>html+='<td></td>');
@@ -1781,6 +1876,186 @@ document.querySelectorAll('#monthlyToggle .btn').forEach(b=>b.addEventListener('
 }));
 document.getElementById('monthlyFilter').addEventListener('change',renderMonthly);
 document.querySelectorAll('.monthly-col').forEach(cb=>cb.addEventListener('change',renderMonthly));
+
+// ── SCRATCH PAD (Spreadsheet + Whiteboard) ──
+let scratchInited=false;
+function initScratchPad(){
+  if(scratchInited){resizeWbCanvas();return}
+  scratchInited=true;
+  // ── Spreadsheet ──
+  let sRows=8,sCols=6;
+  const sData=[];// sData[r][c] = raw input string
+  for(let r=0;r<sRows;r++){sData.push(Array(sCols).fill(''))}
+  const grid=document.getElementById('scratchGrid');
+
+  function colLabel(c){let s='';c++;while(c>0){c--;s=String.fromCharCode(65+c%26)+s;c=Math.floor(c/26)}return s}
+  function parseRef(ref){const m=ref.match(/^([A-Z]+)(\d+)$/);if(!m)return null;let c=0;for(const ch of m[1])c=c*26+(ch.charCodeAt(0)-64);return{r:parseInt(m[2])-1,c:c-1}}
+
+  function evalCell(r,c,visited){
+    const raw=(sData[r]&&sData[r][c])||'';
+    if(!raw.startsWith('='))return isNaN(raw)||raw===''?raw:parseFloat(raw);
+    const key=r+','+c;
+    if(visited.has(key))return '#REF!';
+    visited.add(key);
+    try{
+      const expr=raw.slice(1).toUpperCase().replace(/[A-Z]+\d+/g,ref=>{
+        const p=parseRef(ref);
+        if(!p||p.r<0||p.r>=sRows||p.c<0||p.c>=sCols)return '0';
+        const v=evalCell(p.r,p.c,new Set(visited));
+        return typeof v==='number'?v:'0';
+      });
+      // Only allow numbers and basic ops
+      if(/^[\d+\-*/().\s]+$/.test(expr)){return Function('"use strict";return ('+expr+')')()}
+      return raw;
+    }catch(e){return '#ERR!'}
+  }
+
+  function renderGrid(){
+    let h='<table class="comp-table" style="font-size:.8rem"><thead><tr><th style="width:30px"></th>';
+    for(let c=0;c<sCols;c++)h+=`<th style="min-width:80px;text-align:center">${colLabel(c)}</th>`;
+    h+='</tr></thead><tbody>';
+    for(let r=0;r<sRows;r++){
+      h+=`<tr><td style="font-weight:600;color:var(--text-dim);text-align:center;background:var(--panel)">${r+1}</td>`;
+      for(let c=0;c<sCols;c++){
+        const val=evalCell(r,c,new Set());
+        const display=typeof val==='number'?Math.round(val*100)/100:val;
+        h+=`<td class="scratch-cell" data-r="${r}" data-c="${c}" style="cursor:text;min-width:80px;padding:2px 6px">${display}</td>`;
+      }
+      h+='</tr>';
+    }
+    h+='</tbody></table>';
+    grid.innerHTML=h;
+    grid.querySelectorAll('.scratch-cell').forEach(td=>{
+      td.addEventListener('dblclick',()=>{
+        const r=+td.dataset.r,c=+td.dataset.c;
+        const inp=document.createElement('input');
+        inp.type='text';inp.value=sData[r][c]||'';
+        inp.style.cssText='width:100%;border:none;outline:2px solid var(--accent);background:var(--bg);color:var(--text-dark);font-size:.8rem;padding:2px 4px;box-sizing:border-box';
+        td.textContent='';td.appendChild(inp);inp.focus();inp.select();
+        const finish=()=>{sData[r][c]=inp.value;renderGrid()};
+        inp.addEventListener('blur',finish);
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();finish()}if(e.key==='Escape'){inp.value=sData[r][c];finish()}
+          if(e.key==='Tab'){e.preventDefault();finish();const nc=e.shiftKey?c-1:c+1;if(nc>=0&&nc<sCols){const next=grid.querySelector(`[data-r="${r}"][data-c="${nc}"]`);if(next)next.dispatchEvent(new Event('dblclick'))}}
+        });
+      });
+    });
+  }
+  renderGrid();
+  document.getElementById('scratchAddRow').addEventListener('click',()=>{sRows++;sData.push(Array(sCols).fill(''));renderGrid()});
+  document.getElementById('scratchAddCol').addEventListener('click',()=>{sCols++;sData.forEach(r=>r.push(''));renderGrid()});
+  document.getElementById('scratchClear').addEventListener('click',()=>{sData.forEach(r=>r.fill(''));renderGrid()});
+
+  // ── Whiteboard ──
+  const canvas=document.getElementById('wbCanvas');
+  const ctx=canvas.getContext('2d');
+  const WB_COLORS=['#1a1a1a','#e74c3c','#2980b9','#27ae60','#f39c12','#8e44ad','#e67e22','#ecf0f1'];
+  let wbColor=WB_COLORS[0],wbOpacity=1,wbSize=3,wbShowGrid=false,wbDrawing=false;
+  let wbHistory=[],wbShapeStart=null;
+  const swatches=document.getElementById('wbColorSwatches');
+  WB_COLORS.forEach(c=>{
+    const s=document.createElement('span');
+    s.style.cssText=`width:18px;height:18px;border-radius:3px;cursor:pointer;border:2px solid ${c===wbColor?'var(--accent)':'transparent'};background:${c};display:inline-block`;
+    s.addEventListener('click',()=>{wbColor=c;swatches.querySelectorAll('span').forEach(x=>x.style.borderColor='transparent');s.style.borderColor='var(--accent)'});
+    swatches.appendChild(s);
+  });
+
+  function resizeWbCanvas(){
+    const rect=canvas.parentElement.getBoundingClientRect();
+    const h=Math.max(300,rect.height-canvas.offsetTop+canvas.parentElement.offsetTop-8);
+    if(canvas.width!==Math.floor(rect.width-32)||canvas.height!==Math.floor(h)){
+      const imgData=canvas.width>0&&canvas.height>0?ctx.getImageData(0,0,canvas.width,canvas.height):null;
+      canvas.width=Math.floor(rect.width-32);canvas.height=Math.floor(h);
+      if(imgData)ctx.putImageData(imgData,0,0);
+      if(wbShowGrid)drawGrid();
+    }
+  }
+  resizeWbCanvas();
+
+  function saveState(){
+    wbHistory.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    if(wbHistory.length>50)wbHistory.shift();
+  }
+
+  function drawGrid(){
+    ctx.save();ctx.strokeStyle='rgba(200,200,200,0.3)';ctx.lineWidth=0.5;
+    for(let x=0;x<canvas.width;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke()}
+    for(let y=0;y<canvas.height;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke()}
+    ctx.restore();
+  }
+
+  function redraw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(wbShowGrid)drawGrid();
+    if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
+  }
+
+  function getPos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+  const shapeSelect=document.getElementById('wbShape');
+
+  canvas.addEventListener('mousedown',e=>{
+    const pos=getPos(e);wbDrawing=true;
+    const op=parseFloat(document.getElementById('wbOpacity').value)/100;
+    wbSize=parseInt(document.getElementById('wbSize').value);
+    wbOpacity=op;
+    if(shapeSelect.value){
+      saveState();wbShapeStart=pos;
+    } else {
+      saveState();
+      ctx.beginPath();ctx.moveTo(pos.x,pos.y);
+      ctx.strokeStyle=wbColor.replace(')',`,${wbOpacity})`).replace('rgb','rgba').replace('#','')||wbColor;
+      // Convert hex to rgba
+      const r=parseInt(wbColor.slice(1,3),16),g=parseInt(wbColor.slice(3,5),16),b=parseInt(wbColor.slice(5,7),16);
+      ctx.strokeStyle=`rgba(${r},${g},${b},${wbOpacity})`;
+      ctx.lineWidth=wbSize;ctx.lineCap='round';ctx.lineJoin='round';
+    }
+  });
+
+  canvas.addEventListener('mousemove',e=>{
+    if(!wbDrawing)return;
+    const pos=getPos(e);
+    if(shapeSelect.value&&wbShapeStart){
+      // Preview shape
+      if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
+      else{ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid()}
+      const r=parseInt(wbColor.slice(1,3),16),g=parseInt(wbColor.slice(3,5),16),b=parseInt(wbColor.slice(5,7),16);
+      ctx.strokeStyle=`rgba(${r},${g},${b},${wbOpacity})`;ctx.lineWidth=wbSize;
+      const s=wbShapeStart;
+      if(shapeSelect.value==='rect'){ctx.strokeRect(s.x,s.y,pos.x-s.x,pos.y-s.y)}
+      else if(shapeSelect.value==='circle'){const rx=Math.abs(pos.x-s.x)/2,ry=Math.abs(pos.y-s.y)/2;ctx.beginPath();ctx.ellipse(s.x+((pos.x-s.x)/2),s.y+((pos.y-s.y)/2),rx,ry,0,0,Math.PI*2);ctx.stroke()}
+      else if(shapeSelect.value==='line'){ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(pos.x,pos.y);ctx.stroke()}
+    } else {
+      ctx.lineTo(pos.x,pos.y);ctx.stroke();
+    }
+  });
+
+  canvas.addEventListener('mouseup',e=>{
+    if(!wbDrawing)return;
+    wbDrawing=false;
+    if(shapeSelect.value&&wbShapeStart){
+      // Final shape drawn already via mousemove preview; save new state
+      wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+      wbShapeStart=null;
+    } else {
+      ctx.closePath();
+      wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+    }
+  });
+  canvas.addEventListener('mouseleave',()=>{if(wbDrawing){wbDrawing=false;if(!shapeSelect.value)ctx.closePath();wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height)}});
+
+  document.getElementById('wbUndo').addEventListener('click',()=>{
+    if(wbHistory.length){wbHistory.pop();ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid();if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0)}
+  });
+  document.getElementById('wbClearBtn').addEventListener('click',()=>{wbHistory=[];ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid()});
+  document.getElementById('wbGrid').addEventListener('click',()=>{
+    wbShowGrid=!wbShowGrid;
+    document.getElementById('wbGrid').classList.toggle('active',wbShowGrid);
+    // Redraw: restore last history then optionally overlay grid
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(wbShowGrid)drawGrid();
+    if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
+  });
+  window.addEventListener('resize',resizeWbCanvas);
+}
 
 // ── LONG TERM FORECAST ──
 let forecastChart=null;
