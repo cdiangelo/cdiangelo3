@@ -174,9 +174,6 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="header-toggles">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
 <label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
-<button class="btn btn-sm btn-primary" id="btnSaveClose" style="margin-left:8px;font-size:.75rem" title="Download JSON backup and logout">Save &amp; Close</button>
-<button class="btn btn-sm" id="btnLockVault" style="font-size:.75rem;display:none" title="Lock vault and clear memory">Lock</button>
-<a href="/logout" class="btn btn-sm" style="text-decoration:none;font-size:.75rem">Logout</a>
 </div>
 </div>
 </header>
@@ -420,28 +417,8 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 </div>
 <div class="card" style="margin-top:24px">
-<h3 class="section-title">Encrypted Vault</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Workspaces are encrypted with your passphrase and stored in-browser (IndexedDB). Data never leaves your device. Your passphrase is never stored — only a verification hash is kept.</p>
-<div id="vaultSetupPanel" style="display:none">
-<div class="card-inset" style="margin-bottom:16px">
-<p style="font-weight:600;margin-bottom:8px">Set Vault Passphrase</p>
-<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">This passphrase encrypts all workspaces. Choose something strong — if you forget it, data cannot be recovered.</p>
-<div class="controls" style="gap:8px">
-<input type="password" id="vaultNewPass" placeholder="Passphrase (min 6 chars)" style="max-width:240px">
-<input type="password" id="vaultConfirmPass" placeholder="Confirm passphrase" style="max-width:240px">
-<button class="btn btn-primary" id="btnVaultSetup">Enable Vault</button>
-</div>
-</div>
-</div>
-<div id="vaultActivePanel" style="display:none">
-<div class="card-inset" style="margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-<span style="font-size:.85rem">Vault is <strong style="color:#22c55e">unlocked</strong></span>
-<button class="btn btn-sm" id="btnVaultChangePass">Change Passphrase</button>
-<button class="btn btn-sm btn-danger" id="btnVaultDestroy">Destroy Vault</button>
-</div>
-</div>
-<h3 class="section-title" style="margin-top:16px">Workspaces</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Save multiple named copies of your comp plan. Each workspace stores a complete snapshot of all data. Switch between them to compare scenarios.</p>
+<h3 class="section-title">Workspaces</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Save multiple named copies of your comp plan. Each workspace stores a complete snapshot of all data. Switch between them to compare scenarios. Data is stored in your browser's local storage.</p>
 <div class="controls" style="margin-bottom:16px">
 <input id="wsSaveName" placeholder="Workspace name…" style="max-width:280px">
 <button class="btn btn-primary" id="btnWsSave">Save As</button>
@@ -450,23 +427,6 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="card-inset" id="wsListContainer">
 <p style="color:var(--text-dim);font-size:.85rem">No saved workspaces yet.</p>
 </div>
-</div>
-</div>
-
-<!-- VAULT UNLOCK OVERLAY -->
-<div id="vaultUnlockOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center">
-<div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3)">
-<h3 style="color:var(--accent);margin-bottom:4px">Unlock Vault</h3>
-<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:6px" id="vaultUnlockWsCount"></p>
-<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:16px">Enter your passphrase to decrypt your saved workspaces.</p>
-<input type="password" id="vaultUnlockPass" placeholder="Passphrase" style="width:100%;max-width:280px;margin-bottom:12px" onkeydown="if(event.key==='Enter')document.getElementById('btnVaultUnlock').click()">
-<p id="vaultUnlockError" style="color:#ef4444;font-size:.82rem;margin-bottom:8px;display:none"></p>
-<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-<button class="btn btn-primary" id="btnVaultUnlock">Unlock</button>
-<button class="btn" id="btnVaultSkip">Start Fresh</button>
-</div>
-<p style="color:var(--text-dim);font-size:.75rem;margin-top:12px">Or <a href="#" id="vaultUnlockImport" style="color:var(--accent)">import a JSON backup</a> instead</p>
-<input type="file" id="vaultUnlockFileInput" accept=".json" style="display:none">
 </div>
 </div>
 
@@ -505,7 +465,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 // ── STATE ──
 let state;
 function loadState(){
-  const raw=sessionStorage.getItem('compPlanState_v2');
+  const raw=localStorage.getItem('compPlanState_v2');
   if(raw){state=JSON.parse(raw);ensureStateFields();return}
   const bonusMatrix={};
   SENIORITY.forEach(s=>{bonusMatrix[s]={};FUNCTIONS.forEach(f=>{bonusMatrix[s][f]=DEFAULT_BONUS[s]})});
@@ -574,7 +534,7 @@ function ensureStateFields(){
     if(!e.allocations)e.allocations=[];
   });
 }
-function saveState(){sessionStorage.setItem('compPlanState_v2',JSON.stringify(state))}
+function saveState(){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
 function getBonusPct(emp){return state.bonusMatrix[emp.seniority]?.[emp.function]??DEFAULT_BONUS[emp.seniority]??10}
 function getBonusAmt(emp){return Math.round(emp.salary*getBonusPct(emp)/100)}
 function getBenefitsPct(emp){
@@ -1628,235 +1588,117 @@ const toggleDark=document.getElementById('toggleDark');
 const toggleOps=document.getElementById('toggleOps');
 toggleDark.addEventListener('change',()=>{
   document.documentElement.classList.toggle('dark',toggleDark.checked);
-  sessionStorage.setItem('compPlanDark',toggleDark.checked?'1':'0');
+  localStorage.setItem('compPlanDark',toggleDark.checked?'1':'0');
   // Re-render chart with updated colors
   renderForecast();
 });
 toggleOps.addEventListener('change',()=>{
   document.body.classList.toggle('ops-mode',toggleOps.checked);
-  sessionStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
+  localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
   renderMonthly();
 });
 // Restore preferences
-if(sessionStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;document.documentElement.classList.add('dark')}
-if(sessionStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
+if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;document.documentElement.classList.add('dark')}
+if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
 
-// ── ENCRYPTED VAULT (Web Crypto + IndexedDB) ──
-const VAULT_DB_NAME='compPlanVault';
-const VAULT_DB_VERSION=1;
-const VAULT_META_STORE='meta';
-const VAULT_DATA_STORE='workspaces';
-let vaultCryptoKey=null; // in-memory only, cleared on lock
+// ── WORKSPACES (localStorage) ──
 let currentWorkspaceName='Default';
 
-// IndexedDB helpers
-function openVaultDB(){
-  return new Promise((resolve,reject)=>{
-    const req=indexedDB.open(VAULT_DB_NAME,VAULT_DB_VERSION);
-    req.onupgradeneeded=e=>{
-      const db=e.target.result;
-      if(!db.objectStoreNames.contains(VAULT_META_STORE))db.createObjectStore(VAULT_META_STORE);
-      if(!db.objectStoreNames.contains(VAULT_DATA_STORE))db.createObjectStore(VAULT_DATA_STORE);
-    };
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>reject(req.error);
-  });
+// Workspace helpers — plain localStorage
+const WS_INDEX_KEY='compPlanWorkspaces';
+function getWorkspaceIndex(){
+  const raw=localStorage.getItem(WS_INDEX_KEY);
+  return raw?JSON.parse(raw):[];
 }
-function idbGet(db,store,key){return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const r=tx.objectStore(store).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function idbPut(db,store,key,val){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const r=tx.objectStore(store).put(val,key);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-function idbDelete(db,store,key){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const r=tx.objectStore(store).delete(key);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-function idbGetAll(db,store){return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const r=tx.objectStore(store).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function idbGetAllKeys(db,store){return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const r=tx.objectStore(store).getAllKeys();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function idbClear(db,store){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const r=tx.objectStore(store).clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-
-// Crypto: PBKDF2 key derivation + AES-GCM encrypt/decrypt
-async function deriveKey(passphrase,salt){
-  const enc=new TextEncoder();
-  const keyMaterial=await crypto.subtle.importKey('raw',enc.encode(passphrase),{name:'PBKDF2'},false,['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},keyMaterial,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
-}
-async function encryptData(key,plaintext){
-  const iv=crypto.getRandomValues(new Uint8Array(12));
-  const enc=new TextEncoder();
-  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(plaintext));
-  return {iv:Array.from(iv),ct:Array.from(new Uint8Array(ct))};
-}
-async function decryptData(key,envelope){
-  const iv=new Uint8Array(envelope.iv);
-  const ct=new Uint8Array(envelope.ct);
-  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
-  return new TextDecoder().decode(pt);
-}
-async function hashPassphrase(passphrase,salt){
-  // Quick hash for verification (not the encryption key itself)
-  const enc=new TextEncoder();
-  const keyMaterial=await crypto.subtle.importKey('raw',enc.encode(passphrase),{name:'PBKDF2'},false,['deriveBits']);
-  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},keyMaterial,256);
-  return Array.from(new Uint8Array(bits));
-}
-
-// Vault lifecycle
-async function isVaultSetup(){
-  const db=await openVaultDB();
-  const meta=await idbGet(db,VAULT_META_STORE,'config');
-  db.close();
-  return !!meta;
-}
-async function getVaultMeta(){
-  const db=await openVaultDB();
-  const meta=await idbGet(db,VAULT_META_STORE,'config');
-  db.close();
-  return meta;
-}
-async function setupVault(passphrase){
-  const salt=crypto.getRandomValues(new Uint8Array(16));
-  const verifySalt=crypto.getRandomValues(new Uint8Array(16));
-  const verifyHash=await hashPassphrase(passphrase,verifySalt);
-  const key=await deriveKey(passphrase,salt);
-  const db=await openVaultDB();
-  await idbPut(db,VAULT_META_STORE,'config',{salt:Array.from(salt),verifySalt:Array.from(verifySalt),verifyHash,createdAt:new Date().toISOString()});
-  db.close();
-  vaultCryptoKey=key;
-  return key;
-}
-async function unlockVault(passphrase){
-  const meta=await getVaultMeta();
-  if(!meta)throw new Error('No vault configured');
-  const verifyHash=await hashPassphrase(passphrase,new Uint8Array(meta.verifySalt));
-  if(JSON.stringify(verifyHash)!==JSON.stringify(meta.verifyHash))throw new Error('Wrong passphrase');
-  const key=await deriveKey(passphrase,new Uint8Array(meta.salt));
-  vaultCryptoKey=key;
-  return key;
-}
-function lockVault(){
-  vaultCryptoKey=null;
-  // Clear sessionStorage of sensitive data
-  sessionStorage.removeItem('compPlanState_v2');
-  sessionStorage.removeItem('compPlanActiveWS');
-  document.getElementById('btnLockVault').style.display='none';
-  updateVaultPanels();
-}
-
-// Workspace CRUD via encrypted IndexedDB
-async function getWorkspaceIndex(){
-  const db=await openVaultDB();
-  const raw=await idbGet(db,VAULT_DATA_STORE,'_index');
-  db.close();
-  return raw||[];
-}
-async function saveWorkspaceIndex(idx){
-  const db=await openVaultDB();
-  await idbPut(db,VAULT_DATA_STORE,'_index',idx);
-  db.close();
+function saveWorkspaceIndex(idx){
+  localStorage.setItem(WS_INDEX_KEY,JSON.stringify(idx));
 }
 
 function updateWsDisplay(){
   document.getElementById('wsNameDisplay').textContent=currentWorkspaceName;
 }
 
-async function saveWorkspaceAs(name){
+function saveWorkspaceAs(name){
   if(!name||!name.trim())return;
-  if(!vaultCryptoKey){alert('Vault is locked. Please unlock or set up a passphrase first.');return}
   name=name.trim();
-  const idx=await getWorkspaceIndex();
+  const idx=getWorkspaceIndex();
   const key='ws_'+name.replace(/[^a-zA-Z0-9_-]/g,'_');
   const existing=idx.find(w=>w.key===key);
   const meta={key,name,savedAt:new Date().toISOString(),employees:state.employees.length,projects:state.projects.length};
   if(existing){Object.assign(existing,meta)}else{idx.push(meta)}
-  // Encrypt state and store
-  const encrypted=await encryptData(vaultCryptoKey,JSON.stringify(state));
-  const db=await openVaultDB();
-  await idbPut(db,VAULT_DATA_STORE,key,encrypted);
-  db.close();
-  await saveWorkspaceIndex(idx);
+  localStorage.setItem(key,JSON.stringify(state));
+  saveWorkspaceIndex(idx);
   currentWorkspaceName=name;
-  sessionStorage.setItem('compPlanActiveWS',name);
+  localStorage.setItem('compPlanActiveWS',name);
   saveState();
   updateWsDisplay();
-  await renderWorkspaceList();
+  renderWorkspaceList();
 }
 
-async function loadWorkspace(key,name){
-  if(!vaultCryptoKey){alert('Vault is locked');return}
+function loadWorkspace(key,name){
   if(!confirm(`Load workspace "${name}"? Any unsaved changes to "${currentWorkspaceName}" will be lost.`))return;
-  const db=await openVaultDB();
-  const encrypted=await idbGet(db,VAULT_DATA_STORE,key);
-  db.close();
-  if(!encrypted){alert('Workspace data not found');return}
-  try{
-    const json=await decryptData(vaultCryptoKey,encrypted);
-    state=JSON.parse(json);
-    ensureStateFields();
-    currentWorkspaceName=name;
-    sessionStorage.setItem('compPlanActiveWS',name);
-    saveState();
-    updateWsDisplay();
-    initDropdowns();
-    renderAll();
-  }catch(e){alert('Failed to decrypt workspace. Data may be corrupted.')}
+  const raw=localStorage.getItem(key);
+  if(!raw){alert('Workspace data not found');return}
+  state=JSON.parse(raw);
+  ensureStateFields();
+  currentWorkspaceName=name;
+  localStorage.setItem('compPlanActiveWS',name);
+  saveState();
+  updateWsDisplay();
+  initDropdowns();
+  renderAll();
 }
 
-async function deleteWorkspace(key,name){
+function deleteWorkspace(key,name){
   if(!confirm(`Delete workspace "${name}"? This cannot be undone.`))return;
-  const db=await openVaultDB();
-  await idbDelete(db,VAULT_DATA_STORE,key);
-  db.close();
-  let idx=await getWorkspaceIndex();
+  localStorage.removeItem(key);
+  let idx=getWorkspaceIndex();
   idx=idx.filter(w=>w.key!==key);
-  await saveWorkspaceIndex(idx);
-  await renderWorkspaceList();
+  saveWorkspaceIndex(idx);
+  renderWorkspaceList();
 }
 
-async function renameWorkspace(key,oldName){
-  if(!vaultCryptoKey){alert('Vault is locked');return}
+function renameWorkspace(key,oldName){
   const newName=prompt('Rename workspace:',oldName);
   if(!newName||!newName.trim()||newName.trim()===oldName)return;
   const trimmed=newName.trim();
   const newKey='ws_'+trimmed.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const idx=await getWorkspaceIndex();
+  const idx=getWorkspaceIndex();
   if(newKey!==key&&idx.find(w=>w.key===newKey)){alert('A workspace with that name already exists');return}
   const entry=idx.find(w=>w.key===key);
   if(!entry)return;
   if(newKey!==key){
-    const db=await openVaultDB();
-    const data=await idbGet(db,VAULT_DATA_STORE,key);
-    await idbPut(db,VAULT_DATA_STORE,newKey,data);
-    await idbDelete(db,VAULT_DATA_STORE,key);
-    db.close();
+    const data=localStorage.getItem(key);
+    localStorage.setItem(newKey,data);
+    localStorage.removeItem(key);
     entry.key=newKey;
   }
   entry.name=trimmed;
-  await saveWorkspaceIndex(idx);
+  saveWorkspaceIndex(idx);
   if(currentWorkspaceName===oldName){
     currentWorkspaceName=trimmed;
-    sessionStorage.setItem('compPlanActiveWS',trimmed);
+    localStorage.setItem('compPlanActiveWS',trimmed);
     updateWsDisplay();
   }
-  await renderWorkspaceList();
+  renderWorkspaceList();
 }
 
-async function duplicateWorkspace(key,name){
-  if(!vaultCryptoKey){alert('Vault is locked');return}
+function duplicateWorkspace(key,name){
   const newName=prompt('Name for the copy:',name+' (Copy)');
   if(!newName||!newName.trim())return;
   const newKey='ws_'+newName.trim().replace(/[^a-zA-Z0-9_-]/g,'_');
-  const idx=await getWorkspaceIndex();
+  const idx=getWorkspaceIndex();
   if(idx.find(w=>w.key===newKey)){alert('A workspace with that name already exists');return}
-  const db=await openVaultDB();
-  const encrypted=await idbGet(db,VAULT_DATA_STORE,key);
-  // Decrypt, then re-encrypt (new IV) for the copy
-  const json=await decryptData(vaultCryptoKey,encrypted);
-  const data=JSON.parse(json);
-  const newEncrypted=await encryptData(vaultCryptoKey,JSON.stringify(data));
-  await idbPut(db,VAULT_DATA_STORE,newKey,newEncrypted);
-  db.close();
-  idx.push({key:newKey,name:newName.trim(),savedAt:new Date().toISOString(),employees:data.employees?.length||0,projects:data.projects?.length||0});
-  await saveWorkspaceIndex(idx);
-  await renderWorkspaceList();
+  const data=localStorage.getItem(key);
+  localStorage.setItem(newKey,data);
+  const parsed=data?JSON.parse(data):null;
+  idx.push({key:newKey,name:newName.trim(),savedAt:new Date().toISOString(),employees:parsed?.employees?.length||0,projects:parsed?.projects?.length||0});
+  saveWorkspaceIndex(idx);
+  renderWorkspaceList();
 }
 
-async function renderWorkspaceList(){
-  const idx=await getWorkspaceIndex();
+function renderWorkspaceList(){
+  const idx=getWorkspaceIndex();
   const container=document.getElementById('wsListContainer');
   if(!idx.length){
     container.innerHTML='<p style="color:var(--text-dim);font-size:.85rem">No saved workspaces yet. Use "Save As" above to create your first workspace.</p>';
@@ -1885,9 +1727,9 @@ async function renderWorkspaceList(){
   container.innerHTML=html;
 }
 
-async function openWorkspaceModal(){
+function openWorkspaceModal(){
   const modal=document.getElementById('wsModal');
-  const idx=await getWorkspaceIndex();
+  const idx=getWorkspaceIndex();
   let html='<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Current: <strong style="color:var(--accent)">'+currentWorkspaceName+'</strong></p>';
   if(idx.length){
     html+='<ul class="ws-list" style="border:1px solid var(--border-light);border-radius:6px;max-height:300px;overflow-y:auto">';
@@ -1912,94 +1754,6 @@ async function openWorkspaceModal(){
 function closeWorkspaceModal(){document.getElementById('wsModal').classList.remove('show')}
 document.getElementById('wsModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeWorkspaceModal()});
 
-// Vault UI panels
-function updateVaultPanels(){
-  isVaultSetup().then(setup=>{
-    document.getElementById('vaultSetupPanel').style.display=setup?'none':'block';
-    document.getElementById('vaultActivePanel').style.display=(setup&&vaultCryptoKey)?'block':'none';
-    document.getElementById('btnLockVault').style.display=vaultCryptoKey?'':'none';
-  });
-}
-
-// Vault setup button
-document.getElementById('btnVaultSetup').addEventListener('click',async()=>{
-  const pass=document.getElementById('vaultNewPass').value;
-  const confirm=document.getElementById('vaultConfirmPass').value;
-  if(pass.length<6){alert('Passphrase must be at least 6 characters');return}
-  if(pass!==confirm){alert('Passphrases do not match');return}
-  await setupVault(pass);
-  document.getElementById('vaultNewPass').value='';
-  document.getElementById('vaultConfirmPass').value='';
-  updateVaultPanels();
-  // Auto-save current state as first workspace
-  if(state.employees&&state.employees.length>0){
-    await saveWorkspaceAs(currentWorkspaceName);
-  }
-  alert('Vault enabled! Your workspaces will now be encrypted and persisted in-browser.');
-});
-
-// Change passphrase
-document.getElementById('btnVaultChangePass').addEventListener('click',async()=>{
-  if(!vaultCryptoKey){alert('Vault is locked');return}
-  const oldPass=prompt('Enter current passphrase:');
-  if(!oldPass)return;
-  try{await unlockVault(oldPass)}catch(e){alert('Wrong passphrase');return}
-  const newPass=prompt('Enter new passphrase (min 6 chars):');
-  if(!newPass||newPass.length<6){alert('Passphrase must be at least 6 characters');return}
-  const confirmPass=prompt('Confirm new passphrase:');
-  if(newPass!==confirmPass){alert('Passphrases do not match');return}
-  // Re-encrypt all workspaces with new key
-  const idx=await getWorkspaceIndex();
-  const oldKey=vaultCryptoKey;
-  const newKey=await setupVault(newPass);
-  const db=await openVaultDB();
-  for(const w of idx){
-    const encrypted=await idbGet(db,VAULT_DATA_STORE,w.key);
-    if(encrypted){
-      const json=await decryptData(oldKey,encrypted);
-      const reEncrypted=await encryptData(newKey,json);
-      await idbPut(db,VAULT_DATA_STORE,w.key,reEncrypted);
-    }
-  }
-  // Re-save index
-  await idbPut(db,VAULT_DATA_STORE,'_index',idx);
-  db.close();
-  vaultCryptoKey=newKey;
-  alert('Passphrase changed. All workspaces re-encrypted.');
-});
-
-// Destroy vault
-document.getElementById('btnVaultDestroy').addEventListener('click',async()=>{
-  if(!confirm('DESTROY the vault? This permanently deletes ALL encrypted workspaces and cannot be undone.'))return;
-  if(!confirm('Are you absolutely sure? Type OK in the next prompt to confirm.')){return}
-  const check=prompt('Type DESTROY to confirm vault deletion:');
-  if(check!=='DESTROY'){alert('Cancelled');return}
-  const db=await openVaultDB();
-  await idbClear(db,VAULT_META_STORE);
-  await idbClear(db,VAULT_DATA_STORE);
-  db.close();
-  vaultCryptoKey=null;
-  document.getElementById('btnLockVault').style.display='none';
-  updateVaultPanels();
-  await renderWorkspaceList();
-  alert('Vault destroyed. All encrypted data has been permanently deleted.');
-});
-
-// Lock button
-document.getElementById('btnLockVault').addEventListener('click',()=>{
-  if(state.employees&&state.employees.length>0){
-    if(confirm('Save current workspace to vault before locking?')){
-      saveWorkspaceAs(currentWorkspaceName).then(()=>{
-        lockVault();
-        window.location.reload();
-      });
-      return;
-    }
-  }
-  lockVault();
-  window.location.reload();
-});
-
 document.getElementById('btnWsSave').addEventListener('click',()=>{
   const name=document.getElementById('wsSaveName').value.trim();
   if(!name){alert('Please enter a workspace name');return}
@@ -2010,182 +1764,19 @@ document.getElementById('btnWsQuickSave').addEventListener('click',()=>{
   saveWorkspaceAs(currentWorkspaceName);
 });
 
-// Auto-save to vault every 60 seconds if vault is unlocked
+// Auto-save current workspace every 60 seconds
 setInterval(()=>{
-  if(vaultCryptoKey&&state.employees&&state.employees.length>0){
+  if(state.employees&&state.employees.length>0&&currentWorkspaceName){
     saveWorkspaceAs(currentWorkspaceName);
   }
 },60000);
 
-// Save to vault on beforeunload
-window.addEventListener('beforeunload',e=>{
-  if(vaultCryptoKey&&state.employees&&state.employees.length>0){
-    // Best-effort sync save via sendBeacon isn't possible with IndexedDB,
-    // but the auto-save interval and explicit saves cover most cases
-  }
-  if(state.employees&&state.employees.length>0){
-    e.preventDefault();
-    e.returnValue='';
-  }
-});
-
-// ── SAVE & CLOSE ──
-function downloadStateJSON(filename){
-  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=filename||'comp-plan-backup.json';a.click();
-}
-document.getElementById('btnSaveClose').addEventListener('click',async()=>{
-  // Save to vault first if unlocked
-  if(vaultCryptoKey&&state.employees&&state.employees.length>0){
-    await saveWorkspaceAs(currentWorkspaceName);
-  }
-  const name=currentWorkspaceName.replace(/[^a-zA-Z0-9_-]/g,'_')||'compplan';
-  const date=new Date().toISOString().slice(0,10);
-  downloadStateJSON(`${name}_${date}.json`);
-  setTimeout(()=>{window.location.href='/logout'},500);
-});
-
-// ── VAULT UNLOCK OVERLAY ──
-function showVaultUnlockPrompt(wsCount){
-  const overlay=document.getElementById('vaultUnlockOverlay');
-  overlay.style.display='flex';
-  document.getElementById('vaultUnlockWsCount').textContent=wsCount+' encrypted workspace'+(wsCount!==1?'s':'')+' found';
-  document.getElementById('vaultUnlockError').style.display='none';
-  document.getElementById('vaultUnlockPass').value='';
-  setTimeout(()=>document.getElementById('vaultUnlockPass').focus(),100);
-}
-
-document.getElementById('btnVaultUnlock').addEventListener('click',async()=>{
-  const pass=document.getElementById('vaultUnlockPass').value;
-  if(!pass){return}
-  const errEl=document.getElementById('vaultUnlockError');
-  try{
-    await unlockVault(pass);
-    document.getElementById('vaultUnlockOverlay').style.display='none';
-    document.getElementById('btnLockVault').style.display='';
-    updateVaultPanels();
-    // Load last active workspace or first available
-    const activeName=sessionStorage.getItem('compPlanActiveWS');
-    const idx=await getWorkspaceIndex();
-    const target=idx.find(w=>w.name===activeName)||idx[0];
-    if(target){
-      const db=await openVaultDB();
-      const encrypted=await idbGet(db,VAULT_DATA_STORE,target.key);
-      db.close();
-      if(encrypted){
-        const json=await decryptData(vaultCryptoKey,encrypted);
-        state=JSON.parse(json);
-        ensureStateFields();
-        currentWorkspaceName=target.name;
-        sessionStorage.setItem('compPlanActiveWS',target.name);
-        saveState();
-        updateWsDisplay();
-        initDropdowns();
-        renderAll();
-      }
-    }
-    await renderWorkspaceList();
-  }catch(e){
-    errEl.textContent='Wrong passphrase. Please try again.';
-    errEl.style.display='block';
-    document.getElementById('vaultUnlockPass').value='';
-    document.getElementById('vaultUnlockPass').focus();
-  }
-});
-
-document.getElementById('btnVaultSkip').addEventListener('click',()=>{
-  document.getElementById('vaultUnlockOverlay').style.display='none';
-  showLoadPrompt();
-});
-document.getElementById('vaultUnlockImport').addEventListener('click',e=>{
-  e.preventDefault();
-  document.getElementById('vaultUnlockFileInput').click();
-});
-document.getElementById('vaultUnlockFileInput').addEventListener('change',ev=>{
-  const file=ev.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=r=>{
-    try{
-      state=JSON.parse(r.target.result);
-      ensureStateFields();
-      saveState();
-      const match=file.name.match(/^(.+?)_\d{4}-\d{2}-\d{2}\.json$/);
-      if(match)currentWorkspaceName=match[1].replace(/_/g,' ');
-      updateWsDisplay();
-      initDropdowns();
-      renderAll();
-      document.getElementById('vaultUnlockOverlay').style.display='none';
-    }catch(err){alert('Invalid JSON file')}
-  };
-  reader.readAsText(file);
-});
-
-// ── STARTUP LOAD PROMPT ──
-function showLoadPrompt(){
-  const overlay=document.createElement('div');
-  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:300;display:flex;align-items:center;justify-content:center';
-  const box=document.createElement('div');
-  box.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)';
-  box.innerHTML=`
-    <h3 style="color:var(--accent);margin-bottom:8px">Welcome to CompPlan</h3>
-    <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:20px">
-      Load a previous backup to continue, or start fresh.<br>
-      <span style="font-size:.78rem">Tip: Set up the Encrypted Vault in the Export tab to auto-save.</span>
-    </p>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <button class="btn btn-primary" id="startupLoad">Load JSON Backup</button>
-      <button class="btn" id="startupFresh">Start Fresh</button>
-    </div>
-    <input type="file" id="startupFileInput" accept=".json" style="display:none">
-  `;
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-
-  document.getElementById('startupFresh').addEventListener('click',()=>overlay.remove());
-  document.getElementById('startupLoad').addEventListener('click',()=>document.getElementById('startupFileInput').click());
-  document.getElementById('startupFileInput').addEventListener('change',ev=>{
-    const file=ev.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=r=>{
-      try{
-        state=JSON.parse(r.target.result);
-        ensureStateFields();
-        saveState();
-        const match=file.name.match(/^(.+?)_\d{4}-\d{2}-\d{2}\.json$/);
-        if(match)currentWorkspaceName=match[1].replace(/_/g,' ');
-        updateWsDisplay();
-        initDropdowns();
-        renderAll();
-        overlay.remove();
-      }catch(err){alert('Invalid JSON file')}
-    };
-    reader.readAsText(file);
-  });
-}
-
 // ── INIT ──
 function renderAll(){renderDashboard();renderEmployees();renderProjects();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
 loadState();
-currentWorkspaceName=sessionStorage.getItem('compPlanActiveWS')||'Default';
+currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
 updateWsDisplay();
 initDropdowns();renderAll();
-
-// Check for vault on startup
-(async()=>{
-  const hasVault=await isVaultSetup();
-  updateVaultPanels();
-  if(hasVault){
-    const idx=await getWorkspaceIndex();
-    if(idx.length>0&&!sessionStorage.getItem('compPlanState_v2')){
-      showVaultUnlockPrompt(idx.length);
-    } else if(!sessionStorage.getItem('compPlanState_v2')){
-      showLoadPrompt();
-    }
-  } else if(!sessionStorage.getItem('compPlanState_v2')){
-    showLoadPrompt();
-  }
-})()
 </script>
 </body>
 </html>
