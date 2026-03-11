@@ -222,17 +222,16 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="form-group"><label>Country</label><select id="empCountry"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Seniority</label><select id="empSeniority"><option value="">Select…</option></select></div>
 <div class="form-group"><label>Job Function</label><select id="empFunction"><option value="">Select…</option></select></div>
-<div class="form-group"><label>Project Code</label><select id="empProject"><option value="">Select…</option></select><div id="projectInfo" style="margin-top:4px"></div></div>
 <div class="form-group"><label>Base Salary (USD)</label><input id="empSalary" type="number" placeholder="0"><div id="benchmarkBadge"></div></div>
 <div class="form-group"><label>Hire Date</label><input id="empHireDate" type="date"></div>
 <div class="form-group"><label>Termination Date</label><input id="empTermDate" type="date"></div>
 <div class="form-group"><label>Notes</label><input id="empNotes" placeholder="Optional notes"></div>
 </div>
 <hr class="separator">
-<h4 style="color:var(--accent);margin-bottom:12px">Project Allocations</h4>
-<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Assign to one or more projects. Allocations should total 100%.</p>
+<h4 style="color:var(--accent);margin-bottom:12px">Projects</h4>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Assign to one or more projects. The first project is the primary by default — click the star to change. Allocations should total 100%.</p>
 <div id="empAllocRows"></div>
-<div style="margin-top:8px"><button class="btn btn-sm" id="btnAddEmpAlloc" type="button">+ Add Project Allocation</button></div>
+<div style="margin-top:8px"><button class="btn btn-sm" id="btnAddEmpAlloc" type="button">+ Add Project</button></div>
 <div id="empAllocInfo" style="margin-top:8px"></div>
 <div style="margin-top:16px;display:flex;gap:8px">
 <button class="btn btn-primary" id="btnSaveEmp">Add Employee</button>
@@ -243,7 +242,7 @@ body.ops-mode .ops-hide{display:none!important}
 <input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:320px">
 </div>
 <div class="table-wrap"><table id="empTable"><thead><tr>
-<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Project</th><th>Product</th><th>Category</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Hire Date</th><th>Term Date</th><th>Alloc</th><th>Actions</th>
+<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Projects</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Hire Date</th><th>Term Date</th><th>Actions</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
@@ -530,8 +529,15 @@ function ensureStateFields(){
   state.employees.forEach(e=>{
     if(!e.hireDate)e.hireDate='';
     if(!e.termDate)e.termDate='';
-    if(!e.projectId)e.projectId='';
     if(!e.allocations)e.allocations=[];
+    // Migrate standalone projectId into allocations
+    if(e.projectId){
+      const already=e.allocations.some(a=>a.projId===e.projectId);
+      if(!already){e.allocations.unshift({projId:e.projectId,pct:100,primary:true})}
+      delete e.projectId;
+    }
+    // Ensure exactly one primary if allocations exist
+    if(e.allocations.length&&!e.allocations.some(a=>a.primary)){e.allocations[0].primary=true}
   });
 }
 function saveState(){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
@@ -598,7 +604,11 @@ function getAllocFlag(empId){
 }
 function getProjectByCode(code){return state.projects.find(p=>p.code===code)}
 function getProjectById(id){return state.projects.find(p=>p.id===id)}
-function getEmpProject(emp){return emp.projectId?getProjectById(emp.projectId):null}
+function getEmpProject(emp){
+  if(!emp.allocations||!emp.allocations.length)return null;
+  const primary=emp.allocations.find(a=>a.primary)||emp.allocations[0];
+  return primary?getProjectById(primary.projId):null;
+}
 
 // ── NAV ──
 document.querySelectorAll('#mainNav button').forEach(b=>{
@@ -645,20 +655,7 @@ function refreshProjectFilters(){
   populateSelect(document.getElementById('dashProject'),codes,true);
 }
 function refreshProjectDropdown(){
-  const el=document.getElementById('empProject');
-  const v=el.value;
-  el.innerHTML='<option value="">Select…</option>'+state.projects.map(p=>`<option value="${p.id}">${p.code}</option>`).join('');
-  if(v)el.value=v;
-  updateProjectInfo();
-}
-function updateProjectInfo(){
-  const projId=document.getElementById('empProject').value;
-  const el=document.getElementById('projectInfo');
-  if(projId){
-    const p=getProjectById(projId);
-    if(p){el.innerHTML=`<span style="font-size:.78rem;color:var(--text-dim)">${p.product} — ${p.category}</span>`}
-    else{el.innerHTML=''}
-  } else {el.innerHTML=''}
+  // No standalone project dropdown — projects assigned via allocations
 }
 
 // ── DASHBOARD ──
@@ -745,10 +742,8 @@ function renderDashboard(){
       if(data.some(v=>v>0))datasets.push({label:c,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
     });
   } else if(stackBy==='category'){
-    // Build effective allocations: use allocations array if present, else fall back to primary projectId at 100%
     function getEffectiveAllocs(e){
       if(e.allocations&&e.allocations.length)return e.allocations;
-      if(e.projectId)return[{projId:e.projectId,pct:100}];
       return[];
     }
     const cats=[...new Set(state.projects.map(p=>p.category).filter(Boolean))];
@@ -809,7 +804,6 @@ function updateBenchmarkBadge(){
   } else {el.innerHTML=''}
 }
 ['empCountry','empSeniority','empFunction'].forEach(id=>document.getElementById(id).addEventListener('change',updateBenchmarkBadge));
-document.getElementById('empProject').addEventListener('change',updateProjectInfo);
 
 document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const name=document.getElementById('empName').value.trim();
@@ -820,18 +814,17 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const notes=document.getElementById('empNotes').value.trim();
   const hireDate=document.getElementById('empHireDate').value;
   const termDate=document.getElementById('empTermDate').value;
-  const projectId=document.getElementById('empProject').value;
   if(!name||!country||!seniority||!func){alert('Please fill required fields');return}
   const allocations=getFormAllocations();
   if(editingId){
     const emp=state.employees.find(e=>e.id===editingId);
-    if(emp){Object.assign(emp,{name,country,seniority,function:func,salary,notes,hireDate,termDate,projectId,allocations})}
+    if(emp){Object.assign(emp,{name,country,seniority,function:func,salary,notes,hireDate,termDate,allocations})}
     editingId=null;
     document.getElementById('formTitle').textContent='Add Employee';
     document.getElementById('btnSaveEmp').textContent='Add Employee';
     document.getElementById('btnCancelEmp').style.display='none';
   } else {
-    state.employees.push({id:uid(),name,country,seniority,function:func,salary,notes,hireDate,termDate,projectId,allocations});
+    state.employees.push({id:uid(),name,country,seniority,function:func,salary,notes,hireDate,termDate,allocations});
   }
   saveState();clearForm();renderEmployees();
 });
@@ -842,21 +835,25 @@ document.getElementById('btnCancelEmp').addEventListener('click',()=>{
   document.getElementById('btnCancelEmp').style.display='none';
 });
 function clearForm(){['empName','empSalary','empNotes','empHireDate','empTermDate'].forEach(id=>document.getElementById(id).value='');
-  ['empCountry','empSeniority','empFunction','empProject'].forEach(id=>document.getElementById(id).value='');
+  ['empCountry','empSeniority','empFunction'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('benchmarkBadge').innerHTML='';
-  document.getElementById('projectInfo').innerHTML='';
   renderFormAllocations([]);
 }
 // ── Form allocation rows ──
 let formAllocations=[];
 function renderFormAllocations(allocs){
   formAllocations=allocs||[];
+  // Ensure exactly one primary
+  if(formAllocations.length&&!formAllocations.some(a=>a.primary))formAllocations[0].primary=true;
   const container=document.getElementById('empAllocRows');
   container.innerHTML=formAllocations.map((a,i)=>{
     const proj=getProjectById(a.projId);
     const product=proj?proj.product:'';
     const category=proj?proj.category:'';
-    return `<div class="form-grid" style="margin-bottom:8px;align-items:end;grid-template-columns:1fr 1fr 1fr 80px auto">
+    const starStyle=a.primary?'color:var(--accent);font-size:1.1rem':'color:var(--border);font-size:1.1rem;cursor:pointer';
+    const starTitle=a.primary?'Primary project':'Click to set as primary';
+    return `<div class="form-grid" style="margin-bottom:8px;align-items:end;grid-template-columns:auto 1fr 1fr 1fr 80px auto">
+      <div class="form-group" style="text-align:center"><label>Primary</label><span style="${starStyle}" title="${starTitle}" onclick="setFormPrimary(${i})">&#9733;</span></div>
       <div class="form-group"><label>Project Code</label><select class="fa-proj" data-idx="${i}" onchange="onFormAllocProjChange(${i},this.value)">
         <option value="">Select…</option>
         ${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code}</option>`).join('')}
@@ -868,6 +865,10 @@ function renderFormAllocations(allocs){
     </div>`;
   }).join('');
   updateFormAllocInfo();
+}
+function setFormPrimary(idx){
+  formAllocations.forEach((a,i)=>a.primary=(i===idx));
+  renderFormAllocations(formAllocations);
 }
 function onFormAllocProjChange(idx,projId){formAllocations[idx].projId=projId;renderFormAllocations(formAllocations)}
 function onFormAllocPctChange(idx,val){formAllocations[idx].pct=parseFloat(val)||0;updateFormAllocInfo()}
@@ -883,10 +884,11 @@ function updateFormAllocInfo(){
   }
 }
 function getFormAllocations(){
-  return formAllocations.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct}));
+  return formAllocations.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:!!a.primary}));
 }
 document.getElementById('btnAddEmpAlloc').addEventListener('click',()=>{
-  formAllocations.push({projId:'',pct:100});
+  const isPrimary=formAllocations.length===0;
+  formAllocations.push({projId:'',pct:100,primary:isPrimary});
   renderFormAllocations(formAllocations);
 });
 function startEdit(id){
@@ -900,8 +902,6 @@ function startEdit(id){
   document.getElementById('empNotes').value=emp.notes||'';
   document.getElementById('empHireDate').value=emp.hireDate||'';
   document.getElementById('empTermDate').value=emp.termDate||'';
-  document.getElementById('empProject').value=emp.projectId||'';
-  updateProjectInfo();
   renderFormAllocations(emp.allocations?emp.allocations.map(a=>({...a})):[]);
   document.getElementById('formTitle').textContent='Edit Employee';
   document.getElementById('btnSaveEmp').textContent='Save Changes';
@@ -922,8 +922,6 @@ function saveInlineEdit(id){
   emp.seniority=row.querySelector('.ie-seniority').value;
   emp.function=row.querySelector('.ie-function').value;
   emp.salary=parseFloat(row.querySelector('.ie-salary').value)||emp.salary;
-  const ieProjEl=row.querySelector('.ie-project');
-  if(ieProjEl)emp.projectId=ieProjEl.value;
   const ieHire=row.querySelector('.ie-hire');
   if(ieHire)emp.hireDate=ieHire.value;
   const ieTerm=row.querySelector('.ie-term');
@@ -938,11 +936,22 @@ function saveInlineEdit(id){
       const idx=parseInt(inp.dataset.ai);
       if(inlineEditAllocs[idx])inlineEditAllocs[idx].pct=parseFloat(inp.value)||0;
     });
-    emp.allocations=inlineEditAllocs.filter(a=>a.projId);
+    emp.allocations=inlineEditAllocs.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:!!a.primary}));
   }
   inlineEditId=null;inlineEditAllocs=null;saveState();renderEmployees();
 }
 function cancelInlineEdit(){inlineEditId=null;inlineEditAllocs=null;renderEmployees()}
+function setInlinePrimary(idx){
+  if(!inlineEditAllocs)return;
+  // Capture current DOM values first
+  const row=document.querySelector(`tr[data-id="${inlineEditId}"]`);
+  if(row){
+    row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{const i=parseInt(sel.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].projId=sel.value});
+    row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{const i=parseInt(inp.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].pct=parseFloat(inp.value)||0});
+  }
+  inlineEditAllocs.forEach((a,i)=>a.primary=(i===idx));
+  renderEmployees();
+}
 function addInlineAlloc(){
   if(!inlineEditAllocs)inlineEditAllocs=[];
   // Capture current values from DOM before re-render
@@ -951,7 +960,8 @@ function addInlineAlloc(){
     row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{const idx=parseInt(sel.dataset.ai);if(inlineEditAllocs[idx])inlineEditAllocs[idx].projId=sel.value});
     row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{const idx=parseInt(inp.dataset.ai);if(inlineEditAllocs[idx])inlineEditAllocs[idx].pct=parseFloat(inp.value)||0});
   }
-  inlineEditAllocs.push({projId:'',pct:100});
+  const isPrimary=inlineEditAllocs.length===0;
+  inlineEditAllocs.push({projId:'',pct:100,primary:isPrimary});
   renderEmployees();
 }
 function removeInlineAlloc(idx){
@@ -968,34 +978,39 @@ function removeInlineAlloc(idx){
 function renderEmployees(){
   const search=document.getElementById('empSearch').value.toLowerCase();
   let emps=state.employees;
-  if(search)emps=emps.filter(e=>{const proj=getEmpProject(e);return [e.name,e.country,e.seniority,e.function,proj?proj.code:'',proj?proj.product:''].some(v=>v.toLowerCase().includes(search))});
+  if(search)emps=emps.filter(e=>{
+    const allProjs=e.allocations?e.allocations.map(a=>getProjectById(a.projId)).filter(Boolean):[];
+    return [e.name,e.country,e.seniority,e.function,...allProjs.map(p=>p.code),...allProjs.map(p=>p.product)].some(v=>v.toLowerCase().includes(search));
+  });
   const tbody=document.querySelector('#empTable tbody');
   tbody.innerHTML=emps.map(e=>{
     const bp=getBonusPct(e),ba=getBonusAmt(e),ben=getBenefitsAmt(e),tc=getTotalComp(e);
     const af=getAnnualFactor(e);
     const proratedTc=getProratedComp(e);
-    const flag=getAllocFlag(e.id);
-    let allocHtml='<span style="color:var(--text-dim);font-size:.8rem">—</span>';
-    if(flag){
-      if(flag.ok){
-        allocHtml=`<span class="alloc-flag ok">${flag.total}%</span>`;
-      } else {
-        allocHtml=`<span class="alloc-flag">${flag.total}%</span>`;
-        if(flag.overridden){
-          allocHtml+=`<span style="font-size:.7rem;color:var(--success);margin-left:4px">OK'd</span>`;
-        }
+    // Build projects cell — show all allocations with primary starred
+    let projHtml='<span style="color:var(--text-dim);font-size:.8rem">—</span>';
+    if(e.allocations&&e.allocations.length){
+      projHtml=e.allocations.map(a=>{
+        const p=getProjectById(a.projId);
+        if(!p)return '';
+        const isPrimary=a.primary;
+        const star=isPrimary?'<span style="color:var(--accent)" title="Primary">&#9733;</span> ':'';
+        return `<div style="font-size:.82rem;margin-bottom:2px">${star}<strong style="color:var(--accent)">${p.code}</strong> <span style="color:var(--text-dim)">${p.product}</span> <span style="font-size:.75rem;color:var(--text-dim)">${a.pct}%</span></div>`;
+      }).filter(Boolean).join('');
+      const flag=getAllocFlag(e.id);
+      if(flag&&!flag.ok){
+        projHtml+=`<span class="alloc-flag" style="font-size:.72rem;margin-top:2px">${flag.total}% total</span>`;
+        if(flag.overridden)projHtml+=`<span style="font-size:.7rem;color:var(--success);margin-left:4px">OK'd</span>`;
       }
     }
-    const proj=getEmpProject(e);
-    const projCode=proj?proj.code:'—';
-    const projProduct=proj?proj.product:'—';
-    const projCategory=proj?proj.category:'—';
     if(inlineEditId===e.id){
       const ieAllocs=inlineEditAllocs||(e.allocations?e.allocations.map(a=>({...a})):[]);
       if(!inlineEditAllocs)inlineEditAllocs=ieAllocs;
       let allocEditHtml=ieAllocs.map((a,i)=>{
         const ap=getProjectById(a.projId);
+        const starStyle=a.primary?'color:var(--accent);cursor:pointer':'color:var(--border);cursor:pointer';
         return `<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px">
+          <span style="${starStyle};font-size:.9rem" title="${a.primary?'Primary':'Set as primary'}" onclick="setInlinePrimary(${i})">&#9733;</span>
           <select class="ie-alloc-proj" data-ai="${i}" style="width:100px;padding:3px;font-size:.78rem">
             <option value="">—</option>${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code}</option>`).join('')}
           </select>
@@ -1003,28 +1018,25 @@ function renderEmployees(){
           <button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:.7rem" onclick="removeInlineAlloc(${i})">×</button>
         </div>`;
       }).join('');
-      allocEditHtml+=`<button class="btn btn-sm" style="padding:2px 8px;font-size:.72rem;margin-top:2px" onclick="addInlineAlloc()">+ Split</button>`;
+      allocEditHtml+=`<button class="btn btn-sm" style="padding:2px 8px;font-size:.72rem;margin-top:2px" onclick="addInlineAlloc()">+ Add</button>`;
       return `<tr data-id="${e.id}" class="inline-edit">
         <td><input class="ie-name" value="${e.name}"></td>
         <td><select class="ie-country">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
         <td><select class="ie-seniority">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
         <td><select class="ie-function">${FUNCTIONS.map(f=>`<option${f===e.function?' selected':''}>${f}</option>`).join('')}</select></td>
-        <td><select class="ie-project"><option value="">—</option>${state.projects.map(p=>`<option value="${p.id}"${p.id===e.projectId?' selected':''}>${p.code}</option>`).join('')}</select></td>
-        <td style="font-size:.78rem;color:var(--text-dim)">${proj?proj.product:'—'}</td>
-        <td style="font-size:.78rem;color:var(--text-dim)">${proj?proj.category:'—'}</td>
+        <td style="min-width:200px">${allocEditHtml}</td>
         <td class="comp-sensitive"><input class="ie-salary" type="number" value="${e.salary}"></td>
         <td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive">${fmt(tc)}</td>
         <td><input class="ie-hire" type="date" value="${e.hireDate||''}"></td>
         <td><input class="ie-term" type="date" value="${e.termDate||''}"></td>
-        <td style="min-width:160px">${allocEditHtml}</td>
         <td><button class="btn btn-sm btn-primary" onclick="saveInlineEdit('${e.id}')">Save</button> <button class="btn btn-sm" onclick="cancelInlineEdit()">Cancel</button></td>
       </tr>`;
     }
     return `<tr data-id="${e.id}">
       <td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
-      <td style="font-weight:600;color:var(--accent)">${projCode}</td><td style="font-size:.82rem;color:var(--text-dim)">${projProduct}</td><td style="font-size:.82rem;color:var(--text-dim)">${projCategory}</td>
+      <td style="min-width:180px">${projHtml}</td>
       <td class="comp-sensitive">${fmt(e.salary)}</td><td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
-      <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td><td>${allocHtml}</td>
+      <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td>
       <td><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
     </tr>`;
   }).join('');
@@ -1049,7 +1061,7 @@ function deleteProject(id){
   if(confirm('Delete this project? Employee allocations referencing it will be removed.')){
     state.employees.forEach(e=>{
       if(e.allocations)e.allocations=e.allocations.filter(a=>a.projId!==id);
-      if(e.projectId===id)e.projectId='';
+      // projectId no longer used — allocations only
     });
     state.projects=state.projects.filter(p=>p.id!==id);
     saveState();renderProjects();refreshProjectFilters();refreshProjectDropdown();
@@ -1424,8 +1436,8 @@ function renderForecastProjection(){
   let splitGroupKeys={};
   if(forecastSplit==='project'){
     splitGroups={};
-    state.projects.forEach(p=>{splitGroups[p.code]=state.employees.filter(e=>e.projectId===p.id);splitGroupKeys[p.code]=p.id});
-    const unassigned=state.employees.filter(e=>!e.projectId);
+    state.projects.forEach(p=>{splitGroups[p.code]=state.employees.filter(e=>e.allocations&&e.allocations.some(a=>a.projId===p.id));splitGroupKeys[p.code]=p.id});
+    const unassigned=state.employees.filter(e=>!e.allocations||!e.allocations.length);
     if(unassigned.length){splitGroups['Unassigned']=unassigned;splitGroupKeys['Unassigned']=null}
   } else if(forecastSplit==='function'){
     splitGroups={};
