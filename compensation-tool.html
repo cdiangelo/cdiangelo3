@@ -1487,6 +1487,31 @@ function deleteWorkspace(key,name){
   renderWorkspaceList();
 }
 
+function renameWorkspace(key,oldName){
+  const newName=prompt('Rename workspace:',oldName);
+  if(!newName||!newName.trim()||newName.trim()===oldName)return;
+  const trimmed=newName.trim();
+  const newKey='compPlanWS_'+trimmed.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const idx=getWorkspaceIndex();
+  if(newKey!==key&&idx.find(w=>w.key===newKey)){alert('A workspace with that name already exists');return}
+  const entry=idx.find(w=>w.key===key);
+  if(!entry)return;
+  if(newKey!==key){
+    const data=localStorage.getItem(key);
+    localStorage.setItem(newKey,data);
+    localStorage.removeItem(key);
+    entry.key=newKey;
+  }
+  entry.name=trimmed;
+  saveWorkspaceIndex(idx);
+  if(currentWorkspaceName===oldName){
+    currentWorkspaceName=trimmed;
+    localStorage.setItem('compPlanActiveWS',trimmed);
+    updateWsDisplay();
+  }
+  renderWorkspaceList();
+}
+
 function duplicateWorkspace(key,name){
   const raw=localStorage.getItem(key);
   if(!raw)return;
@@ -1521,6 +1546,7 @@ function renderWorkspaceList(){
       </div>
       <div style="display:flex;gap:4px;flex-shrink:0">
         ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadWorkspace('${w.key}','${w.name.replace(/'/g,"\\'")}')">Load</button>`:''}
+        <button class="btn btn-sm" onclick="renameWorkspace('${w.key}','${w.name.replace(/'/g,"\\'")}')">Rename</button>
         <button class="btn btn-sm" onclick="duplicateWorkspace('${w.key}','${w.name.replace(/'/g,"\\'")}')">Copy</button>
         <button class="btn btn-sm btn-danger" onclick="deleteWorkspace('${w.key}','${w.name.replace(/'/g,"\\'")}')">Del</button>
       </div>
