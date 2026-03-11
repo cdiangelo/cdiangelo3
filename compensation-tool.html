@@ -188,6 +188,7 @@ body.ops-mode .comp-sensitive::selection{color:transparent}
 <button class="btn active" data-group="function">Function</button>
 <button class="btn" data-group="seniority">Seniority</button>
 <button class="btn" data-group="country">Country</button>
+<button class="btn" data-group="month">Month</button>
 </div>
 </div>
 <div>
@@ -196,6 +197,7 @@ body.ops-mode .comp-sensitive::selection{color:transparent}
 <button class="btn active" data-stack="baseBonus">Base vs Bonus</button>
 <button class="btn" data-stack="seniority">Seniority</button>
 <button class="btn" data-stack="country">Country</button>
+<button class="btn" data-stack="category">Product Category</button>
 </div>
 </div>
 </div>
@@ -693,27 +695,69 @@ const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a',
 function renderDashboard(){
   const emps=getFilteredEmployees();
   renderStats(emps);
-  const groupKey=groupBy==='function'?'function':groupBy==='seniority'?'seniority':'country';
-  const groupLabels=groupBy==='function'?FUNCTIONS:groupBy==='seniority'?SENIORITY:COUNTRIES;
-  const groups={};
-  groupLabels.forEach(l=>groups[l]=[]);
-  emps.forEach(e=>{if(groups[e[groupKey]])groups[e[groupKey]].push(e)});
-  const labels=groupLabels.filter(l=>groups[l].length>0||emps.length===0);
+  const isDark=document.documentElement.classList.contains('dark');
+  const tickColor=isDark?'#8a8a8e':'#5a5a5a';
+  const gridColor=isDark?'#3a3a3f':'#ddd';
+  let labels,groups;
+  if(groupBy==='month'){
+    const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    labels=MONTH_SHORT;
+    groups={};
+    MONTH_SHORT.forEach(m=>groups[m]=[]);
+    // For month grouping, each "group" holds {emp, monthIdx} pairs
+    emps.forEach(e=>MONTH_SHORT.forEach((m,mi)=>{groups[m].push({emp:e,mi})}));
+  } else {
+    const groupKey=groupBy==='function'?'function':groupBy==='seniority'?'seniority':'country';
+    const groupLabels=groupBy==='function'?FUNCTIONS:groupBy==='seniority'?SENIORITY:COUNTRIES;
+    groups={};
+    groupLabels.forEach(l=>groups[l]=[]);
+    emps.forEach(e=>{if(groups[e[groupKey]])groups[e[groupKey]].push(e)});
+    labels=groupLabels.filter(l=>groups[l].length>0||emps.length===0);
+  }
   let datasets=[];
+  const isMonth=groupBy==='month';
+  // Helper: get comp for a group entry depending on mode
+  const compVal=(entry)=>isMonth?getMonthlyComp(entry.emp,entry.mi):getProratedComp(entry);
+  const baseVal=(entry)=>isMonth?getMonthlyBase(entry.emp,entry.mi):getProratedBase(entry);
+  const bonusVal=(entry)=>isMonth?getMonthlyBonus(entry.emp,entry.mi):getProratedBonus(entry);
+  const benVal=(entry)=>isMonth?getMonthlyBenefits(entry.emp,entry.mi):getProratedBenefits(entry);
+  const empOf=(entry)=>isMonth?entry.emp:entry;
+
   if(stackBy==='baseBonus'){
     datasets=[
-      {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,e)=>a+getProratedBase(e),0)),backgroundColor:'#8b5e5e'},
-      {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,e)=>a+getProratedBonus(e),0)),backgroundColor:'#6b8da3'},
-      {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,e)=>a+getProratedBenefits(e),0)),backgroundColor:'#a38b5e'}
+      {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x),0)),backgroundColor:'#8b5e5e'},
+      {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x),0)),backgroundColor:'#6b8da3'},
+      {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x),0)),backgroundColor:'#a38b5e'}
     ];
   } else if(stackBy==='country'){
     COUNTRIES.forEach((c,i)=>{
-      const data=labels.map(l=>groups[l].filter(e=>e.country===c).reduce((a,e)=>a+getProratedComp(e),0));
+      const data=labels.map(l=>groups[l].filter(x=>empOf(x).country===c).reduce((a,x)=>a+compVal(x),0));
       if(data.some(v=>v>0))datasets.push({label:c,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
     });
+  } else if(stackBy==='category'){
+    const cats=[...new Set(state.projects.map(p=>p.category).filter(Boolean))];
+    cats.forEach((cat,i)=>{
+      const catProjIds=new Set(state.projects.filter(p=>p.category===cat).map(p=>p.id));
+      const data=labels.map(l=>groups[l].reduce((a,x)=>{
+        const e=empOf(x);
+        if(!e.allocations||!e.allocations.length)return a;
+        const allocPct=e.allocations.filter(al=>catProjIds.has(al.projId)).reduce((s,al)=>s+al.pct,0)/100;
+        return a+Math.round(compVal(x)*allocPct);
+      },0));
+      if(data.some(v=>v>0))datasets.push({label:cat,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
+    });
+    // Unallocated portion
+    const allProjIds=new Set(state.projects.map(p=>p.id));
+    const unData=labels.map(l=>groups[l].reduce((a,x)=>{
+      const e=empOf(x);
+      if(!e.allocations||!e.allocations.length)return a+compVal(x);
+      const allocPct=e.allocations.filter(al=>allProjIds.has(al.projId)).reduce((s,al)=>s+al.pct,0)/100;
+      return a+Math.round(compVal(x)*(1-allocPct));
+    },0));
+    if(unData.some(v=>v>0))datasets.push({label:'Unallocated',data:unData,backgroundColor:'#999'});
   } else {
     SENIORITY.forEach((s,i)=>{
-      const data=labels.map(l=>groups[l].filter(e=>e.seniority===s).reduce((a,e)=>a+getProratedComp(e),0));
+      const data=labels.map(l=>groups[l].filter(x=>empOf(x).seniority===s).reduce((a,x)=>a+compVal(x),0));
       if(data.some(v=>v>0))datasets.push({label:s,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length]});
     });
   }
@@ -721,9 +765,9 @@ function renderDashboard(){
   dashChart=new Chart(document.getElementById('dashChart'),{
     type:'bar',
     data:{labels:labels.map(l=>l.length>18?l.slice(0,16)+'…':l),datasets},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5a5a5a'}}},scales:{
-      x:{stacked:true,ticks:{color:'#5a5a5a'},grid:{color:'#ddd'}},
-      y:{stacked:true,ticks:{color:'#5a5a5a',callback:v=>'$'+v.toLocaleString()},grid:{color:'#ddd'}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}}},scales:{
+      x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+      y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
     }}
   });
 }
