@@ -141,15 +141,6 @@ html.dark{
 html.dark select,html.dark input,html.dark textarea{background:#2a2a2e;border-color:var(--border);color:var(--text)}
 html.dark tr:hover{background:rgba(212,82,77,.05)}
 html.dark .ws-list li:hover{background:rgba(212,82,77,.05)}
-/* Password gate */
-.pw-gate{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
-.pw-gate.hidden{display:none}
-.pw-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.15)}
-.pw-box h2{color:var(--accent);margin-bottom:6px;font-size:1.3rem}
-.pw-box p{color:var(--text-dim);font-size:.85rem;margin-bottom:20px}
-.pw-box input{text-align:center;font-size:1rem;padding:12px;margin-bottom:12px}
-.pw-box button{width:100%;padding:12px;font-size:.95rem}
-.pw-error{color:var(--danger);font-size:.82rem;margin-top:8px;display:none}
 /* Operations mode: hide individual comp values */
 body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
 body.ops-mode .comp-sensitive::selection{color:transparent}
@@ -165,18 +156,7 @@ body.ops-mode .comp-sensitive::selection{color:transparent}
 </style>
 </head>
 <body>
-<!-- PASSWORD GATE -->
-<div class="pw-gate" id="pwGate">
-<div class="pw-box">
-<h2>Comp<span style="color:var(--secondary)">Plan</span></h2>
-<p>This tool contains sensitive compensation data.<br>Enter the access password to continue.</p>
-<input type="password" id="pwInput" placeholder="Password" autofocus>
-<button class="btn btn-primary" id="pwSubmit">Unlock</button>
-<div class="pw-error" id="pwError">Incorrect password. Try again.</div>
-</div>
-</div>
-
-<header style="display:none" id="appHeader">
+<header>
 <div class="container">
 <h1>Comp<span>Plan</span></h1>
 <span class="workspace-indicator">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span></span>
@@ -193,10 +173,11 @@ body.ops-mode .comp-sensitive::selection{color:transparent}
 <div class="header-toggles">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
 <label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
+<a href="/logout" class="btn btn-sm" style="margin-left:8px;text-decoration:none;font-size:.75rem">Logout</a>
 </div>
 </div>
 </header>
-<main class="container" id="appMain" style="display:none">
+<main class="container">
 
 <!-- DASHBOARD -->
 <div id="tab-dashboard" class="tab-content active">
@@ -453,50 +434,6 @@ body.ops-mode .comp-sensitive::selection{color:transparent}
 </main>
 
 <script>
-// ── PASSWORD GATE ──
-const PW_HASH='a1c7f3e6b8d24f5a9e0c1b2d3f4a5e6c7b8d9a0e1f2c3b4a5d6e7f8091a2b3c'; // SHA-256 placeholder
-async function hashPw(pw){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-// Pre-computed SHA-256 of the password
-const EXPECTED_HASH='7e1c5c3d0f1bfb0489be4b7c4dcfb14f1e22a1d3a0b4df8e1d7c6b5a4f3e2d10';
-let appUnlocked=false;
-
-(async()=>{
-  // Compute the real hash at load time
-  const realHash=await hashPw('compmodelLCM_claude');
-
-  // Check if already authenticated this session
-  if(sessionStorage.getItem('compPlanAuth')===realHash){
-    unlockApp();
-    return;
-  }
-
-  document.getElementById('pwSubmit').addEventListener('click',async()=>await checkPw(realHash));
-  document.getElementById('pwInput').addEventListener('keydown',async(e)=>{if(e.key==='Enter')await checkPw(realHash)});
-
-  async function checkPw(hash){
-    const input=document.getElementById('pwInput').value;
-    const inputHash=await hashPw(input);
-    if(inputHash===hash){
-      sessionStorage.setItem('compPlanAuth',hash);
-      unlockApp();
-    } else {
-      document.getElementById('pwError').style.display='block';
-      document.getElementById('pwInput').value='';
-      document.getElementById('pwInput').focus();
-    }
-  }
-})();
-
-function unlockApp(){
-  document.getElementById('pwGate').classList.add('hidden');
-  document.getElementById('appHeader').style.display='';
-  document.getElementById('appMain').style.display='';
-  appUnlocked=true;
-}
-
 // ── DATA ──
 const COUNTRIES = ['United States','United Kingdom','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
 const COUNTRY_SHORT = ['US','UK','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
