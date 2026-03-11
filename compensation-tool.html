@@ -173,7 +173,8 @@ body.ops-mode .comp-sensitive::selection{color:transparent}
 <div class="header-toggles">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
 <label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
-<a href="/logout" class="btn btn-sm" style="margin-left:8px;text-decoration:none;font-size:.75rem">Logout</a>
+<button class="btn btn-sm btn-primary" id="btnSaveClose" style="margin-left:8px;font-size:.75rem" title="Download JSON backup and logout">Save &amp; Close</button>
+<a href="/logout" class="btn btn-sm" style="text-decoration:none;font-size:.75rem">Logout</a>
 </div>
 </div>
 </header>
@@ -1687,12 +1688,80 @@ document.getElementById('btnWsQuickSave').addEventListener('click',()=>{
   saveWorkspaceAs(currentWorkspaceName);
 });
 
+// ── SAVE & CLOSE ──
+function downloadStateJSON(filename){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=filename||'comp-plan-backup.json';a.click();
+}
+document.getElementById('btnSaveClose').addEventListener('click',()=>{
+  const name=currentWorkspaceName.replace(/[^a-zA-Z0-9_-]/g,'_')||'compplan';
+  const date=new Date().toISOString().slice(0,10);
+  downloadStateJSON(`${name}_${date}.json`);
+  setTimeout(()=>{window.location.href='/logout'},500);
+});
+
+// Warn on close if data exists
+window.addEventListener('beforeunload',e=>{
+  if(state.employees&&state.employees.length>0){
+    e.preventDefault();
+    e.returnValue='';
+  }
+});
+
+// ── STARTUP LOAD PROMPT ──
+function showLoadPrompt(){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:300;display:flex;align-items:center;justify-content:center';
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)';
+  box.innerHTML=`
+    <h3 style="color:var(--accent);margin-bottom:8px">Welcome to CompPlan</h3>
+    <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:20px">
+      Data is not stored between sessions for security.<br>
+      Load a previous backup to continue, or start fresh.
+    </p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" id="startupLoad">Load JSON Backup</button>
+      <button class="btn" id="startupFresh">Start Fresh</button>
+    </div>
+    <input type="file" id="startupFileInput" accept=".json" style="display:none">
+  `;
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  document.getElementById('startupFresh').addEventListener('click',()=>overlay.remove());
+  document.getElementById('startupLoad').addEventListener('click',()=>document.getElementById('startupFileInput').click());
+  document.getElementById('startupFileInput').addEventListener('change',ev=>{
+    const file=ev.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=r=>{
+      try{
+        state=JSON.parse(r.target.result);
+        ensureStateFields();
+        saveState();
+        // Extract workspace name from filename if possible
+        const match=file.name.match(/^(.+?)_\d{4}-\d{2}-\d{2}\.json$/);
+        if(match)currentWorkspaceName=match[1].replace(/_/g,' ');
+        updateWsDisplay();
+        initDropdowns();
+        renderAll();
+        overlay.remove();
+      }catch(err){alert('Invalid JSON file')}
+    };
+    reader.readAsText(file);
+  });
+}
+
 // ── INIT ──
 function renderAll(){renderDashboard();renderEmployees();renderProjects();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
 loadState();
 currentWorkspaceName=sessionStorage.getItem('compPlanActiveWS')||'Default';
 updateWsDisplay();
 initDropdowns();renderAll();
+
+// Show load prompt on fresh session (no data in sessionStorage)
+if(!sessionStorage.getItem('compPlanState_v2')){showLoadPrompt()}
 </script>
 </body>
 </html>
