@@ -618,6 +618,8 @@ body.ops-mode .ops-hide{display:none!important}
 </main>
 
 <script>
+// Register datalabels plugin
+if(typeof Chart!=='undefined'&&typeof ChartDataLabels!=='undefined'){Chart.register(ChartDataLabels);Chart.defaults.plugins.datalabels={display:false}}
 // ── DATA ──
 const COUNTRIES = ['United States','United Kingdom','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
 const COUNTRY_SHORT = ['US','UK','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
@@ -990,7 +992,7 @@ const FTE_TOOLTIP={
 function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return '$'+n}
 function stackedBarDatalabels(datasets,tickColor){
   // Show total label on topmost positive bar and bottommost negative bar per x-index
-  const posStacks=datasets.filter(d=>!d.stack||d.stack==='pos'||(!d.stack));
+  const posStacks=datasets.filter(d=>!d.stack||d.stack==='pos');
   const negStacks=datasets.filter(d=>d.stack==='neg');
   const topPosIdx=posStacks.length?datasets.indexOf(posStacks[posStacks.length-1]):-1;
   const bottomNegIdx=negStacks.length?datasets.indexOf(negStacks[negStacks.length-1]):-1;
@@ -1002,7 +1004,7 @@ function stackedBarDatalabels(datasets,tickColor){
           return sum?fmtShort(sum):'';
         }};
     } else if(i===bottomNegIdx){
-      ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:9,weight:'bold'},
+      ds.datalabels={display:true,anchor:'start',align:'start',color:tickColor,font:{size:9,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;negStacks.forEach(d=>{sum+=d.data[ctx.dataIndex]});
           return sum<0?fmtShort(sum):'';
