@@ -826,10 +826,39 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 </header>
 <main class="container" style="padding-top:24px">
-<div class="card">
-<h3 class="section-title">Scratch Pad</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Use this space for vendor spend, T&amp;E, and other cost notes and analysis.</p>
-<textarea id="vendorScratch" rows="20" style="width:100%;font-family:monospace;font-size:.88rem;resize:vertical" placeholder="Enter vendor spend notes, T&E analysis, or other cost tracking here..."></textarea>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:600px">
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+<h3 class="section-title" style="margin:0">Scratch Sheet</h3>
+<div style="display:flex;gap:4px">
+<button class="btn" id="vScratchAddRow" style="padding:4px 10px;font-size:.8rem">+ Row</button>
+<button class="btn" id="vScratchAddCol" style="padding:4px 10px;font-size:.8rem">+ Col</button>
+<button class="btn" id="vScratchClear" style="padding:4px 10px;font-size:.8rem">Clear</button>
+<button class="btn" id="vScratchShowFormulas" style="padding:4px 10px;font-size:.8rem">Formulas</button>
+</div>
+</div>
+<p style="color:var(--text-dim);font-size:.75rem;margin:0 0 6px">Double-click a cell to edit. Use <code>=A1+B2</code> formulas. Supports +, -, *, /.</p>
+<div id="vScratchGrid" style="flex:1;overflow:auto"></div>
+</div>
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+<h3 class="section-title" style="margin:0">Whiteboard</h3>
+<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+<label style="font-size:.75rem;color:var(--text-dim)">Size:</label>
+<input type="range" id="vWbSize" min="1" max="20" value="3" style="width:60px">
+<span id="vWbColorSwatches" style="display:flex;gap:2px"></span>
+<label style="font-size:.75rem;color:var(--text-dim);margin-left:4px">Opacity:</label>
+<input type="range" id="vWbOpacity" min="10" max="100" value="100" step="10" style="width:50px">
+<button class="btn" id="vWbGrid" style="padding:4px 8px;font-size:.75rem">Grid</button>
+<select id="vWbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
+<option value="">Pen</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
+</select>
+<button class="btn" id="vWbUndo" style="padding:4px 8px;font-size:.75rem">Undo</button>
+<button class="btn" id="vWbClearBtn" style="padding:4px 8px;font-size:.75rem">Clear</button>
+</div>
+</div>
+<canvas id="vWbCanvas" style="flex:1;border:1px solid var(--border);border-radius:6px;cursor:crosshair;background:#fff"></canvas>
+</div>
 </div>
 </main>
 </div>
@@ -843,10 +872,39 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 </header>
 <main class="container" style="padding-top:24px">
-<div class="card">
-<h3 class="section-title">Scratch Pad</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Use this space for depreciation schedules, CapEx tracking, and asset summary notes.</p>
-<textarea id="depScratch" rows="20" style="width:100%;font-family:monospace;font-size:.88rem;resize:vertical" placeholder="Enter depreciation schedules, CapEx tracking, or asset notes here..."></textarea>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:600px">
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+<h3 class="section-title" style="margin:0">Scratch Sheet</h3>
+<div style="display:flex;gap:4px">
+<button class="btn" id="dScratchAddRow" style="padding:4px 10px;font-size:.8rem">+ Row</button>
+<button class="btn" id="dScratchAddCol" style="padding:4px 10px;font-size:.8rem">+ Col</button>
+<button class="btn" id="dScratchClear" style="padding:4px 10px;font-size:.8rem">Clear</button>
+<button class="btn" id="dScratchShowFormulas" style="padding:4px 10px;font-size:.8rem">Formulas</button>
+</div>
+</div>
+<p style="color:var(--text-dim);font-size:.75rem;margin:0 0 6px">Double-click a cell to edit. Use <code>=A1+B2</code> formulas. Supports +, -, *, /.</p>
+<div id="dScratchGrid" style="flex:1;overflow:auto"></div>
+</div>
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+<h3 class="section-title" style="margin:0">Whiteboard</h3>
+<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+<label style="font-size:.75rem;color:var(--text-dim)">Size:</label>
+<input type="range" id="dWbSize" min="1" max="20" value="3" style="width:60px">
+<span id="dWbColorSwatches" style="display:flex;gap:2px"></span>
+<label style="font-size:.75rem;color:var(--text-dim);margin-left:4px">Opacity:</label>
+<input type="range" id="dWbOpacity" min="10" max="100" value="100" step="10" style="width:50px">
+<button class="btn" id="dWbGrid" style="padding:4px 8px;font-size:.75rem">Grid</button>
+<select id="dWbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
+<option value="">Pen</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
+</select>
+<button class="btn" id="dWbUndo" style="padding:4px 8px;font-size:.75rem">Undo</button>
+<button class="btn" id="dWbClearBtn" style="padding:4px 8px;font-size:.75rem">Clear</button>
+</div>
+</div>
+<canvas id="dWbCanvas" style="flex:1;border:1px solid var(--border);border-radius:6px;cursor:crosshair;background:#fff"></canvas>
+</div>
 </div>
 </main>
 </div>
@@ -2205,18 +2263,14 @@ document.getElementById('monthlyFilter').addEventListener('change',renderMonthly
 document.querySelectorAll('.monthly-col').forEach(cb=>cb.addEventListener('change',renderMonthly));
 
 // ── SCRATCH PAD (Spreadsheet + Whiteboard) ──
-let scratchInited=false;
-function initScratchPad(){
-  if(scratchInited){resizeWbCanvas();return}
-  scratchInited=true;
-  // ── Spreadsheet ──
+function createScratchPad(cfg){
   let sRows=8,sCols=6;
-  const sData=[];// sData[r][c] = raw input string
-  const sColHeaders=[];// editable column headers
-  const sRowNames=[];// editable row names
+  const sData=[];
+  const sColHeaders=[];
+  const sRowNames=[];
   for(let r=0;r<sRows;r++){sData.push(Array(sCols).fill(''));sRowNames.push('')}
   for(let c=0;c<sCols;c++){sColHeaders.push('')}
-  const grid=document.getElementById('scratchGrid');
+  const grid=document.getElementById(cfg.grid);
 
   function colLabel(c){let s='';c++;while(c>0){c--;s=String.fromCharCode(65+c%26)+s;c=Math.floor(c/26)}return s}
   function parseRef(ref){const m=ref.match(/^([A-Z]+)(\d+)$/);if(!m)return null;let c=0;for(const ch of m[1])c=c*26+(ch.charCodeAt(0)-64);return{r:parseInt(m[2])-1,c:c-1}}
@@ -2306,19 +2360,18 @@ function initScratchPad(){
     });
   }
   renderGrid();
-  document.getElementById('scratchAddRow').addEventListener('click',()=>{sRows++;sData.push(Array(sCols).fill(''));sRowNames.push('');renderGrid()});
-  document.getElementById('scratchAddCol').addEventListener('click',()=>{sCols++;sData.forEach(r=>r.push(''));sColHeaders.push('');renderGrid()});
-  document.getElementById('scratchClear').addEventListener('click',()=>{sData.forEach(r=>r.fill(''));renderGrid()});
-  document.getElementById('scratchShowFormulas').addEventListener('click',()=>{showFormulas=!showFormulas;document.getElementById('scratchShowFormulas').classList.toggle('active',showFormulas);renderGrid()});
+  document.getElementById(cfg.addRow).addEventListener('click',()=>{sRows++;sData.push(Array(sCols).fill(''));sRowNames.push('');renderGrid()});
+  document.getElementById(cfg.addCol).addEventListener('click',()=>{sCols++;sData.forEach(r=>r.push(''));sColHeaders.push('');renderGrid()});
+  document.getElementById(cfg.clear).addEventListener('click',()=>{sData.forEach(r=>r.fill(''));renderGrid()});
+  document.getElementById(cfg.showFormulas).addEventListener('click',()=>{showFormulas=!showFormulas;document.getElementById(cfg.showFormulas).classList.toggle('active',showFormulas);renderGrid()});
 
   // ── Whiteboard ──
-  const canvas=document.getElementById('wbCanvas');
+  const canvas=document.getElementById(cfg.canvas);
   const ctx=canvas.getContext('2d');
   const WB_COLORS=['#1a1a1a','#e74c3c','#2980b9','#27ae60','#f39c12','#8e44ad','#e67e22','#ecf0f1'];
   let wbColor=WB_COLORS[0],wbOpacity=1,wbSize=3,wbShowGrid=false,wbDrawing=false;
   let wbHistory=[],wbShapeStart=null,wbSelection=null,wbSelImg=null,wbSelOffset=null;
-  // wbSelection: {x,y,w,h} selected region; wbSelImg: ImageData of selected region; wbSelOffset: drag offset
-  const swatches=document.getElementById('wbColorSwatches');
+  const swatches=document.getElementById(cfg.wbColorSwatchesId);
   WB_COLORS.forEach(c=>{
     const s=document.createElement('span');
     s.style.cssText=`width:18px;height:18px;border-radius:3px;cursor:pointer;border:2px solid ${c===wbColor?'var(--accent)':'transparent'};background:${c};display:inline-block`;
@@ -2357,7 +2410,7 @@ function initScratchPad(){
   }
 
   function getPos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
-  const shapeSelect=document.getElementById('wbShape');
+  const shapeSelect=document.getElementById(cfg.wbShapeId);
 
   // Find bounding box of connected non-transparent pixels at a point
   function findObjectAt(startX,startY){
@@ -2428,8 +2481,8 @@ function initScratchPad(){
 
   canvas.addEventListener('mousedown',e=>{
     const pos=getPos(e);wbDrawing=true;
-    const op=parseFloat(document.getElementById('wbOpacity').value)/100;
-    wbSize=parseInt(document.getElementById('wbSize').value);
+    const op=parseFloat(document.getElementById(cfg.wbOpacityId).value)/100;
+    wbSize=parseInt(document.getElementById(cfg.wbSizeId).value);
     wbOpacity=op;
     const tool=shapeSelect.value;
 
@@ -2635,19 +2688,38 @@ function initScratchPad(){
     ctx.putImageData(imgData,0,0);
   }
 
-  document.getElementById('wbUndo').addEventListener('click',()=>{
+  document.getElementById(cfg.wbUndoId).addEventListener('click',()=>{
     if(wbHistory.length){wbHistory.pop();ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid();if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0)}
   });
-  document.getElementById('wbClearBtn').addEventListener('click',()=>{wbHistory=[];ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid()});
-  document.getElementById('wbGrid').addEventListener('click',()=>{
+  document.getElementById(cfg.wbClearId).addEventListener('click',()=>{wbHistory=[];ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid()});
+  document.getElementById(cfg.wbGridId).addEventListener('click',()=>{
     wbShowGrid=!wbShowGrid;
-    document.getElementById('wbGrid').classList.toggle('active',wbShowGrid);
+    document.getElementById(cfg.wbGridId).classList.toggle('active',wbShowGrid);
     // Redraw: restore last history then optionally overlay grid
     ctx.clearRect(0,0,canvas.width,canvas.height);
     if(wbShowGrid)drawGrid();
     if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
   });
   window.addEventListener('resize',resizeWbCanvas);
+  return {resizeWbCanvas};
+}
+
+const scratchPadCfg={grid:'scratchGrid',addRow:'scratchAddRow',addCol:'scratchAddCol',clear:'scratchClear',showFormulas:'scratchShowFormulas',canvas:'wbCanvas',wbSizeId:'wbSize',wbOpacityId:'wbOpacity',wbColorSwatchesId:'wbColorSwatches',wbGridId:'wbGrid',wbShapeId:'wbShape',wbUndoId:'wbUndo',wbClearId:'wbClearBtn'};
+const vendorScratchCfg={grid:'vScratchGrid',addRow:'vScratchAddRow',addCol:'vScratchAddCol',clear:'vScratchClear',showFormulas:'vScratchShowFormulas',canvas:'vWbCanvas',wbSizeId:'vWbSize',wbOpacityId:'vWbOpacity',wbColorSwatchesId:'vWbColorSwatches',wbGridId:'vWbGrid',wbShapeId:'vWbShape',wbUndoId:'vWbUndo',wbClearId:'vWbClearBtn'};
+const depScratchCfg={grid:'dScratchGrid',addRow:'dScratchAddRow',addCol:'dScratchAddCol',clear:'dScratchClear',showFormulas:'dScratchShowFormulas',canvas:'dWbCanvas',wbSizeId:'dWbSize',wbOpacityId:'dWbOpacity',wbColorSwatchesId:'dWbColorSwatches',wbGridId:'dWbGrid',wbShapeId:'dWbShape',wbUndoId:'dWbUndo',wbClearId:'dWbClearBtn'};
+
+let mainScratch=null,vendorScratch=null,depScratch=null;
+function initScratchPad(){
+  if(!mainScratch)mainScratch=createScratchPad(scratchPadCfg);
+  else mainScratch.resizeWbCanvas();
+}
+function initVendorScratch(){
+  if(!vendorScratch)vendorScratch=createScratchPad(vendorScratchCfg);
+  else vendorScratch.resizeWbCanvas();
+}
+function initDepScratch(){
+  if(!depScratch)depScratch=createScratchPad(depScratchCfg);
+  else depScratch.resizeWbCanvas();
 }
 
 // ── LONG TERM FORECAST ──
@@ -3932,14 +4004,14 @@ function showVendor(){
   document.getElementById('appShell').style.display='none';
   document.getElementById('vendorModule').style.display='';
   document.getElementById('depreciationModule').style.display='none';
-  document.getElementById('vendorScratch').value=localStorage.getItem('compPlanVendorScratch')||'';
+  setTimeout(initVendorScratch,50);
 }
 function showDepreciation(){
   document.getElementById('landingPage').style.display='none';
   document.getElementById('appShell').style.display='none';
   document.getElementById('vendorModule').style.display='none';
   document.getElementById('depreciationModule').style.display='';
-  document.getElementById('depScratch').value=localStorage.getItem('compPlanDepScratch')||'';
+  setTimeout(initDepScratch,50);
 }
 
 document.getElementById('modCompPlan').addEventListener('click',showApp);
@@ -3948,9 +4020,6 @@ document.getElementById('modDepreciation').addEventListener('click',showDeprecia
 document.getElementById('vendorBackBtn').addEventListener('click',showLanding);
 document.getElementById('depBackBtn').addEventListener('click',showLanding);
 
-// Persist scratchpads
-document.getElementById('vendorScratch').addEventListener('input',function(){localStorage.setItem('compPlanVendorScratch',this.value)});
-document.getElementById('depScratch').addEventListener('input',function(){localStorage.setItem('compPlanDepScratch',this.value)});
 
 // P&L split toggle
 document.querySelectorAll('#pnlSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
