@@ -610,7 +610,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 <div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
 <div class="chatbot-panel">
-<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
+<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div class="chat-messages" id="budgetChatMessages">
 <div class="chat-msg hint">Try a scenario below or type your own</div>
 </div>
@@ -640,7 +640,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 <div class="scenario-chart-container"><canvas id="scenFcChart"></canvas></div>
 <div class="chatbot-panel">
-<div class="chatbot-header"><span>Forecast Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenFcApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Forecast</button><button class="btn btn-sm" id="scenFcReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
+<div class="chatbot-header"><span>Forecast Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenFcApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Forecast</button><button class="btn btn-sm" id="scenFcUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenFcReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div class="chat-messages" id="fcChatMessages">
 <div class="chat-msg hint">Try a scenario below or type your own</div>
 </div>
@@ -4793,6 +4793,7 @@ let budgetScenario=null,forecastScenario=null;
 let budgetChatHistory=[],fcChatHistory=[];
 let scenBudgetSplit='none',scenFcSplit='total',scenFiltersLinked=false;
 let scenBudgetChartInst=null,scenFcChartInst=null;
+let budgetUndoStack=[],fcUndoStack=[];
 
 function initBudgetScenario(){
   budgetScenario={
@@ -4802,8 +4803,10 @@ function initBudgetScenario(){
   };
 }
 function initForecastScenario(){
+  // Use budget scenario employees as baseline when budget has been modified
+  const baseEmps=budgetScenarioDirty&&budgetScenario?budgetScenario.emps:state.employees;
   forecastScenario={
-    emps:JSON.parse(JSON.stringify(state.employees)),
+    emps:JSON.parse(JSON.stringify(baseEmps)),
     assumptions:JSON.parse(JSON.stringify(state.forecastAssumptions))
   };
 }
@@ -5183,28 +5186,46 @@ let budgetScenarioDirty=false,fcScenarioDirty=false;
 function handleBudgetChat(text){
   if(!text.trim())return;
   addChatMsg('budgetChatMessages',text,'user');
+  // Save undo snapshot before command (skip for reset)
+  if(!/^reset$/i.test(text.trim())){
+    budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
+    document.getElementById('scenBudgetUndo').style.display='inline-block';
+  }
   const result=parseBudgetCommand(text);
   let response=result.msg;
   if(result.ok){
     renderBudgetScenarioChart();
     response+=`<div class="chat-delta">${computeBudgetDelta()}</div>`;
-    if(!/^reset$/i.test(text.trim())){budgetScenarioDirty=true}else{budgetScenarioDirty=false}
+    if(!/^reset$/i.test(text.trim())){budgetScenarioDirty=true}else{budgetScenarioDirty=false;budgetUndoStack=[];document.getElementById('scenBudgetUndo').style.display='none'}
     document.getElementById('scenBudgetApply').style.display=budgetScenarioDirty?'inline-block':'none';
+  } else {
+    // Command failed, pop the snapshot we just pushed
+    budgetUndoStack.pop();
+    if(!budgetUndoStack.length)document.getElementById('scenBudgetUndo').style.display='none';
   }
   addChatMsg('budgetChatMessages',response,result.ok?'system':'error');
+  // Re-sync forecast baseline from budget scenario employees
+  if(result.ok){initForecastScenario();renderFcScenarioChart()}
   renderScenarioPnlSummary();
 }
 
 function handleFcChat(text){
   if(!text.trim())return;
   addChatMsg('fcChatMessages',text,'user');
+  if(!/^reset$/i.test(text.trim())){
+    fcUndoStack.push(JSON.parse(JSON.stringify(forecastScenario)));
+    document.getElementById('scenFcUndo').style.display='inline-block';
+  }
   const result=parseForecastCommand(text);
   let response=result.msg;
   if(result.ok){
     renderFcScenarioChart();
     response+=`<div class="chat-delta">${computeFcDelta()}</div>`;
-    if(!/^reset$/i.test(text.trim())){fcScenarioDirty=true}else{fcScenarioDirty=false}
+    if(!/^reset$/i.test(text.trim())){fcScenarioDirty=true}else{fcScenarioDirty=false;fcUndoStack=[];document.getElementById('scenFcUndo').style.display='none'}
     document.getElementById('scenFcApply').style.display=fcScenarioDirty?'inline-block':'none';
+  } else {
+    fcUndoStack.pop();
+    if(!fcUndoStack.length)document.getElementById('scenFcUndo').style.display='none';
   }
   addChatMsg('fcChatMessages',response,result.ok?'system':'error');
   renderScenarioPnlSummary();
@@ -5294,16 +5315,33 @@ function initScenarioPane(){
   // Apply buttons
   document.getElementById('scenBudgetApply').addEventListener('click',applyBudgetScenario);
   document.getElementById('scenFcApply').addEventListener('click',applyFcScenario);
+  // Undo buttons
+  document.getElementById('scenBudgetUndo').addEventListener('click',()=>{
+    if(!budgetUndoStack.length)return;
+    budgetScenario=budgetUndoStack.pop();
+    if(!budgetUndoStack.length){document.getElementById('scenBudgetUndo').style.display='none';budgetScenarioDirty=false;document.getElementById('scenBudgetApply').style.display='none'}
+    addChatMsg('budgetChatMessages','Undo: reverted to previous state.','system');
+    renderBudgetScenarioChart();renderScenarioPnlSummary();
+  });
+  document.getElementById('scenFcUndo').addEventListener('click',()=>{
+    if(!fcUndoStack.length)return;
+    forecastScenario=fcUndoStack.pop();
+    if(!fcUndoStack.length){document.getElementById('scenFcUndo').style.display='none';fcScenarioDirty=false;document.getElementById('scenFcApply').style.display='none'}
+    addChatMsg('fcChatMessages','Undo: reverted to previous state.','system');
+    renderFcScenarioChart();renderScenarioPnlSummary();
+  });
   // Reset buttons
   document.getElementById('scenBudgetReset').addEventListener('click',()=>{
-    initBudgetScenario();budgetChatHistory=[];budgetScenarioDirty=false;
+    initBudgetScenario();budgetChatHistory=[];budgetScenarioDirty=false;budgetUndoStack=[];
     document.getElementById('scenBudgetApply').style.display='none';
+    document.getElementById('scenBudgetUndo').style.display='none';
     document.getElementById('budgetChatMessages').innerHTML='<div class="chat-msg hint">Scenario reset. Try a new command.</div>';
     renderBudgetScenarioChart();renderScenarioPnlSummary();
   });
   document.getElementById('scenFcReset').addEventListener('click',()=>{
-    initForecastScenario();fcChatHistory=[];fcScenarioDirty=false;
+    initForecastScenario();fcChatHistory=[];fcScenarioDirty=false;fcUndoStack=[];
     document.getElementById('scenFcApply').style.display='none';
+    document.getElementById('scenFcUndo').style.display='none';
     document.getElementById('fcChatMessages').innerHTML='<div class="chat-msg hint">Forecast scenario reset. Try a new command.</div>';
     renderFcScenarioChart();renderScenarioPnlSummary();
   });
