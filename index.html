@@ -4002,7 +4002,7 @@ function renderExecView(){
     if(execMonthlyChart)execMonthlyChart.destroy();
     const datasets=groupNames.map((g,i)=>{
       const color=execSplit==='none'?(isDark?'#d4524d':'#8b2020'):CHART_COLORS[i%CHART_COLORS.length];
-      return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y'};
+      return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y',order:2};
     });
     if(execSplit!=='none')stackedBarDatalabels(datasets,tickColor);
     // FTE count line
