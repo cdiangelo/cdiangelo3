@@ -340,6 +340,15 @@ body.ops-mode .ops-hide{display:none!important}
 <button class="btn" data-eview="opex">P&amp;L (OpEx)</button>
 </div>
 </div>
+<div>
+<label>Period</label>
+<div class="toggle-group" id="execPeriodToggle">
+<button class="btn active" data-eperiod="full">Full Year</button>
+<button class="btn" data-eperiod="mtd">MTD</button>
+<button class="btn" data-eperiod="qtd">QTD</button>
+<button class="btn" data-eperiod="ytd">YTD</button>
+</div>
+</div>
 </div>
 <div class="chart-container"><canvas id="execMonthlyChart"></canvas></div>
 <div class="table-wrap"><table class="monthly-table" id="execMonthlyTable"></table></div>
@@ -3505,7 +3514,7 @@ setInterval(()=>{
 },60000);
 
 // ── EXEC VIEW ──
-let execSplit='none',execView='total',execFcSplit='total',execFcView='total';
+let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total';
 let execMonthlyChart=null,execForecastChart=null;
 
 document.querySelectorAll('#execSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
@@ -3513,6 +3522,9 @@ document.querySelectorAll('#execSplitToggle .btn').forEach(b=>b.addEventListener
 }));
 document.querySelectorAll('#execViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#execViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execView=b.dataset.eview;renderExecView();
+}));
+document.querySelectorAll('#execPeriodToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#execPeriodToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execPeriod=b.dataset.eperiod;renderExecView();
 }));
 document.querySelectorAll('#execFcSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#execFcSplitToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcSplit=b.dataset.efsplit;renderExecView();
@@ -3542,15 +3554,26 @@ function renderExecView(){
   const gridColor=isDark?'#3a3a3f':'#ddd';
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  // ── Stat cards ──
-  const totalComp=emps.reduce((a,e)=>a+getProratedComp(e),0);
-  const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
-  const totalOpEx=totalComp-totalCapEx;
+  // ── Period range ──
+  const now=new Date();
+  const curMonth=now.getMonth(); // 0-based
+  let periodStart=0,periodEnd=11;
+  if(execPeriod==='mtd'){periodStart=curMonth;periodEnd=curMonth}
+  else if(execPeriod==='qtd'){periodStart=Math.floor(curMonth/3)*3;periodEnd=curMonth}
+  else if(execPeriod==='ytd'){periodStart=0;periodEnd=curMonth}
+  const periodMonths=[];for(let i=periodStart;i<=periodEnd;i++)periodMonths.push(i);
+  const periodLabels=periodMonths.map(i=>MONTH_SHORT[i]);
+
+  // ── Stat cards (scoped to period) ──
+  let periodComp=0,periodCapEx=0;
+  emps.forEach(e=>{periodMonths.forEach(mi=>{periodComp+=getMonthlyComp(e,mi);periodCapEx+=getMonthlyCapEx(e,mi)})});
+  const periodOpEx=periodComp-periodCapEx;
+  const periodLabel=execPeriod==='full'?'Full Year':execPeriod.toUpperCase();
   document.getElementById('execStatCards').innerHTML=
     `<div class="stat-card"><div class="label">Headcount</div><div class="value">${emps.length}</div></div>`+
-    `<div class="stat-card"><div class="label">Total Comp</div><div class="value">${fmt(totalComp)}</div></div>`+
-    `<div class="stat-card"><div class="label">CapEx</div><div class="value">${fmt(totalCapEx)}</div></div>`+
-    `<div class="stat-card"><div class="label">OpEx (P&L)</div><div class="value" style="color:var(--success)">${fmt(totalOpEx)}</div></div>`;
+    `<div class="stat-card"><div class="label">${periodLabel} Comp</div><div class="value">${fmt(periodComp)}</div></div>`+
+    `<div class="stat-card"><div class="label">${periodLabel} CapEx</div><div class="value">${fmt(periodCapEx)}</div></div>`+
+    `<div class="stat-card"><div class="label">${periodLabel} OpEx</div><div class="value" style="color:var(--success)">${fmt(periodOpEx)}</div></div>`;
 
   // ── Pane 1: Monthly chart split by selected dimension ──
   const splitGroups={};
@@ -3561,10 +3584,10 @@ function renderExecView(){
   });
   const groupNames=Object.keys(splitGroups).sort();
 
-  // Build monthly data per group
-  const monthlyData={};
+  // Build monthly data per group (full 12 months, then slice for period)
+  const monthlyDataFull={};
   groupNames.forEach(g=>{
-    monthlyData[g]=MONTH_SHORT.map((_,mi)=>{
+    monthlyDataFull[g]=MONTH_SHORT.map((_,mi)=>{
       const gEmps=splitGroups[g];
       return gEmps.reduce((a,e)=>{
         if(execView==='opex'){
@@ -3576,18 +3599,22 @@ function renderExecView(){
       },0);
     });
   });
+  const monthlyData={};
+  groupNames.forEach(g=>{monthlyData[g]=periodMonths.map(mi=>monthlyDataFull[g][mi])});
 
-  // Build FTE and Avg FTE Comp overlay data
-  const monthlyFte=MONTH_SHORT.map((_,mi)=>{
+  // Build FTE and Avg Annualized FTE Comp overlay data (period-scoped)
+  const monthlyFteFull=MONTH_SHORT.map((_,mi)=>{
     let fte=0;
     emps.forEach(e=>{const f=getMonthFactor(e,mi);if(f>0){const allocTotal=(e.allocations||[]).reduce((s,a)=>s+a.pct,0);fte+=f*(allocTotal/100)}});
     return Math.round(fte*100)/100;
   });
-  const monthlyAvgFteComp=MONTH_SHORT.map((_,mi)=>{
-    if(!monthlyFte[mi])return 0;
-    const totalComp=emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0);
-    return Math.round(totalComp/monthlyFte[mi]);
+  const monthlyAvgAnnFteCompFull=MONTH_SHORT.map((_,mi)=>{
+    if(!monthlyFteFull[mi])return 0;
+    const mComp=emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0);
+    return Math.round((mComp/monthlyFteFull[mi])*12);
   });
+  const monthlyFte=periodMonths.map(mi=>monthlyFteFull[mi]);
+  const monthlyAvgAnnFteComp=periodMonths.map(mi=>monthlyAvgAnnFteCompFull[mi]);
 
   // Chart
   if(typeof Chart!=='undefined'){
@@ -3599,11 +3626,11 @@ function renderExecView(){
     if(execSplit!=='none')stackedBarDatalabels(datasets,tickColor);
     // FTE count line
     datasets.push({label:'Allocated FTE',data:monthlyFte,type:'line',borderColor:isDark?'#4fc3f7':'#0277bd',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:isDark?'#4fc3f7':'#0277bd',yAxisID:'y1',tension:0.3,datalabels:{display:false},order:0});
-    // Avg FTE comp line
-    datasets.push({label:'Avg FTE Comp',data:monthlyAvgFteComp,type:'line',borderColor:isDark?'#81c784':'#2e7d32',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:isDark?'#81c784':'#2e7d32',yAxisID:'y',tension:0.3,datalabels:{display:false},order:0});
+    // Avg Annualized FTE comp line
+    datasets.push({label:'Avg Ann. FTE Comp',data:monthlyAvgAnnFteComp,type:'line',borderColor:isDark?'#81c784':'#2e7d32',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:isDark?'#81c784':'#2e7d32',yAxisID:'y',tension:0.3,datalabels:{display:false},order:0});
     execMonthlyChart=new Chart(document.getElementById('execMonthlyChart'),{
       type:'bar',
-      data:{labels:MONTH_SHORT,datasets},
+      data:{labels:periodLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:execSplit==='none'?{display:false}:{}},
         scales:{
@@ -3617,30 +3644,31 @@ function renderExecView(){
 
   // Monthly table
   const tbl=document.getElementById('execMonthlyTable');
+  const numPeriodMonths=periodMonths.length;
   if(execSplit==='none'){
-    let html='<thead><tr><th>Month</th><th>Amount</th><th>FTE</th><th>Avg FTE Comp</th></tr></thead><tbody>';
-    let annual=0;
-    MONTH_SHORT.forEach((m,mi)=>{const v=monthlyData['Total'][mi];annual+=v;html+=`<tr><td>${m}</td><td style="text-align:right">${fmt(v)}</td><td style="text-align:right">${monthlyFte[mi]}</td><td style="text-align:right">${fmt(monthlyAvgFteComp[mi])}</td></tr>`});
-    const annFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(annFte/12*100)/100;
-    html+=`</tbody><tfoot><tr><td>Annual</td><td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(annual)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${annual&&avgFte?fmt(Math.round(annual/12/avgFte)):'\u2014'}</td></tr></tfoot>`;
+    let html='<thead><tr><th>Month</th><th>Amount</th><th>FTE</th><th>Avg Ann. FTE Comp</th></tr></thead><tbody>';
+    let periodTotal=0;
+    periodMonths.forEach((mi,pi)=>{const v=monthlyData['Total'][pi];periodTotal+=v;html+=`<tr><td>${MONTH_SHORT[mi]}</td><td style="text-align:right">${fmt(v)}</td><td style="text-align:right">${monthlyFte[pi]}</td><td style="text-align:right">${fmt(monthlyAvgAnnFteComp[pi])}</td></tr>`});
+    const sumFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(sumFte/numPeriodMonths*100)/100;
+    html+=`</tbody><tfoot><tr><td>${periodLabel} Total</td><td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(periodTotal)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${periodTotal&&avgFte?fmt(Math.round(periodTotal/numPeriodMonths/avgFte*12)):'\u2014'}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   } else {
     let html='<thead><tr><th>Month</th>';
     groupNames.forEach(g=>html+=`<th style="text-align:right">${g.length>14?g.slice(0,12)+'…':g}</th>`);
-    html+='<th style="text-align:right">Total</th><th style="text-align:right">FTE</th><th style="text-align:right">Avg FTE</th></tr></thead><tbody>';
+    html+='<th style="text-align:right">Total</th><th style="text-align:right">FTE</th><th style="text-align:right">Avg Ann. FTE</th></tr></thead><tbody>';
     const annuals=groupNames.map(()=>0);
-    let grandAnnual=0;
-    MONTH_SHORT.forEach((m,mi)=>{
-      html+=`<tr><td>${m}</td>`;
+    let grandTotal=0;
+    periodMonths.forEach((mi,pi)=>{
+      html+=`<tr><td>${MONTH_SHORT[mi]}</td>`;
       let rowTotal=0;
-      groupNames.forEach((g,gi)=>{const v=monthlyData[g][mi];annuals[gi]+=v;rowTotal+=v;html+=`<td style="text-align:right">${fmt(v)}</td>`});
-      grandAnnual+=rowTotal;
-      html+=`<td style="text-align:right;font-weight:600">${fmt(rowTotal)}</td><td style="text-align:right">${monthlyFte[mi]}</td><td style="text-align:right">${fmt(monthlyAvgFteComp[mi])}</td></tr>`;
+      groupNames.forEach((g,gi)=>{const v=monthlyData[g][pi];annuals[gi]+=v;rowTotal+=v;html+=`<td style="text-align:right">${fmt(v)}</td>`});
+      grandTotal+=rowTotal;
+      html+=`<td style="text-align:right;font-weight:600">${fmt(rowTotal)}</td><td style="text-align:right">${monthlyFte[pi]}</td><td style="text-align:right">${fmt(monthlyAvgAnnFteComp[pi])}</td></tr>`;
     });
-    html+='</tbody><tfoot><tr><td>Annual</td>';
+    html+=`</tbody><tfoot><tr><td>${periodLabel} Total</td>`;
     groupNames.forEach((_,gi)=>html+=`<td style="text-align:right">${fmt(annuals[gi])}</td>`);
-    const annFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(annFte/12*100)/100;
-    html+=`<td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(grandAnnual)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${grandAnnual&&avgFte?fmt(Math.round(grandAnnual/12/avgFte)):'\u2014'}</td></tr></tfoot>`;
+    const sumFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(sumFte/numPeriodMonths*100)/100;
+    html+=`<td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(grandTotal)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${grandTotal&&avgFte?fmt(Math.round(grandTotal/numPeriodMonths/avgFte*12)):'\u2014'}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   }
 
