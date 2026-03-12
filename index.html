@@ -4853,15 +4853,14 @@ renderPnlWalk();
   function saveNote(){const notes=getNotes();notes[currentTab]=body.innerHTML;localStorage.setItem(STORE_KEY,JSON.stringify(notes));}
   function loadNote(tab){currentTab=tab;const notes=getNotes();body.innerHTML=notes[tab]||'';title.textContent='Notes — '+(tab==='global'?'Global':tab);}
 
+  // Load note for current tab on init
+  function refreshNote(){const tabName=getCurrentTabName();if(tabName!==currentTab)loadNote(tabName);}
+  setTimeout(()=>loadNote(getCurrentTabName()),100);
+
   btn.addEventListener('click',()=>{
+    const opening=!panel.classList.contains('open');
     panel.classList.toggle('open');
-    if(panel.classList.contains('open')){
-      // Determine current tab context
-      const tabName=getCurrentTabName();
-      loadNote(tabName);
-      if(!getNotes()[tabName])body.innerHTML='';
-      body.focus();
-    }
+    if(opening){refreshNote();body.focus();}
   });
 
   // Toolbar commands
@@ -4869,7 +4868,7 @@ renderPnlWalk();
     b.addEventListener('click',e=>{
       e.preventDefault();
       document.execCommand(b.dataset.cmd,false,null);
-      body.focus();
+      body.focus();saveNote();
     });
   });
   panel.querySelectorAll('.sn-toolbar select[data-cmd]').forEach(sel=>{
@@ -4878,7 +4877,7 @@ renderPnlWalk();
       const val=sel.value;
       if(cmd==='formatBlock'&&val)document.execCommand(cmd,false,'<'+val+'>');
       else if(cmd==='fontSize')document.execCommand(cmd,false,val);
-      body.focus();
+      body.focus();saveNote();
     });
   });
 
