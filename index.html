@@ -62,7 +62,9 @@ select,input,textarea{background:#fff;border:1px solid var(--border);color:var(-
 select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent)}
 label{font-size:.8rem;color:var(--text-dim);margin-bottom:4px;display:block}
 table{width:100%;border-collapse:collapse}
-th{background:var(--panel-inset);color:var(--accent);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;text-align:left;position:sticky;top:0}
+th{background:var(--panel-inset);color:var(--accent);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;text-align:left;position:sticky;top:0;white-space:normal;word-break:break-word}
+.col-divider{border-left:1px solid var(--border-light)!important}
+.split-th{min-width:80px;max-width:140px;text-align:right}
 td{padding:10px 12px;border-bottom:1px solid var(--border-light);font-size:.875rem}
 tr:hover{background:rgba(139,32,32,.03)}
 .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);background:var(--panel)}
@@ -3230,13 +3232,13 @@ function renderForecastProjection(){
     // Table
     const showOpex=forecastView==='opex';
     let html='<thead><tr><th>Year</th>';
-    groupNames.forEach(g=>html+=`<th>${g.length>16?g.slice(0,14)+'…':g}</th>`);
-    html+=`<th>Total</th>${showOpex?'<th>CapEx</th><th>OpEx</th>':''}</tr></thead><tbody>`;
+    groupNames.forEach(g=>html+=`<th class="split-th">${g}</th>`);
+    html+=`<th class="split-th col-divider">Total</th>${showOpex?'<th style="text-align:right">CapEx</th><th style="text-align:right">OpEx</th>':''}</tr></thead><tbody>`;
     yearLabels.forEach((y,yi)=>{
       html+=`<tr><td style="font-weight:600;color:var(--accent)">${y}</td>`;
       let rowTotal=0,rowCapex=0;
       groupNames.forEach(g=>{const r=groupForecasts[g][yi];const v=r?r.total:0;rowTotal+=v;rowCapex+=(r?r.capex:0);html+=`<td>${fmt(showOpex?(r?r.opex:0):v)}</td>`});
-      html+=`<td style="font-weight:600;color:var(--accent)">${fmt(showOpex?rowTotal-rowCapex:rowTotal)}</td>`;
+      html+=`<td style="font-weight:600;color:var(--accent)" class="col-divider">${fmt(showOpex?rowTotal-rowCapex:rowTotal)}</td>`;
       if(showOpex)html+=`<td>${fmt(rowCapex)}</td><td style="color:var(--success)">${fmt(rowTotal-rowCapex)}</td>`;
       html+='</tr>';
     });
@@ -4030,8 +4032,8 @@ function renderExecView(){
     tbl.innerHTML=html;
   } else {
     let html='<thead><tr><th>Month</th>';
-    groupNames.forEach(g=>html+=`<th style="text-align:right">${g.length>14?g.slice(0,12)+'…':g}</th>`);
-    html+='<th style="text-align:right">Total</th><th style="text-align:right">FTE</th><th style="text-align:right">Avg Ann. FTE</th></tr></thead><tbody>';
+    groupNames.forEach(g=>html+=`<th class="split-th">${g}</th>`);
+    html+='<th class="split-th col-divider">Total</th><th style="text-align:right">FTE</th><th style="text-align:right">Avg Ann. FTE</th></tr></thead><tbody>';
     const annuals=groupNames.map(()=>0);
     let grandTotal=0;
     periodMonths.forEach((mi,pi)=>{
@@ -4039,12 +4041,12 @@ function renderExecView(){
       let rowTotal=0;
       groupNames.forEach((g,gi)=>{const v=monthlyData[g][pi];annuals[gi]+=v;rowTotal+=v;html+=`<td style="text-align:right">${fmt(v)}</td>`});
       grandTotal+=rowTotal;
-      html+=`<td style="text-align:right;font-weight:600">${fmt(rowTotal)}</td><td style="text-align:right">${monthlyFte[pi]}</td><td style="text-align:right">${fmt(monthlyAvgAnnFteComp[pi])}</td></tr>`;
+      html+=`<td style="text-align:right;font-weight:600" class="col-divider">${fmt(rowTotal)}</td><td style="text-align:right">${monthlyFte[pi]}</td><td style="text-align:right">${fmt(monthlyAvgAnnFteComp[pi])}</td></tr>`;
     });
     html+=`</tbody><tfoot><tr><td>${periodLabel} Total</td>`;
     groupNames.forEach((_,gi)=>html+=`<td style="text-align:right">${fmt(annuals[gi])}</td>`);
     const sumFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(sumFte/numPeriodMonths*100)/100;
-    html+=`<td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(grandTotal)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${grandTotal&&avgFte?fmt(Math.round(grandTotal/numPeriodMonths/avgFte*12)):'\u2014'}</td></tr></tfoot>`;
+    html+=`<td style="text-align:right;font-weight:700;color:var(--accent)" class="col-divider">${fmt(grandTotal)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${grandTotal&&avgFte?fmt(Math.round(grandTotal/numPeriodMonths/avgFte*12)):'\u2014'}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   }
 
@@ -4096,13 +4098,13 @@ function renderExecView(){
     gNames.forEach(g=>gForecasts[g]=projectForecast(fcSplitGroups[g],fcGroupKeys[g]));
 
     let html='<thead><tr><th>Year</th>';
-    gNames.forEach(g=>html+=`<th style="text-align:right">${g.length>14?g.slice(0,12)+'…':g}</th>`);
-    html+='<th style="text-align:right">Total</th></tr></thead><tbody>';
+    gNames.forEach(g=>html+=`<th class="split-th">${g}</th>`);
+    html+='<th class="split-th col-divider">Total</th></tr></thead><tbody>';
     yearLabels.forEach((y,yi)=>{
       html+=`<tr><td style="font-weight:600;color:var(--accent)">${y}</td>`;
       let rowTotal=0;
       gNames.forEach(g=>{const r=gForecasts[g][yi];const v=r?(showFcOpex?r.opex:r.total):0;rowTotal+=v;html+=`<td style="text-align:right">${fmt(v)}</td>`});
-      html+=`<td style="text-align:right;font-weight:600;color:var(--accent)">${fmt(rowTotal)}</td></tr>`;
+      html+=`<td style="text-align:right;font-weight:600;color:var(--accent)" class="col-divider">${fmt(rowTotal)}</td></tr>`;
     });
     html+='</tbody>';
     fcTbl.innerHTML=html;
@@ -4680,7 +4682,7 @@ function renderPnlWalk(){
 
     let h='<thead><tr><th>Line Item</th>';
     cols.forEach(c=>h+=`<th style="text-align:right">${c}</th>`);
-    h+=`<th style="text-align:right;font-weight:700">FY Total</th></tr></thead><tbody>`;
+    h+=`<th style="text-align:right;font-weight:700" class="col-divider">FY Total</th></tr></thead><tbody>`;
 
     const rows=[
       {label:'C&B OpEx',key:'opex',cls:'section-label'},
@@ -4694,7 +4696,7 @@ function renderPnlWalk(){
     rows.forEach(r=>{
       h+=`<tr${r.row?' class="'+r.row+'"':''}><td class="${r.cls||''}">${r.label}</td>`;
       colData.forEach(d=>h+=`<td class="num" style="font-weight:normal">${fmt(d[r.key])}</td>`);
-      h+=`<td class="num">${fmt(totals[r.key])}</td></tr>`;
+      h+=`<td class="num col-divider">${fmt(totals[r.key])}</td></tr>`;
     });
     h+='</tbody>';
     tbl.innerHTML=h;
@@ -4737,13 +4739,13 @@ function renderPnlWalk(){
     keys.forEach(k=>{totals.opex+=groups[k].opex;totals.capex+=groups[k].capex});
 
     let h='<thead><tr><th>Line Item</th>';
-    keys.forEach(k=>h+=`<th style="text-align:right">${k.length>16?k.slice(0,14)+'…':k}</th>`);
-    h+='<th style="text-align:right">Total</th></tr></thead><tbody>';
+    keys.forEach(k=>h+=`<th class="split-th">${k}</th>`);
+    h+='<th class="split-th col-divider">Total</th></tr></thead><tbody>';
 
     const makeRow=(label,fn,cls,rowCls)=>{
       h+=`<tr${rowCls?' class="'+rowCls+'"':''}><td class="${cls||''}">${label}</td>`;
       keys.forEach(k=>h+=`<td class="num">${fmt(fn(groups[k]))}</td>`);
-      h+=`<td class="num">${fmt(fn(totals))}</td></tr>`;
+      h+=`<td class="num col-divider">${fmt(fn(totals))}</td></tr>`;
     };
     const oaoT=getVendorOaoTotal();
     makeRow('C&B OpEx',d=>d.opex,'section-label');
