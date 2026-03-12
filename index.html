@@ -829,6 +829,7 @@ body.ops-mode .ops-hide{display:none!important}
 <!-- Vendor Nav Tabs -->
 <nav style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap" id="vendorNav">
 <button class="btn active" data-vtab="vendor-grid">Vendor Spend</button>
+<button class="btn" data-vtab="vendor-te">T&amp;E</button>
 <button class="btn" data-vtab="vendor-accounts">Account Mapping</button>
 <button class="btn" data-vtab="vendor-dims">Dimensions</button>
 <button class="btn" data-vtab="vendor-scratch">Scratch Pad</button>
@@ -853,7 +854,6 @@ body.ops-mode .ops-hide{display:none!important}
 <th style="min-width:120px">Parent Co</th>
 <th style="min-width:130px">Vendor Name</th>
 <th style="min-width:140px">Vendor Type</th>
-<th style="min-width:90px">Lifecycle</th>
 <th style="min-width:100px">Business Unit</th>
 <th style="min-width:120px">Bus. Line / Function</th>
 <th style="min-width:100px">Market</th>
@@ -869,6 +869,42 @@ body.ops-mode .ops-hide{display:none!important}
 </tr></thead>
 <tbody id="vendorTbody"></tbody>
 <tfoot id="vendorTfoot"></tfoot>
+</table>
+</div>
+</div>
+</div>
+
+<!-- T&E Tab -->
+<div id="vtab-vendor-te" class="vtab-content" style="display:none">
+<div class="card" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+<h3 class="section-title" style="margin:0">Travel &amp; Entertainment</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button class="btn" id="teAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
+<button class="btn" id="teExportBtn" style="padding:4px 12px;font-size:.82rem">Export CSV</button>
+</div>
+</div>
+<div style="overflow-x:auto">
+<table class="comp-table" id="teTable" style="font-size:.8rem;min-width:1300px">
+<thead><tr>
+<th style="width:30px">#</th>
+<th style="min-width:130px">Expense Type</th>
+<th style="min-width:120px">Description</th>
+<th style="min-width:100px">Business Unit</th>
+<th style="min-width:120px">Bus. Line / Function</th>
+<th style="min-width:100px">Market</th>
+<th style="min-width:100px">Project</th>
+<th style="min-width:140px">Account Description</th>
+<th style="min-width:80px">Account Code</th>
+<th style="min-width:70px">Jan</th><th style="min-width:70px">Feb</th><th style="min-width:70px">Mar</th>
+<th style="min-width:70px">Apr</th><th style="min-width:70px">May</th><th style="min-width:70px">Jun</th>
+<th style="min-width:70px">Jul</th><th style="min-width:70px">Aug</th><th style="min-width:70px">Sep</th>
+<th style="min-width:70px">Oct</th><th style="min-width:70px">Nov</th><th style="min-width:70px">Dec</th>
+<th style="min-width:80px;font-weight:700">Full Year</th>
+<th style="width:40px"></th>
+</tr></thead>
+<tbody id="teTbody"></tbody>
+<tfoot id="teTfoot"></tfoot>
 </table>
 </div>
 </div>
@@ -917,6 +953,18 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 <div id="vBizTableWrap"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Name</th><th></th></tr></thead><tbody id="vBizBody"></tbody></table></div>
 </div>
+</div>
+<div class="card" style="margin-top:16px">
+<h3 class="section-title">Projects</h3>
+<p style="color:var(--text-dim);font-size:.75rem;margin-bottom:8px">Shared across all modules. Add/edit projects here or in Comp Plan.</p>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="vProjCode" style="width:90px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="PRJ-001"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Product</label><br><input id="vProjProduct" style="width:120px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Product"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Category</label><br><input id="vProjCategory" style="width:100px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Category"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Market</label><br><select id="vProjMarket" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option></select></div>
+<button class="btn" id="vBtnAddProject" style="padding:3px 10px;font-size:.8rem">Add</button>
+</div>
+<div style="max-height:300px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Product</th><th>Category</th><th>Market</th><th></th></tr></thead><tbody id="vProjectsBody"></tbody></table></div>
 </div>
 </div>
 
@@ -1048,7 +1096,7 @@ const VENDOR_TYPES = [
   'Security & Compliance','Data Platform','Collaboration & PM',
   'CRM & Sales','ERP & Finance','HR & Payroll','Legal & Compliance','T&E & Travel','Other'
 ];
-const VENDOR_LIFECYCLE = ['Invest','Maintain','Sunset'];
+const EXPENSE_TYPES = ['Airline','Hotel','Other Travel','Food/Events','Large Event','Other'];
 
 const DEFAULT_ACCOUNTS = [
   {code:'6100',description:'Software Licenses',category:'Software & Licenses'},
@@ -1066,6 +1114,7 @@ const DEFAULT_ACCOUNTS = [
 
 function benchmark(s,f,c){return Math.round(SENIORITY_BASE[s]*FUNCTION_MULT[f]*COUNTRY_MULT[c])}
 function fmt(n){return '$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:0})}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
 // ── STATE ──
@@ -1160,6 +1209,7 @@ function ensureStateFields(){
   if(!state.allocOverrides)state.allocOverrides={};
   if(!state.accounts)state.accounts=DEFAULT_ACCOUNTS.map(a=>({...a}));
   if(!state.vendorRows)state.vendorRows=[];
+  if(!state.teRows)state.teRows=[];
   // Migrate old allocations array to per-employee allocations
   if(state.allocations){
     state.allocations.forEach(a=>{
@@ -4119,6 +4169,7 @@ function initVendorModule(){
       if(b.dataset.vtab==='vendor-scratch')setTimeout(initVendorScratch,50);
       if(b.dataset.vtab==='vendor-dims')renderVendorDims();
       if(b.dataset.vtab==='vendor-accounts')renderAccounts();
+      if(b.dataset.vtab==='vendor-te')renderTeGrid();
     });
   });
 
@@ -4130,96 +4181,111 @@ function initVendorModule(){
     return a?a.code:'';
   }
 
-  function renderVendorGrid(){
-    const tbody=document.getElementById('vendorTbody');
-    const tfoot=document.getElementById('vendorTfoot');
+  const BLANK_BG='background:#fffde7';
+
+  function buildSpendRow(row,i,prefix,fields){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    const buOpts=BU_OPTIONS.map(b=>`<option value="${b}">${b}</option>`).join('');
-    const vtOpts=VENDOR_TYPES.map(v=>`<option value="${v}">${v}</option>`).join('');
-    const lcOpts=VENDOR_LIFECYCLE.map(v=>`<option value="${v}">${v}</option>`).join('');
-    const mktOpts=state.markets.map(m=>`<option value="${m.code}">${m.code} — ${m.name}</option>`).join('');
-    const blOpts=state.bizLines.map(b=>`<option value="${b.code}">${b.code} — ${b.name}</option>`).join('');
-    const projOpts=state.projects.map(p=>`<option value="${p.id}">${p.code}</option>`).join('');
-    const acctOpts=state.accounts.map(a=>`<option value="${a.description}">${a.description}</option>`).join('');
-
-    let h='';
-    state.vendorRows.forEach((row,i)=>{
-      const fy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
-      h+=`<tr data-vi="${i}">
-        <td style="color:var(--text-dim);font-size:.75rem">${i+1}</td>
-        <td><input class="vr-field" data-f="parentCo" value="${row.parentCo||''}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>
-        <td><input class="vr-field" data-f="vendorName" value="${row.vendorName||''}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>
-        <td><select class="vr-field" data-f="vendorType" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${vtOpts}</select></td>
-        <td><select class="vr-field" data-f="lifecycle" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${lcOpts}</select></td>
-        <td><select class="vr-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>
-        <td><select class="vr-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>
-        <td><select class="vr-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>
-        <td><select class="vr-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>
-        <td><select class="vr-field vr-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>
-        <td class="vr-acctCode" style="font-size:.78rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
-      MO.forEach(m=>{
-        h+=`<td><input class="vr-field vr-mo" data-f="${m}" type="number" value="${row[m]||''}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px;text-align:right" step="any"></td>`;
-      });
-      h+=`<td style="font-weight:700;text-align:right;font-size:.8rem">${fmt(fy)}</td>`;
-      h+=`<td><button class="btn btn-sm btn-danger vr-del" data-vi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
+    const buOpts=BU_OPTIONS.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    const vtOpts=VENDOR_TYPES.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    const etOpts=EXPENSE_TYPES.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    const mktOpts=state.markets.map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
+    const blOpts=state.bizLines.map(b=>`<option value="${esc(b.code)}">${esc(b.code)} — ${esc(b.name)}</option>`).join('');
+    const projOpts=state.projects.map(p=>`<option value="${esc(p.id)}">${esc(p.code)}</option>`).join('');
+    const acctOpts=state.accounts.map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
+    const fy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
+    const blk=v=>!v?BLANK_BG:'';
+    let h=`<tr data-vi="${i}"><td style="color:var(--text-dim);font-size:.75rem">${i+1}</td>`;
+    // Custom first columns per type
+    if(fields==='vendor'){
+      h+=`<td style="${blk(row.parentCo)}"><input class="${prefix}-field" data-f="parentCo" value="${esc(row.parentCo)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+      h+=`<td style="${blk(row.vendorName)}"><input class="${prefix}-field" data-f="vendorName" value="${esc(row.vendorName)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+      h+=`<td style="${blk(row.vendorType)}"><select class="${prefix}-field" data-f="vendorType" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${vtOpts}</select></td>`;
+    } else {
+      h+=`<td style="${blk(row.expenseType)}"><select class="${prefix}-field" data-f="expenseType" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${etOpts}</select></td>`;
+      h+=`<td style="${blk(row.description)}"><input class="${prefix}-field" data-f="description" value="${esc(row.description)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+    }
+    h+=`<td style="${blk(row.businessUnit)}"><select class="${prefix}-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
+    h+=`<td style="${blk(row.bizLine)}"><select class="${prefix}-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
+    h+=`<td style="${blk(row.market)}"><select class="${prefix}-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
+    h+=`<td style="${blk(row.project)}"><select class="${prefix}-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
+    h+=`<td style="${blk(row.acctDesc)}"><select class="${prefix}-field ${prefix}-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
+    h+=`<td class="${prefix}-acctCode" style="font-size:.78rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
+    MO.forEach(m=>{
+      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="number" value="${row[m]||''}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px;text-align:right" step="any"></td>`;
     });
-    tbody.innerHTML=h;
+    h+=`<td style="font-weight:700;text-align:right;font-size:.8rem">${fmt(fy)}</td>`;
+    h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-vi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
+    return h;
+  }
 
-    // Footer totals
-    const moTotals=MO.map(m=>state.vendorRows.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
-    const fyTotal=moTotals.reduce((s,v)=>s+v,0);
-    let ft='<tr style="font-weight:700;background:var(--panel)"><td></td><td colspan="10" style="font-size:.8rem">TOTAL</td>';
-    moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.8rem">${fmt(t)}</td>`);
-    ft+=`<td style="text-align:right;font-size:.8rem">${fmt(fyTotal)}</td><td></td></tr>`;
-    tfoot.innerHTML=ft;
-
+  function bindSpendRows(tbodyEl,tfootEl,dataArr,prefix,renderFn){
+    const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     // Set selected values
-    tbody.querySelectorAll('tr').forEach(tr=>{
+    tbodyEl.querySelectorAll('tr').forEach(tr=>{
       const i=+tr.dataset.vi;
-      const row=state.vendorRows[i];
-      tr.querySelectorAll('select.vr-field').forEach(sel=>{
+      const row=dataArr[i];
+      tr.querySelectorAll(`select.${prefix}-field`).forEach(sel=>{
         const f=sel.dataset.f;
         if(row[f])sel.value=row[f];
       });
     });
-
-    // Bind events
-    tbody.querySelectorAll('.vr-field').forEach(el=>{
+    // Bind change/input
+    tbodyEl.querySelectorAll(`.${prefix}-field`).forEach(el=>{
       const ev=el.tagName==='SELECT'?'change':'input';
       el.addEventListener(ev,()=>{
         const i=+el.closest('tr').dataset.vi;
         const f=el.dataset.f;
-        state.vendorRows[i][f]=el.value;
-        if(f==='acctDesc'){
-          el.closest('tr').querySelector('.vr-acctCode').textContent=acctDescToCode(el.value);
+        dataArr[i][f]=el.value;
+        // Update blank highlighting
+        const td=el.closest('td');
+        if(el.tagName==='SELECT'||['parentCo','vendorName','description'].includes(f)){
+          td.style.background=el.value?'':'#fffde7';
         }
-        if(el.classList.contains('vr-mo')){
-          // Recalc FY
-          const MO2=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-          const fy2=MO2.reduce((s,m)=>s+(parseFloat(state.vendorRows[i][m])||0),0);
+        if(f==='acctDesc'){
+          el.closest('tr').querySelector(`.${prefix}-acctCode`).textContent=acctDescToCode(el.value);
+        }
+        if(el.classList.contains(`${prefix}-mo`)){
+          const fy2=MO.reduce((s,m)=>s+(parseFloat(dataArr[i][m])||0),0);
           const cells=el.closest('tr').querySelectorAll('td');
           cells[cells.length-2].textContent=fmt(fy2);
           // Recalc footer
-          const moTotals2=MO2.map(m=>state.vendorRows.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
-          const fyT2=moTotals2.reduce((s,v)=>s+v,0);
-          const ftCells=tfoot.querySelectorAll('td');
-          moTotals2.forEach((t,ti)=>ftCells[ti+1].textContent=fmt(t));
-          ftCells[ftCells.length-1].textContent=fmt(fyT2);
+          renderFooter(tfootEl,dataArr,fields2colSpan(prefix));
         }
         saveState();
       });
     });
-
-    tbody.querySelectorAll('.vr-del').forEach(btn=>{
+    tbodyEl.querySelectorAll(`.${prefix}-del`).forEach(btn=>{
       btn.addEventListener('click',()=>{
-        state.vendorRows.splice(+btn.dataset.vi,1);
-        saveState();renderVendorGrid();
+        dataArr.splice(+btn.dataset.vi,1);
+        saveState();renderFn();
       });
     });
   }
 
+  function fields2colSpan(prefix){return prefix==='vr'?9:8}
+
+  function renderFooter(tfootEl,dataArr,colSpan){
+    const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const moTotals=MO.map(m=>dataArr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
+    const fyTotal=moTotals.reduce((s,v)=>s+v,0);
+    let ft=`<tr style="font-weight:700;background:var(--panel)"><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL</td>`;
+    moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.8rem">${fmt(t)}</td>`);
+    ft+=`<td style="text-align:right;font-size:.8rem">${fmt(fyTotal)}</td><td></td></tr>`;
+    tfootEl.innerHTML=ft;
+  }
+
+  function renderVendorGrid(){
+    const tbody=document.getElementById('vendorTbody');
+    const tfoot=document.getElementById('vendorTfoot');
+    let h='';
+    state.vendorRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'vr','vendor')});
+    tbody.innerHTML=h;
+    renderFooter(tfoot,state.vendorRows,9);
+    bindSpendRows(tbody,tfoot,state.vendorRows,'vr',renderVendorGrid);
+  }
+
   document.getElementById('vendorAddRow').addEventListener('click',()=>{
-    state.vendorRows.push({parentCo:'',vendorName:'',vendorType:'',lifecycle:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:'',feb:'',mar:'',apr:'',may:'',jun:'',jul:'',aug:'',sep:'',oct:'',nov:'',dec:''});
+    state.vendorRows.push({parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:'',feb:'',mar:'',apr:'',may:'',jun:'',jul:'',aug:'',sep:'',oct:'',nov:'',dec:''});
     saveState();renderVendorGrid();
   });
 
@@ -4233,12 +4299,12 @@ function initVendorModule(){
       if(lines.length<2){alert('CSV must have a header row and at least one data row.');return}
       const hdrs=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/[^a-z0-9]/g,''));
       const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-      const FIELD_MAP={'parentco':'parentCo','parent':'parentCo','vendorname':'vendorName','vendor':'vendorName','vendortype':'vendorType','type':'vendorType','lifecycle':'lifecycle','businessunit':'businessUnit','bu':'businessUnit','bizline':'bizLine','businessline':'bizLine','function':'bizLine','market':'market','project':'project','acctdesc':'acctDesc','accountdescription':'acctDesc','account':'acctDesc'};
+      const FIELD_MAP={'parentco':'parentCo','parent':'parentCo','vendorname':'vendorName','vendor':'vendorName','vendortype':'vendorType','type':'vendorType','businessunit':'businessUnit','bu':'businessUnit','bizline':'bizLine','businessline':'bizLine','function':'bizLine','market':'market','project':'project','acctdesc':'acctDesc','accountdescription':'acctDesc','account':'acctDesc'};
       MO_NAMES.forEach(m=>FIELD_MAP[m]=m);
       const colMap=hdrs.map(h=>FIELD_MAP[h]||null);
       for(let li=1;li<lines.length;li++){
         const vals=lines[li].split(',').map(v=>v.trim());
-        const row={parentCo:'',vendorName:'',vendorType:'',lifecycle:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:'',feb:'',mar:'',apr:'',may:'',jun:'',jul:'',aug:'',sep:'',oct:'',nov:'',dec:''};
+        const row={parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:'',feb:'',mar:'',apr:'',may:'',jun:'',jul:'',aug:'',sep:'',oct:'',nov:'',dec:''};
         vals.forEach((v,ci)=>{if(colMap[ci])row[colMap[ci]]=v});
         // Auto-populate account code from desc
         state.vendorRows.push(row);
@@ -4253,12 +4319,12 @@ function initVendorModule(){
   document.getElementById('vendorExportBtn').addEventListener('click',()=>{
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    let csv='Parent Co,Vendor Name,Vendor Type,Lifecycle,Business Unit,Biz Line,Market,Project,Account Description,Account Code';
+    let csv='Parent Co,Vendor Name,Vendor Type,Business Unit,Biz Line,Market,Project,Account Description,Account Code';
     MO.forEach(m=>csv+=','+m);
     csv+=',Full Year\n';
     state.vendorRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
-      csv+=[r.parentCo,r.vendorName,r.vendorType,r.lifecycle||'',r.businessUnit,r.bizLine,r.market,r.project,r.acctDesc,acctDescToCode(r.acctDesc)].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',');
+      csv+=[r.parentCo,r.vendorName,r.vendorType,r.businessUnit,r.bizLine,r.market,r.project,r.acctDesc,acctDescToCode(r.acctDesc)].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',');
       moKeys.forEach(m=>csv+=','+(r[m]||0));
       csv+=','+fy+'\n';
     });
@@ -4384,21 +4450,106 @@ function initVendorModule(){
     document.getElementById('vBizCode').value='';document.getElementById('vBizName').value='';
   });
 
+  // ── T&E Tab ──
+  if(!state.teRows)state.teRows=[];
+
+  function renderTeGrid(){
+    const tbody=document.getElementById('teTbody');
+    const tfoot=document.getElementById('teTfoot');
+    let h='';
+    state.teRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'te','te')});
+    tbody.innerHTML=h;
+    renderFooter(tfoot,state.teRows,8);
+    bindSpendRows(tbody,tfoot,state.teRows,'te',renderTeGrid);
+  }
+
+  document.getElementById('teAddRow').addEventListener('click',()=>{
+    state.teRows.push({expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:'',feb:'',mar:'',apr:'',may:'',jun:'',jul:'',aug:'',sep:'',oct:'',nov:'',dec:''});
+    saveState();renderTeGrid();
+  });
+
+  document.getElementById('teExportBtn').addEventListener('click',()=>{
+    const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    let csv='Expense Type,Description,Business Unit,Biz Line,Market,Project,Account Description,Account Code';
+    MO.forEach(m=>csv+=','+m);csv+=',Full Year\n';
+    state.teRows.forEach(r=>{
+      const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
+      csv+=[r.expenseType,r.description||'',r.businessUnit,r.bizLine,r.market,r.project,r.acctDesc,acctDescToCode(r.acctDesc)].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',');
+      moKeys.forEach(m=>csv+=','+(r[m]||0));csv+=','+fy+'\n';
+    });
+    const blob=new Blob([csv],{type:'text/csv'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='te_export.csv';a.click();
+  });
+
+  renderTeGrid();
+
+  // ── Projects in Dimensions ──
+  function renderVendorProjects(){
+    const pbody=document.getElementById('vProjectsBody');
+    pbody.innerHTML=state.projects.map(p=>{
+      const mkt=state.markets.find(m=>m.code===p.marketCode);
+      return `<tr>
+        <td style="font-weight:600;color:var(--accent)">${esc(p.code)}</td>
+        <td>${esc(p.product||'')}</td><td>${esc(p.category||'')}</td>
+        <td style="font-size:.78rem">${mkt?esc(mkt.code+' — '+mkt.name):'—'}</td>
+        <td><button class="btn btn-sm btn-danger vp-del" data-pid="${p.id}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
+      </tr>`;
+    }).join('');
+    pbody.querySelectorAll('.vp-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const pid=btn.dataset.pid;
+        const p=state.projects.find(x=>x.id===pid);
+        if(!confirm('Delete project '+(p?p.code:pid)+'?'))return;
+        state.projects=state.projects.filter(x=>x.id!==pid);
+        state.employees.forEach(e=>{if(e.allocations)e.allocations=e.allocations.filter(a=>a.projId!==pid)});
+        saveState();renderVendorProjects();renderVendorGrid();renderTeGrid();
+        if(typeof renderProjects==='function')renderProjects();
+        if(typeof refreshProjectDropdown==='function')refreshProjectDropdown();
+      });
+    });
+    // Populate market select
+    const vProjMkt=document.getElementById('vProjMarket');
+    const curVal=vProjMkt.value;
+    vProjMkt.innerHTML='<option value="">—</option>'+state.markets.map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
+    if(curVal)vProjMkt.value=curVal;
+  }
+
+  document.getElementById('vBtnAddProject').addEventListener('click',()=>{
+    const code=document.getElementById('vProjCode').value.trim();
+    const product=document.getElementById('vProjProduct').value.trim();
+    const category=document.getElementById('vProjCategory').value.trim();
+    const marketCode=document.getElementById('vProjMarket').value;
+    if(!code||!product||!category){alert('Fill code, product, and category');return}
+    if(state.projects.some(p=>p.code===code)){alert('Project code already exists');return}
+    state.projects.push({id:uid(),code,product,category,marketCode,description:''});
+    saveState();renderVendorProjects();renderVendorGrid();renderTeGrid();
+    if(typeof renderProjects==='function')renderProjects();
+    if(typeof refreshProjectDropdown==='function')refreshProjectDropdown();
+    document.getElementById('vProjCode').value='';document.getElementById('vProjProduct').value='';document.getElementById('vProjCategory').value='';document.getElementById('vProjMarket').value='';
+  });
+
+  // Wire dims render to also render projects
+  const origRenderDims=renderVendorDims;
+  renderVendorDims=function(){origRenderDims();renderVendorProjects()};
+
   // Initial render
   renderVendorGrid();
   renderAccounts();
-  window.renderVendorGridPublic=renderVendorGrid;
+  window.renderVendorGridPublic=function(){renderVendorGrid();renderTeGrid()};
 }
 
 function getVendorOaoTotal(){
-  if(!state.vendorRows)return 0;
   const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-  return state.vendorRows.reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+  const vTotal=(state.vendorRows||[]).reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+  const tTotal=(state.teRows||[]).reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+  return vTotal+tTotal;
 }
 function getVendorOaoByMonth(mi){
-  if(!state.vendorRows)return 0;
   const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-  return state.vendorRows.reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
+  const vAmt=(state.vendorRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
+  const tAmt=(state.teRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
+  return vAmt+tAmt;
 }
 
 // ── LANDING PAGE ──
