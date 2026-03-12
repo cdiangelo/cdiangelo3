@@ -269,6 +269,7 @@ th.v-hdr{white-space:nowrap;padding:8px 4px;min-width:90px;font-size:.75rem;text
 .dim-edit-select:hover{border-color:var(--border);background:var(--panel-inset)}
 .dim-edit-select:focus{border-color:var(--accent);background:#fff;outline:none}
 /* Standardized numeric column */
+.emp-filter-row td{background:var(--panel-inset);padding:4px 6px;position:sticky;top:36px;z-index:1}
 th.num-col,td.num-col{min-width:90px;text-align:right;white-space:nowrap}
 th.num-col-sm,td.num-col-sm{min-width:70px;text-align:right;white-space:nowrap}
 th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
@@ -566,18 +567,26 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <button class="btn" id="btnCancelEmp" style="display:none">Cancel</button>
 </div>
 </div>
-<div class="controls" style="flex-wrap:wrap;gap:8px">
-<input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:220px">
-<select id="empFilterCountry" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Countries</option></select>
-<select id="empFilterSeniority" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Seniority</option></select>
-<select id="empFilterFunction" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Functions</option></select>
-<select id="empFilterBizLine" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Bus Lines</option></select>
-<select id="empFilterProject" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Projects</option></select>
+<div class="controls" style="justify-content:flex-end;margin-bottom:8px">
 <button class="btn" id="btnClearAllEmps" style="background:var(--danger);color:#fff">Clear All</button>
 </div>
-<div class="table-wrap"><table id="empTable"><thead><tr>
+<div class="table-wrap"><table id="empTable"><thead>
+<tr>
 <th style="min-width:80px">Actions</th><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Business Line</th><th class="ops-hide">Bus Unit</th><th>Projects</th><th class="num-col">Base</th><th class="num-col-sm">Bonus %</th><th class="num-col">Bonus</th><th class="num-col">Benefits</th><th class="num-col-lg">Total Comp</th><th class="num-col-sm">Cap %</th><th class="num-col">OpEx</th><th class="num-col">CapEx</th><th>Hire Date</th><th>Term Date</th>
-</tr></thead><tbody></tbody></table></div>
+</tr>
+<tr class="emp-filter-row">
+<td></td>
+<td><input id="empFilterName" placeholder="Filter…" style="width:100%;padding:3px 6px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"></td>
+<td><select id="empFilterCountry" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
+<td><select id="empFilterSeniority" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
+<td><select id="empFilterFunction" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
+<td><select id="empFilterMarket" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
+<td><select id="empFilterBizLine" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
+<td class="ops-hide"></td>
+<td><select id="empFilterProject" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
+<td colspan="10"></td>
+</tr>
+</thead><tbody></tbody></table></div>
 </div>
 
 <!-- PROJECT / MARKET MAPPING -->
@@ -2103,36 +2112,38 @@ function refreshEmpFilters(){
   const fFunction=document.getElementById('empFilterFunction');
   const fBizLine=document.getElementById('empFilterBizLine');
   const fProject=document.getElementById('empFilterProject');
-  const preserve=(sel)=>{const v=sel.value;return v};
-  const cv=preserve(fCountry),sv=preserve(fSeniority),fv=preserve(fFunction),bv=preserve(fBizLine),pv=preserve(fProject);
+  const fMarket=document.getElementById('empFilterMarket');
+  const cv=fCountry.value,sv=fSeniority.value,fv=fFunction.value,bv=fBizLine.value,pv=fProject.value,mv=fMarket.value;
   const countries=[...new Set(state.employees.map(e=>e.country))].sort();
   const seniorities=[...new Set(state.employees.map(e=>e.seniority))].sort();
   const functions=[...new Set(state.employees.map(e=>e.function))].sort();
   const bizLines=[...new Set(state.employees.map(e=>e.businessLine).filter(Boolean))].sort();
   const projIds=new Set();state.employees.forEach(e=>(e.allocations||[]).forEach(a=>projIds.add(a.projId)));
   const projects=state.projects.filter(p=>projIds.has(p.id)).sort((a,b)=>a.code.localeCompare(b.code));
-  fCountry.innerHTML='<option value="">All Countries</option>'+countries.map(c=>`<option value="${c}"${c===cv?' selected':''}>${c}</option>`).join('');
-  fSeniority.innerHTML='<option value="">All Seniority</option>'+seniorities.map(s=>`<option value="${s}"${s===sv?' selected':''}>${s}</option>`).join('');
-  fFunction.innerHTML='<option value="">All Functions</option>'+functions.map(f=>`<option value="${esc(f)}"${f===fv?' selected':''}>${esc(f)}</option>`).join('');
-  fBizLine.innerHTML='<option value="">All Bus Lines</option>'+bizLines.map(b=>{const bl=state.bizLines.find(x=>x.code===b);return `<option value="${esc(b)}"${b===bv?' selected':''}>${esc(b)}${bl?' — '+esc(bl.name):''}</option>`}).join('');
-  fProject.innerHTML='<option value="">All Projects</option>'+projects.map(p=>`<option value="${p.id}"${p.id===pv?' selected':''}>${esc(p.code)} — ${esc(p.product)}</option>`).join('');
+  const marketCodes=new Set();state.employees.forEach(e=>getEmpMarkets(e).forEach(m=>marketCodes.add(m.code)));
+  const markets=[...marketCodes].sort();
+  fCountry.innerHTML='<option value="">All</option>'+countries.map(c=>`<option value="${c}"${c===cv?' selected':''}>${c}</option>`).join('');
+  fSeniority.innerHTML='<option value="">All</option>'+seniorities.map(s=>`<option value="${s}"${s===sv?' selected':''}>${s}</option>`).join('');
+  fFunction.innerHTML='<option value="">All</option>'+functions.map(f=>`<option value="${esc(f)}"${f===fv?' selected':''}>${esc(f)}</option>`).join('');
+  fMarket.innerHTML='<option value="">All</option>'+markets.map(m=>`<option value="${esc(m)}"${m===mv?' selected':''}>${esc(m)}</option>`).join('');
+  fBizLine.innerHTML='<option value="">All</option>'+bizLines.map(b=>{const bl=state.bizLines.find(x=>x.code===b);return `<option value="${esc(b)}"${b===bv?' selected':''}>${esc(b)}${bl?' — '+esc(bl.name):''}</option>`}).join('');
+  fProject.innerHTML='<option value="">All</option>'+projects.map(p=>`<option value="${p.id}"${p.id===pv?' selected':''}>${esc(p.code)}</option>`).join('');
 }
 function renderEmployees(){
   refreshEmpFilters();
-  const search=document.getElementById('empSearch').value.toLowerCase();
+  const fName=(document.getElementById('empFilterName').value||'').toLowerCase();
   const fCountry=document.getElementById('empFilterCountry').value;
   const fSeniority=document.getElementById('empFilterSeniority').value;
   const fFunction=document.getElementById('empFilterFunction').value;
+  const fMarket=document.getElementById('empFilterMarket').value;
   const fBizLine=document.getElementById('empFilterBizLine').value;
   const fProject=document.getElementById('empFilterProject').value;
   let emps=state.employees;
-  if(search)emps=emps.filter(e=>{
-    const allProjs=e.allocations?e.allocations.map(a=>getProjectById(a.projId)).filter(Boolean):[];
-    return [e.name,e.country,e.seniority,e.function,...getEmpMarkets(e).map(m=>m.code),e.businessLine||'',e.businessUnit||'',...allProjs.map(p=>p.code),...allProjs.map(p=>p.product)].some(v=>v.toLowerCase().includes(search));
-  });
+  if(fName)emps=emps.filter(e=>e.name.toLowerCase().includes(fName));
   if(fCountry)emps=emps.filter(e=>e.country===fCountry);
   if(fSeniority)emps=emps.filter(e=>e.seniority===fSeniority);
   if(fFunction)emps=emps.filter(e=>e.function===fFunction);
+  if(fMarket)emps=emps.filter(e=>getEmpMarkets(e).some(m=>m.code===fMarket));
   if(fBizLine)emps=emps.filter(e=>e.businessLine===fBizLine);
   if(fProject)emps=emps.filter(e=>(e.allocations||[]).some(a=>a.projId===fProject));
   const tbody=document.querySelector('#empTable tbody');
@@ -2202,8 +2213,8 @@ function renderEmployees(){
     </tr>`;
   }).join('');
 }
-document.getElementById('empSearch').addEventListener('input',renderEmployees);
-['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterBizLine','empFilterProject'].forEach(id=>{
+document.getElementById('empFilterName').addEventListener('input',renderEmployees);
+['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterMarket','empFilterBizLine','empFilterProject'].forEach(id=>{
   document.getElementById(id).addEventListener('change',renderEmployees);
 });
 
