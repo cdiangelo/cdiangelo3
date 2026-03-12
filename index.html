@@ -279,6 +279,28 @@ body.dragging-row{cursor:grabbing!important}body.dragging-row *{cursor:grabbing!
 th.num-col,td.num-col{min-width:90px;text-align:right;white-space:nowrap}
 th.num-col-sm,td.num-col-sm{min-width:70px;text-align:right;white-space:nowrap}
 th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
+/* Scenario Analysis */
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.scenario-chart-container{position:relative;height:250px;margin-bottom:12px}
+.chatbot-panel{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:8px;background:var(--panel-inset);overflow:hidden}
+.chatbot-header{padding:8px 12px;font-weight:600;font-size:.85rem;color:var(--accent);background:var(--panel);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.chat-messages{flex:1;overflow-y:auto;padding:10px;max-height:350px;min-height:200px;display:flex;flex-direction:column;gap:6px}
+.chat-msg{max-width:85%;padding:8px 12px;border-radius:10px;font-size:.82rem;line-height:1.4;word-wrap:break-word}
+.chat-msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:2px}
+.chat-msg.system{align-self:flex-start;background:var(--panel);border:1px solid var(--border);border-bottom-left-radius:2px}
+.chat-msg.system .chat-delta{margin-top:6px;padding:6px 8px;background:var(--panel-inset);border-radius:6px;font-size:.78rem;font-family:monospace}
+.chat-delta .up{color:var(--danger)}.chat-delta .down{color:var(--success)}.chat-delta .neutral{color:var(--text-dim)}
+.chat-msg.error{align-self:flex-start;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-bottom-left-radius:2px}
+.chat-msg.hint{align-self:center;color:var(--text-dim);font-size:.75rem;font-style:italic;background:none;padding:4px}
+.chat-input-bar{display:flex;gap:6px;padding:8px;border-top:1px solid var(--border);background:var(--panel)}
+.chat-input-bar input{flex:1;padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;background:var(--bg)}
+.chat-input-bar button{padding:6px 14px;font-size:.82rem}
+.chat-examples{padding:4px 8px;display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid var(--border)}
+.chat-examples button{font-size:.7rem;padding:2px 8px;border-radius:10px;background:var(--panel-inset);border:1px solid var(--border);cursor:pointer;color:var(--text-dim)}
+.chat-examples button:hover{border-color:var(--accent);color:var(--accent)}
+.scenario-link-toggle{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--text-dim);cursor:pointer}
+.scenario-link-toggle input{cursor:pointer}
+@media(max-width:900px){.scenario-grid{grid-template-columns:1fr}}
 /* Sticky note panel */
 .sticky-note-btn{position:fixed;top:12px;right:16px;z-index:10000;background:var(--panel);border:1px solid var(--border);color:var(--accent);font-size:1.1rem;width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .2s}
 .sticky-note-btn:hover{background:var(--accent);color:#fff;transform:scale(1.08)}
@@ -555,6 +577,78 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div class="exec-pane">
 <h3>Roster by Product Category &amp; Product</h3>
 <div id="execRosterPane"></div>
+</div>
+
+<!-- Pane 4: Scenario Analysis -->
+<div class="exec-pane">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h3 style="margin:0">Scenario Analysis</h3>
+<label class="scenario-link-toggle"><input type="checkbox" id="scenLinkFilters"> Link filters between panels</label>
+</div>
+<!-- Charts side by side -->
+<div class="scenario-grid">
+<div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<h4 style="color:var(--accent);font-size:.88rem;margin:0">Current Year Budget</h4>
+<div class="toggle-group" id="scenBudgetSplitToggle" style="font-size:.72rem">
+<button class="btn active" data-sbsplit="none" style="padding:2px 8px;font-size:.72rem">Total</button>
+<button class="btn" data-sbsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
+<button class="btn" data-sbsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
+</div>
+</div>
+<div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
+</div>
+<div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<h4 style="color:var(--accent);font-size:.88rem;margin:0">Long Term Forecast</h4>
+<div class="toggle-group" id="scenFcSplitToggle" style="font-size:.72rem">
+<button class="btn active" data-sfsplit="total" style="padding:2px 8px;font-size:.72rem">Total</button>
+<button class="btn" data-sfsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
+<button class="btn" data-sfsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
+</div>
+</div>
+<div class="scenario-chart-container"><canvas id="scenFcChart"></canvas></div>
+</div>
+</div>
+<!-- Chatbots side by side -->
+<div class="scenario-grid" style="margin-top:12px">
+<div class="chatbot-panel">
+<div class="chatbot-header"><span>Budget Scenarios</span><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div>
+<div class="chat-messages" id="budgetChatMessages">
+<div class="chat-msg hint">Try a scenario below or type your own</div>
+</div>
+<div class="chat-examples" id="budgetChatExamples">
+<button data-cmd="reduce software engineering headcount by 20%">-20% SWE HC</button>
+<button data-cmd="swap 20% us for 10% india and 10% canada">Swap US→IN/CA</button>
+<button data-cmd="shift hire dates to 5/1">Shift hires to 5/1</button>
+<button data-cmd="cut vendor spend by 15%">Cut vendor 15%</button>
+<button data-cmd="increase all salary by 5%">+5% salary</button>
+</div>
+<div class="chat-input-bar">
+<input id="budgetChatInput" placeholder="e.g. reduce senior headcount by 10%..." autocomplete="off">
+<button class="btn btn-primary" id="budgetChatSend">Send</button>
+</div>
+</div>
+<div class="chatbot-panel">
+<div class="chatbot-header"><span>Forecast Scenarios</span><button class="btn btn-sm" id="scenFcReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div>
+<div class="chat-messages" id="fcChatMessages">
+<div class="chat-msg hint">Try a scenario below or type your own</div>
+</div>
+<div class="chat-examples" id="fcChatExamples">
+<button data-cmd="freeze hiring">Freeze hiring</button>
+<button data-cmd="reduce software engineering headcount by 10% thru 2030">-10% SWE thru 2030</button>
+<button data-cmd="increase merit by 2%">+2% merit</button>
+<button data-cmd="set attrition to 20%">Attrition→20%</button>
+<button data-cmd="set ai productivity to 1.5">AI prod 1.5x</button>
+</div>
+<div class="chat-input-bar">
+<input id="fcChatInput" placeholder="e.g. freeze hiring thru 2030..." autocomplete="off">
+<button class="btn btn-primary" id="fcChatSend">Send</button>
+</div>
+</div>
+</div>
+<!-- P&L Summary -->
+<div id="scenPnlSummary" style="margin-top:12px"></div>
 </div>
 </div>
 
@@ -1535,7 +1629,7 @@ document.querySelectorAll('#mainNav button').forEach(b=>{
     if(b.dataset.tab==='benchmarks')renderBenchmarkTables();
     if(b.dataset.tab==='monthly')renderMonthly();
     if(b.dataset.tab==='forecast')renderForecast();
-    if(b.dataset.tab==='exec')renderExecView();
+    if(b.dataset.tab==='exec'){renderExecView();if(!window._scenInited){initScenarioPane();window._scenInited=true}}
     if(b.dataset.tab==='scratch')initScratchPad();
   });
 });
@@ -4684,6 +4778,503 @@ function renderExecView(){
   rosterPane.querySelectorAll('.prod-header').forEach(h=>h.addEventListener('click',(e)=>{e.stopPropagation();if(!document.body.classList.contains('ops-mode'))h.parentElement.classList.toggle('collapsed')}));
 }
 
+// ── SCENARIO ANALYSIS ──
+let budgetScenario=null,forecastScenario=null;
+let budgetChatHistory=[],fcChatHistory=[];
+let scenBudgetSplit='none',scenFcSplit='total',scenFiltersLinked=false;
+let scenBudgetChartInst=null,scenFcChartInst=null;
+
+function initBudgetScenario(){
+  budgetScenario={
+    emps:JSON.parse(JSON.stringify(state.employees)),
+    vendorRows:JSON.parse(JSON.stringify(state.vendorRows||[])),
+    teRows:JSON.parse(JSON.stringify(state.teRows||[]))
+  };
+}
+function initForecastScenario(){
+  forecastScenario={
+    emps:JSON.parse(JSON.stringify(state.employees)),
+    assumptions:JSON.parse(JSON.stringify(state.forecastAssumptions))
+  };
+}
+
+function computeBudgetPnl(emps,vRows,tRows){
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  let totalComp=0,totalCapex=0,totalOao=0;
+  const monthly=MO.map((_,mi)=>{
+    let comp=0,capex=0;
+    emps.forEach(e=>{comp+=getMonthlyComp(e,mi);capex+=getMonthlyCapEx(e,mi)});
+    const oao=(vRows||[]).reduce((s,r)=>s+(parseFloat(r[MO[mi]])||0),0)+(tRows||[]).reduce((s,r)=>s+(parseFloat(r[MO[mi]])||0),0);
+    totalComp+=comp;totalCapex+=capex;totalOao+=oao;
+    return {comp,opex:comp-capex,capex,oao,total:comp+oao};
+  });
+  const hc=emps.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR).length;
+  return {monthly,annual:{hc,comp:totalComp,opex:totalComp-totalCapex,capex:totalCapex,oao:totalOao,total:totalComp+totalOao}};
+}
+
+function computeForecastPnl(emps,assumptions){
+  const origAssumptions=state.forecastAssumptions;
+  state.forecastAssumptions=assumptions;
+  const rows=projectForecast(emps);
+  state.forecastAssumptions=origAssumptions;
+  return rows;
+}
+
+function fmtDelta(label,before,after){
+  const diff=after-before;const pct=before?Math.round(diff/before*100):0;
+  const cls=diff<0?'down':diff>0?'up':'neutral';
+  const sign=diff>0?'+':'';
+  return `<div><span class="${cls}">${label}: ${typeof before==='number'&&before>999?fmt(before):before} → ${typeof after==='number'&&after>999?fmt(after):after} (${sign}${pct}%)</span></div>`;
+}
+
+function computeBudgetDelta(){
+  const base=computeBudgetPnl(JSON.parse(JSON.stringify(state.employees)),state.vendorRows,state.teRows);
+  const scen=computeBudgetPnl(budgetScenario.emps,budgetScenario.vendorRows,budgetScenario.teRows);
+  let html='';
+  html+=fmtDelta('HC',base.annual.hc,scen.annual.hc);
+  html+=fmtDelta('Total Comp',base.annual.comp,scen.annual.comp);
+  html+=fmtDelta('OpEx',base.annual.opex,scen.annual.opex);
+  html+=fmtDelta('Vendor/T&E',base.annual.oao,scen.annual.oao);
+  html+=fmtDelta('Total Spend',base.annual.total,scen.annual.total);
+  return html;
+}
+
+function computeFcDelta(){
+  const baseRows=projectForecast(state.employees);
+  const scenRows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
+  const lastBase=baseRows[baseRows.length-1]||{hc:0,total:0,opex:0};
+  const lastScen=scenRows[scenRows.length-1]||{hc:0,total:0,opex:0};
+  let html='<div style="font-size:.72rem;color:var(--text-dim);margin-bottom:2px">By '+FORECAST_YEARS[FORECAST_YEARS.length-1]+':</div>';
+  html+=fmtDelta('HC',lastBase.hc,lastScen.hc);
+  html+=fmtDelta('Total Inv',lastBase.total,lastScen.total);
+  html+=fmtDelta('OpEx',lastBase.opex,lastScen.opex);
+  return html;
+}
+
+// ── Group resolver ──
+function resolveGroup(text,emps){
+  const t=text.trim().toLowerCase();
+  if(t==='all'||t==='everyone')return e=>true;
+  // Countries
+  const country=COUNTRIES.find(c=>c.toLowerCase()===t||c.toLowerCase().startsWith(t));
+  if(country)return e=>e.country===country;
+  // Short aliases
+  const countryAliases={'us':'United States','uk':'United Kingdom','ca':'Canada','de':'Germany','in':'India','au':'Australia','sg':'Singapore','nl':'Netherlands','br':'Brazil','pl':'Poland'};
+  if(countryAliases[t])return e=>e.country===countryAliases[t];
+  // Seniority
+  const sen=SENIORITY.find(s=>s.toLowerCase()===t||s.toLowerCase().startsWith(t));
+  if(sen)return e=>e.seniority===sen;
+  // Functions
+  const func=FUNCTIONS.find(f=>f.toLowerCase()===t||f.toLowerCase().includes(t));
+  if(func)return e=>e.function===func;
+  // Aliases
+  const funcAliases={'swe':'Software Engineering','software eng':'Software Engineering','data eng':'Data Engineering','devops':'DevOps/SRE','pm':'Product Management','qa':'QA Engineering','data sci':'Data Science','security':'Security Engineering','cloud':'Cloud Architecture','tpm':'Technical Program Management'};
+  for(const [alias,full] of Object.entries(funcAliases)){if(t.includes(alias))return e=>e.function===full}
+  // Business line
+  const bl=state.bizLines.find(b=>b.name.toLowerCase().includes(t)||b.code===t);
+  if(bl)return e=>e.businessLine===bl.code;
+  return null;
+}
+
+// ── Budget Command Parser ──
+function parseBudgetCommand(text){
+  const emps=budgetScenario.emps;
+  let m;
+  // Reset
+  if(/^reset$/i.test(text.trim())){initBudgetScenario();return {msg:'Scenario reset to baseline.',ok:true}}
+  // Reduce headcount by X%
+  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+headcount\s+by\s+(\d+)%/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);const pct=parseInt(m[2]);
+    if(!filter)return {msg:`Could not identify group "${m[1]}". Try a country, seniority, or function name.`,ok:false};
+    const matching=emps.filter(filter);const toRemove=Math.round(matching.length*pct/100);
+    for(let i=0;i<toRemove;i++){const idx=emps.findIndex(filter);if(idx>=0)emps.splice(idx,1)}
+    return {msg:`Removed ${toRemove} of ${matching.length} matching employees (${pct}% of ${m[1]}).`,ok:true};
+  }
+  // Increase/cut salary by X%
+  m=text.match(/(?:increase|raise|boost)\s+(.+?)\s+salary\s+by\s+(\d+)%/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);const pct=parseInt(m[2]);
+    if(!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    let count=0;emps.forEach(e=>{if(filter(e)){e.salary=Math.round(e.salary*(1+pct/100));count++}});
+    return {msg:`Increased salary by ${pct}% for ${count} employees.`,ok:true};
+  }
+  m=text.match(/(?:cut|reduce|decrease)\s+(.+?)\s+salary\s+by\s+(\d+)%/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);const pct=parseInt(m[2]);
+    if(!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    let count=0;emps.forEach(e=>{if(filter(e)){e.salary=Math.round(e.salary*(1-pct/100));count++}});
+    return {msg:`Reduced salary by ${pct}% for ${count} employees.`,ok:true};
+  }
+  // Swap X% country1 for Y% country2 [and Z% country3]
+  m=text.match(/swap\s+(\d+)%\s+(.+?)\s+for\s+(\d+)%\s+(.+?)(?:\s+and\s+(\d+)%\s+(.+))?$/i);
+  if(m){
+    const srcFilter=resolveGroup(m[2],emps);const pctRemove=parseInt(m[1]);
+    if(!srcFilter)return {msg:`Could not identify source group "${m[2]}".`,ok:false};
+    const srcEmps=emps.filter(srcFilter);const toRemove=Math.round(srcEmps.length*pctRemove/100);
+    // Build replacement targets
+    const targets=[{pct:parseInt(m[3]),group:m[4]}];
+    if(m[5]&&m[6])targets.push({pct:parseInt(m[5]),group:m[6]});
+    // Remove source employees
+    const removed=[];
+    for(let i=0;i<toRemove;i++){const idx=emps.findIndex(srcFilter);if(idx>=0)removed.push(...emps.splice(idx,1))}
+    // Add replacements
+    let added=0;
+    targets.forEach(tgt=>{
+      const country=COUNTRIES.find(c=>c.toLowerCase().includes(tgt.group.trim().toLowerCase()))||tgt.group.trim();
+      const numAdd=Math.round(srcEmps.length*tgt.pct/100);
+      for(let i=0;i<numAdd;i++){
+        const template=removed[i%removed.length]||srcEmps[0];
+        emps.push({...JSON.parse(JSON.stringify(template)),id:uid(),name:`New ${country} ${i+1}`,country,salary:benchmark(template.seniority,template.function,country),businessUnit:COUNTRY_BU[country]||''});
+        added++;
+      }
+    });
+    return {msg:`Removed ${removed.length} from ${m[2]}, added ${added} replacements.`,ok:true};
+  }
+  // Shift hire dates
+  m=text.match(/shift\s+(?:all\s+)?hire\s+dates?\s+to\s+(\S+)/i);
+  if(m){
+    const dateStr=m[1];let newDate;
+    if(/^\d{1,2}\/\d{1,2}$/.test(dateStr)){newDate=CURRENT_YEAR+'-'+dateStr.split('/').map(p=>p.padStart(2,'0')).join('-')}
+    else{newDate=dateStr}
+    let count=0;emps.forEach(e=>{if(e.hireDate){e.hireDate=newDate;count++}else{e.hireDate=newDate;count++}});
+    return {msg:`Shifted hire dates to ${newDate} for ${count} employees.`,ok:true};
+  }
+  // Remove all [group]
+  m=text.match(/remove\s+all\s+(.+)/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);
+    if(!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    const before=emps.length;budgetScenario.emps=emps.filter(e=>!filter(e));
+    return {msg:`Removed ${before-budgetScenario.emps.length} employees.`,ok:true};
+  }
+  // Add X [seniority] [function] in [country]
+  m=text.match(/add\s+(\d+)\s+(.+?)\s+((?:software|data|devops|product|qa|cloud|security|technical|it)\S*(?:\s+\S+)?)\s+in\s+(.+)/i);
+  if(m){
+    const num=parseInt(m[1]);const sen=SENIORITY.find(s=>s.toLowerCase().startsWith(m[2].trim().toLowerCase()))||m[2].trim();
+    const func=FUNCTIONS.find(f=>f.toLowerCase().includes(m[3].trim().toLowerCase()))||m[3].trim();
+    const country=COUNTRIES.find(c=>c.toLowerCase().includes(m[4].trim().toLowerCase()))||m[4].trim();
+    for(let i=0;i<num;i++){
+      emps.push({id:uid(),name:`New ${sen} ${i+1}`,country,seniority:sen,function:func,salary:benchmark(sen,func,country),capPct:0,notes:'Scenario',hireDate:'',termDate:'',businessLine:state.bizLines[0]?.code||'',businessUnit:COUNTRY_BU[country]||'',allocations:[]});
+    }
+    return {msg:`Added ${num} ${sen} ${func} in ${country} at ${fmt(benchmark(sen,func,country))} each.`,ok:true};
+  }
+  // Cut vendor spend
+  m=text.match(/cut\s+vendor\s+spend\s+by\s+(\d+)%/i);
+  if(m){
+    const pct=parseInt(m[1]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    budgetScenario.vendorRows.forEach(r=>MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))}));
+    return {msg:`Reduced all vendor spend by ${pct}%.`,ok:true};
+  }
+  // Cut specific type spend
+  m=text.match(/cut\s+(.+?)\s+spend\s+by\s+(\d+)%/i);
+  if(m){
+    const type=m[1].trim().toLowerCase();const pct=parseInt(m[2]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    let count=0;
+    budgetScenario.vendorRows.forEach(r=>{
+      if((r.vendorType||'').toLowerCase().includes(type)||(r.acctDesc||'').toLowerCase().includes(type)){
+        MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});count++;
+      }
+    });
+    budgetScenario.teRows.forEach(r=>{
+      if((r.expenseType||'').toLowerCase().includes(type)||(r.description||'').toLowerCase().includes(type)){
+        MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});count++;
+      }
+    });
+    return {msg:`Reduced ${type} spend by ${pct}% across ${count} rows.`,ok:true};
+  }
+  // Set cap%
+  m=text.match(/set\s+cap\s*%?\s+to\s+(\d+)/i);
+  if(m){
+    const pct=parseInt(m[1]);let count=0;emps.forEach(e=>{e.capPct=pct;count++});
+    return {msg:`Set capitalization to ${pct}% for ${count} employees.`,ok:true};
+  }
+  // Terminate group on date
+  m=text.match(/terminate\s+(.+?)\s+on\s+(\S+)/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);const date=m[2];
+    if(!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    let count=0;emps.forEach(e=>{if(filter(e)){e.termDate=date;count++}});
+    return {msg:`Set termination date to ${date} for ${count} employees.`,ok:true};
+  }
+  return {msg:`I didn't understand that. Try commands like:\n• "reduce [group] headcount by X%"\n• "swap X% [country] for Y% [country]"\n• "shift hire dates to [date]"\n• "cut vendor spend by X%"\n• "add X [seniority] [function] in [country]"`,ok:false};
+}
+
+// ── Forecast Command Parser ──
+function parseForecastCommand(text){
+  const emps=forecastScenario.emps;
+  const fa=forecastScenario.assumptions;
+  let m;
+  if(/^reset$/i.test(text.trim())){initForecastScenario();return {msg:'Forecast scenario reset to baseline.',ok:true}}
+  // Reduce headcount by X% thru year
+  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+(?:headcount|hc)\s+by\s+(\d+)%(?:\s+thru\s+(\d{4}))?/i);
+  if(m){
+    const pct=parseInt(m[2]);const thruYear=m[3]?parseInt(m[3]):FORECAST_YEARS[FORECAST_YEARS.length-1];
+    // Increase attrition to achieve this reduction
+    FORECAST_YEARS.forEach((y,i)=>{if(y<=thruYear)fa.attrition[i]=Math.min(100,fa.attrition[i]+pct)});
+    fa.toggles.attrition=true;
+    // Also reduce starting headcount if group specified
+    if(m[1].toLowerCase()!=='all'&&m[1].toLowerCase()!=='overall'){
+      const filter=resolveGroup(m[1],emps);
+      if(filter){
+        const matching=emps.filter(filter);const toRemove=Math.round(matching.length*pct/100);
+        for(let i=0;i<toRemove;i++){const idx=emps.findIndex(filter);if(idx>=0)emps.splice(idx,1)}
+      }
+    }
+    return {msg:`Increased attrition by ${pct}% thru ${thruYear} to model headcount reduction.`,ok:true};
+  }
+  // Increase merit by X%
+  m=text.match(/(?:increase|raise)\s+merit\s+by\s+(\d+)%/i);
+  if(m){const add=parseInt(m[1]);fa.merit=fa.merit.map(v=>v+add);fa.toggles.merit=true;return {msg:`Increased merit by ${add}% across all forecast years.`,ok:true}}
+  // Set attrition to X%
+  m=text.match(/set\s+attrition\s+to\s+(\d+)%?/i);
+  if(m){const v=parseInt(m[1]);fa.attrition=fa.attrition.map(()=>v);fa.toggles.attrition=true;return {msg:`Set attrition to ${v}% for all years.`,ok:true}}
+  // Set hires to X
+  m=text.match(/set\s+hires?\s+to\s+(\d+)/i);
+  if(m){const v=parseInt(m[1]);fa.hires=fa.hires.map(()=>v);fa.toggles.hires=true;return {msg:`Set annual hires to ${v} for all years.`,ok:true}}
+  // Freeze hiring
+  if(/freeze\s+hir/i.test(text)){fa.hires=fa.hires.map(()=>0);fa.toggles.hires=true;return {msg:'Hiring frozen — 0 new hires across all forecast years.',ok:true}}
+  // Swap countries (same as budget but on forecast emps)
+  m=text.match(/swap\s+(\d+)%\s+(.+?)\s+for\s+(\d+)%\s+(.+?)(?:\s+and\s+(\d+)%\s+(.+))?$/i);
+  if(m){
+    const srcFilter=resolveGroup(m[2],emps);const pctRemove=parseInt(m[1]);
+    if(!srcFilter)return {msg:`Could not identify source group "${m[2]}".`,ok:false};
+    const srcEmps=emps.filter(srcFilter);const toRemove=Math.round(srcEmps.length*pctRemove/100);
+    const targets=[{pct:parseInt(m[3]),group:m[4]}];
+    if(m[5]&&m[6])targets.push({pct:parseInt(m[5]),group:m[6]});
+    const removed=[];
+    for(let i=0;i<toRemove;i++){const idx=emps.findIndex(srcFilter);if(idx>=0)removed.push(...emps.splice(idx,1))}
+    let added=0;
+    targets.forEach(tgt=>{
+      const country=COUNTRIES.find(c=>c.toLowerCase().includes(tgt.group.trim().toLowerCase()))||tgt.group.trim();
+      const numAdd=Math.round(srcEmps.length*tgt.pct/100);
+      for(let i=0;i<numAdd;i++){
+        const template=removed[i%removed.length]||srcEmps[0];
+        emps.push({...JSON.parse(JSON.stringify(template)),id:uid(),name:`New ${country} ${i+1}`,country,salary:benchmark(template.seniority,template.function,country),businessUnit:COUNTRY_BU[country]||''});
+        added++;
+      }
+    });
+    return {msg:`Removed ${removed.length} from ${m[2]}, added ${added} replacements in forecast base.`,ok:true};
+  }
+  // Set cap%
+  m=text.match(/(?:set|increase)\s+cap\s*%?\s+to\s+(\d+)/i);
+  if(m){const v=parseInt(m[1]);fa.capitalization=fa.capitalization.map(()=>v);fa.toggles.capitalization=true;return {msg:`Set capitalization to ${v}% across all forecast years.`,ok:true}}
+  // Set AI productivity
+  m=text.match(/set\s+ai\s+(?:productivity|gear|factor)\s+to\s+(\d+\.?\d*)/i);
+  if(m){const v=parseFloat(m[1]);fa.ai=fa.ai.map(()=>v);fa.toggles.ai=true;return {msg:`Set AI productivity factor to ${v}x for all years.`,ok:true}}
+  // What is current metric
+  m=text.match(/what\s+is\s+(?:the\s+)?(?:current|baseline)\s+(.+)/i);
+  if(m){
+    const metric=m[1].trim().toLowerCase();
+    const baseRows=projectForecast(state.employees);
+    const cur=baseRows[0]||{};
+    if(metric.includes('hc')||metric.includes('headcount'))return {msg:`Baseline headcount: ${cur.hc}`,ok:true};
+    if(metric.includes('comp')||metric.includes('total'))return {msg:`Baseline total compensation: ${fmt(cur.total)}`,ok:true};
+    if(metric.includes('opex'))return {msg:`Baseline OpEx: ${fmt(cur.opex)}`,ok:true};
+    if(metric.includes('capex'))return {msg:`Baseline CapEx: ${fmt(cur.capex)}`,ok:true};
+    return {msg:`Baseline HC: ${cur.hc}, Total: ${fmt(cur.total)}, OpEx: ${fmt(cur.opex)}, CapEx: ${fmt(cur.capex)}`,ok:true};
+  }
+  return {msg:`I didn't understand that. Try commands like:\n• "reduce [group] headcount by X% thru [year]"\n• "freeze hiring"\n• "set attrition to X%"\n• "increase merit by X%"\n• "set ai productivity to Xx"\n• "what is current headcount"`,ok:false};
+}
+
+// ── Chart Renderers ──
+function renderBudgetScenarioChart(){
+  if(typeof Chart==='undefined')return;
+  if(!budgetScenario)initBudgetScenario();
+  const isDark=document.documentElement.classList.contains('dark');
+  const tickColor=isDark?'#8a8a8e':'#5a5a5a';
+  const gridColor=isDark?'#3a3a3f':'#ddd';
+  const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const emps=budgetScenario.emps;
+  const datasets=[];
+  if(scenBudgetSplit==='none'){
+    const opexData=MO_SHORT.map((_,mi)=>{let v=0;emps.forEach(e=>{v+=getMonthlyComp(e,mi)-getMonthlyCapEx(e,mi)});return v});
+    const capexData=MO_SHORT.map((_,mi)=>{let v=0;emps.forEach(e=>{v+=getMonthlyCapEx(e,mi)});return v});
+    const oaoData=MO_SHORT.map((_,mi)=>{
+      const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      return (budgetScenario.vendorRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0)+(budgetScenario.teRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
+    });
+    datasets.push({label:'C&B OpEx',data:opexData,backgroundColor:isDark?'#5c6bc0':'#7986cb'});
+    datasets.push({label:'CapEx',data:capexData,backgroundColor:isDark?'#ef5350':'#e57373'});
+    datasets.push({label:'Vendor/T&E',data:oaoData,backgroundColor:isDark?'#ff9800':'#ffb74d'});
+  } else {
+    const groups={};
+    emps.forEach(e=>{
+      const key=scenBudgetSplit==='function'?e.function:e.country;
+      if(!groups[key])groups[key]=[];groups[key].push(e);
+    });
+    const palette=['#5c6bc0','#26a69a','#ef5350','#ff9800','#ab47bc','#42a5f5','#66bb6a','#ffa726','#ec407a','#8d6e63'];
+    Object.keys(groups).sort().forEach((g,gi)=>{
+      const data=MO_SHORT.map((_,mi)=>groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0));
+      datasets.push({label:g,data,backgroundColor:palette[gi%palette.length]});
+    });
+  }
+  const canvas=document.getElementById('scenBudgetChart');
+  if(scenBudgetChartInst){scenBudgetChartInst.destroy()}
+  scenBudgetChartInst=new Chart(canvas,{
+    type:'bar',data:{labels:MO_SHORT,datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:8}}},datalabels:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:9},callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}
+    }
+  });
+}
+
+function renderFcScenarioChart(){
+  if(typeof Chart==='undefined')return;
+  if(!forecastScenario)initForecastScenario();
+  const isDark=document.documentElement.classList.contains('dark');
+  const tickColor=isDark?'#8a8a8e':'#5a5a5a';
+  const gridColor=isDark?'#3a3a3f':'#ddd';
+  const rows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
+  const labels=rows.map(r=>String(r.year));
+  const datasets=[];
+  if(scenFcSplit==='total'){
+    datasets.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:isDark?'#5c6bc0':'#7986cb'});
+    datasets.push({label:'CapEx',data:rows.map(r=>r.capex),backgroundColor:isDark?'#ef5350':'#e57373'});
+  } else {
+    const groups={};
+    forecastScenario.emps.forEach(e=>{
+      const key=scenFcSplit==='function'?e.function:e.country;
+      if(!groups[key])groups[key]=[];groups[key].push(e);
+    });
+    const palette=['#5c6bc0','#26a69a','#ef5350','#ff9800','#ab47bc','#42a5f5','#66bb6a','#ffa726','#ec407a','#8d6e63'];
+    const origAssumptions=state.forecastAssumptions;
+    state.forecastAssumptions=forecastScenario.assumptions;
+    Object.keys(groups).sort().forEach((g,gi)=>{
+      const gRows=projectForecast(groups[g]);
+      datasets.push({label:g,data:gRows.map(r=>r.total),backgroundColor:palette[gi%palette.length]});
+    });
+    state.forecastAssumptions=origAssumptions;
+  }
+  const canvas=document.getElementById('scenFcChart');
+  if(scenFcChartInst){scenFcChartInst.destroy()}
+  scenFcChartInst=new Chart(canvas,{
+    type:'bar',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:8}}},datalabels:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:9},callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:gridColor}}}
+    }
+  });
+}
+
+// ── Chat UI ──
+function addChatMsg(containerId,text,type){
+  const container=document.getElementById(containerId);
+  // Remove hint if present
+  const hint=container.querySelector('.hint');if(hint)hint.remove();
+  const div=document.createElement('div');
+  div.className='chat-msg '+type;
+  div.innerHTML=text.replace(/\n/g,'<br>');
+  container.appendChild(div);
+  container.scrollTop=container.scrollHeight;
+}
+
+function handleBudgetChat(text){
+  if(!text.trim())return;
+  addChatMsg('budgetChatMessages',text,'user');
+  const result=parseBudgetCommand(text);
+  let response=result.msg;
+  if(result.ok){
+    renderBudgetScenarioChart();
+    response+=`<div class="chat-delta">${computeBudgetDelta()}</div>`;
+  }
+  addChatMsg('budgetChatMessages',response,result.ok?'system':'error');
+  renderScenarioPnlSummary();
+}
+
+function handleFcChat(text){
+  if(!text.trim())return;
+  addChatMsg('fcChatMessages',text,'user');
+  const result=parseForecastCommand(text);
+  let response=result.msg;
+  if(result.ok){
+    renderFcScenarioChart();
+    response+=`<div class="chat-delta">${computeFcDelta()}</div>`;
+  }
+  addChatMsg('fcChatMessages',response,result.ok?'system':'error');
+  renderScenarioPnlSummary();
+}
+
+function renderScenarioPnlSummary(){
+  const el=document.getElementById('scenPnlSummary');
+  if(!el)return;
+  const basePnl=computeBudgetPnl(JSON.parse(JSON.stringify(state.employees)),state.vendorRows,state.teRows);
+  const scenPnl=computeBudgetPnl(budgetScenario.emps,budgetScenario.vendorRows,budgetScenario.teRows);
+  const baseFc=projectForecast(state.employees);
+  const scenFc=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
+  const lastYr=FORECAST_YEARS.length;
+  const bLast=baseFc[lastYr]||baseFc[baseFc.length-1]||{};
+  const sLast=scenFc[lastYr]||scenFc[scenFc.length-1]||{};
+  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.78rem">
+    <div style="background:var(--panel);padding:10px;border-radius:6px;border:1px solid var(--border)">
+      <strong style="color:var(--accent)">Budget Scenario vs Baseline</strong>
+      <table style="width:100%;margin-top:6px;font-size:.76rem"><tr><th style="text-align:left">Metric</th><th style="text-align:right">Baseline</th><th style="text-align:right">Scenario</th><th style="text-align:right">Delta</th></tr>
+      <tr><td>Headcount</td><td style="text-align:right">${basePnl.annual.hc}</td><td style="text-align:right">${scenPnl.annual.hc}</td><td style="text-align:right;color:${scenPnl.annual.hc<basePnl.annual.hc?'var(--success)':'var(--text-dim)'}">${scenPnl.annual.hc-basePnl.annual.hc}</td></tr>
+      <tr><td>C&B OpEx</td><td style="text-align:right">${fmt(basePnl.annual.opex)}</td><td style="text-align:right">${fmt(scenPnl.annual.opex)}</td><td style="text-align:right;color:${scenPnl.annual.opex<basePnl.annual.opex?'var(--success)':'var(--danger)'}">${fmt(scenPnl.annual.opex-basePnl.annual.opex)}</td></tr>
+      <tr><td>Vendor/T&E</td><td style="text-align:right">${fmt(basePnl.annual.oao)}</td><td style="text-align:right">${fmt(scenPnl.annual.oao)}</td><td style="text-align:right;color:${scenPnl.annual.oao<basePnl.annual.oao?'var(--success)':'var(--danger)'}">${fmt(scenPnl.annual.oao-basePnl.annual.oao)}</td></tr>
+      <tr style="font-weight:700"><td>Total Spend</td><td style="text-align:right">${fmt(basePnl.annual.total)}</td><td style="text-align:right">${fmt(scenPnl.annual.total)}</td><td style="text-align:right;color:${scenPnl.annual.total<basePnl.annual.total?'var(--success)':'var(--danger)'}">${fmt(scenPnl.annual.total-basePnl.annual.total)}</td></tr>
+      </table>
+    </div>
+    <div style="background:var(--panel);padding:10px;border-radius:6px;border:1px solid var(--border)">
+      <strong style="color:var(--accent)">Forecast Scenario vs Baseline (${FORECAST_YEARS[FORECAST_YEARS.length-1]})</strong>
+      <table style="width:100%;margin-top:6px;font-size:.76rem"><tr><th style="text-align:left">Metric</th><th style="text-align:right">Baseline</th><th style="text-align:right">Scenario</th><th style="text-align:right">Delta</th></tr>
+      <tr><td>Headcount</td><td style="text-align:right">${bLast.hc||0}</td><td style="text-align:right">${sLast.hc||0}</td><td style="text-align:right;color:${(sLast.hc||0)<(bLast.hc||0)?'var(--success)':'var(--text-dim)'}">${(sLast.hc||0)-(bLast.hc||0)}</td></tr>
+      <tr><td>Total Investment</td><td style="text-align:right">${fmt(bLast.total||0)}</td><td style="text-align:right">${fmt(sLast.total||0)}</td><td style="text-align:right;color:${(sLast.total||0)<(bLast.total||0)?'var(--success)':'var(--danger)'}">${fmt((sLast.total||0)-(bLast.total||0))}</td></tr>
+      <tr><td>OpEx</td><td style="text-align:right">${fmt(bLast.opex||0)}</td><td style="text-align:right">${fmt(sLast.opex||0)}</td><td style="text-align:right;color:${(sLast.opex||0)<(bLast.opex||0)?'var(--success)':'var(--danger)'}">${fmt((sLast.opex||0)-(bLast.opex||0))}</td></tr>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Wire up scenario events ──
+function initScenarioPane(){
+  // Chat input handlers
+  const budgetInput=document.getElementById('budgetChatInput');
+  const fcInput=document.getElementById('fcChatInput');
+  document.getElementById('budgetChatSend').addEventListener('click',()=>{handleBudgetChat(budgetInput.value);budgetInput.value=''});
+  budgetInput.addEventListener('keydown',e=>{if(e.key==='Enter'){handleBudgetChat(budgetInput.value);budgetInput.value=''}});
+  document.getElementById('fcChatSend').addEventListener('click',()=>{handleFcChat(fcInput.value);fcInput.value=''});
+  fcInput.addEventListener('keydown',e=>{if(e.key==='Enter'){handleFcChat(fcInput.value);fcInput.value=''}});
+  // Reset buttons
+  document.getElementById('scenBudgetReset').addEventListener('click',()=>{
+    initBudgetScenario();budgetChatHistory=[];
+    document.getElementById('budgetChatMessages').innerHTML='<div class="chat-msg hint">Scenario reset. Try a new command.</div>';
+    renderBudgetScenarioChart();renderScenarioPnlSummary();
+  });
+  document.getElementById('scenFcReset').addEventListener('click',()=>{
+    initForecastScenario();fcChatHistory=[];
+    document.getElementById('fcChatMessages').innerHTML='<div class="chat-msg hint">Forecast scenario reset. Try a new command.</div>';
+    renderFcScenarioChart();renderScenarioPnlSummary();
+  });
+  // Example buttons
+  document.querySelectorAll('#budgetChatExamples button').forEach(btn=>{
+    btn.addEventListener('click',()=>{handleBudgetChat(btn.dataset.cmd)});
+  });
+  document.querySelectorAll('#fcChatExamples button').forEach(btn=>{
+    btn.addEventListener('click',()=>{handleFcChat(btn.dataset.cmd)});
+  });
+  // Filter toggles
+  document.querySelectorAll('#scenBudgetSplitToggle button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('#scenBudgetSplitToggle button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');scenBudgetSplit=btn.dataset.sbsplit;
+      if(scenFiltersLinked){scenFcSplit=scenBudgetSplit==='none'?'total':scenBudgetSplit;document.querySelectorAll('#scenFcSplitToggle button').forEach(b=>{b.classList.toggle('active',b.dataset.sfsplit===scenFcSplit)});renderFcScenarioChart()}
+      renderBudgetScenarioChart();
+    });
+  });
+  document.querySelectorAll('#scenFcSplitToggle button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('#scenFcSplitToggle button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');scenFcSplit=btn.dataset.sfsplit;
+      if(scenFiltersLinked){scenBudgetSplit=scenFcSplit==='total'?'none':scenFcSplit;document.querySelectorAll('#scenBudgetSplitToggle button').forEach(b=>{b.classList.toggle('active',b.dataset.sbsplit===scenBudgetSplit)});renderBudgetScenarioChart()}
+      renderFcScenarioChart();
+    });
+  });
+  document.getElementById('scenLinkFilters').addEventListener('change',function(){scenFiltersLinked=this.checked});
+  // Initial render
+  initBudgetScenario();initForecastScenario();
+  renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary();
+}
+
 // ── VENDOR MODULE ──
 let vendorModuleInited=false;
 function initVendorModule(){
@@ -5459,7 +6050,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
 loadState();
 currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
 updateWsDisplay();
-initDropdowns();renderAll();
+initDropdowns();renderAll();initScenarioPane();window._scenInited=true;
 renderPnlWalk();
 
 // ── Universal Sticky Notes ──
