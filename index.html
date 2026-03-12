@@ -6158,21 +6158,18 @@ renderPnlWalk();
   const panel=document.getElementById('stickyNotePanel');
   const body=document.getElementById('stickyNoteBody');
   const title=document.getElementById('snTitle');
-  const STORE_KEY='compPlanStickyNotes';
-  let currentTab='global';
+  const STORE_KEY='compPlanStickyNote';
 
-  function getNotes(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}');}catch(e){return {};}}
-  function saveNote(){const notes=getNotes();notes[currentTab]=body.innerHTML;localStorage.setItem(STORE_KEY,JSON.stringify(notes));}
-  function loadNote(tab){currentTab=tab;const notes=getNotes();body.innerHTML=notes[tab]||'';title.textContent='Notes — '+(tab==='global'?'Global':tab);}
+  function saveNote(){localStorage.setItem(STORE_KEY,body.innerHTML);}
+  function loadNote(){body.innerHTML=localStorage.getItem(STORE_KEY)||'';title.textContent='Notes';}
 
-  // Load note for current tab on init
-  function refreshNote(){const tabName=getCurrentTabName();if(tabName!==currentTab)loadNote(tabName);}
-  setTimeout(()=>loadNote(getCurrentTabName()),100);
+  // Load single notepad on init
+  setTimeout(()=>loadNote(),100);
 
   btn.addEventListener('click',()=>{
     const opening=!panel.classList.contains('open');
     panel.classList.toggle('open');
-    if(opening){refreshNote();body.focus();}
+    if(opening){body.focus();}
   });
 
   document.getElementById('snMinimize').addEventListener('click',()=>{
@@ -6180,9 +6177,9 @@ renderPnlWalk();
     panel.classList.remove('open');
   });
   document.getElementById('snDelete').addEventListener('click',()=>{
-    if(!confirm('Delete notes for "'+currentTab+'"?'))return;
+    if(!confirm('Delete all notes?'))return;
     body.innerHTML='';
-    const notes=getNotes();delete notes[currentTab];localStorage.setItem(STORE_KEY,JSON.stringify(notes));
+    localStorage.removeItem(STORE_KEY);
     panel.classList.remove('open');
   });
 
@@ -6206,25 +6203,6 @@ renderPnlWalk();
 
   body.addEventListener('input',saveNote);
   body.addEventListener('blur',saveNote);
-  // Auto-refresh notes when switching tabs/modules
-  document.addEventListener('click',e=>{
-    const tab=e.target.closest('[data-tab],[data-vtab],[data-module]');
-    if(tab&&panel.classList.contains('open'))setTimeout(refreshNote,50);
-  });
-
-  function getCurrentTabName(){
-    // Check which module/tab is visible
-    if(document.getElementById('landingPage').style.display!=='none'&&document.getElementById('landingPage').offsetParent!==null)return 'Landing';
-    if(document.getElementById('vendorModule')&&document.getElementById('vendorModule').style.display!=='none'&&document.getElementById('vendorModule').offsetParent!==null){
-      const vtabs=['vendor-grid','vendor-te','vendor-dims','vendor-scratch'];
-      for(const vt of vtabs){const el=document.getElementById('vtab-'+vt);if(el&&el.style.display!=='none')return 'Vendor: '+vt.replace('vendor-','').replace('grid','Spend').replace('te','T&E').replace('dims','Dimensions').replace('scratch','Scratch');}
-      return 'Vendor';
-    }
-    if(document.getElementById('depreciationModule')&&document.getElementById('depreciationModule').style.display!=='none'&&document.getElementById('depreciationModule').offsetParent!==null)return 'D&A';
-    const appTabs=document.querySelectorAll('#appShell .tab-content');
-    for(const t of appTabs){if(t.style.display!=='none'&&t.id)return t.id.replace('tab-','').replace(/^./,c=>c.toUpperCase());}
-    return 'global';
-  }
 })();
 
 // ── Fun Mode (beach → Shire → off) ──
