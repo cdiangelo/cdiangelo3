@@ -613,7 +613,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <!-- Chatbots side by side -->
 <div class="scenario-grid" style="margin-top:12px">
 <div class="chatbot-panel">
-<div class="chatbot-header"><span>Budget Scenarios</span><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div>
+<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div class="chat-messages" id="budgetChatMessages">
 <div class="chat-msg hint">Try a scenario below or type your own</div>
 </div>
@@ -630,7 +630,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 </div>
 <div class="chatbot-panel">
-<div class="chatbot-header"><span>Forecast Scenarios</span><button class="btn btn-sm" id="scenFcReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div>
+<div class="chatbot-header"><span>Forecast Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenFcApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Forecast</button><button class="btn btn-sm" id="scenFcReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div class="chat-messages" id="fcChatMessages">
 <div class="chat-msg hint">Try a scenario below or type your own</div>
 </div>
@@ -5168,6 +5168,8 @@ function addChatMsg(containerId,text,type){
   container.scrollTop=container.scrollHeight;
 }
 
+let budgetScenarioDirty=false,fcScenarioDirty=false;
+
 function handleBudgetChat(text){
   if(!text.trim())return;
   addChatMsg('budgetChatMessages',text,'user');
@@ -5176,6 +5178,8 @@ function handleBudgetChat(text){
   if(result.ok){
     renderBudgetScenarioChart();
     response+=`<div class="chat-delta">${computeBudgetDelta()}</div>`;
+    if(!/^reset$/i.test(text.trim())){budgetScenarioDirty=true}else{budgetScenarioDirty=false}
+    document.getElementById('scenBudgetApply').style.display=budgetScenarioDirty?'inline-block':'none';
   }
   addChatMsg('budgetChatMessages',response,result.ok?'system':'error');
   renderScenarioPnlSummary();
@@ -5189,9 +5193,39 @@ function handleFcChat(text){
   if(result.ok){
     renderFcScenarioChart();
     response+=`<div class="chat-delta">${computeFcDelta()}</div>`;
+    if(!/^reset$/i.test(text.trim())){fcScenarioDirty=true}else{fcScenarioDirty=false}
+    document.getElementById('scenFcApply').style.display=fcScenarioDirty?'inline-block':'none';
   }
   addChatMsg('fcChatMessages',response,result.ok?'system':'error');
   renderScenarioPnlSummary();
+}
+
+function applyBudgetScenario(){
+  if(!confirm('Apply budget scenario changes to your actual data? This will overwrite current employees, vendor rows, and T&E rows.'))return;
+  state.employees=JSON.parse(JSON.stringify(budgetScenario.emps));
+  state.vendorRows=JSON.parse(JSON.stringify(budgetScenario.vendorRows));
+  state.teRows=JSON.parse(JSON.stringify(budgetScenario.teRows));
+  saveState();
+  budgetScenarioDirty=false;
+  document.getElementById('scenBudgetApply').style.display='none';
+  addChatMsg('budgetChatMessages','Scenario applied to your budget. All employee, vendor, and T&E data has been updated.','system');
+  // Re-render everything with new data
+  renderAll();
+  initBudgetScenario(); // re-clone from new baseline
+  renderBudgetScenarioChart();renderScenarioPnlSummary();
+}
+
+function applyFcScenario(){
+  if(!confirm('Apply forecast scenario changes to your actual data? This will overwrite current employees and forecast assumptions.'))return;
+  state.employees=JSON.parse(JSON.stringify(forecastScenario.emps));
+  state.forecastAssumptions=JSON.parse(JSON.stringify(forecastScenario.assumptions));
+  saveState();
+  fcScenarioDirty=false;
+  document.getElementById('scenFcApply').style.display='none';
+  addChatMsg('fcChatMessages','Scenario applied. Employee roster and forecast assumptions have been updated.','system');
+  renderAll();
+  initForecastScenario();
+  renderFcScenarioChart();renderScenarioPnlSummary();
 }
 
 function renderScenarioPnlSummary(){
@@ -5234,14 +5268,19 @@ function initScenarioPane(){
   budgetInput.addEventListener('keydown',e=>{if(e.key==='Enter'){handleBudgetChat(budgetInput.value);budgetInput.value=''}});
   document.getElementById('fcChatSend').addEventListener('click',()=>{handleFcChat(fcInput.value);fcInput.value=''});
   fcInput.addEventListener('keydown',e=>{if(e.key==='Enter'){handleFcChat(fcInput.value);fcInput.value=''}});
+  // Apply buttons
+  document.getElementById('scenBudgetApply').addEventListener('click',applyBudgetScenario);
+  document.getElementById('scenFcApply').addEventListener('click',applyFcScenario);
   // Reset buttons
   document.getElementById('scenBudgetReset').addEventListener('click',()=>{
-    initBudgetScenario();budgetChatHistory=[];
+    initBudgetScenario();budgetChatHistory=[];budgetScenarioDirty=false;
+    document.getElementById('scenBudgetApply').style.display='none';
     document.getElementById('budgetChatMessages').innerHTML='<div class="chat-msg hint">Scenario reset. Try a new command.</div>';
     renderBudgetScenarioChart();renderScenarioPnlSummary();
   });
   document.getElementById('scenFcReset').addEventListener('click',()=>{
-    initForecastScenario();fcChatHistory=[];
+    initForecastScenario();fcChatHistory=[];fcScenarioDirty=false;
+    document.getElementById('scenFcApply').style.display='none';
     document.getElementById('fcChatMessages').innerHTML='<div class="chat-msg hint">Forecast scenario reset. Try a new command.</div>';
     renderFcScenarioChart();renderScenarioPnlSummary();
   });
