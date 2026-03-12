@@ -839,7 +839,6 @@ body.ops-mode .ops-hide{display:none!important}
 <nav style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap" id="vendorNav">
 <button class="btn active" data-vtab="vendor-grid">Vendor Spend</button>
 <button class="btn" data-vtab="vendor-te">T&amp;E</button>
-<button class="btn" data-vtab="vendor-accounts">Account Mapping</button>
 <button class="btn" data-vtab="vendor-dims">Dimensions</button>
 <button class="btn" data-vtab="vendor-scratch">Scratch Pad</button>
 </nav>
@@ -919,26 +918,6 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 </div>
 
-<!-- Account Mapping Tab -->
-<div id="vtab-vendor-accounts" class="vtab-content" style="display:none">
-<div class="card">
-<h3 class="section-title">Account Mapping</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Define accounts: description maps to code. Used across all modules.</p>
-<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end">
-<div><label style="font-size:.75rem;color:var(--text-dim)">Account Code</label><br><input id="acctCode" style="width:100px;padding:4px 8px;font-size:.85rem;border:1px solid var(--border);border-radius:4px" placeholder="e.g. 6100"></div>
-<div><label style="font-size:.75rem;color:var(--text-dim)">Account Description</label><br><input id="acctDesc" style="width:220px;padding:4px 8px;font-size:.85rem;border:1px solid var(--border);border-radius:4px" placeholder="e.g. Software Licenses"></div>
-<div><label style="font-size:.75rem;color:var(--text-dim)">Category</label><br><select id="acctCategory" style="padding:4px 8px;font-size:.85rem;border:1px solid var(--border);border-radius:4px">
-<option value="">Select...</option><option value="Software &amp; Licenses">Software &amp; Licenses</option><option value="Professional Services">Professional Services</option><option value="Data &amp; Analytics">Data &amp; Analytics</option><option value="T&amp;E">T&amp;E</option><option value="Infrastructure">Infrastructure</option><option value="Other OpEx">Other OpEx</option>
-</select></div>
-<button class="btn" id="btnAddAcct" style="padding:4px 14px;font-size:.85rem">Add Account</button>
-</div>
-<table class="comp-table" style="font-size:.85rem">
-<thead><tr><th>Code</th><th>Description</th><th>Category</th><th>Vendor Count</th><th></th></tr></thead>
-<tbody id="acctTableBody"></tbody>
-</table>
-</div>
-</div>
-
 <!-- Dimensions Tab (universal) -->
 <div id="vtab-vendor-dims" class="vtab-content" style="display:none">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -974,6 +953,20 @@ body.ops-mode .ops-hide{display:none!important}
 <button class="btn" id="vBtnAddProject" style="padding:3px 10px;font-size:.8rem">Add</button>
 </div>
 <div style="max-height:300px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Product</th><th>Category</th><th>Market</th><th></th></tr></thead><tbody id="vProjectsBody"></tbody></table></div>
+</div>
+<div class="card" style="margin-top:16px">
+<h3 class="section-title">Accounts</h3>
+<p style="color:var(--text-dim);font-size:.75rem;margin-bottom:8px">Define chart of accounts. Description maps to code. Used across all modules.</p>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="acctCode" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="6100"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Description</label><br><input id="acctDesc" style="width:180px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Software Licenses"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Category</label><br><select id="acctCategory" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px">
+<option value="">—</option><option value="Software &amp; Licenses">Software &amp; Licenses</option><option value="Professional Services">Professional Services</option><option value="Data &amp; Analytics">Data &amp; Analytics</option><option value="T&amp;E">T&amp;E</option><option value="Infrastructure">Infrastructure</option><option value="Other OpEx">Other OpEx</option>
+</select></div>
+<button class="btn" id="btnAddAcct" style="padding:3px 10px;font-size:.8rem">Add</button>
+<button class="btn" id="btnAddBlankAcct" style="padding:3px 10px;font-size:.8rem">+ Blank Row</button>
+</div>
+<div style="max-height:300px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Description</th><th>Category</th><th>Vendor Count</th><th></th></tr></thead><tbody id="acctTableBody"></tbody></table></div>
 </div>
 </div>
 
@@ -4198,7 +4191,6 @@ function initVendorModule(){
       document.getElementById('vtab-'+b.dataset.vtab).style.display='block';
       if(b.dataset.vtab==='vendor-scratch')setTimeout(initVendorScratch,50);
       if(b.dataset.vtab==='vendor-dims')renderVendorDims();
-      if(b.dataset.vtab==='vendor-accounts')renderAccounts();
       if(b.dataset.vtab==='vendor-te')renderTeGrid();
     });
   });
@@ -4363,14 +4355,15 @@ function initVendorModule(){
   });
 
   // ── Account Mapping ──
+  // ── Vendor Dimensions Tab (universal) ──
   function renderAccounts(){
     const tbody=document.getElementById('acctTableBody');
-    tbody.innerHTML=state.accounts.map(a=>{
-      const vCount=state.vendorRows.filter(r=>r.acctDesc===a.description).length;
+    tbody.innerHTML=state.accounts.map((a,idx)=>{
+      const vCount=state.vendorRows.filter(r=>r.acctDesc===a.description).length + state.teRows.filter(r=>r.acctDesc===a.description).length;
       return `<tr>
-        <td style="font-weight:600;color:var(--accent)">${esc(a.code)}</td>
-        <td><input class="acct-desc-edit" value="${esc(a.description)}" data-code="${esc(a.code)}" style="border:none;background:transparent;font-size:.85rem;width:200px;padding:2px 4px"></td>
-        <td><select class="acct-cat-edit" data-code="${esc(a.code)}" style="border:none;background:transparent;font-size:.85rem;padding:1px 2px">
+        <td><input class="acct-code-edit" value="${esc(a.code)}" data-idx="${idx}" style="border:none;background:transparent;font-size:.8rem;font-weight:600;color:var(--accent);width:70px;padding:2px 4px"></td>
+        <td><input class="acct-desc-edit" value="${esc(a.description)}" data-idx="${idx}" style="border:none;background:transparent;font-size:.8rem;width:180px;padding:2px 4px"></td>
+        <td><select class="acct-cat-edit" data-idx="${idx}" style="border:none;background:transparent;font-size:.8rem;padding:1px 2px">
           <option value="">—</option><option value="Software &amp; Licenses"${a.category==='Software & Licenses'?' selected':''}>Software &amp; Licenses</option>
           <option value="Professional Services"${a.category==='Professional Services'?' selected':''}>Professional Services</option>
           <option value="Data &amp; Analytics"${a.category==='Data & Analytics'?' selected':''}>Data &amp; Analytics</option>
@@ -4378,43 +4371,38 @@ function initVendorModule(){
           <option value="Infrastructure"${a.category==='Infrastructure'?' selected':''}>Infrastructure</option>
           <option value="Other OpEx"${a.category==='Other OpEx'?' selected':''}>Other OpEx</option>
         </select></td>
-        <td style="font-size:.82rem;color:var(--text-dim)">${vCount}</td>
-        <td><button class="btn btn-sm btn-danger acct-del" data-code="${esc(a.code)}" style="padding:2px 8px;font-size:.75rem">Del</button></td>
+        <td style="font-size:.78rem;color:var(--text-dim)">${vCount}</td>
+        <td><button class="btn btn-sm btn-danger acct-del" data-idx="${idx}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
       </tr>`;
     }).join('');
+    tbody.querySelectorAll('.acct-code-edit').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const i=parseInt(inp.dataset.idx);const a=state.accounts[i];
+        if(a){const newCode=inp.value.trim();if(newCode&&!state.accounts.some((x,xi)=>xi!==i&&x.code===newCode)){a.code=newCode;saveState()}else{inp.value=a.code;if(newCode)alert('Code already exists or is empty')}}
+      });
+    });
     tbody.querySelectorAll('.acct-desc-edit').forEach(inp=>{
       inp.addEventListener('change',()=>{
-        const a=state.accounts.find(x=>x.code===inp.dataset.code);
-        if(a){const oldDesc=a.description;a.description=inp.value;state.vendorRows.forEach(r=>{if(r.acctDesc===oldDesc)r.acctDesc=a.description});saveState()}
+        const i=parseInt(inp.dataset.idx);const a=state.accounts[i];
+        if(a){const oldDesc=a.description;a.description=inp.value;state.vendorRows.forEach(r=>{if(r.acctDesc===oldDesc)r.acctDesc=a.description});state.teRows.forEach(r=>{if(r.acctDesc===oldDesc)r.acctDesc=a.description});saveState();renderVendorGrid();renderTeGrid()}
       });
     });
     tbody.querySelectorAll('.acct-cat-edit').forEach(sel=>{
       sel.addEventListener('change',()=>{
-        const a=state.accounts.find(x=>x.code===sel.dataset.code);
+        const i=parseInt(sel.dataset.idx);const a=state.accounts[i];
         if(a){a.category=sel.value;saveState()}
       });
     });
     tbody.querySelectorAll('.acct-del').forEach(btn=>{
       btn.addEventListener('click',()=>{
-        if(!confirm('Delete account '+btn.dataset.code+'?'))return;
-        state.accounts=state.accounts.filter(a=>a.code!==btn.dataset.code);
+        const i=parseInt(btn.dataset.idx);
+        if(!confirm('Delete account '+(state.accounts[i].code||'(blank)')+'?'))return;
+        state.accounts.splice(i,1);
         saveState();renderAccounts();renderVendorGrid();renderTeGrid();
       });
     });
   }
 
-  document.getElementById('btnAddAcct').addEventListener('click',()=>{
-    const code=document.getElementById('acctCode').value.trim();
-    const desc=document.getElementById('acctDesc').value.trim();
-    const cat=document.getElementById('acctCategory').value;
-    if(!code||!desc){alert('Please fill account code and description');return}
-    if(state.accounts.some(a=>a.code===code)){alert('Account code already exists');return}
-    state.accounts.push({code,description:desc,category:cat});
-    saveState();renderAccounts();renderVendorGrid();renderTeGrid();
-    document.getElementById('acctCode').value='';document.getElementById('acctDesc').value='';document.getElementById('acctCategory').value='';
-  });
-
-  // ── Vendor Dimensions Tab (universal) ──
   function renderVendorDims(){
     // Markets
     const mbody=document.getElementById('vMarketsBody');
@@ -4456,7 +4444,25 @@ function initVendorModule(){
         saveState();renderVendorDims();refreshAllDropdowns();renderBizLines();
       });
     });
+    // Accounts
+    renderAccounts();
   }
+
+  document.getElementById('btnAddAcct').addEventListener('click',()=>{
+    const code=document.getElementById('acctCode').value.trim();
+    const desc=document.getElementById('acctDesc').value.trim();
+    const cat=document.getElementById('acctCategory').value;
+    if(!code||!desc){alert('Please fill account code and description');return}
+    if(state.accounts.some(a=>a.code===code)){alert('Account code already exists');return}
+    state.accounts.push({code,description:desc,category:cat});
+    saveState();renderAccounts();renderVendorGrid();renderTeGrid();
+    document.getElementById('acctCode').value='';document.getElementById('acctDesc').value='';document.getElementById('acctCategory').value='';
+  });
+
+  document.getElementById('btnAddBlankAcct').addEventListener('click',()=>{
+    state.accounts.push({code:'',description:'',category:''});
+    saveState();renderAccounts();
+  });
 
   document.getElementById('vBtnAddMarket').addEventListener('click',()=>{
     const code=document.getElementById('vMktCode').value.trim().toUpperCase();
