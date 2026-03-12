@@ -793,7 +793,7 @@ body.ops-mode .ops-hide{display:none!important}
 <input type="range" id="wbSize" min="1" max="20" value="3" style="width:60px">
 <span id="wbColorSwatches" style="display:flex;gap:2px"></span>
 <label style="font-size:.75rem;color:var(--text-dim);margin-left:4px">Opacity:</label>
-<input type="range" id="wbOpacity" min="10" max="100" value="100" step="10" style="width:50px">
+<input type="range" id="wbOpacity" min="0" max="100" value="100" step="5" style="width:50px">
 <button class="btn" id="wbGrid" title="Toggle grid" style="padding:4px 8px;font-size:.75rem">Grid</button>
 <select id="wbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
 <option value="">Pen</option>
@@ -1001,7 +1001,7 @@ body.ops-mode .ops-hide{display:none!important}
 <input type="range" id="vWbSize" min="1" max="20" value="3" style="width:60px">
 <span id="vWbColorSwatches" style="display:flex;gap:2px"></span>
 <label style="font-size:.75rem;color:var(--text-dim);margin-left:4px">Opacity:</label>
-<input type="range" id="vWbOpacity" min="10" max="100" value="100" step="10" style="width:50px">
+<input type="range" id="vWbOpacity" min="0" max="100" value="100" step="5" style="width:50px">
 <button class="btn" id="vWbGrid" style="padding:4px 8px;font-size:.75rem">Grid</button>
 <select id="vWbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
 <option value="">Pen</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
@@ -1048,7 +1048,7 @@ body.ops-mode .ops-hide{display:none!important}
 <input type="range" id="dWbSize" min="1" max="20" value="3" style="width:60px">
 <span id="dWbColorSwatches" style="display:flex;gap:2px"></span>
 <label style="font-size:.75rem;color:var(--text-dim);margin-left:4px">Opacity:</label>
-<input type="range" id="dWbOpacity" min="10" max="100" value="100" step="10" style="width:50px">
+<input type="range" id="dWbOpacity" min="0" max="100" value="100" step="5" style="width:50px">
 <button class="btn" id="dWbGrid" style="padding:4px 8px;font-size:.75rem">Grid</button>
 <select id="dWbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
 <option value="">Pen</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
@@ -2574,9 +2574,23 @@ function createScratchPad(cfg){
   }
   resizeWbCanvas();
 
+  function captureClean(){
+    // Get image data without grid lines
+    if(wbShowGrid){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
+      // Re-draw current strokes on top (they're already composited)
+    }
+    const data=ctx.getImageData(0,0,canvas.width,canvas.height);
+    if(wbShowGrid)drawGrid();
+    return data;
+  }
   function saveState(){
-    wbHistory.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    wbHistory.push(captureClean());
     if(wbHistory.length>50)wbHistory.shift();
+  }
+  function updateLastState(){
+    wbHistory[wbHistory.length-1]=captureClean();
   }
 
   function drawGrid(){
@@ -2588,8 +2602,8 @@ function createScratchPad(cfg){
 
   function redraw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(wbShowGrid)drawGrid();
     if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
+    if(wbShowGrid)drawGrid();
   }
 
   function getPos(e){const t=e.touches?e.touches[0]||e.changedTouches[0]:e;const r=canvas.getBoundingClientRect();return{x:t.clientX-r.left,y:t.clientY-r.top}}
@@ -2632,7 +2646,7 @@ function createScratchPad(cfg){
     // Draw selection onto the current background and save to history
     ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
     ctx.drawImage(wbSelCanvas,wbSelection.x,wbSelection.y);
-    wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+    updateLastState();
   }
 
   function drawSelBorder(){
@@ -2698,7 +2712,7 @@ function createScratchPad(cfg){
         ctx.clearRect(found.x,found.y,found.w,found.h);
         if(wbShowGrid)redrawGridRegion(found.x,found.y,found.w,found.h);
         // Save cleaned background as current history state
-        wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+        updateLastState();
         // Draw floating selection + border
         ctx.drawImage(wbSelCanvas,found.x,found.y);
         drawSelBorder();
@@ -2714,30 +2728,35 @@ function createScratchPad(cfg){
       // Place a text input at click position
       wbDrawing=false;
       saveState();
+      canvas.parentElement.style.position='relative';
+      const canvasRect=canvas.getBoundingClientRect();
+      const parentRect=canvas.parentElement.getBoundingClientRect();
       const inp=document.createElement('input');
       inp.type='text';inp.placeholder='Type here…';
-      inp.style.cssText=`position:absolute;left:${canvas.offsetLeft+pos.x}px;top:${canvas.offsetTop+pos.y}px;font-size:${Math.max(12,wbSize*4)}px;border:1px dashed var(--accent);background:transparent;color:${wbColor};outline:none;padding:2px 4px;z-index:10;font-family:inherit`;
-      canvas.parentElement.style.position='relative';
+      inp.style.cssText=`position:absolute;left:${canvasRect.left-parentRect.left+pos.x}px;top:${canvasRect.top-parentRect.top+pos.y}px;font-size:${Math.max(14,wbSize*4)}px;border:1px dashed var(--accent);background:rgba(255,255,255,0.9);color:${wbColor};outline:none;padding:2px 6px;z-index:10;font-family:inherit;border-radius:3px;min-width:60px`;
       canvas.parentElement.appendChild(inp);
       inp.focus();
+      let committed=false;
       const commitText=()=>{
+        if(committed)return;
+        committed=true;
         if(inp.value){
-          const r=parseInt(wbColor.slice(1,3),16),g=parseInt(wbColor.slice(3,5),16),b=parseInt(wbColor.slice(5,7),16);
-          ctx.fillStyle=`rgba(${r},${g},${b},${wbOpacity})`;
-          ctx.font=`${Math.max(12,wbSize*4)}px sans-serif`;
-          ctx.fillText(inp.value,pos.x,pos.y+Math.max(12,wbSize*4));
-          wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+          const cr=parseInt(wbColor.slice(1,3),16),cg=parseInt(wbColor.slice(3,5),16),cb=parseInt(wbColor.slice(5,7),16);
+          ctx.fillStyle=`rgba(${cr},${cg},${cb},${wbOpacity})`;
+          ctx.font=`${Math.max(14,wbSize*4)}px sans-serif`;
+          ctx.fillText(inp.value,pos.x,pos.y+Math.max(14,wbSize*4));
+          updateLastState();
         }
         inp.remove();
       };
       inp.addEventListener('blur',commitText);
-      inp.addEventListener('keydown',e=>{if(e.key==='Enter')commitText()});
+      inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commitText()}});
       return;
     } else if(tool==='eraser'){
       saveState();
       // Flood-erase: clear connected region of similar color at click point
       floodErase(Math.round(pos.x),Math.round(pos.y));
-      wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+      updateLastState();
       wbDrawing=false;
     } else if(tool){
       saveState();wbShapeStart=pos;
@@ -2759,12 +2778,10 @@ function createScratchPad(cfg){
     const tool=shapeSelect.value;
 
     if(tool==='hand'&&wbSelImg&&wbSelOffset){
-      // Dragging floating selection — restore clean background first
       wbSelection.x=pos.x-wbSelOffset.x;
       wbSelection.y=pos.y-wbSelOffset.y;
-      // Restore the clean background (without the selection content)
       ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
-      // Draw the floating selection at new position
+      if(wbShowGrid)drawGrid();
       ctx.drawImage(wbSelCanvas,wbSelection.x,wbSelection.y);
       drawSelBorder();
       return;
@@ -2773,7 +2790,8 @@ function createScratchPad(cfg){
     if(tool==='hand'&&wbShapeStart){
       // Drawing selection rectangle
       if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
-      else{ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid()}
+      else ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(wbShowGrid)drawGrid();
       ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#2980b9';ctx.lineWidth=1;
       ctx.strokeRect(wbShapeStart.x,wbShapeStart.y,pos.x-wbShapeStart.x,pos.y-wbShapeStart.y);ctx.restore();
       return;
@@ -2782,7 +2800,8 @@ function createScratchPad(cfg){
     if(tool&&tool!=='eraser'&&wbShapeStart){
       // Preview shape
       if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
-      else{ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid()}
+      else ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(wbShowGrid)drawGrid();
       const r=parseInt(wbColor.slice(1,3),16),g=parseInt(wbColor.slice(3,5),16),b=parseInt(wbColor.slice(5,7),16);
       ctx.strokeStyle=`rgba(${r},${g},${b},${wbOpacity})`;ctx.lineWidth=wbSize;
       const s=wbShapeStart;
@@ -2824,7 +2843,7 @@ function createScratchPad(cfg){
       ctx.clearRect(x,y,w,h);
       if(wbShowGrid)redrawGridRegion(x,y,w,h);
       // Save cleaned background as history state
-      wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+      updateLastState();
       // Draw floating selection + border on top
       ctx.drawImage(wbSelCanvas,x,y);
       drawSelBorder();
@@ -2833,14 +2852,14 @@ function createScratchPad(cfg){
     }
 
     if(tool&&tool!=='hand'&&tool!=='eraser'&&wbShapeStart){
-      wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+      updateLastState();
       wbShapeStart=null;
     } else if(!tool){
       ctx.closePath();
-      wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height);
+      updateLastState();
     }
   });
-  canvas.addEventListener('mouseleave',()=>{if(wbDrawing){wbDrawing=false;const tool=shapeSelect.value;if(!tool)ctx.closePath();if(wbHistory.length)wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height)}});
+  canvas.addEventListener('mouseleave',()=>{if(wbDrawing){wbDrawing=false;const tool=shapeSelect.value;if(!tool)ctx.closePath();if(wbHistory.length)updateLastState()}});
 
   // Touch support for mobile
   canvas.addEventListener('touchstart',e=>{e.preventDefault();const me=new MouseEvent('mousedown',{clientX:(e.touches[0]||e.changedTouches[0]).clientX,clientY:(e.touches[0]||e.changedTouches[0]).clientY});canvas.dispatchEvent(me)},{passive:false});
@@ -2877,16 +2896,13 @@ function createScratchPad(cfg){
   }
 
   document.getElementById(cfg.wbUndoId).addEventListener('click',()=>{
-    if(wbHistory.length){wbHistory.pop();ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid();if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0)}
+    if(wbHistory.length){wbHistory.pop();ctx.clearRect(0,0,canvas.width,canvas.height);if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);if(wbShowGrid)drawGrid()}
   });
   document.getElementById(cfg.wbClearId).addEventListener('click',()=>{wbHistory=[];ctx.clearRect(0,0,canvas.width,canvas.height);if(wbShowGrid)drawGrid()});
   document.getElementById(cfg.wbGridId).addEventListener('click',()=>{
     wbShowGrid=!wbShowGrid;
     document.getElementById(cfg.wbGridId).classList.toggle('active',wbShowGrid);
-    // Redraw: restore last history then optionally overlay grid
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(wbShowGrid)drawGrid();
-    if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
+    redraw();
   });
   window.addEventListener('resize',resizeWbCanvas);
   return {resizeWbCanvas};
@@ -4352,9 +4368,9 @@ function initVendorModule(){
     tbody.innerHTML=state.accounts.map(a=>{
       const vCount=state.vendorRows.filter(r=>r.acctDesc===a.description).length;
       return `<tr>
-        <td style="font-weight:600;color:var(--accent)">${a.code}</td>
-        <td><input class="acct-desc-edit" value="${a.description}" data-code="${a.code}" style="border:none;background:transparent;font-size:.85rem;width:200px;padding:2px 4px"></td>
-        <td><select class="acct-cat-edit" data-code="${a.code}" style="border:none;background:transparent;font-size:.85rem;padding:1px 2px">
+        <td style="font-weight:600;color:var(--accent)">${esc(a.code)}</td>
+        <td><input class="acct-desc-edit" value="${esc(a.description)}" data-code="${esc(a.code)}" style="border:none;background:transparent;font-size:.85rem;width:200px;padding:2px 4px"></td>
+        <td><select class="acct-cat-edit" data-code="${esc(a.code)}" style="border:none;background:transparent;font-size:.85rem;padding:1px 2px">
           <option value="">—</option><option value="Software &amp; Licenses"${a.category==='Software & Licenses'?' selected':''}>Software &amp; Licenses</option>
           <option value="Professional Services"${a.category==='Professional Services'?' selected':''}>Professional Services</option>
           <option value="Data &amp; Analytics"${a.category==='Data & Analytics'?' selected':''}>Data &amp; Analytics</option>
@@ -4363,7 +4379,7 @@ function initVendorModule(){
           <option value="Other OpEx"${a.category==='Other OpEx'?' selected':''}>Other OpEx</option>
         </select></td>
         <td style="font-size:.82rem;color:var(--text-dim)">${vCount}</td>
-        <td><button class="btn btn-sm btn-danger acct-del" data-code="${a.code}" style="padding:2px 8px;font-size:.75rem">Del</button></td>
+        <td><button class="btn btn-sm btn-danger acct-del" data-code="${esc(a.code)}" style="padding:2px 8px;font-size:.75rem">Del</button></td>
       </tr>`;
     }).join('');
     tbody.querySelectorAll('.acct-desc-edit').forEach(inp=>{
@@ -4382,7 +4398,7 @@ function initVendorModule(){
       btn.addEventListener('click',()=>{
         if(!confirm('Delete account '+btn.dataset.code+'?'))return;
         state.accounts=state.accounts.filter(a=>a.code!==btn.dataset.code);
-        saveState();renderAccounts();
+        saveState();renderAccounts();renderVendorGrid();renderTeGrid();
       });
     });
   }
@@ -4394,7 +4410,7 @@ function initVendorModule(){
     if(!code||!desc){alert('Please fill account code and description');return}
     if(state.accounts.some(a=>a.code===code)){alert('Account code already exists');return}
     state.accounts.push({code,description:desc,category:cat});
-    saveState();renderAccounts();
+    saveState();renderAccounts();renderVendorGrid();renderTeGrid();
     document.getElementById('acctCode').value='';document.getElementById('acctDesc').value='';document.getElementById('acctCategory').value='';
   });
 
@@ -4733,15 +4749,19 @@ updateWsDisplay();
 initDropdowns();renderAll();
 renderPnlWalk();
 
-// ── Fun Mode (CSS animated ocean) ──
+// ── Fun Mode (CSS animated beach scene) ──
 (function(){
-  // Inject keyframes once
   const style=document.createElement('style');
   style.textContent=`
-@keyframes funWave1{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-@keyframes funWave2{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-@keyframes funFoam{0%,100%{opacity:.3}50%{opacity:.7}}
-@keyframes funSparkle{0%,100%{opacity:0}50%{opacity:1}}
+@keyframes funW1{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes funW2{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes funW3{0%{transform:translateX(-25%)}100%{transform:translateX(-75%)}}
+@keyframes funFoam{0%{transform:translateY(0);opacity:.4}30%{opacity:.9}50%{transform:translateY(15%);opacity:.7}80%{opacity:.3}100%{transform:translateY(0);opacity:.4}}
+@keyframes funFoam2{0%{transform:translateY(3%);opacity:.3}40%{opacity:.8}60%{transform:translateY(18%);opacity:.5}100%{transform:translateY(3%);opacity:.3}}
+@keyframes funSparkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes funCrab{0%{transform:translateX(0) scaleX(1)}45%{transform:translateX(40px) scaleX(1)}50%{transform:translateX(40px) scaleX(-1)}95%{transform:translateX(0) scaleX(-1)}100%{transform:translateX(0) scaleX(1)}}
+@keyframes funDog{0%{transform:translateX(0)}50%{transform:translateX(60px)}100%{transform:translateX(0)}}
+@keyframes funBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 `;
   document.head.appendChild(style);
 
@@ -4758,48 +4778,110 @@ renderPnlWalk();
     funOverlay=document.createElement('div');
     funOverlay.style.cssText='position:fixed;bottom:0;left:0;width:100%;height:20vh;z-index:9998;overflow:hidden;pointer-events:none';
 
-    // Sand base
-    const sand=document.createElement('div');
-    sand.style.cssText='position:absolute;bottom:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#e8d5a3 0%,#f0deb0 30%,#f5e6c0 60%,#f7ecd0 100%)';
-    funOverlay.appendChild(sand);
+    // Sky sliver at very top
+    const sky=document.createElement('div');
+    sky.style.cssText='position:absolute;top:0;left:0;width:100%;height:18%;background:linear-gradient(180deg,#87ceeb 0%,#a8d8ea 60%,#c4e0f0 100%)';
+    funOverlay.appendChild(sky);
 
-    // Wet sand strip
+    // Deep ocean
+    const ocean=document.createElement('div');
+    ocean.style.cssText='position:absolute;top:12%;left:0;width:100%;height:30%;background:linear-gradient(180deg,#1a6fa0 0%,#2980b9 40%,#5dade2 80%,#85c1e9 100%)';
+    funOverlay.appendChild(ocean);
+
+    // Wave 1 — deep swell
+    const w1=document.createElement('div');
+    w1.style.cssText='position:absolute;top:8%;left:0;width:200%;height:35%;opacity:.55';
+    w1.innerHTML='<svg viewBox="0 0 2880 120" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="#1a6fa0" d="M0,60 C180,20 360,90 540,55 C720,20 900,85 1080,50 C1260,15 1440,80 1620,55 C1800,30 1980,90 2160,55 C2340,20 2520,85 2700,50 C2780,35 2850,70 2880,60 L2880,120 L0,120Z"/></svg>';
+    w1.style.animation='funW1 10s linear infinite';
+    funOverlay.appendChild(w1);
+
+    // Wave 2 — mid wave, cresting
+    const w2=document.createElement('div');
+    w2.style.cssText='position:absolute;top:18%;left:0;width:200%;height:32%;opacity:.7';
+    w2.innerHTML='<svg viewBox="0 0 2880 120" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="#3498db" d="M0,50 C90,15 180,75 360,45 C540,15 630,80 810,50 C990,20 1080,75 1260,45 C1440,15 1530,80 1710,50 C1890,20 1980,75 2160,45 C2340,15 2520,80 2700,50 C2790,30 2880,65 2880,50 L2880,120 L0,120Z"/><ellipse cx="280" cy="42" rx="60" ry="8" fill="rgba(255,255,255,.35)"/><ellipse cx="1000" cy="38" rx="50" ry="7" fill="rgba(255,255,255,.3)"/><ellipse cx="1720" cy="44" rx="55" ry="6" fill="rgba(255,255,255,.25)"/><ellipse cx="2440" cy="40" rx="45" ry="7" fill="rgba(255,255,255,.3)"/></svg>';
+    w2.style.animation='funW2 7s linear infinite';
+    funOverlay.appendChild(w2);
+
+    // Wave 3 — shore break with white caps
+    const w3=document.createElement('div');
+    w3.style.cssText='position:absolute;top:28%;left:0;width:200%;height:28%;opacity:.8';
+    w3.innerHTML='<svg viewBox="0 0 2880 100" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="#5dade2" d="M0,40 C120,10 240,60 420,35 C600,10 720,55 900,30 C1080,5 1200,55 1380,35 C1560,15 1680,60 1860,30 C2040,5 2160,55 2340,35 C2520,15 2700,55 2880,40 L2880,100 L0,100Z"/><path fill="rgba(255,255,255,.5)" d="M0,38 C120,18 240,55 420,33 C600,18 720,50 900,28 C1080,12 1200,50 1380,33 C1560,20 1680,55 1860,28 C2040,12 2160,50 2340,33 C2520,20 2700,50 2880,38 L2880,48 C2700,55 2520,25 2340,40 C2160,55 2040,18 1860,35 C1680,58 1560,24 1380,40 C1200,55 1080,18 900,35 C720,55 600,22 420,40 C240,58 120,24 0,45Z"/></svg>';
+    w3.style.animation='funW3 5s linear infinite';
+    funOverlay.appendChild(w3);
+
+    // Wet sand
     const wetSand=document.createElement('div');
-    wetSand.style.cssText='position:absolute;top:0;left:0;width:100%;height:35%;background:linear-gradient(180deg,#c4a56a 0%,#d4b87a 50%,#dfc48c 100%);opacity:.8';
+    wetSand.style.cssText='position:absolute;top:42%;left:0;width:100%;height:18%;background:linear-gradient(180deg,#b8976a 0%,#c9a87a 50%,#d4b88a 100%)';
     funOverlay.appendChild(wetSand);
 
-    // Wave layer 1 (back wave — deeper blue)
-    const wave1=document.createElement('div');
-    wave1.style.cssText='position:absolute;top:-8%;left:0;width:200%;height:45%;opacity:.6';
-    wave1.innerHTML='<svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="#3b82c8" d="M0,40 C120,10 240,70 360,40 C480,10 600,70 720,40 C840,10 960,70 1080,40 C1200,10 1320,70 1440,40 L1440,120 L0,120Z"/></svg>';
-    wave1.style.animation='funWave1 8s linear infinite';
-    funOverlay.appendChild(wave1);
+    // Foam wash — surge up
+    const foam1=document.createElement('div');
+    foam1.style.cssText='position:absolute;top:38%;left:0;width:100%;height:12%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15) 5%,rgba(255,255,255,.6) 12%,rgba(255,255,255,.9) 20%,rgba(255,255,255,.5) 30%,rgba(255,255,255,.8) 40%,rgba(255,255,255,.4) 55%,rgba(255,255,255,.85) 65%,rgba(255,255,255,.5) 75%,rgba(255,255,255,.7) 85%,rgba(255,255,255,.3) 95%,transparent);filter:blur(1.5px);border-radius:50%';
+    foam1.style.animation='funFoam 5s ease-in-out infinite';
+    funOverlay.appendChild(foam1);
 
-    // Wave layer 2 (front wave — lighter, foam-tipped)
-    const wave2=document.createElement('div');
-    wave2.style.cssText='position:absolute;top:2%;left:0;width:200%;height:40%;opacity:.7';
-    wave2.innerHTML='<svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="#5ba0d9" d="M0,50 C100,20 200,80 360,50 C520,20 600,80 720,50 C840,20 1000,80 1080,50 C1160,20 1340,80 1440,50 L1440,120 L0,120Z"/></svg>';
-    wave2.style.animation='funWave2 6s linear infinite';
-    funOverlay.appendChild(wave2);
+    // Second foam line offset
+    const foam2=document.createElement('div');
+    foam2.style.cssText='position:absolute;top:42%;left:5%;width:90%;height:8%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4) 15%,rgba(255,255,255,.7) 30%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.65) 70%,rgba(255,255,255,.35) 90%,transparent);filter:blur(2px);border-radius:40%';
+    foam2.style.animation='funFoam2 6.5s ease-in-out 1.5s infinite';
+    funOverlay.appendChild(foam2);
 
-    // Foam line
-    const foam=document.createElement('div');
-    foam.style.cssText='position:absolute;top:28%;left:0;width:100%;height:8%;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.5) 10%,rgba(255,255,255,.8) 20%,rgba(255,255,255,.4) 35%,rgba(255,255,255,.7) 50%,rgba(255,255,255,.3) 65%,rgba(255,255,255,.8) 80%,rgba(255,255,255,.5) 90%,transparent 100%);border-radius:50%;filter:blur(2px)';
-    foam.style.animation='funFoam 4s ease-in-out infinite';
-    funOverlay.appendChild(foam);
+    // Dry sand
+    const sand=document.createElement('div');
+    sand.style.cssText='position:absolute;top:58%;left:0;width:100%;height:42%;background:linear-gradient(180deg,#dfc48c 0%,#e8d5a3 20%,#f0deb0 50%,#f5e6c0 80%,#f7ecd0 100%)';
+    funOverlay.appendChild(sand);
 
     // Sun sparkles on water
-    for(let i=0;i<12;i++){
+    for(let i=0;i<18;i++){
       const sp=document.createElement('div');
-      const x=5+Math.random()*90, y=2+Math.random()*25;
-      sp.style.cssText=`position:absolute;top:${y}%;left:${x}%;width:${2+Math.random()*3}px;height:${2+Math.random()*3}px;background:rgba(255,255,230,.9);border-radius:50%;filter:blur(1px)`;
-      sp.style.animation=`funSparkle ${1.5+Math.random()*2.5}s ease-in-out ${Math.random()*3}s infinite`;
+      const x=3+Math.random()*94,y=10+Math.random()*30;
+      const sz=1.5+Math.random()*3;
+      sp.style.cssText=`position:absolute;top:${y}%;left:${x}%;width:${sz}px;height:${sz}px;background:rgba(255,255,240,.95);border-radius:50%;filter:blur(${Math.random()>.5?'1':'0'}px)`;
+      sp.style.animation=`funSparkle ${1.2+Math.random()*3}s ease-in-out ${Math.random()*4}s infinite`;
       funOverlay.appendChild(sp);
     }
 
-    // Top fade into page background
+    // Beach creatures
+    const creatures=[
+      {e:'\u{1F980}',x:72,y:68,sz:18,anim:'funCrab 8s ease-in-out infinite'},
+      {e:'\u{1F980}',x:28,y:75,sz:14,anim:'funCrab 6s ease-in-out 2s infinite'},
+      {e:'\u{2B50}',x:85,y:78,sz:13,anim:'funBob 3s ease-in-out infinite',c:'#c47a2a'},
+      {e:'\u{2B50}',x:15,y:82,sz:11,anim:'funBob 4s ease-in-out 1s infinite',c:'#c47a2a'},
+      {e:'\u{2B50}',x:55,y:85,sz:10,anim:'funBob 3.5s ease-in-out .5s infinite',c:'#b86e20'},
+      {e:'\u{1F41A}',x:42,y:72,sz:12,anim:'funBob 5s ease-in-out 2s infinite'},
+      {e:'\u{1F41A}',x:92,y:88,sz:10,anim:'funBob 4s ease-in-out infinite'},
+      {e:'\u{1F415}',x:60,y:62,sz:22,anim:'funDog 12s ease-in-out infinite'},
+      {e:'\u{1F415}',x:18,y:66,sz:18,anim:'funDog 10s ease-in-out 3s infinite'},
+      {e:'\u{1F99E}',x:78,y:50,sz:12,anim:'funBob 3s ease-in-out 1.5s infinite'},
+      {e:'\u{1F42C}',x:35,y:20,sz:16,anim:'funBob 2.5s ease-in-out infinite'},
+      {e:'\u{1F426}',x:8,y:5,sz:13,anim:'funBob 2s ease-in-out .5s infinite'},
+      {e:'\u{1F426}',x:22,y:3,sz:11,anim:'funBob 2.2s ease-in-out 1s infinite'},
+    ];
+    creatures.forEach(c=>{
+      const el=document.createElement('div');
+      el.textContent=c.e;
+      el.style.cssText=`position:absolute;top:${c.y}%;left:${c.x}%;font-size:${c.sz}px;line-height:1;${c.c?'filter:hue-rotate(0deg);color:'+c.c+';':''}`;
+      el.style.animation=c.anim;
+      funOverlay.appendChild(el);
+    });
+
+    // Beach umbrellas — large, close perspective
+    const umbrellas=[
+      {x:5,y:55,rot:-8,color1:'#e74c3c',color2:'#ffffff'},
+      {x:82,y:52,rot:12,color1:'#2980b9',color2:'#f1c40f'},
+      {x:45,y:58,rot:-5,color1:'#27ae60',color2:'#ffffff'},
+    ];
+    umbrellas.forEach(u=>{
+      const umb=document.createElement('div');
+      umb.style.cssText=`position:absolute;left:${u.x}%;top:${u.y}%;transform:rotate(${u.rot}deg);transform-origin:bottom center`;
+      // Pole
+      umb.innerHTML=`<div style="width:3px;height:38px;background:linear-gradient(180deg,#888,#aaa);margin:0 auto;border-radius:1px"></div><div style="width:60px;height:30px;border-radius:60px 60px 0 0;background:conic-gradient(from 0deg,${u.color1} 0deg,${u.color1} 45deg,${u.color2} 45deg,${u.color2} 90deg,${u.color1} 90deg,${u.color1} 135deg,${u.color2} 135deg,${u.color2} 180deg,${u.color1} 180deg,${u.color1} 225deg,${u.color2} 225deg,${u.color2} 270deg,${u.color1} 270deg,${u.color1} 315deg,${u.color2} 315deg,${u.color2} 360deg);position:relative;top:-38px;left:-28.5px;box-shadow:0 2px 8px rgba(0,0,0,.15)"></div>`;
+      funOverlay.appendChild(umb);
+    });
+
+    // Top fade
     const fade=document.createElement('div');
-    fade.style.cssText='position:absolute;top:0;left:0;width:100%;height:35%;background:linear-gradient(to bottom,var(--bg,#f5f3ef),transparent);pointer-events:none;z-index:1';
+    fade.style.cssText='position:absolute;top:0;left:0;width:100%;height:25%;background:linear-gradient(to bottom,var(--bg,#f5f3ef),transparent);pointer-events:none;z-index:1';
     funOverlay.appendChild(fade);
 
     document.body.appendChild(funOverlay);
