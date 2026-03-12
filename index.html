@@ -212,15 +212,14 @@ body.ops-mode .ops-hide{display:none!important}
 .exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
 .exec-pane h3{color:var(--accent);font-size:1rem;font-weight:700;margin-bottom:16px}
 /* Scenario slide panel */
-.scenario-toggle-btn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1100;background:#1a8a3e;color:#fff;border:none;padding:12px 6px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s}
+.scenario-toggle-btn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1100;background:#1a8a3e;color:#fff;border:none;padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s,left .3s ease}
 .scenario-toggle-btn:hover{background:#15702f}
+.scenario-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
 .scenario-slide-panel{position:fixed;left:0;top:0;bottom:0;width:33.33vw;min-width:380px;max-width:520px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
 .scenario-slide-panel.open{transform:translateX(0)}
-.scenario-slide-panel .scenario-close-btn{position:absolute;top:8px;right:12px;background:none;border:none;font-size:1.2rem;color:var(--text-dim);cursor:pointer}
 body.scenario-open main,body.scenario-open header{margin-left:33.33vw;transition:margin-left .3s ease}
 body:not(.scenario-open) main,body:not(.scenario-open) header{transition:margin-left .3s ease}
-body.scenario-open .scenario-toggle-btn{left:33.33vw;transition:left .3s ease}
-body:not(.scenario-open) .scenario-toggle-btn{transition:left .3s ease}
+body.scenario-open .scenario-toggle-btn{left:33.33vw}
 .exec-roster-cat{margin-bottom:16px}
 .exec-roster-cat .cat-header{font-weight:700;color:var(--accent);font-size:.95rem;padding:8px 0;border-bottom:2px solid var(--accent);margin-bottom:4px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
 .exec-roster-cat .cat-header .toggle-icon{font-size:.7rem;transition:transform .2s;margin-right:4px}
@@ -592,11 +591,10 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 
 <!-- Scenario Analysis Toggle Button (always visible on left edge) -->
-<button class="scenario-toggle-btn" id="scenarioToggleBtn">S C E N A R I O</button>
+<button class="scenario-toggle-btn" id="scenarioToggleBtn"><span class="arrow">&#9654;</span>S C E N A R I O</button>
 
 <!-- Scenario Analysis Slide Panel -->
 <div class="scenario-slide-panel" id="scenarioSlidePanel">
-<button class="scenario-close-btn" id="scenarioCloseBtn">&times;</button>
 <h3 style="color:#1a8a3e;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Scenario Analysis</h3>
 <label class="scenario-link-toggle" style="font-size:.78rem;margin-bottom:12px;display:block"><input type="checkbox" id="scenLinkFilters"> Link filters between panels</label>
 
@@ -5275,13 +5273,16 @@ function renderScenarioPnlSummary(){
 function initScenarioPane(){
   // Toggle slide panel
   const panel=document.getElementById('scenarioSlidePanel');
-  document.getElementById('scenarioToggleBtn').addEventListener('click',()=>{
-    panel.classList.add('open');document.body.classList.add('scenario-open');
-    if(!budgetScenario)initBudgetScenario();if(!forecastScenario)initForecastScenario();
-    renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary();
-  });
-  document.getElementById('scenarioCloseBtn').addEventListener('click',()=>{
-    panel.classList.remove('open');document.body.classList.remove('scenario-open');
+  const toggleBtn=document.getElementById('scenarioToggleBtn');
+  const arrowSpan=toggleBtn.querySelector('.arrow');
+  toggleBtn.addEventListener('click',()=>{
+    const isOpen=panel.classList.toggle('open');
+    document.body.classList.toggle('scenario-open',isOpen);
+    arrowSpan.innerHTML=isOpen?'&#9664;':'&#9654;';
+    if(isOpen){
+      if(!budgetScenario)initBudgetScenario();if(!forecastScenario)initForecastScenario();
+      renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary();
+    }
   });
   // Chat input handlers
   const budgetInput=document.getElementById('budgetChatInput');
