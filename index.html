@@ -4081,8 +4081,8 @@ function renderExecView(){
     if(typeof Chart!=='undefined'){
       if(execForecastChart)execForecastChart.destroy();
       const ds=showFcOpex?[
-        {label:'OpEx',data:totalFcRows.map(r=>r.opex),backgroundColor:isDark?'#4a9d54':'#3a7d44'},
-        {label:'CapEx',data:totalFcRows.map(r=>-r.capex),backgroundColor:hexToRgba(isDark?'#d4524d':'#8b2020',0.4)}
+        {label:'OpEx',data:totalFcRows.map(r=>r.opex),backgroundColor:isDark?'#4a9d54':'#3a7d44',stack:'pos'},
+        {label:'CapEx',data:totalFcRows.map(r=>-r.capex),backgroundColor:hexToRgba(isDark?'#d4524d':'#8b2020',0.4),stack:'neg'}
       ]:[
         {label:'Total Comp',data:totalFcRows.map(r=>r.total),backgroundColor:isDark?'#d4524d':'#8b2020'}
       ];
