@@ -225,6 +225,8 @@ body.ops-mode .ops-hide{display:none!important}
 .exec-roster-person:last-child{border-bottom:none}
 .exec-roster-person .person-name{color:var(--text)}
 .exec-roster-person .person-metrics{color:var(--text-dim);text-align:right;white-space:nowrap}
+body.ops-mode .exec-roster-person{display:none}
+body.ops-mode .exec-roster-prod .prod-header{cursor:default}
 @media(max-width:768px){
   .exec-pane{padding:12px}
   .exec-roster-person{flex-direction:column;gap:2px}
@@ -258,7 +260,14 @@ body.ops-mode .ops-hide{display:none!important}
 .pnl-walk-table td.section-label{font-weight:600;color:var(--text-dark)}
 @media(max-width:900px){.landing-modules{grid-template-columns:1fr}}
 /* Vertical headers for narrow month columns */
-th.v-hdr{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);white-space:nowrap;padding:8px 4px;min-width:auto;max-width:36px;height:60px;vertical-align:bottom;font-size:.7rem}
+th.v-hdr{white-space:nowrap;padding:8px 4px;min-width:62px;font-size:.7rem;text-align:right}
+/* Editable dimension table cells */
+.dim-edit-input{border:1px solid transparent;background:transparent;font-size:.8rem;padding:2px 6px;border-radius:4px;transition:border-color .15s,background .15s}
+.dim-edit-input:hover{border-color:var(--border);background:var(--panel-inset)}
+.dim-edit-input:focus{border-color:var(--accent);background:#fff;outline:none}
+.dim-edit-select{border:1px solid transparent;background:transparent;font-size:.78rem;padding:1px 4px;border-radius:4px;cursor:pointer;transition:border-color .15s,background .15s}
+.dim-edit-select:hover{border-color:var(--border);background:var(--panel-inset)}
+.dim-edit-select:focus{border-color:var(--accent);background:#fff;outline:none}
 /* Sticky note panel */
 .sticky-note-btn{position:fixed;top:12px;right:16px;z-index:10000;background:var(--panel);border:1px solid var(--border);color:var(--accent);font-size:1.1rem;width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .2s}
 .sticky-note-btn:hover{background:var(--accent);color:#fff;transform:scale(1.08)}
@@ -553,12 +562,17 @@ th.v-hdr{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg
 <button class="btn" id="btnCancelEmp" style="display:none">Cancel</button>
 </div>
 </div>
-<div class="controls">
-<input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:320px">
+<div class="controls" style="flex-wrap:wrap;gap:8px">
+<input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:220px">
+<select id="empFilterCountry" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Countries</option></select>
+<select id="empFilterSeniority" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Seniority</option></select>
+<select id="empFilterFunction" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Functions</option></select>
+<select id="empFilterBizLine" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Bus Lines</option></select>
+<select id="empFilterProject" style="padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;min-width:120px"><option value="">All Projects</option></select>
 <button class="btn" id="btnClearAllEmps" style="background:var(--danger);color:#fff">Clear All</button>
 </div>
 <div class="table-wrap"><table id="empTable"><thead><tr>
-<th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Business Line</th><th class="ops-hide">Bus Unit</th><th>Projects</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Cap %</th><th>OpEx</th><th>CapEx</th><th>Hire Date</th><th>Term Date</th><th>Actions</th>
+<th style="min-width:80px">Actions</th><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Business Line</th><th class="ops-hide">Bus Unit</th><th>Projects</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Cap %</th><th>OpEx</th><th>CapEx</th><th>Hire Date</th><th>Term Date</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
@@ -930,8 +944,8 @@ th.v-hdr{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg
 <th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
 <th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
 <th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
-<th style="min-width:80px;font-weight:700">Full Year</th>
-<th style="min-width:120px">Notes</th>
+<th style="min-width:70px;font-weight:700">Full Year</th>
+<th style="min-width:100px">Notes</th>
 <th style="width:40px"></th>
 </tr></thead>
 <tbody id="vendorTbody"></tbody>
@@ -967,8 +981,8 @@ th.v-hdr{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg
 <th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
 <th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
 <th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
-<th style="min-width:80px;font-weight:700">Full Year</th>
-<th style="min-width:120px">Notes</th>
+<th style="min-width:70px;font-weight:700">Full Year</th>
+<th style="min-width:100px">Notes</th>
 <th style="width:40px"></th>
 </tr></thead>
 <tbody id="teTbody"></tbody>
@@ -2074,13 +2088,44 @@ function removeInlineAlloc(idx){
   renderEmployees();
 }
 
+function refreshEmpFilters(){
+  const fCountry=document.getElementById('empFilterCountry');
+  const fSeniority=document.getElementById('empFilterSeniority');
+  const fFunction=document.getElementById('empFilterFunction');
+  const fBizLine=document.getElementById('empFilterBizLine');
+  const fProject=document.getElementById('empFilterProject');
+  const preserve=(sel)=>{const v=sel.value;return v};
+  const cv=preserve(fCountry),sv=preserve(fSeniority),fv=preserve(fFunction),bv=preserve(fBizLine),pv=preserve(fProject);
+  const countries=[...new Set(state.employees.map(e=>e.country))].sort();
+  const seniorities=[...new Set(state.employees.map(e=>e.seniority))].sort();
+  const functions=[...new Set(state.employees.map(e=>e.function))].sort();
+  const bizLines=[...new Set(state.employees.map(e=>e.businessLine).filter(Boolean))].sort();
+  const projIds=new Set();state.employees.forEach(e=>(e.allocations||[]).forEach(a=>projIds.add(a.projId)));
+  const projects=state.projects.filter(p=>projIds.has(p.id)).sort((a,b)=>a.code.localeCompare(b.code));
+  fCountry.innerHTML='<option value="">All Countries</option>'+countries.map(c=>`<option value="${c}"${c===cv?' selected':''}>${c}</option>`).join('');
+  fSeniority.innerHTML='<option value="">All Seniority</option>'+seniorities.map(s=>`<option value="${s}"${s===sv?' selected':''}>${s}</option>`).join('');
+  fFunction.innerHTML='<option value="">All Functions</option>'+functions.map(f=>`<option value="${esc(f)}"${f===fv?' selected':''}>${esc(f)}</option>`).join('');
+  fBizLine.innerHTML='<option value="">All Bus Lines</option>'+bizLines.map(b=>{const bl=state.bizLines.find(x=>x.code===b);return `<option value="${esc(b)}"${b===bv?' selected':''}>${esc(b)}${bl?' — '+esc(bl.name):''}</option>`}).join('');
+  fProject.innerHTML='<option value="">All Projects</option>'+projects.map(p=>`<option value="${p.id}"${p.id===pv?' selected':''}>${esc(p.code)} — ${esc(p.product)}</option>`).join('');
+}
 function renderEmployees(){
+  refreshEmpFilters();
   const search=document.getElementById('empSearch').value.toLowerCase();
+  const fCountry=document.getElementById('empFilterCountry').value;
+  const fSeniority=document.getElementById('empFilterSeniority').value;
+  const fFunction=document.getElementById('empFilterFunction').value;
+  const fBizLine=document.getElementById('empFilterBizLine').value;
+  const fProject=document.getElementById('empFilterProject').value;
   let emps=state.employees;
   if(search)emps=emps.filter(e=>{
     const allProjs=e.allocations?e.allocations.map(a=>getProjectById(a.projId)).filter(Boolean):[];
     return [e.name,e.country,e.seniority,e.function,...getEmpMarkets(e).map(m=>m.code),e.businessLine||'',e.businessUnit||'',...allProjs.map(p=>p.code),...allProjs.map(p=>p.product)].some(v=>v.toLowerCase().includes(search));
   });
+  if(fCountry)emps=emps.filter(e=>e.country===fCountry);
+  if(fSeniority)emps=emps.filter(e=>e.seniority===fSeniority);
+  if(fFunction)emps=emps.filter(e=>e.function===fFunction);
+  if(fBizLine)emps=emps.filter(e=>e.businessLine===fBizLine);
+  if(fProject)emps=emps.filter(e=>(e.allocations||[]).some(a=>a.projId===fProject));
   const tbody=document.querySelector('#empTable tbody');
   tbody.innerHTML=emps.map(e=>{
     const bp=getBonusPct(e),ba=getBonusAmt(e),ben=getBenefitsAmt(e),tc=getTotalComp(e);
@@ -2119,6 +2164,7 @@ function renderEmployees(){
       }).join('');
       allocEditHtml+=`<button class="btn btn-sm" style="padding:2px 8px;font-size:.72rem;margin-top:2px" onclick="addInlineAlloc()">+ Add</button>`;
       return `<tr data-id="${e.id}" class="inline-edit">
+        <td><button class="btn btn-sm btn-primary" onclick="saveInlineEdit('${e.id}')">Save</button> <button class="btn btn-sm" onclick="cancelInlineEdit()">Cancel</button></td>
         <td><input class="ie-name" value="${e.name}"></td>
         <td><select class="ie-country">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
         <td><select class="ie-seniority">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
@@ -2133,10 +2179,10 @@ function renderEmployees(){
         <td class="comp-sensitive">${fmt(getOpEx(e))}</td><td class="comp-sensitive">${fmt(getCapEx(e))}</td>
         <td><input class="ie-hire" type="date" value="${e.hireDate||''}"></td>
         <td><input class="ie-term" type="date" value="${e.termDate||''}"></td>
-        <td><button class="btn btn-sm btn-primary" onclick="saveInlineEdit('${e.id}')">Save</button> <button class="btn btn-sm" onclick="cancelInlineEdit()">Cancel</button></td>
       </tr>`;
     }
     return `<tr data-id="${e.id}">
+      <td style="white-space:nowrap"><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
       <td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
       <td style="font-size:.82rem">${(()=>{const mkts=getEmpMarkets(e);return mkts.map(m=>`<div>${m.code}${mkts.length>1?` <span style="font-size:.75rem;color:var(--text-dim)">${m.pct}%</span>`:''}</div>`).join('')})()}</td><td style="font-size:.82rem">${getBizLineName(e.businessLine)}</td>
       <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||'—'}</td>
@@ -2144,11 +2190,13 @@ function renderEmployees(){
       <td class="comp-sensitive">${fmt(e.salary)}</td><td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
       <td>${getCapPct(e)}%</td><td class="comp-sensitive">${fmt(getProratedOpEx(e))}</td><td class="comp-sensitive">${fmt(getProratedCapEx(e))}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td>
-      <td><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
     </tr>`;
   }).join('');
 }
 document.getElementById('empSearch').addEventListener('input',renderEmployees);
+['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterBizLine','empFilterProject'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',renderEmployees);
+});
 
 // ── PROJECTS ──
 document.getElementById('btnAddProject').addEventListener('click',()=>{
@@ -4229,7 +4277,7 @@ function renderExecView(){
     const catCapEx=allCatPeople.reduce((a,p)=>a+p.capEx,0);
     const catOpEx=allCatPeople.reduce((a,p)=>a+p.opEx,0);
     const catFte=Math.round(allCatPeople.reduce((a,p)=>a+p.allocPct,0))/100;
-    rHtml+=`<div class="exec-roster-cat"><div class="cat-header"><span><span class="toggle-icon">&#9660;</span>${cat}</span><span style="font-weight:400;font-size:.8rem;color:var(--text-dim)">${catFte} FTE &middot; ${fmt(catTotal)} total &middot; ${fmt(catCapEx)} CapEx &middot; ${fmt(catOpEx)} OpEx</span></div><div class="cat-body">`;
+    rHtml+=`<div class="exec-roster-cat collapsed"><div class="cat-header"><span><span class="toggle-icon">&#9660;</span>${cat}</span><span style="font-weight:400;font-size:.8rem;color:var(--text-dim)">${catFte} FTE &middot; ${fmt(catTotal)} total &middot; ${fmt(catCapEx)} CapEx &middot; ${fmt(catOpEx)} OpEx</span></div><div class="cat-body">`;
     const prods=Object.keys(tree[cat]).sort();
     prods.forEach(prod=>{
       const people=tree[cat][prod];
@@ -4246,7 +4294,7 @@ function renderExecView(){
   rosterPane.innerHTML=rHtml;
   // Attach collapse/expand handlers
   rosterPane.querySelectorAll('.cat-header').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('collapsed')));
-  rosterPane.querySelectorAll('.prod-header').forEach(h=>h.addEventListener('click',(e)=>{e.stopPropagation();h.parentElement.classList.toggle('collapsed')}));
+  rosterPane.querySelectorAll('.prod-header').forEach(h=>h.addEventListener('click',(e)=>{e.stopPropagation();if(!document.body.classList.contains('ops-mode'))h.parentElement.classList.toggle('collapsed')}));
 }
 
 // ── VENDOR MODULE ──
@@ -4434,9 +4482,9 @@ function initVendorModule(){
     tbody.innerHTML=state.accounts.map((a,idx)=>{
       const vCount=state.vendorRows.filter(r=>r.acctDesc===a.description).length + state.teRows.filter(r=>r.acctDesc===a.description).length;
       return `<tr>
-        <td><input class="acct-code-edit" value="${esc(a.code)}" data-idx="${idx}" style="border:none;background:transparent;font-size:.8rem;font-weight:600;color:var(--accent);width:70px;padding:2px 4px"></td>
-        <td><input class="acct-desc-edit" value="${esc(a.description)}" data-idx="${idx}" style="border:none;background:transparent;font-size:.8rem;width:180px;padding:2px 4px"></td>
-        <td><select class="acct-cat-edit" data-idx="${idx}" style="border:none;background:transparent;font-size:.8rem;padding:1px 2px">
+        <td><input class="acct-code-edit dim-edit-input" value="${esc(a.code)}" data-idx="${idx}" style="font-weight:600;color:var(--accent);width:70px"></td>
+        <td><input class="acct-desc-edit dim-edit-input" value="${esc(a.description)}" data-idx="${idx}" style="width:180px"></td>
+        <td><select class="acct-cat-edit dim-edit-select" data-idx="${idx}">
           <option value="">—</option><option value="Software &amp; Licenses"${a.category==='Software & Licenses'?' selected':''}>Software &amp; Licenses</option>
           <option value="Professional Services"${a.category==='Professional Services'?' selected':''}>Professional Services</option>
           <option value="Data &amp; Analytics"${a.category==='Data & Analytics'?' selected':''}>Data &amp; Analytics</option>
@@ -4444,7 +4492,7 @@ function initVendorModule(){
           <option value="Infrastructure"${a.category==='Infrastructure'?' selected':''}>Infrastructure</option>
           <option value="Other OpEx"${a.category==='Other OpEx'?' selected':''}>Other OpEx</option>
         </select></td>
-        <td><select class="acct-group-edit" data-idx="${idx}" style="border:none;background:transparent;font-size:.78rem;padding:1px 2px">
+        <td><select class="acct-group-edit dim-edit-select" data-idx="${idx}">
           <option value="vendor"${(a.group||'vendor')==='vendor'?' selected':''}>Vendor</option>
           <option value="te"${a.group==='te'?' selected':''}>T&amp;E</option>
         </select></td>
@@ -4490,10 +4538,23 @@ function initVendorModule(){
     // Markets
     const mbody=document.getElementById('vMarketsBody');
     mbody.innerHTML=state.markets.map(m=>`<tr>
-      <td style="font-weight:600;color:var(--accent)">${m.code}</td>
-      <td><input class="vm-name" data-code="${m.code}" value="${m.name}" style="border:none;background:transparent;font-size:.8rem;padding:2px 4px;width:140px"></td>
+      <td><input class="vm-code dim-edit-input" data-code="${m.code}" value="${esc(m.code)}" style="font-weight:600;color:var(--accent);width:70px"></td>
+      <td><input class="vm-name dim-edit-input" data-code="${m.code}" value="${esc(m.name)}" style="width:140px"></td>
       <td><button class="btn btn-sm btn-danger vm-del" data-code="${m.code}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
     </tr>`).join('');
+    mbody.querySelectorAll('.vm-code').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const oldCode=inp.dataset.code;
+        const newCode=inp.value.trim();
+        if(!newCode||state.markets.some(x=>x.code!==oldCode&&x.code===newCode)){inp.value=oldCode;if(newCode)alert('Code already exists or is empty');return}
+        const m=state.markets.find(x=>x.code===oldCode);
+        if(m){
+          state.employees.forEach(e=>{if(e.allocations)e.allocations.forEach(a=>{/* market code on projects */})});
+          state.projects.forEach(p=>{if(p.marketCode===oldCode)p.marketCode=newCode});
+          m.code=newCode;saveState();renderVendorDims();refreshAllDropdowns();renderMarkets();
+        }
+      });
+    });
     mbody.querySelectorAll('.vm-name').forEach(inp=>{
       inp.addEventListener('change',()=>{
         const m=state.markets.find(x=>x.code===inp.dataset.code);
@@ -4510,10 +4571,24 @@ function initVendorModule(){
     // Biz lines
     const bbody=document.getElementById('vBizBody');
     bbody.innerHTML=state.bizLines.map(b=>`<tr>
-      <td style="font-weight:600;color:var(--accent)">${b.code}</td>
-      <td><input class="vb-name" data-code="${b.code}" value="${b.name}" style="border:none;background:transparent;font-size:.8rem;padding:2px 4px;width:140px"></td>
+      <td><input class="vb-code dim-edit-input" data-code="${b.code}" value="${esc(b.code)}" style="font-weight:600;color:var(--accent);width:60px"></td>
+      <td><input class="vb-name dim-edit-input" data-code="${b.code}" value="${esc(b.name)}" style="width:140px"></td>
       <td><button class="btn btn-sm btn-danger vb-del" data-code="${b.code}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
     </tr>`).join('');
+    bbody.querySelectorAll('.vb-code').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const oldCode=inp.dataset.code;
+        const newCode=inp.value.trim();
+        if(!newCode||state.bizLines.some(x=>x.code!==oldCode&&x.code===newCode)){inp.value=oldCode;if(newCode)alert('Code already exists or is empty');return}
+        const b=state.bizLines.find(x=>x.code===oldCode);
+        if(b){
+          state.employees.forEach(e=>{if(e.businessLine===oldCode)e.businessLine=newCode});
+          state.vendorRows.forEach(r=>{if(r.bizLine===oldCode)r.bizLine=newCode});
+          state.teRows.forEach(r=>{if(r.bizLine===oldCode)r.bizLine=newCode});
+          b.code=newCode;saveState();renderVendorDims();refreshAllDropdowns();renderBizLines();
+        }
+      });
+    });
     bbody.querySelectorAll('.vb-name').forEach(inp=>{
       inp.addEventListener('change',()=>{
         const b=state.bizLines.find(x=>x.code===inp.dataset.code);
@@ -4762,7 +4837,7 @@ function renderPnlWalk(){
     colData.forEach(d=>{Object.keys(totals).forEach(k=>totals[k]+=d[k])});
 
     let h='<thead><tr><th>Line Item</th>';
-    cols.forEach(c=>h+=`<th class="v-hdr" style="text-align:right">${c}</th>`);
+    cols.forEach(c=>h+=`<th style="text-align:right;min-width:62px;font-size:.75rem">${c}</th>`);
     h+=`<th style="text-align:right;font-weight:700" class="col-divider">FY Total</th></tr></thead><tbody>`;
 
     const rows=[
