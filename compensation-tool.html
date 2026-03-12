@@ -396,6 +396,7 @@ body.ops-mode .ops-hide{display:none!important}
 <div id="empAllocRows"></div>
 <div style="margin-top:8px"><button class="btn btn-sm" id="btnAddEmpAlloc" type="button">+ Add Project</button></div>
 <div id="empAllocInfo" style="margin-top:8px"></div>
+<div id="empSplitOutsideWrap" style="margin-top:8px;display:none"><label style="font-size:.85rem;color:var(--text);cursor:pointer"><input type="checkbox" id="empSplitOutside"> This employee is split outside of this organization</label></div>
 <div style="margin-top:16px;display:flex;gap:8px">
 <button class="btn btn-primary" id="btnSaveEmp">Add Employee</button>
 <button class="btn" id="btnCancelEmp" style="display:none">Cancel</button>
@@ -1444,6 +1445,12 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     if(genProj)allocations=[{projId:genProj.id,pct:100,primary:true}];
   }
+  // Validate allocation total
+  const allocTotal=allocations.reduce((s,a)=>s+a.pct,0);
+  if(allocTotal>100){alert('Allocation total is '+allocTotal+'%. It cannot exceed 100%. Please adjust project allocations.');return}
+  if(allocations.length&&allocTotal<100-0.01){
+    if(!document.getElementById('empSplitOutside').checked){alert('Allocation total is below 100%. Please confirm that this employee is split outside of this organization.');return}
+  }
   if(editingId){
     const emp=state.employees.find(e=>e.id===editingId);
     if(emp){Object.assign(emp,{name,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations})}
@@ -1466,6 +1473,8 @@ function clearForm(){['empName','empSalary','empNotes','empHireDate','empTermDat
   document.getElementById('empCapPct').value=0;
   ['empCountry','empSeniority','empFunction','empBusinessLine'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('benchmarkBadge').innerHTML='';
+  document.getElementById('empSplitOutside').checked=false;
+  document.getElementById('empSplitOutsideWrap').style.display='none';
   renderFormAllocations([]);
 }
 // ── Form allocation rows ──
@@ -1518,11 +1527,18 @@ function updateFormMarketDisplay(){
 function updateFormAllocInfo(){
   const total=formAllocations.reduce((s,a)=>s+a.pct,0);
   const el=document.getElementById('empAllocInfo');
-  if(!formAllocations.length){el.innerHTML='';return}
-  if(Math.abs(total-100)<0.01){
+  const splitWrap=document.getElementById('empSplitOutsideWrap');
+  const splitCb=document.getElementById('empSplitOutside');
+  if(!formAllocations.length){el.innerHTML='';splitWrap.style.display='none';splitCb.checked=false;return}
+  if(total>100){
+    el.innerHTML='<span class="alloc-flag">Total: '+total+'% — Exceeds 100%. Reduce allocations to proceed.</span>';
+    splitWrap.style.display='none';splitCb.checked=false;
+  } else if(Math.abs(total-100)<0.01){
     el.innerHTML='<span class="alloc-flag ok">Total: '+total+'% — Balanced</span>';
+    splitWrap.style.display='none';splitCb.checked=false;
   } else {
-    el.innerHTML='<span class="alloc-flag">Total: '+total+'% — Expected 100%</span>';
+    el.innerHTML='<span class="alloc-flag">Total: '+total+'% — Below 100%</span>';
+    splitWrap.style.display='block';
   }
 }
 function getFormAllocations(){
@@ -1596,6 +1612,12 @@ function saveInlineEdit(id){
   if(!emp.allocations||!emp.allocations.length){
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     if(genProj)emp.allocations=[{projId:genProj.id,pct:100,primary:true}];
+  }
+  // Validate allocation total
+  const inlineAllocTotal=emp.allocations.reduce((s,a)=>s+a.pct,0);
+  if(inlineAllocTotal>100){alert('Allocation total is '+inlineAllocTotal+'%. It cannot exceed 100%. Please adjust project allocations.');return}
+  if(emp.allocations.length&&inlineAllocTotal<100-0.01){
+    if(!confirm('Allocation total is '+Math.round(inlineAllocTotal*100)/100+'% (below 100%). Is this employee split outside of this organization?'))return;
   }
   if(emp.allocations.length&&!emp.allocations.some(a=>a.primary))emp.allocations[0].primary=true;
   inlineEditId=null;inlineEditAllocs=null;saveState();renderEmployees();
@@ -3041,6 +3063,12 @@ document.getElementById('rosterFileInput').addEventListener('change',function(){
     function flushEmp(){
       if(!currentEmp)return;
       currentEmp.allocations=pendingAllocs.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:false}));
+      const flushTotal=currentEmp.allocations.reduce((s,a)=>s+a.pct,0);
+      if(flushTotal>100){
+        errors.push(`"${currentEmp.name}": allocation total is ${flushTotal}% (exceeds 100%) — skipped`);
+        state.employees=state.employees.filter(e=>e.id!==currentEmp.id);
+        skipped++;pendingAllocs=[];currentEmp=null;return;
+      }
       if(currentEmp.allocations.length){currentEmp.allocations[0].primary=true}
       else {
         // Auto-assign default coding string (GEN-000) when no project provided
