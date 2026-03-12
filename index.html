@@ -209,8 +209,15 @@ body.ops-mode .ops-hide{display:none!important}
   #vendorNav .btn{font-size:.68rem;padding:4px 6px}
 }
 /* ── Exec View ── */
-.exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
-.exec-pane h3{color:var(--accent);font-size:1rem;font-weight:700;margin-bottom:16px}
+.exec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:0;min-width:0;overflow:hidden}
+.exec-pane h3{color:var(--accent);font-size:.92rem;font-weight:700;margin-bottom:12px}
+.exec-grid .chart-container{height:250px;margin-bottom:12px}
+.exec-grid .monthly-table,.exec-grid .forecast-table{font-size:.75rem}
+.exec-grid .monthly-table td,.exec-grid .monthly-table th,.exec-grid .forecast-table td,.exec-grid .forecast-table th{padding:4px 6px}
+.exec-grid .controls{font-size:.78rem}
+.exec-grid .controls .btn{font-size:.72rem;padding:3px 8px}
+.exec-grid .controls label{font-size:.72rem}
 .exec-roster-cat{margin-bottom:16px}
 .exec-roster-cat .cat-header{font-weight:700;color:var(--accent);font-size:.95rem;padding:8px 0;border-bottom:2px solid var(--accent);margin-bottom:4px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
 .exec-roster-cat .cat-header .toggle-icon{font-size:.7rem;transition:transform .2s;margin-right:4px}
@@ -227,6 +234,9 @@ body.ops-mode .ops-hide{display:none!important}
 .exec-roster-person .person-metrics{color:var(--text-dim);text-align:right;white-space:nowrap}
 body.ops-mode .exec-roster-person{display:none}
 body.ops-mode .exec-roster-prod .prod-header{cursor:default}
+@media(max-width:1024px){
+  .exec-grid{grid-template-columns:1fr}
+}
 @media(max-width:768px){
   .exec-pane{padding:12px}
   .exec-roster-person{flex-direction:column;gap:2px}
@@ -281,10 +291,10 @@ th.num-col-sm,td.num-col-sm{min-width:70px;text-align:right;white-space:nowrap}
 th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 /* Scenario Analysis */
 .scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.scenario-chart-container{position:relative;height:250px;margin-bottom:12px}
+.scenario-chart-container{position:relative;height:200px;margin-bottom:8px}
 .chatbot-panel{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:8px;background:var(--panel-inset);overflow:hidden}
 .chatbot-header{padding:8px 12px;font-weight:600;font-size:.85rem;color:var(--accent);background:var(--panel);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.chat-messages{flex:1;overflow-y:auto;padding:10px;max-height:350px;min-height:200px;display:flex;flex-direction:column;gap:6px}
+.chat-messages{flex:1;overflow-y:auto;padding:8px;max-height:280px;min-height:150px;display:flex;flex-direction:column;gap:5px}
 .chat-msg{max-width:85%;padding:8px 12px;border-radius:10px;font-size:.82rem;line-height:1.4;word-wrap:break-word}
 .chat-msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:2px}
 .chat-msg.system{align-self:flex-start;background:var(--panel);border:1px solid var(--border);border-bottom-left-radius:2px}
@@ -503,6 +513,9 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div id="tab-exec" class="tab-content active">
 <div class="stat-cards" id="execStatCards"></div>
 
+<!-- Exec 2x2 Grid -->
+<div class="exec-grid">
+
 <!-- Pane 1: Monthly Dashboard with split-by -->
 <div class="exec-pane">
 <h3>Monthly Compensation Overview</h3>
@@ -650,6 +663,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <!-- P&L Summary -->
 <div id="scenPnlSummary" style="margin-top:12px"></div>
 </div>
+</div><!-- /exec-grid -->
 </div>
 
 <!-- EMPLOYEES -->
