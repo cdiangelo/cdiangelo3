@@ -894,6 +894,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <button class="btn" id="wbGrid" title="Toggle grid" style="padding:4px 8px;font-size:.75rem">Grid</button>
 <select id="wbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
 <option value="">Pen</option>
+<option value="dot">Dot</option>
 <option value="rect">Rect</option>
 <option value="circle">Circle</option>
 <option value="line">Line</option>
@@ -1104,7 +1105,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <input type="range" id="vWbOpacity" min="0" max="100" value="100" step="5" style="width:50px">
 <button class="btn" id="vWbGrid" style="padding:4px 8px;font-size:.75rem">Grid</button>
 <select id="vWbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
-<option value="">Pen</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
+<option value="">Pen</option><option value="dot">Dot</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
 </select>
 <button class="btn" id="vWbUndo" style="padding:4px 8px;font-size:.75rem">Undo</button>
 <button class="btn" id="vWbClearBtn" style="padding:4px 8px;font-size:.75rem">Clear</button>
@@ -1151,7 +1152,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <input type="range" id="dWbOpacity" min="0" max="100" value="100" step="5" style="width:50px">
 <button class="btn" id="dWbGrid" style="padding:4px 8px;font-size:.75rem">Grid</button>
 <select id="dWbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
-<option value="">Pen</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
+<option value="">Pen</option><option value="dot">Dot</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
 </select>
 <button class="btn" id="dWbUndo" style="padding:4px 8px;font-size:.75rem">Undo</button>
 <button class="btn" id="dWbClearBtn" style="padding:4px 8px;font-size:.75rem">Clear</button>
@@ -2816,9 +2817,21 @@ function createScratchPad(cfg){
     ctx.restore();
   }
 
+  let eraserOverlay=null;
   function setCursorForTool(){
     const v=shapeSelect.value;
-    canvas.style.cursor=v==='hand'?'grab':v==='eraser'?'cell':v==='text'?'text':'crosshair';
+    if(v==='eraser'){
+      canvas.style.cursor='none';
+      if(!eraserOverlay){
+        eraserOverlay=document.createElement('div');
+        eraserOverlay.style.cssText='position:absolute;pointer-events:none;border:2px solid rgba(139,32,32,0.6);border-radius:50%;z-index:10;display:none;box-sizing:border-box;background:rgba(139,32,32,0.08)';
+        canvas.parentElement.style.position='relative';
+        canvas.parentElement.appendChild(eraserOverlay);
+      }
+    } else {
+      canvas.style.cursor=v==='hand'?'grab':v==='text'?'crosshair':'crosshair';
+      if(eraserOverlay){eraserOverlay.style.display='none'}
+    }
   }
   shapeSelect.addEventListener('change',()=>{
     // Stamp any floating selection when switching tools
@@ -2878,40 +2891,23 @@ function createScratchPad(cfg){
       // No object found — start manual selection rectangle
       saveState();wbShapeStart=pos;
       canvas.style.cursor='crosshair';
-    } else if(tool==='text'){
-      // Place a text input at click position
-      wbDrawing=false;
+    } else if(tool==='dot'){
       saveState();
-      canvas.parentElement.style.position='relative';
-      const canvasRect=canvas.getBoundingClientRect();
-      const parentRect=canvas.parentElement.getBoundingClientRect();
-      const inp=document.createElement('input');
-      inp.type='text';inp.placeholder='Type here…';
-      inp.style.cssText=`position:absolute;left:${canvasRect.left-parentRect.left+pos.x}px;top:${canvasRect.top-parentRect.top+pos.y}px;font-size:${Math.max(14,wbSize*4)}px;border:1px dashed var(--accent);background:rgba(255,255,255,0.9);color:${wbColor};outline:none;padding:2px 6px;z-index:10;font-family:inherit;border-radius:3px;min-width:60px`;
-      canvas.parentElement.appendChild(inp);
-      inp.focus();
-      let committed=false;
-      const commitText=()=>{
-        if(committed)return;
-        committed=true;
-        if(inp.value){
-          const cr=parseInt(wbColor.slice(1,3),16),cg=parseInt(wbColor.slice(3,5),16),cb=parseInt(wbColor.slice(5,7),16);
-          ctx.fillStyle=`rgba(${cr},${cg},${cb},${wbOpacity})`;
-          ctx.font=`${Math.max(14,wbSize*4)}px sans-serif`;
-          ctx.fillText(inp.value,pos.x,pos.y+Math.max(14,wbSize*4));
-          updateLastState();
-        }
-        inp.remove();
-      };
-      inp.addEventListener('blur',commitText);
-      inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commitText()}});
-      return;
-    } else if(tool==='eraser'){
-      saveState();
-      // Flood-erase: clear connected region of similar color at click point
-      floodErase(Math.round(pos.x),Math.round(pos.y));
+      const r=parseInt(wbColor.slice(1,3),16),g=parseInt(wbColor.slice(3,5),16),b=parseInt(wbColor.slice(5,7),16);
+      ctx.fillStyle=`rgba(${r},${g},${b},${wbOpacity})`;
+      ctx.beginPath();
+      ctx.arc(pos.x,pos.y,Math.max(2,wbSize),0,Math.PI*2);
+      ctx.fill();
       updateLastState();
       wbDrawing=false;
+    } else if(tool==='text'){
+      // Start drawing a text box
+      saveState();wbShapeStart=pos;
+    } else if(tool==='eraser'){
+      saveState();
+      // Brush eraser: clear circle at cursor
+      brushErase(pos.x,pos.y);
+      wbDrawing=true;
     } else if(tool){
       saveState();wbShapeStart=pos;
     } else {
@@ -2951,15 +2947,23 @@ function createScratchPad(cfg){
       return;
     }
 
-    if(tool&&tool!=='eraser'&&wbShapeStart){
-      // Preview shape
+    if(tool==='eraser'){
+      if(wbDrawing)brushErase(pos.x,pos.y);
+      return;
+    }
+
+    if(tool&&wbShapeStart){
+      // Preview shape or text box
       if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
       else ctx.clearRect(0,0,canvas.width,canvas.height);
       if(wbShowGrid)drawGrid();
       const r=parseInt(wbColor.slice(1,3),16),g=parseInt(wbColor.slice(3,5),16),b=parseInt(wbColor.slice(5,7),16);
       ctx.strokeStyle=`rgba(${r},${g},${b},${wbOpacity})`;ctx.lineWidth=wbSize;
       const s=wbShapeStart;
-      if(tool==='rect'){ctx.strokeRect(s.x,s.y,pos.x-s.x,pos.y-s.y)}
+      if(tool==='text'){
+        ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='var(--accent,#8b2020)';ctx.lineWidth=1;
+        ctx.strokeRect(s.x,s.y,pos.x-s.x,pos.y-s.y);ctx.restore();
+      } else if(tool==='rect'){ctx.strokeRect(s.x,s.y,pos.x-s.x,pos.y-s.y)}
       else if(tool==='circle'){const rx=Math.abs(pos.x-s.x)/2,ry=Math.abs(pos.y-s.y)/2;ctx.beginPath();ctx.ellipse(s.x+((pos.x-s.x)/2),s.y+((pos.y-s.y)/2),rx,ry,0,0,Math.PI*2);ctx.stroke()}
       else if(tool==='line'){ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(pos.x,pos.y);ctx.stroke()}
     } else if(!tool){
@@ -3005,6 +3009,48 @@ function createScratchPad(cfg){
       return;
     }
 
+    if(tool==='eraser'){
+      updateLastState();
+      return;
+    }
+
+    if(tool==='text'&&wbShapeStart){
+      // Finished drawing text box — place textarea
+      const x=Math.min(wbShapeStart.x,pos.x),y=Math.min(wbShapeStart.y,pos.y);
+      const w=Math.max(60,Math.abs(pos.x-wbShapeStart.x)),h=Math.max(24,Math.abs(pos.y-wbShapeStart.y));
+      wbShapeStart=null;
+      // Restore canvas (remove preview dashes)
+      redraw();
+      canvas.parentElement.style.position='relative';
+      const canvasRect=canvas.getBoundingClientRect();
+      const parentRect=canvas.parentElement.getBoundingClientRect();
+      const fontSize=Math.max(12,Math.min(h*0.6,wbSize*4));
+      const ta=document.createElement('textarea');
+      ta.placeholder='Type here…';
+      ta.style.cssText=`position:absolute;left:${canvasRect.left-parentRect.left+x}px;top:${canvasRect.top-parentRect.top+y}px;width:${w}px;height:${h}px;font-size:${fontSize}px;border:2px solid var(--accent,#8b2020);background:rgba(255,255,255,0.95);color:${wbColor};outline:none;padding:4px 6px;z-index:10;font-family:sans-serif;border-radius:3px;resize:both;overflow:hidden;line-height:1.3;box-sizing:border-box;caret-color:var(--accent,#8b2020)`;
+      canvas.parentElement.appendChild(ta);
+      ta.focus();
+      let committed=false;
+      const commitText=()=>{
+        if(committed)return;
+        committed=true;
+        const text=ta.value.trim();
+        if(text){
+          const cr=parseInt(wbColor.slice(1,3),16),cg=parseInt(wbColor.slice(3,5),16),cb=parseInt(wbColor.slice(5,7),16);
+          ctx.fillStyle=`rgba(${cr},${cg},${cb},${wbOpacity})`;
+          ctx.font=`${fontSize}px sans-serif`;
+          const lines=text.split('\n');
+          const lineH=fontSize*1.3;
+          lines.forEach((line,li)=>{ctx.fillText(line,x+4,y+fontSize+li*lineH)});
+          updateLastState();
+        }
+        ta.remove();
+      };
+      ta.addEventListener('blur',commitText);
+      ta.addEventListener('keydown',ev=>{if(ev.key==='Escape'){ev.preventDefault();commitText()}});
+      return;
+    }
+
     if(tool&&tool!=='hand'&&tool!=='eraser'&&wbShapeStart){
       updateLastState();
       wbShapeStart=null;
@@ -3013,40 +3059,41 @@ function createScratchPad(cfg){
       updateLastState();
     }
   });
-  canvas.addEventListener('mouseleave',()=>{if(wbDrawing){wbDrawing=false;const tool=shapeSelect.value;if(!tool)ctx.closePath();if(wbHistory.length)updateLastState()}});
+  canvas.addEventListener('mouseleave',()=>{
+    if(wbDrawing){wbDrawing=false;const tool=shapeSelect.value;if(!tool)ctx.closePath();if(tool==='eraser'&&wbHistory.length)updateLastState();else if(wbHistory.length)updateLastState()}
+    if(eraserOverlay)eraserOverlay.style.display='none';
+  });
+  // Track eraser circle overlay on all mouse movement
+  canvas.addEventListener('mousemove',e=>{
+    if(shapeSelect.value==='eraser'&&eraserOverlay){
+      const canvasRect=canvas.getBoundingClientRect();
+      const parentRect=canvas.parentElement.getBoundingClientRect();
+      const radius=Math.max(8,wbSize*3);
+      const diameter=radius*2;
+      eraserOverlay.style.width=diameter+'px';
+      eraserOverlay.style.height=diameter+'px';
+      eraserOverlay.style.left=(canvasRect.left-parentRect.left+e.clientX-canvasRect.left-radius)+'px';
+      eraserOverlay.style.top=(canvasRect.top-parentRect.top+e.clientY-canvasRect.top-radius)+'px';
+      eraserOverlay.style.display='block';
+    }
+  });
 
   // Touch support for mobile
   canvas.addEventListener('touchstart',e=>{e.preventDefault();const me=new MouseEvent('mousedown',{clientX:(e.touches[0]||e.changedTouches[0]).clientX,clientY:(e.touches[0]||e.changedTouches[0]).clientY});canvas.dispatchEvent(me)},{passive:false});
   canvas.addEventListener('touchmove',e=>{e.preventDefault();const me=new MouseEvent('mousemove',{clientX:e.touches[0].clientX,clientY:e.touches[0].clientY});canvas.dispatchEvent(me)},{passive:false});
   canvas.addEventListener('touchend',e=>{e.preventDefault();const t=e.changedTouches[0];const me=new MouseEvent('mouseup',{clientX:t.clientX,clientY:t.clientY});canvas.dispatchEvent(me)},{passive:false});
 
-  // Flood erase: clear connected region of similar color
-  function floodErase(startX,startY){
-    if(startX<0||startX>=canvas.width||startY<0||startY>=canvas.height)return;
-    const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
-    const d=imgData.data;const w=canvas.width;const h=canvas.height;
-    const idx=(startY*w+startX)*4;
-    const tr=d[idx],tg=d[idx+1],tb=d[idx+2],ta=d[idx+3];
-    // Don't erase if clicking on empty/white background
-    if(ta<10)return;
-    const tolerance=40;
-    function match(i){return Math.abs(d[i]-tr)+Math.abs(d[i+1]-tg)+Math.abs(d[i+2]-tb)+Math.abs(d[i+3]-ta)<tolerance}
-    const visited=new Uint8Array(w*h);
-    const stack=[[startX,startY]];
-    while(stack.length){
-      const [cx,cy]=stack.pop();
-      const ci=cy*w+cx;
-      if(visited[ci])continue;
-      visited[ci]=1;
-      const pi=ci*4;
-      if(!match(pi))continue;
-      d[pi]=0;d[pi+1]=0;d[pi+2]=0;d[pi+3]=0;
-      if(cx>0)stack.push([cx-1,cy]);
-      if(cx<w-1)stack.push([cx+1,cy]);
-      if(cy>0)stack.push([cx,cy-1]);
-      if(cy<h-1)stack.push([cx,cy+1]);
-    }
-    ctx.putImageData(imgData,0,0);
+  // Brush eraser: clear circle area at position
+  function brushErase(cx,cy){
+    const radius=Math.max(8,wbSize*3);
+    ctx.save();
+    ctx.globalCompositeOperation='destination-out';
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+    // Redraw grid in erased area if grid is on
+    if(wbShowGrid)redrawGridRegion(cx-radius,cy-radius,radius*2,radius*2);
   }
 
   document.getElementById(cfg.wbUndoId).addEventListener('click',()=>{
