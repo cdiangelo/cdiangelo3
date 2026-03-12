@@ -4871,11 +4871,32 @@ renderPnlWalk();
       {x:82,y:52,rot:12,color1:'#2980b9',color2:'#f1c40f'},
       {x:45,y:58,rot:-5,color1:'#27ae60',color2:'#ffffff'},
     ];
-    umbrellas.forEach(u=>{
+    // Umbrella sway animation
+    const umbStyle=document.createElement('style');
+    umbStyle.textContent=`
+      @keyframes umbSway1{0%,100%{transform:rotate(-8deg)}25%{transform:rotate(-5deg)}50%{transform:rotate(-10deg)}75%{transform:rotate(-6deg)}}
+      @keyframes umbSway2{0%,100%{transform:rotate(12deg)}25%{transform:rotate(9deg)}50%{transform:rotate(14deg)}75%{transform:rotate(10deg)}}
+      @keyframes umbSway3{0%,100%{transform:rotate(-5deg)}25%{transform:rotate(-2deg)}50%{transform:rotate(-7deg)}75%{transform:rotate(-3deg)}}
+      @keyframes umbCanopyWave{0%,100%{transform:scaleY(1) scaleX(1)}30%{transform:scaleY(1.04) scaleX(0.97)}60%{transform:scaleY(0.97) scaleX(1.03)}85%{transform:scaleY(1.02) scaleX(0.98)}}
+      @keyframes fringeWave{0%,100%{transform:scaleY(1) translateY(0)}50%{transform:scaleY(1.3) translateY(1px)}}
+    `;
+    document.head.appendChild(umbStyle);
+    const swayAnims=['umbSway1 4s ease-in-out infinite','umbSway2 4.5s ease-in-out infinite','umbSway3 3.8s ease-in-out infinite'];
+    umbrellas.forEach((u,i)=>{
       const umb=document.createElement('div');
-      umb.style.cssText=`position:absolute;left:${u.x}%;top:${u.y}%;transform:rotate(${u.rot}deg);transform-origin:bottom center`;
-      // Pole
-      umb.innerHTML=`<div style="width:3px;height:38px;background:linear-gradient(180deg,#888,#aaa);margin:0 auto;border-radius:1px"></div><div style="width:60px;height:30px;border-radius:60px 60px 0 0;background:conic-gradient(from 0deg,${u.color1} 0deg,${u.color1} 45deg,${u.color2} 45deg,${u.color2} 90deg,${u.color1} 90deg,${u.color1} 135deg,${u.color2} 135deg,${u.color2} 180deg,${u.color1} 180deg,${u.color1} 225deg,${u.color2} 225deg,${u.color2} 270deg,${u.color1} 270deg,${u.color1} 315deg,${u.color2} 315deg,${u.color2} 360deg);position:relative;top:-38px;left:-28.5px;box-shadow:0 2px 8px rgba(0,0,0,.15)"></div>`;
+      umb.style.cssText=`position:absolute;left:${u.x}%;top:${u.y}%;transform-origin:bottom center;animation:${swayAnims[i]}`;
+      // Container: canopy on top, pole below
+      umb.innerHTML=`<div style="position:relative;width:70px">` +
+        // Canopy — sits on top of pole
+        `<div style="width:70px;height:35px;border-radius:70px 70px 4px 4px;background:conic-gradient(from 0deg,${u.color1} 0deg,${u.color1} 45deg,${u.color2} 45deg,${u.color2} 90deg,${u.color1} 90deg,${u.color1} 135deg,${u.color2} 135deg,${u.color2} 180deg);box-shadow:0 3px 10px rgba(0,0,0,.18);animation:umbCanopyWave ${3+i*0.4}s ease-in-out infinite;transform-origin:bottom center;position:relative;overflow:visible">` +
+        // Scalloped fringe along bottom edge
+        `<div style="position:absolute;bottom:-3px;left:2px;right:2px;height:6px;background:repeating-radial-gradient(ellipse 6px 4px at center bottom,${u.color1} 0 3px,transparent 3px 6px);animation:fringeWave ${2+i*0.3}s ease-in-out infinite;opacity:.7"></div>` +
+        `</div>` +
+        // Pole — starts right at canopy bottom center
+        `<div style="width:3px;height:40px;background:linear-gradient(180deg,#777,#aaa,#999);margin:0 auto;border-radius:1px;box-shadow:1px 0 2px rgba(0,0,0,.1)"></div>` +
+        // Pole tip
+        `<div style="width:5px;height:5px;background:#888;border-radius:0 0 2px 2px;margin:-1px auto 0;"></div>` +
+      `</div>`;
       funOverlay.appendChild(umb);
     });
 
