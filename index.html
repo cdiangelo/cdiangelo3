@@ -3338,6 +3338,8 @@ function renderForecastProjection(){
   let groupForecasts=null;
   if(forecastSplit==='project'){
     splitGroups={};
+    const allocTracker={};
+    state.employees.forEach(e=>{allocTracker[e.id]=0});
     state.projects.forEach(p=>{
       const allocated=[];
       state.employees.forEach(e=>{
@@ -3345,18 +3347,33 @@ function renderForecastProjection(){
         const alloc=e.allocations.find(a=>a.projId===p.id);
         if(!alloc)return;
         const pct=alloc.pct/100;
+        allocTracker[e.id]=(allocTracker[e.id]||0)+pct;
         allocated.push({...e,salary:Math.round((e.salary||0)*pct),capPct:e.capPct,_allocPct:pct});
       });
       if(allocated.length){splitGroups[p.code]=allocated;splitGroupKeys[p.code]=p.id}
     });
-    const unassigned=state.employees.filter(e=>!e.allocations||!e.allocations.length);
+    // Capture unassigned and partially-allocated remainder
+    const unassigned=[];
+    state.employees.forEach(e=>{
+      const used=allocTracker[e.id]||0;
+      if(used<0.999){
+        const rem=1-used;
+        unassigned.push({...e,salary:Math.round((e.salary||0)*rem),capPct:e.capPct,_allocPct:rem});
+      }
+    });
     if(unassigned.length){splitGroups['Unassigned']=unassigned;splitGroupKeys['Unassigned']=null}
   } else if(forecastSplit==='function'){
     splitGroups={};
-    FUNCTIONS.forEach(f=>{const emps=state.employees.filter(e=>e.function===f);if(emps.length){splitGroups[f]=emps;splitGroupKeys[f]=f}});
+    const used=new Set();
+    FUNCTIONS.forEach(f=>{const fe=state.employees.filter(e=>{if(e.function===f){used.add(e.id);return true}return false});if(fe.length){splitGroups[f]=fe;splitGroupKeys[f]=f}});
+    const other=state.employees.filter(e=>!used.has(e.id));
+    if(other.length){splitGroups['Other']=other;splitGroupKeys['Other']='Other'}
   } else if(forecastSplit==='country'){
     splitGroups={};
-    COUNTRIES.forEach(c=>{const emps=state.employees.filter(e=>e.country===c);if(emps.length){splitGroups[c]=emps;splitGroupKeys[c]=c}});
+    const used=new Set();
+    COUNTRIES.forEach(c=>{const ce=state.employees.filter(e=>{if(e.country===c){used.add(e.id);return true}return false});if(ce.length){splitGroups[c]=ce;splitGroupKeys[c]=c}});
+    const other=state.employees.filter(e=>!used.has(e.id));
+    if(other.length){splitGroups['Other']=other;splitGroupKeys['Other']='Other'}
   }
 
   // Table
@@ -3450,10 +3467,11 @@ function renderForecastProjection(){
     html+=`<th class="split-th col-divider">Total</th>${showOpex?'<th style="text-align:right">CapEx</th><th style="text-align:right">OpEx</th>':''}</tr></thead><tbody>`;
     yearLabels.forEach((y,yi)=>{
       html+=`<tr><td style="font-weight:600;color:var(--accent)">${y}</td>`;
-      let rowTotal=0,rowCapex=0;
-      groupNames.forEach(g=>{const r=groupForecasts[g][yi];const v=r?r.total:0;rowTotal+=v;rowCapex+=(r?r.capex:0);html+=`<td>${fmt(showOpex?(r?r.opex:0):v)}</td>`});
-      html+=`<td style="font-weight:600;color:var(--accent)" class="col-divider">${fmt(showOpex?rowTotal-rowCapex:rowTotal)}</td>`;
-      if(showOpex)html+=`<td>${fmt(rowCapex)}</td><td style="color:var(--success)">${fmt(rowTotal-rowCapex)}</td>`;
+      groupNames.forEach(g=>{const r=groupForecasts[g][yi];const v=r?(showOpex?r.opex:r.total):0;html+=`<td>${fmt(v)}</td>`});
+      // Use independently-computed total to ensure consistency across split modes
+      const tr=totalRows[yi];
+      html+=`<td style="font-weight:600;color:var(--accent)" class="col-divider">${fmt(showOpex?tr.opex:tr.total)}</td>`;
+      if(showOpex)html+=`<td>${fmt(tr.capex)}</td><td style="color:var(--success)">${fmt(tr.opex)}</td>`;
       html+='</tr>';
     });
     html+='</tbody>';
@@ -4271,6 +4289,8 @@ function renderExecView(){
   let fcSplitGroups=null,fcGroupKeys={};
   if(execFcSplit==='project'){
     fcSplitGroups={};
+    const allocTracker={};
+    emps.forEach(e=>{allocTracker[e.id]=0});
     state.projects.forEach(p=>{
       const allocated=[];
       emps.forEach(e=>{
@@ -4278,17 +4298,33 @@ function renderExecView(){
         const alloc=e.allocations.find(a=>a.projId===p.id);
         if(!alloc)return;
         const pct=alloc.pct/100;
-        // Create a proxy employee with scaled salary/capPct to avoid double-counting
+        allocTracker[e.id]=(allocTracker[e.id]||0)+pct;
         allocated.push({...e,salary:Math.round((e.salary||0)*pct),capPct:e.capPct,_allocPct:pct});
       });
       if(allocated.length){fcSplitGroups[p.code]=allocated;fcGroupKeys[p.code]=p.id}
     });
+    // Capture unassigned and partially-allocated remainder
+    const unassigned=[];
+    emps.forEach(e=>{
+      const used=allocTracker[e.id]||0;
+      if(used<0.999){
+        const rem=1-used;
+        unassigned.push({...e,salary:Math.round((e.salary||0)*rem),capPct:e.capPct,_allocPct:rem});
+      }
+    });
+    if(unassigned.length){fcSplitGroups['Unassigned']=unassigned;fcGroupKeys['Unassigned']=null}
   } else if(execFcSplit==='function'){
     fcSplitGroups={};
-    FUNCTIONS.forEach(f=>{const e=emps.filter(e=>e.function===f);if(e.length){fcSplitGroups[f]=e;fcGroupKeys[f]=f}});
+    const used=new Set();
+    FUNCTIONS.forEach(f=>{const e=emps.filter(e=>{if(e.function===f){used.add(e.id);return true}return false});if(e.length){fcSplitGroups[f]=e;fcGroupKeys[f]=f}});
+    const other=emps.filter(e=>!used.has(e.id));
+    if(other.length){fcSplitGroups['Other']=other;fcGroupKeys['Other']='Other'}
   } else if(execFcSplit==='country'){
     fcSplitGroups={};
-    COUNTRIES.forEach(c=>{const e=emps.filter(e=>e.country===c);if(e.length){fcSplitGroups[c]=e;fcGroupKeys[c]=c}});
+    const used=new Set();
+    COUNTRIES.forEach(c=>{const e=emps.filter(e=>{if(e.country===c){used.add(e.id);return true}return false});if(e.length){fcSplitGroups[c]=e;fcGroupKeys[c]=c}});
+    const other=emps.filter(e=>!used.has(e.id));
+    if(other.length){fcSplitGroups['Other']=other;fcGroupKeys['Other']='Other'}
   }
 
   const totalFcRows=projectForecast(emps);
@@ -4330,9 +4366,10 @@ function renderExecView(){
     html+='<th class="split-th col-divider">Total</th></tr></thead><tbody>';
     yearLabels.forEach((y,yi)=>{
       html+=`<tr><td style="font-weight:600;color:var(--accent)">${y}</td>`;
-      let rowTotal=0;
-      gNames.forEach(g=>{const r=gForecasts[g][yi];const v=r?(showFcOpex?r.opex:r.total):0;rowTotal+=v;html+=`<td style="text-align:right">${fmt(v)}</td>`});
-      html+=`<td style="text-align:right;font-weight:600;color:var(--accent)" class="col-divider">${fmt(rowTotal)}</td></tr>`;
+      gNames.forEach(g=>{const r=gForecasts[g][yi];const v=r?(showFcOpex?r.opex:r.total):0;html+=`<td style="text-align:right">${fmt(v)}</td>`});
+      // Use independently-computed total to ensure consistency across split modes
+      const tr=totalFcRows[yi];
+      html+=`<td style="text-align:right;font-weight:600;color:var(--accent)" class="col-divider">${fmt(showFcOpex?tr.opex:tr.total)}</td></tr>`;
     });
     html+='</tbody>';
     fcTbl.innerHTML=html;
