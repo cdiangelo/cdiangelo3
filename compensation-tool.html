@@ -201,9 +201,15 @@ body.ops-mode .ops-hide{display:none!important}
 .exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
 .exec-pane h3{color:var(--accent);font-size:1rem;font-weight:700;margin-bottom:16px}
 .exec-roster-cat{margin-bottom:16px}
-.exec-roster-cat .cat-header{font-weight:700;color:var(--accent);font-size:.95rem;padding:8px 0;border-bottom:2px solid var(--accent);margin-bottom:4px}
+.exec-roster-cat .cat-header{font-weight:700;color:var(--accent);font-size:.95rem;padding:8px 0;border-bottom:2px solid var(--accent);margin-bottom:4px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
+.exec-roster-cat .cat-header .toggle-icon{font-size:.7rem;transition:transform .2s;margin-right:4px}
+.exec-roster-cat.collapsed .cat-body{display:none}
+.exec-roster-cat.collapsed .cat-header .toggle-icon{transform:rotate(-90deg)}
 .exec-roster-prod{margin-left:12px;margin-bottom:8px}
-.exec-roster-prod .prod-header{font-weight:600;color:var(--text-dark);font-size:.88rem;padding:4px 0;border-bottom:1px solid var(--border-light);margin-bottom:2px}
+.exec-roster-prod .prod-header{font-weight:600;color:var(--text-dark);font-size:.88rem;padding:4px 0;border-bottom:1px solid var(--border-light);margin-bottom:2px;cursor:pointer;user-select:none}
+.exec-roster-prod .prod-header .toggle-icon{font-size:.65rem;margin-right:3px;display:inline-block;transition:transform .2s}
+.exec-roster-prod.collapsed .prod-body{display:none}
+.exec-roster-prod.collapsed .prod-header .toggle-icon{transform:rotate(-90deg)}
 .exec-roster-person{display:flex;justify-content:space-between;padding:3px 8px;font-size:.82rem;border-bottom:1px solid var(--border-light)}
 .exec-roster-person:last-child{border-bottom:none}
 .exec-roster-person .person-name{color:var(--text)}
@@ -332,7 +338,6 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="toggle-group" id="execViewToggle">
 <button class="btn active" data-eview="total">Total Comp</button>
 <button class="btn" data-eview="opex">P&amp;L (OpEx)</button>
-<button class="btn" data-eview="headcount">Headcount</button>
 </div>
 </div>
 </div>
@@ -3561,7 +3566,6 @@ function renderExecView(){
   groupNames.forEach(g=>{
     monthlyData[g]=MONTH_SHORT.map((_,mi)=>{
       const gEmps=splitGroups[g];
-      if(execView==='headcount')return gEmps.filter(e=>getMonthFactor(e,mi)>0).length;
       return gEmps.reduce((a,e)=>{
         if(execView==='opex'){
           const comp=getMonthlyComp(e,mi);
@@ -3573,22 +3577,39 @@ function renderExecView(){
     });
   });
 
+  // Build FTE and Avg FTE Comp overlay data
+  const monthlyFte=MONTH_SHORT.map((_,mi)=>{
+    let fte=0;
+    emps.forEach(e=>{const f=getMonthFactor(e,mi);if(f>0){const allocTotal=(e.allocations||[]).reduce((s,a)=>s+a.pct,0);fte+=f*(allocTotal/100)}});
+    return Math.round(fte*100)/100;
+  });
+  const monthlyAvgFteComp=MONTH_SHORT.map((_,mi)=>{
+    if(!monthlyFte[mi])return 0;
+    const totalComp=emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0);
+    return Math.round(totalComp/monthlyFte[mi]);
+  });
+
   // Chart
   if(typeof Chart!=='undefined'){
     if(execMonthlyChart)execMonthlyChart.destroy();
     const datasets=groupNames.map((g,i)=>{
       const color=execSplit==='none'?(isDark?'#d4524d':'#8b2020'):CHART_COLORS[i%CHART_COLORS.length];
-      return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1};
+      return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y'};
     });
     if(execSplit!=='none')stackedBarDatalabels(datasets,tickColor);
+    // FTE count line
+    datasets.push({label:'Allocated FTE',data:monthlyFte,type:'line',borderColor:isDark?'#4fc3f7':'#0277bd',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:isDark?'#4fc3f7':'#0277bd',yAxisID:'y1',tension:0.3,datalabels:{display:false},order:0});
+    // Avg FTE comp line
+    datasets.push({label:'Avg FTE Comp',data:monthlyAvgFteComp,type:'line',borderColor:isDark?'#81c784':'#2e7d32',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:isDark?'#81c784':'#2e7d32',yAxisID:'y',tension:0.3,datalabels:{display:false},order:0});
     execMonthlyChart=new Chart(document.getElementById('execMonthlyChart'),{
-      type:execSplit==='none'?'bar':'bar',
+      type:'bar',
       data:{labels:MONTH_SHORT,datasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:execSplit!=='none',labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:execSplit==='none'?{display:false}:{}},
+        plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:execSplit==='none'?{display:false}:{}},
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
-          y:{stacked:execSplit!=='none',beginAtZero:true,ticks:{color:tickColor,callback:v=>execView==='headcount'?v:'$'+v.toLocaleString()},grid:{color:gridColor}}
+          y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}},
+          y1:{beginAtZero:true,position:'right',title:{display:true,text:'FTE',color:tickColor,font:{size:10}},ticks:{color:isDark?'#4fc3f7':'#0277bd'},grid:{drawOnChartArea:false}}
         }
       }
     });
@@ -3597,27 +3618,29 @@ function renderExecView(){
   // Monthly table
   const tbl=document.getElementById('execMonthlyTable');
   if(execSplit==='none'){
-    let html='<thead><tr><th>Month</th><th>'+( execView==='headcount'?'HC':'Amount')+'</th></tr></thead><tbody>';
+    let html='<thead><tr><th>Month</th><th>Amount</th><th>FTE</th><th>Avg FTE Comp</th></tr></thead><tbody>';
     let annual=0;
-    MONTH_SHORT.forEach((m,mi)=>{const v=monthlyData['Total'][mi];annual+=v;html+=`<tr><td>${m}</td><td style="text-align:right">${execView==='headcount'?v:fmt(v)}</td></tr>`});
-    html+=`</tbody><tfoot><tr><td>Annual</td><td style="text-align:right;font-weight:700;color:var(--accent)">${execView==='headcount'?'—':fmt(annual)}</td></tr></tfoot>`;
+    MONTH_SHORT.forEach((m,mi)=>{const v=monthlyData['Total'][mi];annual+=v;html+=`<tr><td>${m}</td><td style="text-align:right">${fmt(v)}</td><td style="text-align:right">${monthlyFte[mi]}</td><td style="text-align:right">${fmt(monthlyAvgFteComp[mi])}</td></tr>`});
+    const annFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(annFte/12*100)/100;
+    html+=`</tbody><tfoot><tr><td>Annual</td><td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(annual)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${annual&&avgFte?fmt(Math.round(annual/12/avgFte)):'\u2014'}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   } else {
     let html='<thead><tr><th>Month</th>';
     groupNames.forEach(g=>html+=`<th style="text-align:right">${g.length>14?g.slice(0,12)+'…':g}</th>`);
-    html+='<th style="text-align:right">Total</th></tr></thead><tbody>';
+    html+='<th style="text-align:right">Total</th><th style="text-align:right">FTE</th><th style="text-align:right">Avg FTE</th></tr></thead><tbody>';
     const annuals=groupNames.map(()=>0);
     let grandAnnual=0;
     MONTH_SHORT.forEach((m,mi)=>{
       html+=`<tr><td>${m}</td>`;
       let rowTotal=0;
-      groupNames.forEach((g,gi)=>{const v=monthlyData[g][mi];annuals[gi]+=v;rowTotal+=v;html+=`<td style="text-align:right">${execView==='headcount'?v:fmt(v)}</td>`});
+      groupNames.forEach((g,gi)=>{const v=monthlyData[g][mi];annuals[gi]+=v;rowTotal+=v;html+=`<td style="text-align:right">${fmt(v)}</td>`});
       grandAnnual+=rowTotal;
-      html+=`<td style="text-align:right;font-weight:600">${execView==='headcount'?rowTotal:fmt(rowTotal)}</td></tr>`;
+      html+=`<td style="text-align:right;font-weight:600">${fmt(rowTotal)}</td><td style="text-align:right">${monthlyFte[mi]}</td><td style="text-align:right">${fmt(monthlyAvgFteComp[mi])}</td></tr>`;
     });
     html+='</tbody><tfoot><tr><td>Annual</td>';
-    groupNames.forEach((_,gi)=>html+=`<td style="text-align:right">${execView==='headcount'?'—':fmt(annuals[gi])}</td>`);
-    html+=`<td style="text-align:right;font-weight:700;color:var(--accent)">${execView==='headcount'?'—':fmt(grandAnnual)}</td></tr></tfoot>`;
+    groupNames.forEach((_,gi)=>html+=`<td style="text-align:right">${fmt(annuals[gi])}</td>`);
+    const annFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(annFte/12*100)/100;
+    html+=`<td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(grandAnnual)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${grandAnnual&&avgFte?fmt(Math.round(grandAnnual/12/avgFte)):'\u2014'}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   }
 
@@ -3729,21 +3752,29 @@ function renderExecView(){
 
   let rHtml='';
   cats.forEach(cat=>{
-    rHtml+=`<div class="exec-roster-cat"><div class="cat-header">${cat}</div>`;
+    const allCatPeople=Object.values(tree[cat]).flat();
+    const catTotal=allCatPeople.reduce((a,p)=>a+p.totalComp,0);
+    const catCapEx=allCatPeople.reduce((a,p)=>a+p.capEx,0);
+    const catOpEx=allCatPeople.reduce((a,p)=>a+p.opEx,0);
+    const catFte=Math.round(allCatPeople.reduce((a,p)=>a+p.allocPct,0))/100;
+    rHtml+=`<div class="exec-roster-cat"><div class="cat-header"><span><span class="toggle-icon">&#9660;</span>${cat}</span><span style="font-weight:400;font-size:.8rem;color:var(--text-dim)">${catFte} FTE &middot; ${fmt(catTotal)} total &middot; ${fmt(catCapEx)} CapEx &middot; ${fmt(catOpEx)} OpEx</span></div><div class="cat-body">`;
     const prods=Object.keys(tree[cat]).sort();
     prods.forEach(prod=>{
       const people=tree[cat][prod];
       const prodCapEx=people.reduce((a,p)=>a+p.capEx,0);
       const prodTotal=people.reduce((a,p)=>a+p.totalComp,0);
-      rHtml+=`<div class="exec-roster-prod"><div class="prod-header">${prod} <span style="font-weight:400;font-size:.78rem;color:var(--text-dim)">(${people.length} people &middot; ${fmt(prodTotal)} total &middot; ${fmt(prodCapEx)} CapEx)</span></div>`;
+      rHtml+=`<div class="exec-roster-prod"><div class="prod-header"><span class="toggle-icon">&#9660;</span>${prod} <span style="font-weight:400;font-size:.78rem;color:var(--text-dim)">(${people.length} people &middot; ${fmt(prodTotal)} total &middot; ${fmt(prodCapEx)} CapEx)</span></div><div class="prod-body">`;
       people.sort((a,b)=>b.allocPct-a.allocPct).forEach(p=>{
         rHtml+=`<div class="exec-roster-person"><span class="person-name">${p.name} <span style="color:var(--text-dim);font-size:.75rem">${p.seniority}, ${p.function}</span></span><span class="person-metrics">${p.allocPct}% alloc &middot; ${fmt(p.capEx)} CapEx &middot; ${fmt(p.opEx)} OpEx</span></div>`;
       });
-      rHtml+=`</div>`;
+      rHtml+=`</div></div>`;
     });
-    rHtml+=`</div>`;
+    rHtml+=`</div></div>`;
   });
   rosterPane.innerHTML=rHtml;
+  // Attach collapse/expand handlers
+  rosterPane.querySelectorAll('.cat-header').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('collapsed')));
+  rosterPane.querySelectorAll('.prod-header').forEach(h=>h.addEventListener('click',(e)=>{e.stopPropagation();h.parentElement.classList.toggle('collapsed')}));
 }
 
 // ── INIT ──
