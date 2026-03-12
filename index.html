@@ -1328,6 +1328,8 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <script>
 // Register datalabels plugin
 if(typeof Chart!=='undefined'&&typeof ChartDataLabels!=='undefined'){Chart.register(ChartDataLabels);Chart.defaults.plugins.datalabels={display:false}}
+// Set global chart font defaults
+if(typeof Chart!=='undefined'){Chart.defaults.font.size=12;Chart.defaults.font.family="'Inter','Segoe UI',system-ui,sans-serif"}
 // ── DATA ──
 const COUNTRIES = ['United States','United Kingdom','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
 const COUNTRY_SHORT = ['US','UK','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
@@ -1771,13 +1773,13 @@ function stackedBarDatalabels(datasets,tickColor){
   const bottomNegIdx=negStacks.length?datasets.indexOf(negStacks[negStacks.length-1]):-1;
   datasets.forEach((ds,i)=>{
     if(i===topPosIdx){
-      ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:9,weight:'bold'},
+      ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;posStacks.forEach(d=>{const val=d.data[ctx.dataIndex];if(val>0)sum+=val});
           return sum?fmtShort(sum):'';
         }};
     } else if(i===bottomNegIdx){
-      ds.datalabels={display:true,anchor:'start',align:'start',color:tickColor,font:{size:9,weight:'bold'},
+      ds.datalabels={display:true,anchor:'start',align:'start',color:tickColor,font:{size:11,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;negStacks.forEach(d=>{sum+=d.data[ctx.dataIndex]});
           return sum<0?fmtShort(sum):'';
@@ -1794,7 +1796,7 @@ function renderDashboard(){
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+  const tickColor=isDark?'#ffffff':'#5a5a5a';
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   let labels,groups;
   if(groupBy==='month'){
@@ -1996,7 +1998,7 @@ function renderDashboard(){
     // Add total data label on topmost FTE dataset
     fteDatasets.forEach((ds,i)=>{
       if(i===fteDatasets.length-1){
-        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:9,weight:'bold'},
+        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},
           formatter:(_,ctx)=>{
             let sum=0;fteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
             return sum?Math.round(sum*10)/10:'';
@@ -2009,10 +2011,10 @@ function renderDashboard(){
       type:'line',
       data:{labels:MONTH_SHORT,datasets:fteDatasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:{},tooltip:FTE_TOOLTIP},
+        plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
-          x:{ticks:{color:tickColor,font:{size:10}},grid:{display:false},stacked:true},
-          y:{beginAtZero:true,stacked:true,ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor},title:{display:true,text:'Allocated FTEs',color:tickColor,font:{size:10}}}
+          x:{ticks:{color:tickColor,font:{size:12}},grid:{display:false},stacked:true},
+          y:{beginAtZero:true,stacked:true,ticks:{color:tickColor,font:{size:12}},grid:{color:gridColor},title:{display:true,text:'Allocated FTEs',color:tickColor,font:{size:12}}}
         }
       }
     });
@@ -3713,7 +3715,7 @@ function renderForecastProjection(){
     // Chart - stacked base/bonus/benefits with capex view support
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+      const tickColor=isDark?'#ffffff':'#5a5a5a';
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       let fDatasets;
@@ -3782,7 +3784,7 @@ function renderForecastProjection(){
     // Chart - stacked by group
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+      const tickColor=isDark?'#ffffff':'#5a5a5a';
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       const datasets=groupNames.map((g,i)=>({
@@ -3811,7 +3813,7 @@ function renderForecastProjection(){
   // ── Forecast FTE sparkline ──
   if(typeof Chart!=='undefined'){
     const isDark2=document.documentElement.classList.contains('dark');
-    const tickColor2=isDark2?'#b8b8c0':'#5a5a5a';
+    const tickColor2=isDark2?'#ffffff':'#5a5a5a';
     const gridColor2=isDark2?'rgba(255,255,255,.08)':'#ddd';
     if(window._forecastFteChart)window._forecastFteChart.destroy();
     const fteLabels=totalRows.map(r=>r.year);
@@ -3828,7 +3830,7 @@ function renderForecastProjection(){
     // Add total data label on topmost forecast FTE dataset
     fcFteDatasets.forEach((ds,i)=>{
       if(i===fcFteDatasets.length-1){
-        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor2,font:{size:9,weight:'bold'},
+        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor2,font:{size:11,weight:'bold'},
           formatter:(_,ctx)=>{
             let sum=0;fcFteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
             return sum||'';
@@ -3841,10 +3843,10 @@ function renderForecastProjection(){
       type:'line',
       data:{labels:fteLabels,datasets:fcFteDatasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:fcFteDatasets.length>1,labels:{color:tickColor2,boxWidth:10,font:{size:9}}},datalabels:{},tooltip:FTE_TOOLTIP},
+        plugins:{legend:{display:fcFteDatasets.length>1,labels:{color:tickColor2,boxWidth:10,font:{size:11}}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
-          x:{ticks:{color:tickColor2,font:{size:10}},grid:{display:false},stacked:true},
-          y:{beginAtZero:true,stacked:true,ticks:{color:tickColor2,font:{size:10}},grid:{color:gridColor2},title:{display:true,text:'Projected FTEs',color:tickColor2,font:{size:10}}}
+          x:{ticks:{color:tickColor2,font:{size:12}},grid:{display:false},stacked:true},
+          y:{beginAtZero:true,stacked:true,ticks:{color:tickColor2,font:{size:12}},grid:{color:gridColor2},title:{display:true,text:'Projected FTEs',color:tickColor2,font:{size:12}}}
         }
       }
     });
@@ -4466,7 +4468,7 @@ function getEmpSplitKey(emp,splitBy){
 function renderExecView(){
   const emps=getFilteredEmployees();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+  const tickColor=isDark?'#ffffff':'#5a5a5a';
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -4570,11 +4572,11 @@ function renderExecView(){
       type:'bar',
       data:{labels:periodLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:execSplit==='none'?{display:false}:{}},
+        plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:execSplit==='none'?{display:false}:{}},
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}},
-          y1:{beginAtZero:true,position:'right',title:{display:true,text:'FTE',color:tickColor,font:{size:10}},ticks:{color:isDark?'#4fc3f7':'#0277bd'},grid:{drawOnChartArea:false}}
+          y1:{beginAtZero:true,position:'right',title:{display:true,text:'FTE',color:tickColor,font:{size:12}},ticks:{color:isDark?'#4fc3f7':'#0277bd'},grid:{drawOnChartArea:false}}
         }
       }
     });
@@ -4724,7 +4726,7 @@ function renderExecView(){
       stackedBarDatalabels(ds,tickColor);
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:9}}},datalabels:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -5095,7 +5097,7 @@ function renderBudgetScenarioChart(){
   if(typeof Chart==='undefined')return;
   if(!budgetScenario)initBudgetScenario();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+  const tickColor=isDark?'#ffffff':'#5a5a5a';
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const emps=budgetScenario.emps;
@@ -5126,8 +5128,8 @@ function renderBudgetScenarioChart(){
   if(scenBudgetChartInst){scenBudgetChartInst.destroy()}
   scenBudgetChartInst=new Chart(canvas,{
     type:'bar',data:{labels:MO_SHORT,datasets},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:8}}},datalabels:{display:false}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:9},callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:11}}},datalabels:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}
     }
   });
 }
@@ -5136,7 +5138,7 @@ function renderFcScenarioChart(){
   if(typeof Chart==='undefined')return;
   if(!forecastScenario)initForecastScenario();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+  const tickColor=isDark?'#ffffff':'#5a5a5a';
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const rows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
   const labels=rows.map(r=>String(r.year));
@@ -5163,8 +5165,8 @@ function renderFcScenarioChart(){
   if(scenFcChartInst){scenFcChartInst.destroy()}
   scenFcChartInst=new Chart(canvas,{
     type:'bar',data:{labels,datasets},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:8}}},datalabels:{display:false}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:9},callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:gridColor}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:11}}},datalabels:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:gridColor}}}
     }
   });
 }
