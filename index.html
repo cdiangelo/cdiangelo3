@@ -188,6 +188,14 @@ body.ops-mode .ops-hide{display:none!important}
   .stat-card{padding:12px}
   .search-input{max-width:100%}
   #tab-scratch>div{grid-template-columns:1fr!important;min-height:auto!important}
+  /* Stack all 2-col scratch/dim grids on mobile */
+  #vtab-vendor-scratch>div,#vtab-vendor-dims>div:first-child,
+  #depreciationModule main>div{grid-template-columns:1fr!important;min-height:auto!important}
+  /* Vendor/TE input widths */
+  #vendorModule input,#vendorModule select,#depreciationModule input,#depreciationModule select{max-width:100%;box-sizing:border-box}
+  #vendorNav{gap:4px}
+  #vendorNav .btn{padding:5px 8px;font-size:.72rem;flex:1;min-width:0;text-align:center}
+  .vtab-content .card{padding:10px}
 }
 @media(max-width:480px){
   .stat-cards{grid-template-columns:1fr}
@@ -196,6 +204,7 @@ body.ops-mode .ops-hide{display:none!important}
   .chart-container{height:220px}
   header h1{font-size:1rem}
   .forecast-grid{grid-template-columns:1fr}
+  #vendorNav .btn{font-size:.68rem;padding:4px 6px}
 }
 /* ── Exec View ── */
 .exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
@@ -2583,7 +2592,7 @@ function createScratchPad(cfg){
     if(wbHistory.length)ctx.putImageData(wbHistory[wbHistory.length-1],0,0);
   }
 
-  function getPos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+  function getPos(e){const t=e.touches?e.touches[0]||e.changedTouches[0]:e;const r=canvas.getBoundingClientRect();return{x:t.clientX-r.left,y:t.clientY-r.top}}
   const shapeSelect=document.getElementById(cfg.wbShapeId);
 
   // Find bounding box of connected non-transparent pixels at a point
@@ -2832,6 +2841,11 @@ function createScratchPad(cfg){
     }
   });
   canvas.addEventListener('mouseleave',()=>{if(wbDrawing){wbDrawing=false;const tool=shapeSelect.value;if(!tool)ctx.closePath();if(wbHistory.length)wbHistory[wbHistory.length-1]=ctx.getImageData(0,0,canvas.width,canvas.height)}});
+
+  // Touch support for mobile
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();const me=new MouseEvent('mousedown',{clientX:(e.touches[0]||e.changedTouches[0]).clientX,clientY:(e.touches[0]||e.changedTouches[0]).clientY});canvas.dispatchEvent(me)},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();const me=new MouseEvent('mousemove',{clientX:e.touches[0].clientX,clientY:e.touches[0].clientY});canvas.dispatchEvent(me)},{passive:false});
+  canvas.addEventListener('touchend',e=>{e.preventDefault();const t=e.changedTouches[0];const me=new MouseEvent('mouseup',{clientX:t.clientX,clientY:t.clientY});canvas.dispatchEvent(me)},{passive:false});
 
   // Flood erase: clear connected region of similar color
   function floodErase(startX,startY){
@@ -4719,11 +4733,21 @@ updateWsDisplay();
 initDropdowns();renderAll();
 renderPnlWalk();
 
-// ── Fun Mode ──
+// ── Fun Mode (CSS animated ocean) ──
 (function(){
+  // Inject keyframes once
+  const style=document.createElement('style');
+  style.textContent=`
+@keyframes funWave1{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes funWave2{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes funFoam{0%,100%{opacity:.3}50%{opacity:.7}}
+@keyframes funSparkle{0%,100%{opacity:0}50%{opacity:1}}
+`;
+  document.head.appendChild(style);
+
   const funBtn=document.createElement('button');
   funBtn.textContent='fun';
-  funBtn.style.cssText='position:fixed;bottom:8px;right:8px;z-index:9999;background:rgba(0,0,0,0.04);border:none;color:rgba(0,0,0,0.15);font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s';
+  funBtn.style.cssText='position:fixed;bottom:8px;right:8px;z-index:9999;background:rgba(0,0,0,0.04);border:none;color:rgba(0,0,0,0.15);font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s;-webkit-tap-highlight-color:transparent';
   funBtn.addEventListener('mouseenter',()=>funBtn.style.color='rgba(0,0,0,0.25)');
   funBtn.addEventListener('mouseleave',()=>{if(!funBtn.dataset.on)funBtn.style.color='rgba(0,0,0,0.15)'});
   document.body.appendChild(funBtn);
@@ -4732,20 +4756,54 @@ renderPnlWalk();
   funBtn.addEventListener('click',()=>{
     if(funOverlay){funOverlay.remove();funOverlay=null;funBtn.dataset.on='';funBtn.style.color='rgba(0,0,0,0.15)';return}
     funOverlay=document.createElement('div');
-    funOverlay.style.cssText='position:fixed;bottom:0;left:0;width:100%;height:20vh;z-index:9998;overflow:hidden;pointer-events:none;border-top:1px solid rgba(200,180,140,0.3)';
-    const vid=document.createElement('video');
-    vid.autoplay=true;vid.loop=true;vid.muted=true;vid.playsInline=true;
-    vid.style.cssText='width:100%;height:100%;object-fit:cover;object-position:center bottom;filter:brightness(1.05) saturate(1.1)';
-    // Use a reliable public domain beach/waves video
-    vid.innerHTML='<source src="https://cdn.pixabay.com/video/2024/06/12/216324_large.mp4" type="video/mp4"><source src="https://cdn.pixabay.com/video/2020/10/02/51584-466978498_large.mp4" type="video/mp4">';
-    funOverlay.appendChild(vid);
-    // Soft gradient fade at the top edge
+    funOverlay.style.cssText='position:fixed;bottom:0;left:0;width:100%;height:20vh;z-index:9998;overflow:hidden;pointer-events:none';
+
+    // Sand base
+    const sand=document.createElement('div');
+    sand.style.cssText='position:absolute;bottom:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#e8d5a3 0%,#f0deb0 30%,#f5e6c0 60%,#f7ecd0 100%)';
+    funOverlay.appendChild(sand);
+
+    // Wet sand strip
+    const wetSand=document.createElement('div');
+    wetSand.style.cssText='position:absolute;top:0;left:0;width:100%;height:35%;background:linear-gradient(180deg,#c4a56a 0%,#d4b87a 50%,#dfc48c 100%);opacity:.8';
+    funOverlay.appendChild(wetSand);
+
+    // Wave layer 1 (back wave — deeper blue)
+    const wave1=document.createElement('div');
+    wave1.style.cssText='position:absolute;top:-8%;left:0;width:200%;height:45%;opacity:.6';
+    wave1.innerHTML='<svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="#3b82c8" d="M0,40 C120,10 240,70 360,40 C480,10 600,70 720,40 C840,10 960,70 1080,40 C1200,10 1320,70 1440,40 L1440,120 L0,120Z"/></svg>';
+    wave1.style.animation='funWave1 8s linear infinite';
+    funOverlay.appendChild(wave1);
+
+    // Wave layer 2 (front wave — lighter, foam-tipped)
+    const wave2=document.createElement('div');
+    wave2.style.cssText='position:absolute;top:2%;left:0;width:200%;height:40%;opacity:.7';
+    wave2.innerHTML='<svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="#5ba0d9" d="M0,50 C100,20 200,80 360,50 C520,20 600,80 720,50 C840,20 1000,80 1080,50 C1160,20 1340,80 1440,50 L1440,120 L0,120Z"/></svg>';
+    wave2.style.animation='funWave2 6s linear infinite';
+    funOverlay.appendChild(wave2);
+
+    // Foam line
+    const foam=document.createElement('div');
+    foam.style.cssText='position:absolute;top:28%;left:0;width:100%;height:8%;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.5) 10%,rgba(255,255,255,.8) 20%,rgba(255,255,255,.4) 35%,rgba(255,255,255,.7) 50%,rgba(255,255,255,.3) 65%,rgba(255,255,255,.8) 80%,rgba(255,255,255,.5) 90%,transparent 100%);border-radius:50%;filter:blur(2px)';
+    foam.style.animation='funFoam 4s ease-in-out infinite';
+    funOverlay.appendChild(foam);
+
+    // Sun sparkles on water
+    for(let i=0;i<12;i++){
+      const sp=document.createElement('div');
+      const x=5+Math.random()*90, y=2+Math.random()*25;
+      sp.style.cssText=`position:absolute;top:${y}%;left:${x}%;width:${2+Math.random()*3}px;height:${2+Math.random()*3}px;background:rgba(255,255,230,.9);border-radius:50%;filter:blur(1px)`;
+      sp.style.animation=`funSparkle ${1.5+Math.random()*2.5}s ease-in-out ${Math.random()*3}s infinite`;
+      funOverlay.appendChild(sp);
+    }
+
+    // Top fade into page background
     const fade=document.createElement('div');
-    fade.style.cssText='position:absolute;top:0;left:0;width:100%;height:40%;background:linear-gradient(to bottom,var(--bg,#f5f3ef),transparent);pointer-events:none';
+    fade.style.cssText='position:absolute;top:0;left:0;width:100%;height:35%;background:linear-gradient(to bottom,var(--bg,#f5f3ef),transparent);pointer-events:none;z-index:1';
     funOverlay.appendChild(fade);
+
     document.body.appendChild(funOverlay);
     funBtn.dataset.on='1';funBtn.style.color='rgba(59,130,246,0.5)';
-    vid.play().catch(()=>{});
   });
 })();
 </script>
