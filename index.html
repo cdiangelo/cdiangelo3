@@ -4478,7 +4478,16 @@ function initVendorModule(){
     tfootEl.innerHTML=ft;
   }
 
+  function ensureVendorRows(){
+    if(!state.vendorRows||!state.vendorRows.length){
+      const genProj=state.projects.find(p=>p.code==='GEN-000');
+      const defProjId=genProj?genProj.id:'';
+      state.vendorRows=Array.from({length:10},()=>({parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:defProjId,acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}));
+      saveState();
+    }
+  }
   function renderVendorGrid(){
+    ensureVendorRows();
     const tbody=document.getElementById('vendorTbody');
     const tfoot=document.getElementById('vendorTfoot');
     let h='';
@@ -4708,9 +4717,16 @@ function initVendorModule(){
   });
 
   // ── T&E Tab ──
-  if(!state.teRows)state.teRows=[];
-
+  function ensureTeRows(){
+    if(!state.teRows||!state.teRows.length){
+      const genProj=state.projects.find(p=>p.code==='GEN-000');
+      const defProjId=genProj?genProj.id:'';
+      state.teRows=Array.from({length:10},()=>({expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:defProjId,acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}));
+      saveState();
+    }
+  }
   function renderTeGrid(){
+    ensureTeRows();
     const tbody=document.getElementById('teTbody');
     const tfoot=document.getElementById('teTfoot');
     let h='';
