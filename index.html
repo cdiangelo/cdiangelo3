@@ -209,18 +209,18 @@ body.ops-mode .ops-hide{display:none!important}
   #vendorNav .btn{font-size:.68rem;padding:4px 6px}
 }
 /* ── Exec View ── */
-.exec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-.exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:0;min-width:0;overflow:hidden}
-.exec-pane h3{color:var(--accent);font-size:.82rem;font-weight:700;margin-bottom:8px}
-.exec-grid .chart-container{height:200px;margin-bottom:8px}
-.exec-grid .monthly-table,.exec-grid .forecast-table{font-size:.68rem}
-.exec-grid .monthly-table td,.exec-grid .monthly-table th,.exec-grid .forecast-table td,.exec-grid .forecast-table th{padding:3px 4px}
-.exec-grid .controls{font-size:.72rem}
-.exec-grid .controls .btn{font-size:.66rem;padding:2px 6px}
-.exec-grid .controls label{font-size:.66rem}
-.exec-grid .scenario-grid{grid-template-columns:1fr}
-.exec-grid .scenario-chart-container{height:160px}
-.exec-grid .chat-messages{max-height:200px;min-height:100px}
+.exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
+.exec-pane h3{color:var(--accent);font-size:1rem;font-weight:700;margin-bottom:16px}
+/* Scenario slide panel */
+.scenario-toggle-btn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1100;background:#1a8a3e;color:#fff;border:none;padding:12px 6px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s}
+.scenario-toggle-btn:hover{background:#15702f}
+.scenario-slide-panel{position:fixed;left:0;top:0;bottom:0;width:33.33vw;min-width:380px;max-width:520px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+.scenario-slide-panel.open{transform:translateX(0)}
+.scenario-slide-panel .scenario-close-btn{position:absolute;top:8px;right:12px;background:none;border:none;font-size:1.2rem;color:var(--text-dim);cursor:pointer}
+body.scenario-open main,body.scenario-open header{margin-left:33.33vw;transition:margin-left .3s ease}
+body:not(.scenario-open) main,body:not(.scenario-open) header{transition:margin-left .3s ease}
+body.scenario-open .scenario-toggle-btn{left:33.33vw;transition:left .3s ease}
+body:not(.scenario-open) .scenario-toggle-btn{transition:left .3s ease}
 .exec-roster-cat{margin-bottom:16px}
 .exec-roster-cat .cat-header{font-weight:700;color:var(--accent);font-size:.95rem;padding:8px 0;border-bottom:2px solid var(--accent);margin-bottom:4px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
 .exec-roster-cat .cat-header .toggle-icon{font-size:.7rem;transition:transform .2s;margin-right:4px}
@@ -237,12 +237,6 @@ body.ops-mode .ops-hide{display:none!important}
 .exec-roster-person .person-metrics{color:var(--text-dim);text-align:right;white-space:nowrap}
 body.ops-mode .exec-roster-person{display:none}
 body.ops-mode .exec-roster-prod .prod-header{cursor:default}
-@media(max-width:1400px){
-  .exec-grid{grid-template-columns:1fr 1fr}
-}
-@media(max-width:768px){
-  .exec-grid{grid-template-columns:1fr}
-}
 @media(max-width:768px){
   .exec-pane{padding:12px}
   .exec-roster-person{flex-direction:column;gap:2px}
@@ -300,7 +294,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .scenario-chart-container{position:relative;height:200px;margin-bottom:8px}
 .chatbot-panel{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:8px;background:var(--panel-inset);overflow:hidden}
 .chatbot-header{padding:8px 12px;font-weight:600;font-size:.85rem;color:var(--accent);background:var(--panel);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.chat-messages{flex:1;overflow-y:auto;padding:8px;max-height:280px;min-height:150px;display:flex;flex-direction:column;gap:5px}
+.chat-messages{flex:1;overflow-y:auto;padding:10px;max-height:300px;min-height:150px;display:flex;flex-direction:column;gap:6px}
 .chat-msg{max-width:85%;padding:8px 12px;border-radius:10px;font-size:.82rem;line-height:1.4;word-wrap:break-word}
 .chat-msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:2px}
 .chat-msg.system{align-self:flex-start;background:var(--panel);border:1px solid var(--border);border-bottom-left-radius:2px}
@@ -519,9 +513,6 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div id="tab-exec" class="tab-content active">
 <div class="stat-cards" id="execStatCards"></div>
 
-<!-- Exec 2x2 Grid -->
-<div class="exec-grid">
-
 <!-- Pane 1: Monthly Dashboard with split-by -->
 <div class="exec-pane">
 <h3>Monthly Compensation Overview</h3>
@@ -598,15 +589,19 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div id="execRosterPane"></div>
 </div>
 
-<!-- Pane 4: Scenario Analysis -->
-<div class="exec-pane">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-<h3 style="margin:0">Scenario Analysis</h3>
-<label class="scenario-link-toggle"><input type="checkbox" id="scenLinkFilters"> Link filters between panels</label>
 </div>
-<!-- Charts side by side -->
-<div class="scenario-grid">
-<div>
+
+<!-- Scenario Analysis Toggle Button (always visible on left edge) -->
+<button class="scenario-toggle-btn" id="scenarioToggleBtn">S C E N A R I O</button>
+
+<!-- Scenario Analysis Slide Panel -->
+<div class="scenario-slide-panel" id="scenarioSlidePanel">
+<button class="scenario-close-btn" id="scenarioCloseBtn">&times;</button>
+<h3 style="color:#1a8a3e;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Scenario Analysis</h3>
+<label class="scenario-link-toggle" style="font-size:.78rem;margin-bottom:12px;display:block"><input type="checkbox" id="scenLinkFilters"> Link filters between panels</label>
+
+<!-- Budget Section -->
+<div style="margin-bottom:16px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
 <h4 style="color:var(--accent);font-size:.88rem;margin:0">Current Year Budget</h4>
 <div class="toggle-group" id="scenBudgetSplitToggle" style="font-size:.72rem">
@@ -616,21 +611,6 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 </div>
 <div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
-</div>
-<div>
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-<h4 style="color:var(--accent);font-size:.88rem;margin:0">Long Term Forecast</h4>
-<div class="toggle-group" id="scenFcSplitToggle" style="font-size:.72rem">
-<button class="btn active" data-sfsplit="total" style="padding:2px 8px;font-size:.72rem">Total</button>
-<button class="btn" data-sfsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
-<button class="btn" data-sfsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
-</div>
-</div>
-<div class="scenario-chart-container"><canvas id="scenFcChart"></canvas></div>
-</div>
-</div>
-<!-- Chatbots side by side -->
-<div class="scenario-grid" style="margin-top:12px">
 <div class="chatbot-panel">
 <div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div class="chat-messages" id="budgetChatMessages">
@@ -648,6 +628,19 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <button class="btn btn-primary" id="budgetChatSend">Send</button>
 </div>
 </div>
+</div>
+
+<!-- Forecast Section -->
+<div style="margin-bottom:16px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<h4 style="color:var(--accent);font-size:.88rem;margin:0">Long Term Forecast</h4>
+<div class="toggle-group" id="scenFcSplitToggle" style="font-size:.72rem">
+<button class="btn active" data-sfsplit="total" style="padding:2px 8px;font-size:.72rem">Total</button>
+<button class="btn" data-sfsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
+<button class="btn" data-sfsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
+</div>
+</div>
+<div class="scenario-chart-container"><canvas id="scenFcChart"></canvas></div>
 <div class="chatbot-panel">
 <div class="chatbot-header"><span>Forecast Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenFcApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Forecast</button><button class="btn btn-sm" id="scenFcReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div class="chat-messages" id="fcChatMessages">
@@ -666,10 +659,9 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 </div>
 </div>
+
 <!-- P&L Summary -->
-<div id="scenPnlSummary" style="margin-top:12px"></div>
-</div>
-</div><!-- /exec-grid -->
+<div id="scenPnlSummary"></div>
 </div>
 
 <!-- EMPLOYEES -->
@@ -5281,6 +5273,16 @@ function renderScenarioPnlSummary(){
 
 // ── Wire up scenario events ──
 function initScenarioPane(){
+  // Toggle slide panel
+  const panel=document.getElementById('scenarioSlidePanel');
+  document.getElementById('scenarioToggleBtn').addEventListener('click',()=>{
+    panel.classList.add('open');document.body.classList.add('scenario-open');
+    if(!budgetScenario)initBudgetScenario();if(!forecastScenario)initForecastScenario();
+    renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary();
+  });
+  document.getElementById('scenarioCloseBtn').addEventListener('click',()=>{
+    panel.classList.remove('open');document.body.classList.remove('scenario-open');
+  });
   // Chat input handlers
   const budgetInput=document.getElementById('budgetChatInput');
   const fcInput=document.getElementById('fcChatInput');
@@ -5329,9 +5331,8 @@ function initScenarioPane(){
     });
   });
   document.getElementById('scenLinkFilters').addEventListener('change',function(){scenFiltersLinked=this.checked});
-  // Initial render
+  // Initialize scenario data (charts render when panel opens)
   initBudgetScenario();initForecastScenario();
-  renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary();
 }
 
 // ── VENDOR MODULE ──
