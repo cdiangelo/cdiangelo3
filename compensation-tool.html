@@ -224,11 +224,11 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="nav-group">
 <div class="nav-group-label">Summaries</div>
 <div class="nav-group-btns">
-<button class="active" data-tab="dashboard">Dashboard</button>
-<button data-tab="exec">Exec View</button>
+<button class="active" data-tab="exec">Exec View</button>
+<button data-tab="dashboard">Dashboard</button>
 <button data-tab="monthly">Monthly Spread</button>
-<button data-tab="export">Export</button>
 <button data-tab="scratch">Scratch Pad</button>
+<button data-tab="export">Export</button>
 </div>
 </div>
 <div class="nav-group">
@@ -256,7 +256,7 @@ body.ops-mode .ops-hide{display:none!important}
 <main class="container">
 
 <!-- DASHBOARD -->
-<div id="tab-dashboard" class="tab-content active">
+<div id="tab-dashboard" class="tab-content">
 <div class="stat-cards" id="statCards"></div>
 <div class="controls">
 <div>
@@ -307,7 +307,7 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 
 <!-- EXEC VIEW -->
-<div id="tab-exec" class="tab-content">
+<div id="tab-exec" class="tab-content active">
 <div class="stat-cards" id="execStatCards"></div>
 
 <!-- Pane 1: Monthly Dashboard with split-by -->
@@ -521,7 +521,8 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="card-inset forecast-section">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togAttrition" checked><span class="toggle-slider"></span></label>
-<label><strong>Annual Attrition Rate (%)</strong></label>
+<label><strong>Annual Attrition</strong></label>
+<span class="expand-select" style="margin-left:8px"><label>Mode:</label><select id="attritionMode" onchange="onModeChange('attrition',this.value)"><option value="pct">% of HC</option><option value="num"># Headcount</option></select></span>
 <span class="expand-select"><label>Expand:</label><select id="expandAttrition" onchange="onExpandChange('attrition',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
 <div id="attritionInputs"></div>
@@ -530,7 +531,8 @@ body.ops-mode .ops-hide{display:none!important}
 <div class="card-inset forecast-section">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togHires" checked><span class="toggle-slider"></span></label>
-<label><strong>Annual New Hires (Headcount)</strong></label>
+<label><strong>Annual New Hires</strong></label>
+<span class="expand-select" style="margin-left:8px"><label>Mode:</label><select id="hiresMode" onchange="onModeChange('hires',this.value)"><option value="num"># Headcount</option><option value="pct">% of HC</option></select></span>
 <span class="expand-select"><label>Expand:</label><select id="expandHires" onchange="onExpandChange('hires',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
 <div id="hiresInputs"></div>
@@ -604,16 +606,6 @@ body.ops-mode .ops-hide{display:none!important}
 <!-- EXPORT -->
 <div id="tab-export" class="tab-content">
 <div class="export-grid">
-<div class="export-card">
-<h3>Full CSV Comp Sheet</h3>
-<p>Complete roster, bonus matrix, benefits, monthly spread, and benchmark table.</p>
-<button class="btn btn-primary" id="btnExportFull">Download CSV</button>
-</div>
-<div class="export-card">
-<h3>Blank Template CSV</h3>
-<p>Empty template with benchmark salaries pre-filled for all combinations.</p>
-<button class="btn btn-primary" id="btnExportTemplate">Download Template</button>
-</div>
 <div class="export-card">
 <h3>Print View</h3>
 <p>Open a formatted print view of the full comp plan in a new window.</p>
@@ -2554,25 +2546,67 @@ function onExpandChange(key,val){
   state.forecastAssumptions.expandBy[key]=val;
   saveState();renderForecastInputs();renderForecastProjection();
 }
+function onModeChange(key,val){
+  if(!state.forecastAssumptions.modes)state.forecastAssumptions.modes={};
+  state.forecastAssumptions.modes[key]=val;
+  saveState();renderForecastInputs();renderForecastProjection();
+}
+function getForecastMode(key){
+  return state.forecastAssumptions.modes&&state.forecastAssumptions.modes[key]?state.forecastAssumptions.modes[key]:(key==='attrition'?'pct':'num');
+}
+function getEffectiveHC(key,val,baseHC){
+  const mode=getForecastMode(key);
+  if(key==='attrition'){
+    return mode==='pct'?Math.round(baseHC*val/100):val;
+  }
+  if(key==='hires'){
+    return mode==='pct'?Math.round(baseHC*val/100):val;
+  }
+  return val;
+}
 function renderForecastInputs(){
   const fa=state.forecastAssumptions;
   if(!fa.expandBy)fa.expandBy={attrition:'total',hires:'total',merit:'total',market:'total',ai:'total',capitalization:'total'};
   if(!fa.overrides)fa.overrides={};
+  if(!fa.modes)fa.modes={};
+  // Compute current HC for effective # display
+  const activeEmps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  const baseHC=activeEmps.length;
   ['attrition','hires','merit','market','ai','capitalization'].forEach(key=>{
     const container=document.getElementById(key+'Inputs');
-    const suffix=key==='hires'?'':key==='ai'?'x':'%';
+    const mode=(key==='attrition'||key==='hires')?getForecastMode(key):null;
+    let suffix;
+    if(key==='attrition')suffix=mode==='pct'?'%':'';
+    else if(key==='hires')suffix=mode==='pct'?'%':'';
+    else if(key==='ai')suffix='x';
+    else suffix='%';
     const step=key==='ai'?'0.01':'1';
     const expandBy=fa.expandBy[key]||'total';
     // Set expand dropdown
     const expandIdMap={attrition:'Attrition',hires:'Hires',merit:'Merit',market:'Market',ai:'AI',capitalization:'Capitalization'};
     const expandEl=document.getElementById('expand'+expandIdMap[key]);
     if(expandEl)expandEl.value=expandBy;
+    // Set mode dropdown
+    const modeEl=document.getElementById(key+'Mode');
+    if(modeEl)modeEl.value=mode||'num';
+
+    const effectiveNote=(k,val)=>{
+      if((k==='attrition'||k==='hires')&&getForecastMode(k)==='pct'){
+        const eff=Math.round(baseHC*val/100);
+        return `<span style="display:block;font-size:.72rem;color:var(--text-dim);text-align:right;margin-top:1px">${eff} people</span>`;
+      }
+      if((k==='attrition'||k==='hires')&&getForecastMode(k)==='num'){
+        const pctEff=baseHC?((val/baseHC)*100).toFixed(1):'0';
+        return `<span style="display:block;font-size:.72rem;color:var(--text-dim);text-align:right;margin-top:1px">${pctEff}%</span>`;
+      }
+      return '';
+    };
 
     if(expandBy==='total'){
       container.innerHTML='<div class="forecast-grid">'+FORECAST_YEARS.map((y,i)=>`
         <div class="forecast-input-group">
           <label>${y}</label>
-          <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${suffix}
+          <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${suffix}${effectiveNote(key,fa[key][i])}
         </div>
       `).join('')+'</div>';
     } else {
@@ -2581,7 +2615,7 @@ function renderForecastInputs(){
       html+='<div class="forecast-grid" style="margin-bottom:12px">'+FORECAST_YEARS.map((y,i)=>`
         <div class="forecast-input-group">
           <label>${y}</label>
-          <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${suffix}
+          <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${suffix}${effectiveNote(key,fa[key][i])}
         </div>
       `).join('')+'</div>';
       groups.forEach(g=>{
@@ -2590,7 +2624,7 @@ function renderForecastInputs(){
           const val=getOverrideVal(key,g.key,i);
           return `<div class="forecast-input-group">
             <label>${y}</label>
-            <input type="number" step="${step}" value="${val}" data-key="${key}" data-group="${g.key}" data-idx="${i}" class="forecast-override">${suffix}
+            <input type="number" step="${step}" value="${val}" data-key="${key}" data-group="${g.key}" data-idx="${i}" class="forecast-override">${suffix}${effectiveNote(key,val)}
           </div>`;
         }).join('');
         html+='</div></div>';
@@ -2625,6 +2659,8 @@ function getAssumptionVal(key,groupKey,idx){
 function projectForecast(emps,groupKey){
   const fa=state.forecastAssumptions;
   const tog=fa.toggles;
+  const attrMode=getForecastMode('attrition');
+  const hiresMode=getForecastMode('hires');
   // Exclude employees already terminated before current year
   const activeEmps=emps.filter(e=>{
     if(!e.termDate)return true;
@@ -2650,15 +2686,17 @@ function projectForecast(emps,groupKey){
   const rows=[{year:'Current',hc:currentHC,total:currentTotal,capex:currentCapEx,opex:currentTotal-currentCapEx}];
   let hc=forwardHC;let salaryGrowth=1;
   FORECAST_YEARS.forEach((y,i)=>{
-    const attrRate=tog.attrition?getAssumptionVal('attrition',groupKey,i)/100:0;
-    const rawHires=tog.hires?getAssumptionVal('hires',groupKey,i):0;
+    const attrVal=tog.attrition?getAssumptionVal('attrition',groupKey,i):0;
+    const attrLoss=attrMode==='pct'?Math.round(hc*attrVal/100):Math.round(attrVal);
+    const hiresVal=tog.hires?getAssumptionVal('hires',groupKey,i):0;
     const allEmpsCount=Math.max(state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR).length,1);
+    let rawHires=hiresMode==='pct'?Math.round(hc*hiresVal/100):hiresVal;
     const newHires=groupKey?rawHires:Math.round(rawHires*(forwardHC/allEmpsCount));
     const meritRate=tog.merit?getAssumptionVal('merit',groupKey,i)/100:0;
     const marketRate=tog.market?getAssumptionVal('market',groupKey,i)/100:0;
     const aiGear=tog.ai?getAssumptionVal('ai',groupKey,i):1;
     const capRate=tog.capitalization?getAssumptionVal('capitalization',groupKey,i)/100:currentCapRate;
-    hc=Math.max(0,hc-Math.round(hc*attrRate)+Math.round(newHires*aiGear));
+    hc=Math.max(0,hc-attrLoss+Math.round(newHires*aiGear));
     salaryGrowth*=(1+meritRate+marketRate);
     const base=Math.round(hc*avgSalary*salaryGrowth);
     const total=Math.round(base*(1+avgBonusRate+avgBenRate));
@@ -2711,12 +2749,16 @@ function renderForecastProjection(){
     const currentTotal=currentBase+currentBonus+currentBenefits;
     const currentCapRate=currentTotal?currentCapEx/currentTotal:0;
     rows.push({year:'Current',hc:currentHC,base:currentBase,bonus:currentBonus,benefits:currentBenefits,total:currentTotal,capex:currentCapEx,opex:currentTotal-currentCapEx});
+    const attrMode2=getForecastMode('attrition');
+    const hiresMode2=getForecastMode('hires');
     let hc=forwardHC;let sg=1;
     FORECAST_YEARS.forEach((y,i)=>{
-      const attrRate=tog.attrition?fa.attrition[i]/100:0;
-      const newHires=tog.hires?fa.hires[i]:0;
+      const attrVal=tog.attrition?fa.attrition[i]:0;
+      const attrLoss2=attrMode2==='pct'?Math.round(hc*attrVal/100):Math.round(attrVal);
+      const hiresVal=tog.hires?fa.hires[i]:0;
+      const newHires=hiresMode2==='pct'?Math.round(hc*hiresVal/100):hiresVal;
       const aiGear=tog.ai?fa.ai[i]:1;
-      hc=Math.max(0,hc-Math.round(hc*attrRate)+Math.round(newHires*aiGear));
+      hc=Math.max(0,hc-attrLoss2+Math.round(newHires*aiGear));
       sg*=(1+(tog.merit?fa.merit[i]/100:0)+(tog.market?fa.market[i]/100:0));
       const base=Math.round(hc*avgSalary*sg);
       const bonus=Math.round(base*avgBonusRate);
@@ -2864,29 +2906,6 @@ function renderForecast(){renderForecastInputs();renderForecastProjection()}
 function downloadCSV(content,filename){
   const blob=new Blob([content],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
 }
-document.getElementById('btnExportFull').addEventListener('click',()=>{
-  let csv='COMPENSATION PLAN - FULL EXPORT\n\n';
-  csv+='EMPLOYEE ROSTER\nName,Country,Seniority,Function,Market Code,Business Line,Business Unit,Project Code,Product,Category,Base Salary (Annual),Bonus %,Bonus (Annual),Benefits (Annual),Total Comp (Annual),Cap %,CapEx,OpEx (P&L),Prorated Total Comp,Proration %,Hire Date,Term Date\n';
-  state.employees.forEach(e=>{const bp=getBonusPct(e);const proj=getEmpProject(e);const af=getAnnualFactor(e);const mkts=getEmpMarkets(e).map(m=>m.code).join('; ');csv+=`"${e.name}",${e.country},${e.seniority},"${e.function}","${mkts}","${getBizLineName(e.businessLine)}",${e.businessUnit||''},"${proj?proj.code:''}","${proj?proj.product:''}","${proj?proj.category:''}",${e.salary},${bp}%,${getBonusAmt(e)},${getBenefitsAmt(e)},${getTotalComp(e)},${getCapPct(e)}%,${getProratedCapEx(e)},${getProratedOpEx(e)},${getProratedComp(e)},${Math.round(af*100)}%,${e.hireDate||''},${e.termDate||''}\n`});
-  csv+='\nBONUS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
-  SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.bonusMatrix[s]?.[f]??'')+'%');csv+='\n'});
-  csv+='\nBENEFITS MATRIX\nSeniority,'+FUNCTIONS.join(',')+'\n';
-  SENIORITY.forEach(s=>{csv+=s;FUNCTIONS.forEach(f=>csv+=','+(state.benefitsMatrix[s]?.[f]??'')+'%');csv+='\n'});
-  csv+='\nPROJECTS\nCode,Market Code,Product,Category,Description\n';
-  state.projects.forEach(p=>csv+=`"${p.code}",${p.marketCode||''},"${p.product}","${p.category}","${p.description||''}"\n`);
-  csv+='\nMONTHLY SPREAD (SUMMARY - PRORATED)\nMonth,Base,Bonus,Benefits,Total,CapEx,OpEx (P&L)\n';
-  let csvAnnBase=0,csvAnnBonus=0,csvAnnBen=0,csvAnnCapEx=0;
-  MONTHS.forEach((m,mi)=>{const mb=state.employees.reduce((a,e)=>a+getMonthlyBase(e,mi),0);const mbn=state.employees.reduce((a,e)=>a+getMonthlyBonus(e,mi),0);const mbe=state.employees.reduce((a,e)=>a+getMonthlyBenefits(e,mi),0);const mcx=state.employees.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0);const mt=mb+mbn+mbe;csvAnnBase+=mb;csvAnnBonus+=mbn;csvAnnBen+=mbe;csvAnnCapEx+=mcx;csv+=`${m},${mb},${mbn},${mbe},${mt},${mcx},${mt-mcx}\n`});
-  csv+=`Annual Total,${csvAnnBase},${csvAnnBonus},${csvAnnBen},${csvAnnBase+csvAnnBonus+csvAnnBen},${csvAnnCapEx},${csvAnnBase+csvAnnBonus+csvAnnBen-csvAnnCapEx}\n`;
-  csv+='\nBENCHMARK REFERENCE TABLE\nCountry,Seniority,Function,Benchmark Salary\n';
-  COUNTRIES.forEach(c=>SENIORITY.forEach(s=>FUNCTIONS.forEach(f=>csv+=`${c},${s},"${f}",${benchmark(s,f,c)}\n`)));
-  downloadCSV(csv,'comp-plan-full.csv');
-});
-document.getElementById('btnExportTemplate').addEventListener('click',()=>{
-  let csv='Name,Country,Seniority,Function,Base Salary (Benchmark Pre-filled),Hire Date,Term Date,Notes\n';
-  COUNTRIES.forEach(c=>SENIORITY.forEach(s=>FUNCTIONS.forEach(f=>csv+=`,"${c}","${s}","${f}",${benchmark(s,f,c)},,,\n`)));
-  downloadCSV(csv,'comp-plan-template.csv');
-});
 document.getElementById('btnPrint').addEventListener('click',()=>{
   const w=window.open('','_blank');
   let h='<html><head><title>Comp Plan Print</title><style>body{font-family:sans-serif;padding:20px;font-size:12px;color:#2d2d2d}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}th{background:#f0f0f0;color:#8b2020}h1,h2{color:#8b2020}@media print{body{font-size:10px}}</style></head><body>';
@@ -3698,7 +3717,7 @@ function renderExecView(){
 }
 
 // ── INIT ──
-function renderAll(){renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
+function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
 loadState();
 currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
 updateWsDisplay();
