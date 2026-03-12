@@ -4718,6 +4718,36 @@ currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
 updateWsDisplay();
 initDropdowns();renderAll();
 renderPnlWalk();
+
+// ── Fun Mode ──
+(function(){
+  const funBtn=document.createElement('button');
+  funBtn.textContent='fun';
+  funBtn.style.cssText='position:fixed;bottom:8px;right:8px;z-index:9999;background:rgba(0,0,0,0.04);border:none;color:rgba(0,0,0,0.15);font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s';
+  funBtn.addEventListener('mouseenter',()=>funBtn.style.color='rgba(0,0,0,0.25)');
+  funBtn.addEventListener('mouseleave',()=>{if(!funBtn.dataset.on)funBtn.style.color='rgba(0,0,0,0.15)'});
+  document.body.appendChild(funBtn);
+
+  let funOverlay=null;
+  funBtn.addEventListener('click',()=>{
+    if(funOverlay){funOverlay.remove();funOverlay=null;funBtn.dataset.on='';funBtn.style.color='rgba(0,0,0,0.15)';return}
+    funOverlay=document.createElement('div');
+    funOverlay.style.cssText='position:fixed;bottom:0;left:0;width:100%;height:20vh;z-index:9998;overflow:hidden;pointer-events:none;border-top:1px solid rgba(200,180,140,0.3)';
+    const vid=document.createElement('video');
+    vid.autoplay=true;vid.loop=true;vid.muted=true;vid.playsInline=true;
+    vid.style.cssText='width:100%;height:100%;object-fit:cover;object-position:center bottom;filter:brightness(1.05) saturate(1.1)';
+    // Use a reliable public domain beach/waves video
+    vid.innerHTML='<source src="https://cdn.pixabay.com/video/2024/06/12/216324_large.mp4" type="video/mp4"><source src="https://cdn.pixabay.com/video/2020/10/02/51584-466978498_large.mp4" type="video/mp4">';
+    funOverlay.appendChild(vid);
+    // Soft gradient fade at the top edge
+    const fade=document.createElement('div');
+    fade.style.cssText='position:absolute;top:0;left:0;width:100%;height:40%;background:linear-gradient(to bottom,var(--bg,#f5f3ef),transparent);pointer-events:none';
+    funOverlay.appendChild(fade);
+    document.body.appendChild(funOverlay);
+    funBtn.dataset.on='1';funBtn.style.color='rgba(59,130,246,0.5)';
+    vid.play().catch(()=>{});
+  });
+})();
 </script>
 </body>
 </html>
