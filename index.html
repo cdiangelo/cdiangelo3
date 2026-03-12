@@ -292,6 +292,7 @@ body.ops-mode .ops-hide{display:none!important}
 <button class="btn" data-pnlsplit="market">Market</button>
 <button class="btn" data-pnlsplit="function">Function</button>
 <button class="btn" data-pnlsplit="country">Country</button>
+<button class="btn" data-pnlsplit="quarter">Quarter</button>
 <button class="btn" data-pnlsplit="month">Month</button>
 </div>
 </div>
@@ -4638,7 +4639,7 @@ function getPnlSplitKey(emp,split){
   if(split==='total')return 'Total';
   if(split==='function')return emp.function;
   if(split==='country')return emp.country;
-  if(split==='month')return null; // handled separately
+  if(split==='month'||split==='quarter')return null; // handled separately
   if(split==='market'){const m=getEmpMarkets(emp);return m.length?m[0].code:'No Market'}
   if(split==='product'){const p=getEmpProject(emp);return p?p.product||'Unassigned':'Unassigned'}
   if(split==='category'){const p=getEmpProject(emp);return p?p.category||'Uncategorized':'Uncategorized'}
@@ -4650,22 +4651,35 @@ function renderPnlWalk(){
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const tbl=document.getElementById('pnlWalkTable');
 
-  if(pnlSplit==='month'){
-    // Monthly columns
-    let cols=MONTH_SHORT;
-    let monthData=cols.map((_,mi)=>{
+  if(pnlSplit==='month'||pnlSplit==='quarter'){
+    // Build monthly data first
+    let monthData=MONTH_SHORT.map((_,mi)=>{
       let comp=0,capex=0;
       emps.forEach(e=>{comp+=getMonthlyComp(e,mi);capex+=getMonthlyCapEx(e,mi)});
       const opex=comp-capex;
       const oao=getVendorOaoByMonth(mi);
       return {opex,oao,adjEbitda:opex+oao,da:0,totalOpex:opex+oao,capex,totInv:opex+oao+capex};
     });
+
+    let cols,colData;
+    if(pnlSplit==='quarter'){
+      cols=['Q1','Q2','Q3','Q4'];
+      colData=cols.map((_,qi)=>{
+        const d={opex:0,oao:0,adjEbitda:0,da:0,totalOpex:0,capex:0,totInv:0};
+        for(let mi=qi*3;mi<qi*3+3;mi++){Object.keys(d).forEach(k=>d[k]+=monthData[mi][k])}
+        return d;
+      });
+    } else {
+      cols=MONTH_SHORT;
+      colData=monthData;
+    }
+
     const totals={opex:0,oao:0,adjEbitda:0,da:0,totalOpex:0,capex:0,totInv:0};
-    monthData.forEach(d=>{Object.keys(totals).forEach(k=>totals[k]+=d[k])});
+    colData.forEach(d=>{Object.keys(totals).forEach(k=>totals[k]+=d[k])});
 
     let h='<thead><tr><th>Line Item</th>';
     cols.forEach(c=>h+=`<th style="text-align:right">${c}</th>`);
-    h+=`<th style="text-align:right">Total</th></tr></thead><tbody>`;
+    h+=`<th style="text-align:right;font-weight:700">FY Total</th></tr></thead><tbody>`;
 
     const rows=[
       {label:'C&B OpEx',key:'opex',cls:'section-label'},
@@ -4678,7 +4692,7 @@ function renderPnlWalk(){
     ];
     rows.forEach(r=>{
       h+=`<tr${r.row?' class="'+r.row+'"':''}><td class="${r.cls||''}">${r.label}</td>`;
-      monthData.forEach(d=>h+=`<td class="num">${fmt(d[r.key])}</td>`);
+      colData.forEach(d=>h+=`<td class="num" style="font-weight:normal">${fmt(d[r.key])}</td>`);
       h+=`<td class="num">${fmt(totals[r.key])}</td></tr>`;
     });
     h+='</tbody>';
@@ -4686,13 +4700,13 @@ function renderPnlWalk(){
     return;
   }
 
-  // Group by dimension
+  // Group by dimension — use monthly sums for consistency with month/quarter view
   const groups={};
   emps.forEach(e=>{
     const key=getPnlSplitKey(e,pnlSplit);
     if(!groups[key])groups[key]={opex:0,capex:0};
-    const comp=getProratedComp(e);
-    const capex=getProratedCapEx(e);
+    let comp=0,capex=0;
+    for(let mi=0;mi<12;mi++){comp+=getMonthlyComp(e,mi);capex+=getMonthlyCapEx(e,mi)}
     groups[key].opex+=comp-capex;
     groups[key].capex+=capex;
   });
