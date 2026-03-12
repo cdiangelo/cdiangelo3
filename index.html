@@ -4230,7 +4230,18 @@ function renderExecView(){
     });
   });
   const monthlyData={};
-  groupNames.forEach(g=>{monthlyData[g]=periodMonths.map(mi=>monthlyDataFull[g][mi])});
+  groupNames.forEach(g=>{
+    const raw=periodMonths.map(mi=>monthlyDataFull[g][mi]);
+    if(execPeriod==='ytd'){
+      const cumul=[];raw.forEach((v,i)=>cumul.push((cumul[i-1]||0)+v));
+      monthlyData[g]=cumul;
+    } else if(execPeriod==='qtd'){
+      const cumul=[];raw.forEach((v,i)=>{const qi=i%3;cumul.push(qi===0?v:(cumul[i-1]||0)+v)});
+      monthlyData[g]=cumul;
+    } else {
+      monthlyData[g]=raw;
+    }
+  });
 
   // Build FTE and Avg Annualized FTE Comp overlay data (period-scoped)
   const monthlyFteFull=MONTH_SHORT.map((_,mi)=>{
@@ -4243,8 +4254,9 @@ function renderExecView(){
     const mComp=emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0);
     return Math.round((mComp/monthlyFteFull[mi])*12);
   });
-  const monthlyFte=periodMonths.map(mi=>monthlyFteFull[mi]);
-  const monthlyAvgAnnFteComp=periodMonths.map(mi=>monthlyAvgAnnFteCompFull[mi]);
+  let monthlyFte=periodMonths.map(mi=>monthlyFteFull[mi]);
+  let monthlyAvgAnnFteComp=periodMonths.map(mi=>monthlyAvgAnnFteCompFull[mi]);
+  // FTE/avg comp should NOT be cumulative — they are averages, not sums
 
   // Chart
   if(typeof Chart!=='undefined'){
