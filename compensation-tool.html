@@ -403,6 +403,7 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 <div class="controls">
 <input class="search-input" id="empSearch" placeholder="Search employees…" style="flex:1;max-width:320px">
+<button class="btn" id="btnClearAllEmps" style="background:var(--danger);color:#fff">Clear All</button>
 </div>
 <div class="table-wrap"><table id="empTable"><thead><tr>
 <th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Business Line</th><th class="ops-hide">Bus Unit</th><th>Projects</th><th>Base</th><th>Bonus %</th><th>Bonus</th><th>Benefits</th><th>Total Comp</th><th>Cap %</th><th>OpEx</th><th>CapEx</th><th>Hire Date</th><th>Term Date</th><th>Actions</th>
@@ -1556,6 +1557,7 @@ function startEdit(id){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);delete state.allocOverrides[id];saveState();renderEmployees()}}
+document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('Remove all employees? This cannot be undone.')){state.employees=[];state.allocOverrides={};saveState();renderEmployees()}});
 
 let inlineEditId=null;
 let inlineEditAllocs=null;
