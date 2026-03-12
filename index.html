@@ -219,9 +219,79 @@ body.ops-mode .ops-hide{display:none!important}
   .exec-roster-person{flex-direction:column;gap:2px}
   .exec-roster-person .person-metrics{text-align:left;font-size:.75rem}
 }
+/* ── Landing Page ── */
+#landingPage{padding:40px 20px;max-width:1400px;margin:0 auto}
+#landingPage h2{font-size:1.6rem;color:var(--accent);margin-bottom:8px}
+#landingPage .landing-subtitle{color:var(--text-dim);font-size:.9rem;margin-bottom:32px}
+.landing-modules{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:40px}
+.landing-module{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;cursor:pointer;transition:all .35s ease;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px}
+.landing-module h3{font-size:1.1rem;color:var(--accent);display:flex;align-items:center;gap:10px}
+.landing-module .mod-icon{font-size:1.4rem}
+.landing-module p{color:var(--text-dim);font-size:.85rem;flex:1}
+.landing-module .mod-badge{display:inline-block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;padding:3px 10px;border-radius:12px;font-weight:600;align-self:flex-start}
+.landing-module .mod-badge.active{background:rgba(58,125,68,.12);color:var(--success);border:1px solid var(--success)}
+.landing-module .mod-badge.coming{background:rgba(184,134,11,.1);color:var(--warning);border:1px solid var(--warning)}
+.landing-module:hover{transform:translateY(-4px);box-shadow:0 0 24px rgba(139,32,32,.25);border-color:var(--accent)}
+.landing-module.disabled{opacity:.65;cursor:default}
+.landing-module.disabled:hover{transform:none;box-shadow:none;border-color:var(--border)}
+.pnl-walk{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:32px}
+.pnl-walk h3{color:var(--accent);font-size:1rem;margin-bottom:16px}
+.pnl-walk-table{width:100%;border-collapse:collapse}
+.pnl-walk-table th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);padding:8px 12px;border-bottom:2px solid var(--border);background:var(--panel-inset)}
+.pnl-walk-table td{padding:10px 12px;font-size:.88rem;border-bottom:1px solid var(--border-light)}
+.pnl-walk-table tr.subtotal td{font-weight:700;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);color:var(--accent);background:rgba(139,32,32,.04)}
+.pnl-walk-table tr.total td{font-weight:700;border-top:3px double var(--accent);color:var(--text-dark);font-size:.95rem;background:rgba(139,32,32,.07)}
+.pnl-walk-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pnl-walk-table td.label-cell{color:var(--text-dim);padding-left:20px;font-size:.84rem}
+.pnl-walk-table td.section-label{font-weight:600;color:var(--text-dark)}
+@media(max-width:900px){.landing-modules{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<!-- LANDING PAGE -->
+<div id="landingPage">
+<h2>Financial Planning &amp; Analysis</h2>
+<p class="landing-subtitle">Select a module to begin, or review the consolidated P&amp;L summary below.</p>
+
+<div class="landing-modules">
+<div class="landing-module" id="modCompPlan">
+<h3><span class="mod-icon">&#9733;</span> Compensation Planning</h3>
+<p>Full employee roster, compensation modeling, CapEx/OpEx allocation, project mapping, and executive reporting.</p>
+<span class="mod-badge active">Active</span>
+</div>
+<div class="landing-module" id="modVendor">
+<h3><span class="mod-icon">&#9830;</span> Vendor Spend, T&amp;E &amp; Other</h3>
+<p>Track vendor contracts, travel &amp; entertainment expenses, and other non-compensation operating costs.</p>
+<span class="mod-badge coming">In Development</span>
+</div>
+<div class="landing-module" id="modDepreciation">
+<h3><span class="mod-icon">&#9670;</span> Depreciation, CapEx &amp; Asset Summary</h3>
+<p>Depreciation schedules, capital expenditure tracking, and consolidated asset reporting.</p>
+<span class="mod-badge coming">In Development</span>
+</div>
+</div>
+
+<div class="pnl-walk">
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+<h3 style="margin-bottom:0">P&amp;L Summary Walk</h3>
+<div class="controls" style="margin-bottom:0">
+<label style="margin-bottom:0;margin-right:4px">Split By</label>
+<div class="toggle-group" id="pnlSplitToggle">
+<button class="btn active" data-pnlsplit="total">Total</button>
+<button class="btn" data-pnlsplit="product">Product</button>
+<button class="btn" data-pnlsplit="category">Category</button>
+<button class="btn" data-pnlsplit="market">Market</button>
+<button class="btn" data-pnlsplit="function">Function</button>
+<button class="btn" data-pnlsplit="country">Country</button>
+<button class="btn" data-pnlsplit="month">Month</button>
+</div>
+</div>
+</div>
+<div class="table-wrap"><table class="pnl-walk-table" id="pnlWalkTable"></table></div>
+</div>
+</div>
+
+<div id="appShell" style="display:none">
 <header>
 <div class="container">
 <h1>Comp<span>Plan</span></h1>
@@ -745,6 +815,41 @@ body.ops-mode .ops-hide{display:none!important}
 </div>
 </div>
 </main>
+</div><!-- /appShell -->
+
+<!-- VENDOR MODULE (placeholder) -->
+<div id="vendorModule" style="display:none">
+<header>
+<div class="container" style="display:flex;align-items:center;gap:16px">
+<h1 style="font-size:1.3rem;color:var(--accent)">Vendor<span style="color:var(--secondary)">Spend</span></h1>
+<button class="btn btn-sm" id="vendorBackBtn">Back to Overview</button>
+</div>
+</header>
+<main class="container" style="padding-top:24px">
+<div class="card">
+<h3 class="section-title">Scratch Pad</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Use this space for vendor spend, T&amp;E, and other cost notes and analysis.</p>
+<textarea id="vendorScratch" rows="20" style="width:100%;font-family:monospace;font-size:.88rem;resize:vertical" placeholder="Enter vendor spend notes, T&E analysis, or other cost tracking here..."></textarea>
+</div>
+</main>
+</div>
+
+<!-- DEPRECIATION MODULE (placeholder) -->
+<div id="depreciationModule" style="display:none">
+<header>
+<div class="container" style="display:flex;align-items:center;gap:16px">
+<h1 style="font-size:1.3rem;color:var(--accent)">D&amp;A<span style="color:var(--secondary)">&amp; Assets</span></h1>
+<button class="btn btn-sm" id="depBackBtn">Back to Overview</button>
+</div>
+</header>
+<main class="container" style="padding-top:24px">
+<div class="card">
+<h3 class="section-title">Scratch Pad</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Use this space for depreciation schedules, CapEx tracking, and asset summary notes.</p>
+<textarea id="depScratch" rows="20" style="width:100%;font-family:monospace;font-size:.88rem;resize:vertical" placeholder="Enter depreciation schedules, CapEx tracking, or asset notes here..."></textarea>
+</div>
+</main>
+</div>
 
 <script>
 // Register datalabels plugin
@@ -3805,12 +3910,171 @@ function renderExecView(){
   rosterPane.querySelectorAll('.prod-header').forEach(h=>h.addEventListener('click',(e)=>{e.stopPropagation();h.parentElement.classList.toggle('collapsed')}));
 }
 
+// ── LANDING PAGE ──
+let pnlSplit='total';
+
+function showLanding(){
+  document.getElementById('landingPage').style.display='';
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('vendorModule').style.display='none';
+  document.getElementById('depreciationModule').style.display='none';
+  renderPnlWalk();
+}
+function showApp(){
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('appShell').style.display='';
+  document.getElementById('vendorModule').style.display='none';
+  document.getElementById('depreciationModule').style.display='none';
+  renderAll();
+}
+function showVendor(){
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('vendorModule').style.display='';
+  document.getElementById('depreciationModule').style.display='none';
+  document.getElementById('vendorScratch').value=localStorage.getItem('compPlanVendorScratch')||'';
+}
+function showDepreciation(){
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('vendorModule').style.display='none';
+  document.getElementById('depreciationModule').style.display='';
+  document.getElementById('depScratch').value=localStorage.getItem('compPlanDepScratch')||'';
+}
+
+document.getElementById('modCompPlan').addEventListener('click',showApp);
+document.getElementById('modVendor').addEventListener('click',showVendor);
+document.getElementById('modDepreciation').addEventListener('click',showDepreciation);
+document.getElementById('vendorBackBtn').addEventListener('click',showLanding);
+document.getElementById('depBackBtn').addEventListener('click',showLanding);
+
+// Persist scratchpads
+document.getElementById('vendorScratch').addEventListener('input',function(){localStorage.setItem('compPlanVendorScratch',this.value)});
+document.getElementById('depScratch').addEventListener('input',function(){localStorage.setItem('compPlanDepScratch',this.value)});
+
+// P&L split toggle
+document.querySelectorAll('#pnlSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#pnlSplitToggle .btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');pnlSplit=b.dataset.pnlsplit;renderPnlWalk();
+}));
+
+function getPnlSplitKey(emp,split){
+  if(split==='total')return 'Total';
+  if(split==='function')return emp.function;
+  if(split==='country')return emp.country;
+  if(split==='month')return null; // handled separately
+  if(split==='market'){const m=getEmpMarkets(emp);return m.length?m[0].code:'No Market'}
+  if(split==='product'){const p=getEmpProject(emp);return p?p.product||'Unassigned':'Unassigned'}
+  if(split==='category'){const p=getEmpProject(emp);return p?p.category||'Uncategorized':'Uncategorized'}
+  return 'Total';
+}
+
+function renderPnlWalk(){
+  const emps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const tbl=document.getElementById('pnlWalkTable');
+
+  if(pnlSplit==='month'){
+    // Monthly columns
+    let cols=MONTH_SHORT;
+    let monthData=cols.map((_,mi)=>{
+      let comp=0,capex=0;
+      emps.forEach(e=>{comp+=getMonthlyComp(e,mi);capex+=getMonthlyCapEx(e,mi)});
+      const opex=comp-capex;
+      return {opex,oao:0,adjEbitda:opex,da:0,totalOpex:opex,capex,totInv:opex+capex};
+    });
+    const totals={opex:0,oao:0,adjEbitda:0,da:0,totalOpex:0,capex:0,totInv:0};
+    monthData.forEach(d=>{Object.keys(totals).forEach(k=>totals[k]+=d[k])});
+
+    let h='<thead><tr><th>Line Item</th>';
+    cols.forEach(c=>h+=`<th style="text-align:right">${c}</th>`);
+    h+=`<th style="text-align:right">Total</th></tr></thead><tbody>`;
+
+    const rows=[
+      {label:'C&B OpEx',key:'opex',cls:'section-label'},
+      {label:'OAO (Other)',key:'oao',cls:'label-cell'},
+      {label:'Adj. EBITDA',key:'adjEbitda',cls:'',row:'subtotal'},
+      {label:'+ D&A',key:'da',cls:'label-cell'},
+      {label:'Total OpEx',key:'totalOpex',cls:'',row:'subtotal'},
+      {label:'+ CapEx',key:'capex',cls:'label-cell'},
+      {label:'Total Investment',key:'totInv',cls:'',row:'total'}
+    ];
+    rows.forEach(r=>{
+      h+=`<tr${r.row?' class="'+r.row+'"':''}><td class="${r.cls||''}">${r.label}</td>`;
+      monthData.forEach(d=>h+=`<td class="num">${fmt(d[r.key])}</td>`);
+      h+=`<td class="num">${fmt(totals[r.key])}</td></tr>`;
+    });
+    h+='</tbody>';
+    tbl.innerHTML=h;
+    return;
+  }
+
+  // Group by dimension
+  const groups={};
+  emps.forEach(e=>{
+    const key=getPnlSplitKey(e,pnlSplit);
+    if(!groups[key])groups[key]={opex:0,capex:0};
+    const comp=getProratedComp(e);
+    const capex=getProratedCapEx(e);
+    groups[key].opex+=comp-capex;
+    groups[key].capex+=capex;
+  });
+  const keys=Object.keys(groups).sort();
+  const isSingle=keys.length<=1;
+
+  if(isSingle){
+    const d=keys.length?groups[keys[0]]:{opex:0,capex:0};
+    const adjEbitda=d.opex;
+    const totalOpex=adjEbitda;
+    const totInv=totalOpex+d.capex;
+    let h='<thead><tr><th>Line Item</th><th style="text-align:right">Amount</th></tr></thead><tbody>';
+    h+=`<tr><td class="section-label">C&B OpEx</td><td class="num">${fmt(d.opex)}</td></tr>`;
+    h+=`<tr><td class="label-cell">OAO (Other)</td><td class="num">${fmt(0)}</td></tr>`;
+    h+=`<tr class="subtotal"><td>Adj. EBITDA</td><td class="num">${fmt(adjEbitda)}</td></tr>`;
+    h+=`<tr><td class="label-cell">+ D&A</td><td class="num">${fmt(0)}</td></tr>`;
+    h+=`<tr class="subtotal"><td>Total OpEx</td><td class="num">${fmt(totalOpex)}</td></tr>`;
+    h+=`<tr><td class="label-cell">+ CapEx</td><td class="num">${fmt(d.capex)}</td></tr>`;
+    h+=`<tr class="total"><td>Total Investment</td><td class="num">${fmt(totInv)}</td></tr>`;
+    h+='</tbody>';
+    tbl.innerHTML=h;
+  } else {
+    const totals={opex:0,capex:0};
+    keys.forEach(k=>{totals.opex+=groups[k].opex;totals.capex+=groups[k].capex});
+
+    let h='<thead><tr><th>Line Item</th>';
+    keys.forEach(k=>h+=`<th style="text-align:right">${k.length>16?k.slice(0,14)+'…':k}</th>`);
+    h+='<th style="text-align:right">Total</th></tr></thead><tbody>';
+
+    const makeRow=(label,fn,cls,rowCls)=>{
+      h+=`<tr${rowCls?' class="'+rowCls+'"':''}><td class="${cls||''}">${label}</td>`;
+      keys.forEach(k=>h+=`<td class="num">${fmt(fn(groups[k]))}</td>`);
+      h+=`<td class="num">${fmt(fn(totals))}</td></tr>`;
+    };
+    makeRow('C&B OpEx',d=>d.opex,'section-label');
+    makeRow('OAO (Other)',()=>0,'label-cell');
+    makeRow('Adj. EBITDA',d=>d.opex,'','subtotal');
+    makeRow('+ D&A',()=>0,'label-cell');
+    makeRow('Total OpEx',d=>d.opex,'','subtotal');
+    makeRow('+ CapEx',d=>d.capex,'label-cell');
+    makeRow('Total Investment',d=>d.opex+d.capex,'','total');
+    h+='</tbody>';
+    tbl.innerHTML=h;
+  }
+}
+
+// Add back-to-landing button in header
+const backBtn=document.createElement('button');
+backBtn.className='btn btn-sm';backBtn.textContent='Overview';backBtn.style.marginLeft='8px';
+backBtn.addEventListener('click',showLanding);
+document.querySelector('#appShell header .container').insertBefore(backBtn,document.querySelector('#appShell header .container').children[1]);
+
 // ── INIT ──
 function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
 loadState();
 currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
 updateWsDisplay();
 initDropdowns();renderAll();
+renderPnlWalk();
 </script>
 </body>
 </html>
