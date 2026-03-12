@@ -139,16 +139,16 @@ tr:hover{background:rgba(139,32,32,.03)}
 /* Dark mode */
 html.dark{
   --bg:#1a1a1e;--panel:#252529;--panel-inset:#1e1e22;
-  --accent:#d4524d;--accent-light:#e06560;--secondary:#8a9bb0;
-  --text:#d4d4d8;--text-dim:#8a8a8e;--text-dark:#eaeaea;
+  --accent:#d4524d;--accent-light:#e06560;--secondary:#a8b8cc;
+  --text:#c8c8ce;--text-dim:#9a9aa2;--text-dark:#dcdce0;
   --border:#3a3a3f;--border-light:#2f2f34;
-  --danger:#cf4444;--success:#4a9d54;--warning:#d4a020;
+  --danger:#e06060;--success:#5ab866;--warning:#e0b840;
   --flag-bg:#3a3020;--flag-border:#6a5a2a;
 }
 html.dark select,html.dark input,html.dark textarea{background:#2a2a2e;border-color:var(--border);color:var(--text)}
 html.dark tr:hover{background:rgba(212,82,77,.05)}
 html.dark .ws-list li:hover{background:rgba(212,82,77,.05)}
-html.dark .chart-container{background:#2a2a2f;border-radius:8px;padding:8px}
+html.dark .chart-container{background:rgba(255,255,255,.02);border-radius:8px;padding:8px}
 /* Operations mode: hide individual comp values */
 body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
 body.ops-mode .comp-sensitive::selection{color:transparent}
@@ -1794,8 +1794,8 @@ function renderDashboard(){
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#8a8a8e':'#5a5a5a';
-  const gridColor=isDark?'#3a3a3f':'#ddd';
+  const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+  const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   let labels,groups;
   if(groupBy==='month'){
     const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -3713,8 +3713,8 @@ function renderForecastProjection(){
     // Chart - stacked base/bonus/benefits with capex view support
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?'#8a8a8e':'#5a5a5a';
-      const gridColor=isDark?'#3a3a3f':'#ddd';
+      const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+      const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       let fDatasets;
       if(forecastView==='opex'){
@@ -3782,8 +3782,8 @@ function renderForecastProjection(){
     // Chart - stacked by group
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?'#8a8a8e':'#5a5a5a';
-      const gridColor=isDark?'#3a3a3f':'#ddd';
+      const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+      const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       const datasets=groupNames.map((g,i)=>({
         label:g.length>20?g.slice(0,18)+'…':g,
@@ -3811,8 +3811,8 @@ function renderForecastProjection(){
   // ── Forecast FTE sparkline ──
   if(typeof Chart!=='undefined'){
     const isDark2=document.documentElement.classList.contains('dark');
-    const tickColor2=isDark2?'#8a8a8e':'#5a5a5a';
-    const gridColor2=isDark2?'#3a3a3f':'#ddd';
+    const tickColor2=isDark2?'#b8b8c0':'#5a5a5a';
+    const gridColor2=isDark2?'rgba(255,255,255,.08)':'#ddd';
     if(window._forecastFteChart)window._forecastFteChart.destroy();
     const fteLabels=totalRows.map(r=>r.year);
     let fcFteDatasets=[];
@@ -4466,8 +4466,8 @@ function getEmpSplitKey(emp,splitBy){
 function renderExecView(){
   const emps=getFilteredEmployees();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#8a8a8e':'#5a5a5a';
-  const gridColor=isDark?'#3a3a3f':'#ddd';
+  const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+  const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   // ── Period range ──
@@ -5095,8 +5095,8 @@ function renderBudgetScenarioChart(){
   if(typeof Chart==='undefined')return;
   if(!budgetScenario)initBudgetScenario();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#8a8a8e':'#5a5a5a';
-  const gridColor=isDark?'#3a3a3f':'#ddd';
+  const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+  const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const emps=budgetScenario.emps;
   const datasets=[];
@@ -5136,8 +5136,8 @@ function renderFcScenarioChart(){
   if(typeof Chart==='undefined')return;
   if(!forecastScenario)initForecastScenario();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#8a8a8e':'#5a5a5a';
-  const gridColor=isDark?'#3a3a3f':'#ddd';
+  const tickColor=isDark?'#b8b8c0':'#5a5a5a';
+  const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const rows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
   const labels=rows.map(r=>String(r.year));
   const datasets=[];
