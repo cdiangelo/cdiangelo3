@@ -3338,7 +3338,17 @@ function renderForecastProjection(){
   let groupForecasts=null;
   if(forecastSplit==='project'){
     splitGroups={};
-    state.projects.forEach(p=>{splitGroups[p.code]=state.employees.filter(e=>e.allocations&&e.allocations.some(a=>a.projId===p.id));splitGroupKeys[p.code]=p.id});
+    state.projects.forEach(p=>{
+      const allocated=[];
+      state.employees.forEach(e=>{
+        if(!e.allocations)return;
+        const alloc=e.allocations.find(a=>a.projId===p.id);
+        if(!alloc)return;
+        const pct=alloc.pct/100;
+        allocated.push({...e,salary:Math.round((e.salary||0)*pct),capPct:e.capPct,_allocPct:pct});
+      });
+      if(allocated.length){splitGroups[p.code]=allocated;splitGroupKeys[p.code]=p.id}
+    });
     const unassigned=state.employees.filter(e=>!e.allocations||!e.allocations.length);
     if(unassigned.length){splitGroups['Unassigned']=unassigned;splitGroupKeys['Unassigned']=null}
   } else if(forecastSplit==='function'){
@@ -4261,7 +4271,18 @@ function renderExecView(){
   let fcSplitGroups=null,fcGroupKeys={};
   if(execFcSplit==='project'){
     fcSplitGroups={};
-    state.projects.forEach(p=>{const e=emps.filter(e=>e.allocations&&e.allocations.some(a=>a.projId===p.id));if(e.length){fcSplitGroups[p.code]=e;fcGroupKeys[p.code]=p.id}});
+    state.projects.forEach(p=>{
+      const allocated=[];
+      emps.forEach(e=>{
+        if(!e.allocations)return;
+        const alloc=e.allocations.find(a=>a.projId===p.id);
+        if(!alloc)return;
+        const pct=alloc.pct/100;
+        // Create a proxy employee with scaled salary/capPct to avoid double-counting
+        allocated.push({...e,salary:Math.round((e.salary||0)*pct),capPct:e.capPct,_allocPct:pct});
+      });
+      if(allocated.length){fcSplitGroups[p.code]=allocated;fcGroupKeys[p.code]=p.id}
+    });
   } else if(execFcSplit==='function'){
     fcSplitGroups={};
     FUNCTIONS.forEach(f=>{const e=emps.filter(e=>e.function===f);if(e.length){fcSplitGroups[f]=e;fcGroupKeys[f]=f}});
