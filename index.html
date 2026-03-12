@@ -991,7 +991,12 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div class="card" style="margin-bottom:12px">
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
 <h3 class="section-title" style="margin:0">Travel &amp; Entertainment</h3>
-<div style="display:flex;gap:6px;flex-wrap:wrap">
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<div class="toggle-group" id="teScaleToggle" style="margin-right:8px">
+<button class="btn active" data-vscale="1">$ Singles</button>
+<button class="btn" data-vscale="1000">$K Thousands</button>
+<button class="btn" data-vscale="1000000">$M Millions</button>
+</div>
 <button class="btn" id="teAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
 <button class="btn" id="teExportBtn" style="padding:4px 12px;font-size:.82rem">Export CSV</button>
 </div>
@@ -3460,6 +3465,18 @@ function renderForecastProjection(){
     groupNames.forEach(g=>groupForecasts[g]=projectForecast(splitGroups[g],splitGroupKeys[g]));
     const yearLabels=['Current',...FORECAST_YEARS];
 
+    // Normalize group values so they sum exactly to the independent total
+    yearLabels.forEach((_,yi)=>{
+      const tr=totalRows[yi];
+      let sumTotal=0,sumCapex=0;
+      groupNames.forEach(g=>{const r=groupForecasts[g][yi];if(r){sumTotal+=r.total;sumCapex+=r.capex}});
+      if(sumTotal){
+        const ratioT=tr.total/sumTotal;
+        const ratioC=sumCapex?tr.capex/sumCapex:0;
+        groupNames.forEach(g=>{const r=groupForecasts[g][yi];if(r){r.total=Math.round(r.total*ratioT);r.capex=Math.round(r.capex*ratioC);r.opex=r.total-r.capex}});
+      }
+    });
+
     // Table
     const showOpex=forecastView==='opex';
     let html='<thead><tr><th>Year</th>';
@@ -4361,6 +4378,18 @@ function renderExecView(){
     const gForecasts={};
     gNames.forEach(g=>gForecasts[g]=projectForecast(fcSplitGroups[g],fcGroupKeys[g]));
 
+    // Normalize group values so they sum exactly to the independent total
+    yearLabels.forEach((_,yi)=>{
+      const tr=totalFcRows[yi];
+      let sumTotal=0,sumCapex=0;
+      gNames.forEach(g=>{const r=gForecasts[g][yi];if(r){sumTotal+=r.total;sumCapex+=r.capex}});
+      if(sumTotal){
+        const ratioT=tr.total/sumTotal;
+        const ratioC=sumCapex?tr.capex/sumCapex:0;
+        gNames.forEach(g=>{const r=gForecasts[g][yi];if(r){r.total=Math.round(r.total*ratioT);r.capex=Math.round(r.capex*ratioC);r.opex=r.total-r.capex}});
+      }
+    });
+
     let html='<thead><tr><th>Year</th>';
     gNames.forEach(g=>html+=`<th class="split-th">${g}</th>`);
     html+='<th class="split-th col-divider">Total</th></tr></thead><tbody>';
@@ -4912,14 +4941,16 @@ function initVendorModule(){
   const origRenderDims=renderVendorDims;
   renderVendorDims=function(){origRenderDims();renderVendorProjects()};
 
-  // Scale toggle
-  document.querySelectorAll('#vendorScaleToggle button').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('#vendorScaleToggle button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      vendorAmtScale=parseInt(btn.dataset.vscale);
-      renderVendorGrid();renderTeGrid();
+  // Scale toggle — sync both vendor and T&E toggles
+  function setAmtScale(scale){
+    vendorAmtScale=scale;
+    document.querySelectorAll('#vendorScaleToggle button, #teScaleToggle button').forEach(b=>{
+      b.classList.toggle('active',parseInt(b.dataset.vscale)===scale);
     });
+    renderVendorGrid();renderTeGrid();
+  }
+  document.querySelectorAll('#vendorScaleToggle button, #teScaleToggle button').forEach(btn=>{
+    btn.addEventListener('click',()=>setAmtScale(parseInt(btn.dataset.vscale)));
   });
 
   // Initial render
