@@ -3304,19 +3304,19 @@ function projectForecast(emps,groupKey){
   // Current year cap rate from actual employee data
   const currentCapRate=currentTotal?currentCapEx/currentTotal:0;
   const rows=[{year:'Current',hc:currentHC,total:currentTotal,capex:currentCapEx,opex:currentTotal-currentCapEx}];
+  const allEmpsCount=Math.max(state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR).length,1);
+  const groupRatio=groupKey?forwardHC/allEmpsCount:1;
   let hc=forwardHC;let salaryGrowth=1;
   FORECAST_YEARS.forEach((y,i)=>{
     const attrVal=tog.attrition?getAssumptionVal('attrition',groupKey,i):0;
-    const attrLoss=attrMode==='pct'?Math.round(hc*attrVal/100):Math.round(attrVal);
+    const attrLoss=attrMode==='pct'?Math.round(hc*attrVal/100):Math.round(attrVal*groupRatio);
     const hiresVal=tog.hires?getAssumptionVal('hires',groupKey,i):0;
-    const allEmpsCount=Math.max(state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR).length,1);
-    let rawHires=hiresMode==='pct'?Math.round(hc*hiresVal/100):hiresVal;
-    const newHires=groupKey?rawHires:Math.round(rawHires*(forwardHC/allEmpsCount));
+    const rawHires=hiresMode==='pct'?Math.round(hc*hiresVal/100):Math.round(hiresVal*groupRatio);
     const meritRate=tog.merit?getAssumptionVal('merit',groupKey,i)/100:0;
     const marketRate=tog.market?getAssumptionVal('market',groupKey,i)/100:0;
     const aiGear=tog.ai?getAssumptionVal('ai',groupKey,i):1;
     const capRate=tog.capitalization?getAssumptionVal('capitalization',groupKey,i)/100:currentCapRate;
-    hc=Math.max(0,hc-attrLoss+Math.round(newHires*aiGear));
+    hc=Math.max(0,hc-attrLoss+Math.round(rawHires*aiGear));
     salaryGrowth*=(1+meritRate+marketRate);
     const base=Math.round(hc*avgSalary*salaryGrowth);
     const total=Math.round(base*(1+avgBonusRate+avgBenRate));
