@@ -246,6 +246,7 @@ body.ops-mode .ops-hide{display:none!important}
 .pnl-walk{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:32px}
 .pnl-walk h3{color:var(--accent);font-size:1rem;margin-bottom:16px}
 .pnl-walk-table{width:100%;border-collapse:collapse}
+.pnl-walk-table.compact{width:auto;min-width:0}
 .pnl-walk-table th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);padding:8px 12px;border-bottom:2px solid var(--border);background:var(--panel-inset)}
 .pnl-walk-table td{padding:10px 12px;font-size:.88rem;border-bottom:1px solid var(--border-light)}
 .pnl-walk-table tr.subtotal td{font-weight:700;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);color:var(--accent);background:rgba(139,32,32,.04)}
@@ -4697,6 +4698,7 @@ function renderPnlWalk(){
     });
     h+='</tbody>';
     tbl.innerHTML=h;
+    tbl.classList.toggle('compact',cols.length<6);
     return;
   }
 
@@ -4729,6 +4731,7 @@ function renderPnlWalk(){
     h+=`<tr class="total"><td>Total Investment</td><td class="num">${fmt(totInv)}</td></tr>`;
     h+='</tbody>';
     tbl.innerHTML=h;
+    tbl.classList.add('compact');
   } else {
     const totals={opex:0,capex:0};
     keys.forEach(k=>{totals.opex+=groups[k].opex;totals.capex+=groups[k].capex});
@@ -4752,6 +4755,7 @@ function renderPnlWalk(){
     makeRow('Total Investment',d=>d.opex+oaoT/keys.length+d.capex,'','total');
     h+='</tbody>';
     tbl.innerHTML=h;
+    tbl.classList.toggle('compact',keys.length<6);
   }
 }
 
