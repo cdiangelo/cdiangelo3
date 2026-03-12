@@ -209,15 +209,18 @@ body.ops-mode .ops-hide{display:none!important}
   #vendorNav .btn{font-size:.68rem;padding:4px 6px}
 }
 /* ── Exec View ── */
-.exec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-.exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:0;min-width:0;overflow:hidden}
-.exec-pane h3{color:var(--accent);font-size:.92rem;font-weight:700;margin-bottom:12px}
-.exec-grid .chart-container{height:250px;margin-bottom:12px}
-.exec-grid .monthly-table,.exec-grid .forecast-table{font-size:.75rem}
-.exec-grid .monthly-table td,.exec-grid .monthly-table th,.exec-grid .forecast-table td,.exec-grid .forecast-table th{padding:4px 6px}
-.exec-grid .controls{font-size:.78rem}
-.exec-grid .controls .btn{font-size:.72rem;padding:3px 8px}
-.exec-grid .controls label{font-size:.72rem}
+.exec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:0;min-width:0;overflow:hidden}
+.exec-pane h3{color:var(--accent);font-size:.82rem;font-weight:700;margin-bottom:8px}
+.exec-grid .chart-container{height:200px;margin-bottom:8px}
+.exec-grid .monthly-table,.exec-grid .forecast-table{font-size:.68rem}
+.exec-grid .monthly-table td,.exec-grid .monthly-table th,.exec-grid .forecast-table td,.exec-grid .forecast-table th{padding:3px 4px}
+.exec-grid .controls{font-size:.72rem}
+.exec-grid .controls .btn{font-size:.66rem;padding:2px 6px}
+.exec-grid .controls label{font-size:.66rem}
+.exec-grid .scenario-grid{grid-template-columns:1fr}
+.exec-grid .scenario-chart-container{height:160px}
+.exec-grid .chat-messages{max-height:200px;min-height:100px}
 .exec-roster-cat{margin-bottom:16px}
 .exec-roster-cat .cat-header{font-weight:700;color:var(--accent);font-size:.95rem;padding:8px 0;border-bottom:2px solid var(--accent);margin-bottom:4px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
 .exec-roster-cat .cat-header .toggle-icon{font-size:.7rem;transition:transform .2s;margin-right:4px}
@@ -234,7 +237,10 @@ body.ops-mode .ops-hide{display:none!important}
 .exec-roster-person .person-metrics{color:var(--text-dim);text-align:right;white-space:nowrap}
 body.ops-mode .exec-roster-person{display:none}
 body.ops-mode .exec-roster-prod .prod-header{cursor:default}
-@media(max-width:1024px){
+@media(max-width:1400px){
+  .exec-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
   .exec-grid{grid-template-columns:1fr}
 }
 @media(max-width:768px){
