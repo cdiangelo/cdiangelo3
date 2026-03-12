@@ -269,7 +269,8 @@ th.v-hdr{white-space:nowrap;padding:8px 4px;min-width:90px;font-size:.75rem;text
 .dim-edit-select:hover{border-color:var(--border);background:var(--panel-inset)}
 .dim-edit-select:focus{border-color:var(--accent);background:#fff;outline:none}
 /* Standardized numeric column */
-.emp-filter-row td{background:var(--panel-inset);padding:4px 6px;position:sticky;top:36px;z-index:1}
+.emp-filter-bar select,.emp-filter-bar input{background:var(--bg)}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--accent)}th.sortable .sort-arrow{font-size:.65rem;margin-left:3px;opacity:.5}th.sortable.sort-active .sort-arrow{opacity:1;color:var(--accent)}
 th.num-col,td.num-col{min-width:90px;text-align:right;white-space:nowrap}
 th.num-col-sm,td.num-col-sm{min-width:70px;text-align:right;white-space:nowrap}
 th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
@@ -401,6 +402,8 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <button data-tab="projects">Project / Market Mapping</button>
 <button data-tab="bonuses">Bonus Assumptions</button>
 <button data-tab="benefits">Benefits Assumptions</button>
+<button data-tab="benchmarks">Comp Benchmarks</button>
+<button data-tab="imports">Import / Export</button>
 </div>
 </div>
 </nav>
@@ -567,6 +570,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div class="form-group"><label>Hire Date</label><input id="empHireDate" type="date"></div>
 <div class="form-group"><label>Termination Date</label><input id="empTermDate" type="date"></div>
 <div class="form-group"><label>Notes</label><input id="empNotes" placeholder="Optional notes"></div>
+<div class="form-group" id="empCountWrap"><label># of Employees</label><input id="empCount" type="number" min="1" max="100" value="1" placeholder="1"><p style="color:var(--text-dim);font-size:.72rem;margin-top:2px">Create multiple employees at once</p></div>
 </div>
 <hr class="separator">
 <h4 style="color:var(--accent);margin-bottom:12px">Projects</h4>
@@ -583,21 +587,19 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div class="controls" style="justify-content:flex-end;margin-bottom:8px">
 <button class="btn" id="btnClearAllEmps" style="background:var(--danger);color:#fff">Clear All</button>
 </div>
+<div class="emp-filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;padding:8px 12px;background:var(--panel-inset);border-radius:8px;border:1px solid var(--border)">
+<span style="font-size:.78rem;font-weight:600;color:var(--text-dim);margin-right:4px">Filters:</span>
+<input id="empFilterName" placeholder="Name…" style="padding:4px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px;width:120px">
+<select id="empFilterCountry" style="padding:4px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:4px"><option value="">Country</option></select>
+<select id="empFilterSeniority" style="padding:4px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:4px"><option value="">Seniority</option></select>
+<select id="empFilterFunction" style="padding:4px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:4px"><option value="">Function</option></select>
+<select id="empFilterMarket" style="padding:4px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:4px"><option value="">Market</option></select>
+<select id="empFilterBizLine" style="padding:4px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:4px"><option value="">Biz Line</option></select>
+<select id="empFilterProject" style="padding:4px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:4px"><option value="">Project</option></select>
+</div>
 <div class="table-wrap"><table id="empTable"><thead>
 <tr>
-<th style="min-width:80px">Actions</th><th>Name</th><th>Country</th><th>Seniority</th><th>Function</th><th>Market</th><th>Business Line</th><th class="ops-hide">Bus Unit</th><th>Projects</th><th class="num-col">Base</th><th class="num-col-sm">Bonus %</th><th class="num-col">Bonus</th><th class="num-col">Benefits</th><th class="num-col-lg">Total Comp</th><th class="num-col-sm">Cap %</th><th class="num-col">OpEx</th><th class="num-col">CapEx</th><th>Hire Date</th><th>Term Date</th>
-</tr>
-<tr class="emp-filter-row">
-<td></td>
-<td><input id="empFilterName" placeholder="Filter…" style="width:100%;padding:3px 6px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"></td>
-<td><select id="empFilterCountry" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
-<td><select id="empFilterSeniority" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
-<td><select id="empFilterFunction" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
-<td><select id="empFilterMarket" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
-<td><select id="empFilterBizLine" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
-<td class="ops-hide"></td>
-<td><select id="empFilterProject" style="width:100%;padding:3px 4px;font-size:.75rem;border:1px solid var(--border);border-radius:4px"><option value="">All</option></select></td>
-<td colspan="10"></td>
+<th style="min-width:80px">Actions</th><th class="sortable" data-sort="name">Name <span class="sort-arrow"></span></th><th class="sortable" data-sort="country">Country <span class="sort-arrow"></span></th><th class="sortable" data-sort="seniority">Seniority <span class="sort-arrow"></span></th><th class="sortable" data-sort="function">Function <span class="sort-arrow"></span></th><th class="sortable" data-sort="market">Market <span class="sort-arrow"></span></th><th class="sortable" data-sort="businessLine">Business Line <span class="sort-arrow"></span></th><th class="ops-hide sortable" data-sort="businessUnit">Bus Unit <span class="sort-arrow"></span></th><th>Projects</th><th class="num-col sortable" data-sort="salary">Base <span class="sort-arrow"></span></th><th class="num-col-sm">Bonus %</th><th class="num-col">Bonus</th><th class="num-col">Benefits</th><th class="num-col-lg sortable" data-sort="totalComp">Total Comp <span class="sort-arrow"></span></th><th class="num-col-sm sortable" data-sort="capPct">Cap % <span class="sort-arrow"></span></th><th class="num-col">OpEx</th><th class="num-col">CapEx</th><th class="sortable" data-sort="hireDate">Hire Date <span class="sort-arrow"></span></th><th class="sortable" data-sort="termDate">Term Date <span class="sort-arrow"></span></th>
 </tr>
 </thead><tbody></tbody></table></div>
 </div>
@@ -676,6 +678,83 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <h4 style="color:var(--accent);margin-bottom:12px">Benefits Breakdown by Country</h4>
 <p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Country multipliers applied to base benefits rate to account for regional cost differences.</p>
 <div class="table-wrap"><table class="matrix-table" id="benefitsCountryTable"></table></div>
+</div>
+</div>
+
+<!-- COMP BENCHMARKS -->
+<div id="tab-benchmarks" class="tab-content">
+<div class="card" style="margin-bottom:20px">
+<h3 class="section-title">Market Rate Benchmarks</h3>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:8px">Market benchmark = <code>Seniority Base × Function Multiplier × Country Multiplier</code>. Sources: industry salary surveys, public comp data, and Levels.fyi aggregates. "Top Talent" rates are 1.25× the market average.</p>
+<p style="color:var(--text-dim);font-size:.78rem;margin-bottom:16px">These rates are used to auto-suggest salaries when adding employees. Edit the tables below to adjust market assumptions.</p>
+</div>
+<div class="card" style="margin-bottom:20px">
+<h3 class="section-title">Market Rates</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+<div>
+<h4 style="color:var(--accent);margin-bottom:8px;font-size:.88rem">Seniority Base Rates</h4>
+<div class="table-wrap"><table class="matrix-table" id="bmSeniorityTable"></table></div>
+</div>
+<div>
+<h4 style="color:var(--accent);margin-bottom:8px;font-size:.88rem">Function Multipliers</h4>
+<div class="table-wrap"><table class="matrix-table" id="bmFunctionTable"></table></div>
+</div>
+</div>
+<div style="margin-top:16px">
+<h4 style="color:var(--accent);margin-bottom:8px;font-size:.88rem">Country Multipliers</h4>
+<div class="table-wrap"><table class="matrix-table" id="bmCountryTable"></table></div>
+</div>
+</div>
+<div class="card">
+<h3 class="section-title">Custom Rates</h3>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Define custom salary rates by Country × Seniority × Function. When populated, these appear as a "Custom" option alongside market benchmarks when adding employees.</p>
+<div class="controls" style="margin-bottom:12px">
+<button class="btn btn-primary" id="btnAddCustomRate">+ Add Custom Rate</button>
+<button class="btn btn-danger" id="btnClearCustomRates">Clear All</button>
+</div>
+<div class="table-wrap"><table class="matrix-table" id="customRatesTable">
+<thead><tr><th>Country</th><th>Seniority</th><th>Function</th><th>Custom Rate (USD)</th><th>vs Market</th><th></th></tr></thead>
+<tbody id="customRatesTbody"></tbody>
+</table></div>
+</div>
+</div>
+
+<!-- IMPORT / EXPORT -->
+<div id="tab-imports" class="tab-content">
+<div class="card">
+<h3 class="section-title">Mass Upload (Excel)</h3>
+<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Upload Excel (.xlsx) files to bulk import or update data. Download a pre-formatted template first, fill it in, then upload. Existing employees matched by name will be updated; new names will be added.</p>
+<div class="export-grid" style="margin-bottom:16px">
+<div class="export-card">
+<h3>Employee Roster</h3>
+<p>Bulk add/update employees with all roster fields including salary, capitalization %, and project assignments.</p>
+<button class="btn" id="btnDlRosterTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadRoster">Upload Roster</button>
+<input type="file" id="rosterFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+<div class="export-card">
+<h3>Bonus Matrix</h3>
+<p>Upload bonus percentages as a Seniority x Function grid.</p>
+<button class="btn" id="btnDlBonusTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBonus">Upload Bonus</button>
+<input type="file" id="bonusFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+<div class="export-card">
+<h3>Benefits Matrix</h3>
+<p>Upload benefits percentages (Seniority x Function) and country multipliers on a second sheet.</p>
+<button class="btn" id="btnDlBenefitsTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBenefits">Upload Benefits</button>
+<input type="file" id="benefitsFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+<div class="export-card">
+<h3>Base Comp Rates</h3>
+<p>Upload seniority base salaries, function multipliers, and country multipliers used to compute benchmark salaries.</p>
+<button class="btn" id="btnDlBaseCompTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBaseComp">Upload Base Comp</button>
+<input type="file" id="baseCompFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+</div>
+<div id="uploadResultBox" style="display:none" class="card-inset"><pre id="uploadResultText" style="white-space:pre-wrap;font-size:.82rem;max-height:300px;overflow:auto"></pre></div>
 </div>
 </div>
 
@@ -818,41 +897,6 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 </div>
 <div class="card" style="margin-top:24px">
-<h3 class="section-title">Mass Upload (Excel)</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Upload Excel (.xlsx) files to bulk import or update data. Download a pre-formatted template first, fill it in, then upload. Existing employees matched by name will be updated; new names will be added.</p>
-<div class="export-grid" style="margin-bottom:16px">
-<div class="export-card">
-<h3>Employee Roster</h3>
-<p>Bulk add/update employees with all roster fields including salary, capitalization %, and project assignments.</p>
-<button class="btn" id="btnDlRosterTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadRoster">Upload Roster</button>
-<input type="file" id="rosterFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-<div class="export-card">
-<h3>Bonus Matrix</h3>
-<p>Upload bonus percentages as a Seniority x Function grid.</p>
-<button class="btn" id="btnDlBonusTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBonus">Upload Bonus</button>
-<input type="file" id="bonusFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-<div class="export-card">
-<h3>Benefits Matrix</h3>
-<p>Upload benefits percentages (Seniority x Function) and country multipliers on a second sheet.</p>
-<button class="btn" id="btnDlBenefitsTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBenefits">Upload Benefits</button>
-<input type="file" id="benefitsFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-<div class="export-card">
-<h3>Base Comp Rates</h3>
-<p>Upload seniority base salaries, function multipliers, and country multipliers used to compute benchmark salaries.</p>
-<button class="btn" id="btnDlBaseCompTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBaseComp">Upload Base Comp</button>
-<input type="file" id="baseCompFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-</div>
-<div id="uploadResultBox" style="display:none" class="card-inset"><pre id="uploadResultText" style="white-space:pre-wrap;font-size:.82rem;max-height:300px;overflow:auto"></pre></div>
-</div>
-<div class="card" style="margin-top:24px">
 <h3 class="section-title">Workspaces</h3>
 <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Save multiple named copies of your comp plan. Each workspace stores a complete snapshot of all data. Switch between them to compare scenarios. Data is stored in your browser's local storage.</p>
 <div class="controls" style="margin-bottom:16px">
@@ -954,30 +998,31 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <button class="btn" data-vscale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
 </div>
 <button class="btn" id="vendorAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
-<button class="btn" id="vendorImportBtn" style="padding:4px 12px;font-size:.82rem">Import CSV</button>
-<button class="btn" id="vendorExportBtn" style="padding:4px 12px;font-size:.82rem">Export CSV</button>
-<input type="file" id="vendorFileInput" accept=".csv" style="display:none">
+<button class="btn" id="vendorImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
+<button class="btn" id="vendorExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
+<input type="file" id="vendorFileInput" accept=".xlsx,.xls,.csv" style="display:none">
 </div>
 </div>
 <div style="overflow-x:auto">
 <table class="comp-table" id="vendorTable" style="font-size:.8rem;min-width:2200px">
 <thead><tr>
+<th style="width:60px">Move</th>
 <th style="width:30px">#</th>
-<th style="min-width:120px">Parent Co</th>
-<th style="min-width:130px">Vendor Name</th>
-<th style="min-width:140px">Vendor Type</th>
+<th class="sortable" data-vsort="parentCo" style="min-width:120px">Parent Co <span class="sort-arrow"></span></th>
+<th class="sortable" data-vsort="vendorName" style="min-width:130px">Vendor Name <span class="sort-arrow"></span></th>
+<th class="sortable" data-vsort="vendorType" style="min-width:140px">Vendor Type <span class="sort-arrow"></span></th>
 <th style="min-width:100px">Notes</th>
-<th style="min-width:100px">Business Unit</th>
-<th style="min-width:120px">Bus. Line / Function</th>
-<th style="min-width:100px">Market</th>
-<th style="min-width:100px">Project</th>
-<th style="min-width:140px">Account Description</th>
+<th class="sortable" data-vsort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
+<th class="sortable" data-vsort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
+<th class="sortable" data-vsort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
+<th class="sortable" data-vsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
+<th class="sortable" data-vsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
 <th style="min-width:80px">Account Code</th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
 <th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
 <th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
 <th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
-<th class="num-col-lg" style="font-weight:700">Full Year</th>
+<th class="sortable num-col-lg" data-vsort="fullYear" style="font-weight:700">Full Year <span class="sort-arrow"></span></th>
 <th style="width:40px"></th>
 </tr></thead>
 <tbody id="vendorTbody"></tbody>
@@ -1005,6 +1050,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div style="overflow-x:auto">
 <table class="comp-table" id="teTable" style="font-size:.8rem;min-width:2200px">
 <thead><tr>
+<th style="width:60px">Move</th>
 <th style="width:30px">#</th>
 <th style="min-width:130px">Expense Type</th>
 <th style="min-width:120px">Description</th>
@@ -1317,6 +1363,7 @@ function ensureStateFields(){
   if(state.forecastAssumptions.toggles.capitalization===undefined)state.forecastAssumptions.toggles.capitalization=true;
   if(!state.forecastAssumptions.overrides)state.forecastAssumptions.overrides={};
   if(!state.allocOverrides)state.allocOverrides={};
+  if(!state.customRates)state.customRates=[];
   if(!state.accounts)state.accounts=DEFAULT_ACCOUNTS.map(a=>({...a}));
   state.accounts.forEach(a=>{if(!a.group)a.group=a.category==='T&E'?'te':'vendor';});
   if(!state.vendorRows||!state.vendorRows.length){
@@ -1480,6 +1527,7 @@ document.querySelectorAll('#mainNav button').forEach(b=>{
     if(b.dataset.tab==='projects')renderProjects();
     if(b.dataset.tab==='bonuses')renderBonusMatrix();
     if(b.dataset.tab==='benefits')renderBenefitsMatrix();
+    if(b.dataset.tab==='benchmarks')renderBenchmarkTables();
     if(b.dataset.tab==='monthly')renderMonthly();
     if(b.dataset.tab==='forecast')renderForecast();
     if(b.dataset.tab==='exec')renderExecView();
@@ -1891,6 +1939,7 @@ syncMonthSelectors();
 
 // ── EMPLOYEES ──
 let editingId=null;
+let empSortCol=null,empSortAsc=true;
 function updateBenchmarkBadge(){
   const c=document.getElementById('empCountry').value;
   const s=document.getElementById('empSeniority').value;
@@ -1898,8 +1947,19 @@ function updateBenchmarkBadge(){
   const el=document.getElementById('benchmarkBadge');
   if(c&&s&&f){
     const bm=benchmark(s,f,c);
-    el.innerHTML=`<span class="benchmark-badge" id="bmBadge">Market: ${fmt(bm)} — click to fill</span>`;
-    document.getElementById('bmBadge').addEventListener('click',()=>{document.getElementById('empSalary').value=bm});
+    const top=Math.round(bm*1.25);
+    const custom=state.customRates.find(cr=>cr.country===c&&cr.seniority===s&&cr.function===f);
+    let html='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">';
+    html+=`<span class="benchmark-badge bm-click" data-val="${bm}" style="font-size:.72rem;padding:2px 8px">Mkt Avg: ${fmt(bm)}</span>`;
+    html+=`<span class="benchmark-badge bm-click" data-val="${top}" style="font-size:.72rem;padding:2px 8px;background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7">Top Talent: ${fmt(top)}</span>`;
+    if(custom){
+      html+=`<span class="benchmark-badge bm-click" data-val="${custom.rate}" style="font-size:.72rem;padding:2px 8px;background:#e3f2fd;color:#1565c0;border-color:#90caf9">Custom: ${fmt(custom.rate)}</span>`;
+    }
+    html+='</div>';
+    el.innerHTML=html;
+    el.querySelectorAll('.bm-click').forEach(badge=>{
+      badge.addEventListener('click',()=>{document.getElementById('empSalary').value=badge.dataset.val});
+    });
   } else {el.innerHTML=''}
 }
 ['empCountry','empSeniority','empFunction'].forEach(id=>document.getElementById(id).addEventListener('change',updateBenchmarkBadge));
@@ -1942,7 +2002,11 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
     document.getElementById('btnSaveEmp').textContent='Add Employee';
     document.getElementById('btnCancelEmp').style.display='none';
   } else {
-    state.employees.push({id:uid(),name,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations});
+    const count=Math.max(1,Math.min(100,parseInt(document.getElementById('empCount').value)||1));
+    for(let ci=0;ci<count;ci++){
+      const empName=count>1?name+' '+(ci+1):name;
+      state.employees.push({id:uid(),name:empName,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations:allocations.map(a=>({...a}))});
+    }
   }
   saveState();clearForm();renderEmployees();
 });
@@ -1958,6 +2022,8 @@ function clearForm(){['empName','empSalary','empNotes','empHireDate','empTermDat
   document.getElementById('benchmarkBadge').innerHTML='';
   document.getElementById('empSplitOutside').checked=false;
   document.getElementById('empSplitOutsideWrap').style.display='none';
+  document.getElementById('empCount').value=1;
+  document.getElementById('empCountWrap').style.display='';
   renderFormAllocations([]);
 }
 // ── Form allocation rows ──
@@ -2052,6 +2118,7 @@ function startEdit(id){
   document.getElementById('formTitle').textContent='Edit Employee';
   document.getElementById('btnSaveEmp').textContent='Save Changes';
   document.getElementById('btnCancelEmp').style.display='inline-block';
+  document.getElementById('empCountWrap').style.display='none';
   updateBenchmarkBadge();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2156,12 +2223,12 @@ function refreshEmpFilters(){
   const projects=state.projects.filter(p=>projIds.has(p.id)).sort((a,b)=>a.code.localeCompare(b.code));
   const marketCodes=new Set();state.employees.forEach(e=>getEmpMarkets(e).forEach(m=>marketCodes.add(m.code)));
   const markets=[...marketCodes].sort();
-  fCountry.innerHTML='<option value="">All</option>'+countries.map(c=>`<option value="${c}"${c===cv?' selected':''}>${c}</option>`).join('');
-  fSeniority.innerHTML='<option value="">All</option>'+seniorities.map(s=>`<option value="${s}"${s===sv?' selected':''}>${s}</option>`).join('');
-  fFunction.innerHTML='<option value="">All</option>'+functions.map(f=>`<option value="${esc(f)}"${f===fv?' selected':''}>${esc(f)}</option>`).join('');
-  fMarket.innerHTML='<option value="">All</option>'+markets.map(m=>`<option value="${esc(m)}"${m===mv?' selected':''}>${esc(m)}</option>`).join('');
-  fBizLine.innerHTML='<option value="">All</option>'+bizLines.map(b=>{const bl=state.bizLines.find(x=>x.code===b);return `<option value="${esc(b)}"${b===bv?' selected':''}>${esc(b)}${bl?' — '+esc(bl.name):''}</option>`}).join('');
-  fProject.innerHTML='<option value="">All</option>'+projects.map(p=>`<option value="${p.id}"${p.id===pv?' selected':''}>${esc(p.code)}</option>`).join('');
+  fCountry.innerHTML='<option value="">Country</option>'+countries.map(c=>`<option value="${c}"${c===cv?' selected':''}>${c}</option>`).join('');
+  fSeniority.innerHTML='<option value="">Seniority</option>'+seniorities.map(s=>`<option value="${s}"${s===sv?' selected':''}>${s}</option>`).join('');
+  fFunction.innerHTML='<option value="">Function</option>'+functions.map(f=>`<option value="${esc(f)}"${f===fv?' selected':''}>${esc(f)}</option>`).join('');
+  fMarket.innerHTML='<option value="">Market</option>'+markets.map(m=>`<option value="${esc(m)}"${m===mv?' selected':''}>${esc(m)}</option>`).join('');
+  fBizLine.innerHTML='<option value="">Biz Line</option>'+bizLines.map(b=>{const bl=state.bizLines.find(x=>x.code===b);return `<option value="${esc(b)}"${b===bv?' selected':''}>${esc(b)}${bl?' — '+esc(bl.name):''}</option>`}).join('');
+  fProject.innerHTML='<option value="">Project</option>'+projects.map(p=>`<option value="${p.id}"${p.id===pv?' selected':''}>${esc(p.code)}</option>`).join('');
 }
 function renderEmployees(){
   refreshEmpFilters();
@@ -2180,6 +2247,35 @@ function renderEmployees(){
   if(fMarket)emps=emps.filter(e=>getEmpMarkets(e).some(m=>m.code===fMarket));
   if(fBizLine)emps=emps.filter(e=>e.businessLine===fBizLine);
   if(fProject)emps=emps.filter(e=>(e.allocations||[]).some(a=>a.projId===fProject));
+  // Sort
+  if(empSortCol){
+    const dir=empSortAsc?1:-1;
+    const getSortVal=(e)=>{
+      switch(empSortCol){
+        case 'name':return e.name.toLowerCase();
+        case 'country':return e.country;
+        case 'seniority':return e.seniority;
+        case 'function':return e.function;
+        case 'market':return (getEmpMarkets(e)[0]||{code:''}).code;
+        case 'businessLine':return e.businessLine||'';
+        case 'businessUnit':return e.businessUnit||'';
+        case 'salary':return e.salary||0;
+        case 'totalComp':return getProratedComp(e);
+        case 'capPct':return getCapPct(e);
+        case 'hireDate':return e.hireDate||'';
+        case 'termDate':return e.termDate||'';
+        default:return '';
+      }
+    };
+    emps=[...emps].sort((a,b)=>{const va=getSortVal(a),vb=getSortVal(b);if(typeof va==='number')return (va-vb)*dir;return String(va).localeCompare(String(vb))*dir});
+  }
+  // Update sort arrows
+  document.querySelectorAll('#empTable th.sortable').forEach(th=>{
+    const col=th.dataset.sort;
+    const arrow=th.querySelector('.sort-arrow');
+    if(col===empSortCol){th.classList.add('sort-active');arrow.textContent=empSortAsc?'▲':'▼'}
+    else{th.classList.remove('sort-active');arrow.textContent=''}
+  });
   const tbody=document.querySelector('#empTable tbody');
   tbody.innerHTML=emps.map(e=>{
     const bp=getBonusPct(e),ba=getBonusAmt(e),ben=getBenefitsAmt(e),tc=getTotalComp(e);
@@ -2250,6 +2346,13 @@ function renderEmployees(){
 document.getElementById('empFilterName').addEventListener('input',renderEmployees);
 ['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterMarket','empFilterBizLine','empFilterProject'].forEach(id=>{
   document.getElementById(id).addEventListener('change',renderEmployees);
+});
+document.querySelectorAll('#empTable th.sortable').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col=th.dataset.sort;
+    if(empSortCol===col){empSortAsc=!empSortAsc}else{empSortCol=col;empSortAsc=true}
+    renderEmployees();
+  });
 });
 
 // ── PROJECTS ──
@@ -2481,6 +2584,78 @@ document.getElementById('btnResetBenefits').addEventListener('click',()=>{
   SENIORITY.forEach(s=>{state.benefitsMatrix[s]={};FUNCTIONS.forEach(f=>{state.benefitsMatrix[s][f]=DEFAULT_BENEFITS[s]})});
   state.benefitsCountryMult={...BENEFITS_COUNTRY_MULT};
   saveState();renderBenefitsMatrix();
+});
+
+// ── COMP BENCHMARKS ──
+function renderBenchmarkTables(){
+  // Seniority base rates table
+  const senTbl=document.getElementById('bmSeniorityTable');
+  let sh='<thead><tr><th>Seniority</th><th style="text-align:right">Base Rate (USD)</th></tr></thead><tbody>';
+  SENIORITY.forEach(s=>{sh+=`<tr><td>${s}</td><td style="text-align:right"><input class="bm-sen-rate dim-edit-input" data-s="${s}" type="number" value="${SENIORITY_BASE[s]}" style="width:110px;text-align:right"></td></tr>`});
+  sh+='</tbody>';
+  senTbl.innerHTML=sh;
+  senTbl.querySelectorAll('.bm-sen-rate').forEach(inp=>{
+    inp.addEventListener('change',()=>{SENIORITY_BASE[inp.dataset.s]=parseFloat(inp.value)||0;renderBenchmarkTables()});
+  });
+  // Function multiplier table
+  const fnTbl=document.getElementById('bmFunctionTable');
+  let fh='<thead><tr><th>Function</th><th style="text-align:right">Multiplier</th><th style="text-align:right">Example (Senior, US)</th></tr></thead><tbody>';
+  FUNCTIONS.forEach(f=>{fh+=`<tr><td>${esc(f)}</td><td style="text-align:right"><input class="bm-fn-mult dim-edit-input" data-f="${esc(f)}" type="number" step="0.01" value="${FUNCTION_MULT[f]}" style="width:80px;text-align:right"></td><td style="text-align:right;color:var(--text-dim)">${fmt(Math.round(SENIORITY_BASE['Senior']*FUNCTION_MULT[f]))}</td></tr>`});
+  fh+='</tbody>';
+  fnTbl.innerHTML=fh;
+  fnTbl.querySelectorAll('.bm-fn-mult').forEach(inp=>{
+    inp.addEventListener('change',()=>{FUNCTION_MULT[inp.dataset.f]=parseFloat(inp.value)||0;renderBenchmarkTables()});
+  });
+  // Country multiplier table
+  const cTbl=document.getElementById('bmCountryTable');
+  let ch='<thead><tr><th>Country</th><th style="text-align:right">Multiplier</th><th style="text-align:right">Sr. SWE Mkt Avg</th><th style="text-align:right">Sr. SWE Top Talent</th></tr></thead><tbody>';
+  COUNTRIES.forEach(c=>{
+    const mkt=benchmark('Senior','Software Engineering',c);
+    ch+=`<tr><td>${c}</td><td style="text-align:right"><input class="bm-co-mult dim-edit-input" data-c="${c}" type="number" step="0.01" value="${COUNTRY_MULT[c]}" style="width:80px;text-align:right"></td><td style="text-align:right;color:var(--text-dim)">${fmt(mkt)}</td><td style="text-align:right;color:var(--text-dim)">${fmt(Math.round(mkt*1.25))}</td></tr>`;
+  });
+  ch+='</tbody>';
+  cTbl.innerHTML=ch;
+  cTbl.querySelectorAll('.bm-co-mult').forEach(inp=>{
+    inp.addEventListener('change',()=>{COUNTRY_MULT[inp.dataset.c]=parseFloat(inp.value)||0;renderBenchmarkTables()});
+  });
+  // Custom rates table
+  renderCustomRates();
+}
+function renderCustomRates(){
+  const tbody=document.getElementById('customRatesTbody');
+  if(!state.customRates.length){tbody.innerHTML='<tr><td colspan="6" style="color:var(--text-dim);text-align:center;padding:16px">No custom rates defined. Click "+ Add Custom Rate" to create one.</td></tr>';return}
+  tbody.innerHTML=state.customRates.map((cr,i)=>{
+    const mkt=benchmark(cr.seniority,cr.function,cr.country);
+    const pctDiff=mkt?Math.round((cr.rate/mkt-1)*100):0;
+    const diffColor=pctDiff>0?'var(--danger)':pctDiff<0?'var(--success)':'var(--text-dim)';
+    return `<tr>
+      <td><select class="cr-field dim-edit-select" data-i="${i}" data-f="country">${COUNTRIES.map(c=>`<option${c===cr.country?' selected':''}>${c}</option>`).join('')}</select></td>
+      <td><select class="cr-field dim-edit-select" data-i="${i}" data-f="seniority">${SENIORITY.map(s=>`<option${s===cr.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td><select class="cr-field dim-edit-select" data-i="${i}" data-f="function">${FUNCTIONS.map(f=>`<option${f===cr.function?' selected':''}>${esc(f)}</option>`).join('')}</select></td>
+      <td><input class="cr-field dim-edit-input" data-i="${i}" data-f="rate" type="number" value="${cr.rate}" style="width:110px;text-align:right"></td>
+      <td style="color:${diffColor};font-size:.82rem">${pctDiff>0?'+':''}${pctDiff}% vs ${fmt(mkt)}</td>
+      <td><button class="btn btn-sm btn-danger cr-del" data-i="${i}" style="padding:2px 8px">Del</button></td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('.cr-field').forEach(el=>{
+    const ev=el.tagName==='SELECT'?'change':'input';
+    el.addEventListener(ev,()=>{
+      const i=+el.dataset.i,f=el.dataset.f;
+      state.customRates[i][f]=f==='rate'?parseFloat(el.value)||0:el.value;
+      saveState();renderCustomRates();
+    });
+  });
+  tbody.querySelectorAll('.cr-del').forEach(btn=>{
+    btn.addEventListener('click',()=>{state.customRates.splice(+btn.dataset.i,1);saveState();renderCustomRates()});
+  });
+}
+document.getElementById('btnAddCustomRate').addEventListener('click',()=>{
+  state.customRates.push({country:COUNTRIES[0],seniority:'Mid-Level',function:'Software Engineering',rate:100000});
+  saveState();renderCustomRates();
+});
+document.getElementById('btnClearCustomRates').addEventListener('click',()=>{
+  if(!state.customRates.length)return;
+  if(confirm('Clear all custom rates?')){state.customRates=[];saveState();renderCustomRates()}
 });
 
 // ── MONTHLY SPREAD ──
@@ -4551,7 +4726,7 @@ function initVendorModule(){
     const acctOpts=state.accounts.filter(a=>(a.group||'vendor')===acctGroup).map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
     const fy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
     const blk=v=>!v?BLANK_BG:'';
-    let h=`<tr data-vi="${i}"><td style="color:var(--text-dim);font-size:.75rem">${i+1}</td>`;
+    let h=`<tr data-vi="${i}"><td style="white-space:nowrap"><button class="btn btn-sm ${prefix}-move-up" data-vi="${i}" style="padding:1px 5px;font-size:.65rem" title="Move up">&#9650;</button> <button class="btn btn-sm ${prefix}-move-down" data-vi="${i}" style="padding:1px 5px;font-size:.65rem" title="Move down">&#9660;</button></td><td style="color:var(--text-dim);font-size:.75rem">${i+1}</td>`;
     // Custom first columns per type
     if(fields==='vendor'){
       h+=`<td style="${blk(row.parentCo)}"><input class="${prefix}-field" data-f="parentCo" value="${esc(row.parentCo)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
@@ -4625,6 +4800,20 @@ function initVendorModule(){
         saveState();renderFn();
       });
     });
+    tbodyEl.querySelectorAll(`.${prefix}-move-up`).forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.vi;if(i<=0)return;
+        [dataArr[i-1],dataArr[i]]=[dataArr[i],dataArr[i-1]];
+        saveState();renderFn();
+      });
+    });
+    tbodyEl.querySelectorAll(`.${prefix}-move-down`).forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.vi;if(i>=dataArr.length-1)return;
+        [dataArr[i],dataArr[i+1]]=[dataArr[i+1],dataArr[i]];
+        saveState();renderFn();
+      });
+    });
   }
 
   function fields2colSpan(prefix){return prefix==='vr'?11:10}
@@ -4633,7 +4822,7 @@ function initVendorModule(){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     const moTotals=MO.map(m=>dataArr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
     const fyTotal=moTotals.reduce((s,v)=>s+v,0);
-    let ft=`<tr style="font-weight:700;background:var(--panel)"><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL</td>`;
+    let ft=`<tr style="font-weight:700;background:var(--panel)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL</td>`;
     moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(t)}</td>`);
     ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fyTotal)}</td><td></td></tr>`;
     tfootEl.innerHTML=ft;
@@ -4647,8 +4836,33 @@ function initVendorModule(){
       saveState();
     }
   }
+  let vendorSortCol=null,vendorSortAsc=true;
   function renderVendorGrid(){
     ensureVendorRows();
+    // Apply sort if active
+    if(vendorSortCol){
+      const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      const dir=vendorSortAsc?1:-1;
+      state.vendorRows.sort((a,b)=>{
+        let va,vb;
+        if(vendorSortCol==='fullYear'){
+          va=moKeys.reduce((s,m)=>s+(parseFloat(a[m])||0),0);
+          vb=moKeys.reduce((s,m)=>s+(parseFloat(b[m])||0),0);
+        } else {
+          va=a[vendorSortCol]||'';vb=b[vendorSortCol]||'';
+        }
+        if(typeof va==='number'&&typeof vb==='number')return (va-vb)*dir;
+        return String(va).localeCompare(String(vb))*dir;
+      });
+      saveState();
+    }
+    // Update sort arrows
+    document.querySelectorAll('#vendorTable th.sortable').forEach(th=>{
+      const col=th.dataset.vsort;
+      const arrow=th.querySelector('.sort-arrow');
+      if(col===vendorSortCol){th.classList.add('sort-active');arrow.textContent=vendorSortAsc?'▲':'▼'}
+      else{th.classList.remove('sort-active');arrow.textContent=''}
+    });
     const tbody=document.getElementById('vendorTbody');
     const tfoot=document.getElementById('vendorTfoot');
     let h='';
@@ -4666,45 +4880,45 @@ function initVendorModule(){
 
   // ── CSV Import / Export ──
   document.getElementById('vendorImportBtn').addEventListener('click',()=>document.getElementById('vendorFileInput').click());
-  document.getElementById('vendorFileInput').addEventListener('change',e=>{
-    const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      const lines=ev.target.result.split('\n').map(l=>l.trim()).filter(l=>l);
-      if(lines.length<2){alert('CSV must have a header row and at least one data row.');return}
-      const hdrs=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/[^a-z0-9]/g,''));
+  document.getElementById('vendorFileInput').addEventListener('change',function(){
+    readExcelFile(this,wb=>{
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){alert('No data rows found.');return}
       const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-      const FIELD_MAP={'parentco':'parentCo','parent':'parentCo','vendorname':'vendorName','vendor':'vendorName','vendortype':'vendorType','type':'vendorType','businessunit':'businessUnit','bu':'businessUnit','bizline':'bizLine','businessline':'bizLine','function':'bizLine','market':'market','project':'project','acctdesc':'acctDesc','accountdescription':'acctDesc','account':'acctDesc','notes':'notes'};
-      MO_NAMES.forEach(m=>FIELD_MAP[m]=m);
-      const colMap=hdrs.map(h=>FIELD_MAP[h]||null);
-      for(let li=1;li<lines.length;li++){
-        const vals=lines[li].split(',').map(v=>v.trim());
-        const row={parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:'',feb:'',mar:'',apr:'',may:'',jun:'',jul:'',aug:'',sep:'',oct:'',nov:'',dec:''};
-        vals.forEach((v,ci)=>{if(colMap[ci])row[colMap[ci]]=v});
-        // Auto-populate account code from desc
+      const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const FIELD_MAP={};
+      const fieldPairs=[['Parent Co','parentCo'],['Parent','parentCo'],['Vendor Name','vendorName'],['Vendor','vendorName'],['Vendor Type','vendorType'],['Type','vendorType'],['Business Unit','businessUnit'],['BU','businessUnit'],['Biz Line','bizLine'],['Business Line','bizLine'],['Function','bizLine'],['Market','market'],['Project','project'],['Account Description','acctDesc'],['Account','acctDesc'],['Notes','notes']];
+      fieldPairs.forEach(([k,v])=>{FIELD_MAP[k]=v;FIELD_MAP[k.toLowerCase()]=v});
+      MO_LABELS.forEach((m,i)=>{FIELD_MAP[m]=MO_NAMES[i];FIELD_MAP[m.toLowerCase()]=MO_NAMES[i]});
+      let imported=0;
+      rows.forEach(r=>{
+        const row={parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+        Object.keys(r).forEach(k=>{const mapped=FIELD_MAP[k]||FIELD_MAP[k.trim().toLowerCase()];if(mapped)row[mapped]=MO_NAMES.includes(mapped)?parseFloat(r[k])||0:String(r[k])});
         state.vendorRows.push(row);
-      }
+        imported++;
+      });
       saveState();renderVendorGrid();
-      alert(`Imported ${lines.length-1} rows.`);
-    };
-    reader.readAsText(file);
-    e.target.value='';
+      alert(`Imported ${imported} rows.`);
+    });
   });
 
   document.getElementById('vendorExportBtn').addEventListener('click',()=>{
+    if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    let csv='Parent Co,Vendor Name,Vendor Type,Business Unit,Biz Line,Market,Project,Account Description,Account Code';
-    MO.forEach(m=>csv+=','+m);
-    csv+=',Full Year,Notes\n';
+    const headers=['Parent Co','Vendor Name','Vendor Type','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code',...MO,'Full Year'];
+    const data=[headers];
     state.vendorRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
-      csv+=[r.parentCo,r.vendorName,r.vendorType,r.businessUnit,r.bizLine,r.market,r.project,r.acctDesc,acctDescToCode(r.acctDesc)].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',');
-      moKeys.forEach(m=>csv+=','+(r[m]||0));
-      csv+=','+fy+',"'+(r.notes||'').replace(/"/g,'""')+'"\n';
+      const projObj=state.projects.find(p=>p.id===r.project);
+      data.push([r.parentCo||'',r.vendorName||'',r.vendorType||'',r.notes||'',r.businessUnit||'',r.bizLine||'',r.market||'',projObj?projObj.code:(r.project||''),r.acctDesc||'',acctDescToCode(r.acctDesc),...moKeys.map(m=>parseFloat(r[m])||0),fy]);
     });
-    const blob=new Blob([csv],{type:'text/csv'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='vendor_spend_export.csv';a.click();
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:16},{wch:18},{wch:16},{wch:16},{wch:14},{wch:14},{wch:10},{wch:12},{wch:20},{wch:12},...MO.map(()=>({wch:12})),{wch:14}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Vendor Spend');
+    xlsxDownload(wb,'vendor_spend_export.xlsx');
   });
 
   // ── Account Mapping ──
@@ -4978,6 +5192,15 @@ function initVendorModule(){
   }
   document.querySelectorAll('#vendorScaleToggle button, #teScaleToggle button').forEach(btn=>{
     btn.addEventListener('click',()=>setAmtScale(parseInt(btn.dataset.vscale)));
+  });
+
+  // Vendor sort click handlers
+  document.querySelectorAll('#vendorTable th.sortable').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const col=th.dataset.vsort;
+      if(vendorSortCol===col){vendorSortAsc=!vendorSortAsc}else{vendorSortCol=col;vendorSortAsc=true}
+      renderVendorGrid();
+    });
   });
 
   // Initial render
