@@ -1023,10 +1023,13 @@ th.v-hdr{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg
 <div><label style="font-size:.7rem;color:var(--text-dim)">Category</label><br><select id="acctCategory" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px">
 <option value="">—</option><option value="Software &amp; Licenses">Software &amp; Licenses</option><option value="Professional Services">Professional Services</option><option value="Data &amp; Analytics">Data &amp; Analytics</option><option value="T&amp;E">T&amp;E</option><option value="Infrastructure">Infrastructure</option><option value="Other OpEx">Other OpEx</option>
 </select></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Tab</label><br><select id="acctGroup" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px">
+<option value="vendor">Vendor</option><option value="te">T&amp;E</option>
+</select></div>
 <button class="btn" id="btnAddAcct" style="padding:3px 10px;font-size:.8rem">Add</button>
 <button class="btn" id="btnAddBlankAcct" style="padding:3px 10px;font-size:.8rem">+ Blank Row</button>
 </div>
-<div style="max-height:300px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Description</th><th>Category</th><th>Vendor Count</th><th></th></tr></thead><tbody id="acctTableBody"></tbody></table></div>
+<div style="max-height:300px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Description</th><th>Category</th><th>Tab</th><th>Usage</th><th></th></tr></thead><tbody id="acctTableBody"></tbody></table></div>
 </div>
 </div>
 
@@ -1161,11 +1164,11 @@ const VENDOR_TYPES = [
 const EXPENSE_TYPES = ['Airline','Hotel','Other Travel','Food/Events','Large Event','Other'];
 
 const DEFAULT_ACCOUNTS = [
-  {code:'54000',description:'Software Licenses',category:'Software & Licenses'},
-  {code:'55990',description:'Research Subscriptions',category:'Data & Analytics'},
-  {code:'54050',description:'Application Maintenance',category:'Software & Licenses'},
-  {code:'54275',description:'Server Mgmt / Plugs',category:'Infrastructure'},
-  {code:'62000',description:'Travel & Expense',category:'T&E'}
+  {code:'54000',description:'Software Licenses',category:'Software & Licenses',group:'vendor'},
+  {code:'55990',description:'Research Subscriptions',category:'Data & Analytics',group:'vendor'},
+  {code:'54050',description:'Application Maintenance',category:'Software & Licenses',group:'vendor'},
+  {code:'54275',description:'Server Mgmt / Plugs',category:'Infrastructure',group:'vendor'},
+  {code:'62000',description:'Travel & Expense',category:'T&E',group:'te'}
 ];
 
 function benchmark(s,f,c){return Math.round(SENIORITY_BASE[s]*FUNCTION_MULT[f]*COUNTRY_MULT[c])}
@@ -1264,6 +1267,7 @@ function ensureStateFields(){
   if(!state.forecastAssumptions.overrides)state.forecastAssumptions.overrides={};
   if(!state.allocOverrides)state.allocOverrides={};
   if(!state.accounts)state.accounts=DEFAULT_ACCOUNTS.map(a=>({...a}));
+  state.accounts.forEach(a=>{if(!a.group)a.group=a.category==='T&E'?'te':'vendor';});
   if(!state.vendorRows||!state.vendorRows.length){
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     const defProjId=genProj?genProj.id:'';
@@ -4279,7 +4283,8 @@ function initVendorModule(){
     const mktOpts=state.markets.map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
     const blOpts=state.bizLines.map(b=>`<option value="${esc(b.code)}">${esc(b.code)} — ${esc(b.name)}</option>`).join('');
     const projOpts=state.projects.map(p=>`<option value="${esc(p.id)}">${esc(p.code)}</option>`).join('');
-    const acctOpts=state.accounts.map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
+    const acctGroup=fields==='vendor'?'vendor':'te';
+    const acctOpts=state.accounts.filter(a=>(a.group||'vendor')===acctGroup).map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
     const fy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
     const blk=v=>!v?BLANK_BG:'';
     let h=`<tr data-vi="${i}"><td style="color:var(--text-dim);font-size:.75rem">${i+1}</td>`;
@@ -4439,6 +4444,10 @@ function initVendorModule(){
           <option value="Infrastructure"${a.category==='Infrastructure'?' selected':''}>Infrastructure</option>
           <option value="Other OpEx"${a.category==='Other OpEx'?' selected':''}>Other OpEx</option>
         </select></td>
+        <td><select class="acct-group-edit" data-idx="${idx}" style="border:none;background:transparent;font-size:.78rem;padding:1px 2px">
+          <option value="vendor"${(a.group||'vendor')==='vendor'?' selected':''}>Vendor</option>
+          <option value="te"${a.group==='te'?' selected':''}>T&amp;E</option>
+        </select></td>
         <td style="font-size:.78rem;color:var(--text-dim)">${vCount}</td>
         <td><button class="btn btn-sm btn-danger acct-del" data-idx="${idx}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
       </tr>`;
@@ -4459,6 +4468,12 @@ function initVendorModule(){
       sel.addEventListener('change',()=>{
         const i=parseInt(sel.dataset.idx);const a=state.accounts[i];
         if(a){a.category=sel.value;saveState()}
+      });
+    });
+    tbody.querySelectorAll('.acct-group-edit').forEach(sel=>{
+      sel.addEventListener('change',()=>{
+        const i=parseInt(sel.dataset.idx);const a=state.accounts[i];
+        if(a){a.group=sel.value;saveState();renderVendorGrid();renderTeGrid()}
       });
     });
     tbody.querySelectorAll('.acct-del').forEach(btn=>{
@@ -4520,9 +4535,10 @@ function initVendorModule(){
     const code=document.getElementById('acctCode').value.trim();
     const desc=document.getElementById('acctDesc').value.trim();
     const cat=document.getElementById('acctCategory').value;
+    const grp=document.getElementById('acctGroup').value;
     if(!code||!desc){alert('Please fill account code and description');return}
     if(state.accounts.some(a=>a.code===code)){alert('Account code already exists');return}
-    state.accounts.push({code,description:desc,category:cat});
+    state.accounts.push({code,description:desc,category:cat,group:grp});
     saveState();renderAccounts();renderVendorGrid();renderTeGrid();
     document.getElementById('acctCode').value='';document.getElementById('acctDesc').value='';document.getElementById('acctCategory').value='';
   });
@@ -4746,7 +4762,7 @@ function renderPnlWalk(){
     colData.forEach(d=>{Object.keys(totals).forEach(k=>totals[k]+=d[k])});
 
     let h='<thead><tr><th>Line Item</th>';
-    cols.forEach(c=>h+=`<th style="text-align:right">${c}</th>`);
+    cols.forEach(c=>h+=`<th class="v-hdr" style="text-align:right">${c}</th>`);
     h+=`<th style="text-align:right;font-weight:700" class="col-divider">FY Total</th></tr></thead><tbody>`;
 
     const rows=[
