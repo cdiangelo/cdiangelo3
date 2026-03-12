@@ -262,8 +262,13 @@ body.ops-mode .ops-hide{display:none!important}
 <body>
 <!-- LANDING PAGE -->
 <div id="landingPage">
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div>
 <h2>Budgeting &amp; Long Term Planning</h2>
 <p class="landing-subtitle">Select a module to begin, or review the consolidated P&amp;L summary below.</p>
+</div>
+<label class="header-toggle" title="Toggle dark mode" style="margin-top:8px"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
+</div>
 
 <div class="landing-modules">
 <div class="landing-module" id="modCompPlan">
@@ -877,6 +882,7 @@ body.ops-mode .ops-hide{display:none!important}
 <th style="min-width:70px">Jul</th><th style="min-width:70px">Aug</th><th style="min-width:70px">Sep</th>
 <th style="min-width:70px">Oct</th><th style="min-width:70px">Nov</th><th style="min-width:70px">Dec</th>
 <th style="min-width:80px;font-weight:700">Full Year</th>
+<th style="min-width:120px">Notes</th>
 <th style="width:40px"></th>
 </tr></thead>
 <tbody id="vendorTbody"></tbody>
@@ -913,6 +919,7 @@ body.ops-mode .ops-hide{display:none!important}
 <th style="min-width:70px">Jul</th><th style="min-width:70px">Aug</th><th style="min-width:70px">Sep</th>
 <th style="min-width:70px">Oct</th><th style="min-width:70px">Nov</th><th style="min-width:70px">Dec</th>
 <th style="min-width:80px;font-weight:700">Full Year</th>
+<th style="min-width:120px">Notes</th>
 <th style="width:40px"></th>
 </tr></thead>
 <tbody id="teTbody"></tbody>
@@ -962,7 +969,7 @@ body.ops-mode .ops-hide{display:none!important}
 <h3 class="section-title">Accounts</h3>
 <p style="color:var(--text-dim);font-size:.75rem;margin-bottom:8px">Define chart of accounts. Description maps to code. Used across all modules.</p>
 <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
-<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="acctCode" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="6100"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="acctCode" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="54000"></div>
 <div><label style="font-size:.7rem;color:var(--text-dim)">Description</label><br><input id="acctDesc" style="width:180px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Software Licenses"></div>
 <div><label style="font-size:.7rem;color:var(--text-dim)">Category</label><br><select id="acctCategory" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px">
 <option value="">—</option><option value="Software &amp; Licenses">Software &amp; Licenses</option><option value="Professional Services">Professional Services</option><option value="Data &amp; Analytics">Data &amp; Analytics</option><option value="T&amp;E">T&amp;E</option><option value="Infrastructure">Infrastructure</option><option value="Other OpEx">Other OpEx</option>
@@ -1105,17 +1112,11 @@ const VENDOR_TYPES = [
 const EXPENSE_TYPES = ['Airline','Hotel','Other Travel','Food/Events','Large Event','Other'];
 
 const DEFAULT_ACCOUNTS = [
-  {code:'6100',description:'Software Licenses',category:'Software & Licenses'},
-  {code:'6110',description:'SaaS Subscriptions',category:'Software & Licenses'},
-  {code:'6200',description:'Professional Services',category:'Professional Services'},
-  {code:'6210',description:'Consulting Fees',category:'Professional Services'},
-  {code:'6300',description:'Data Feeds & Analytics',category:'Data & Analytics'},
-  {code:'6310',description:'Market Data Subscriptions',category:'Data & Analytics'},
-  {code:'6400',description:'Travel',category:'T&E'},
-  {code:'6410',description:'Entertainment',category:'T&E'},
-  {code:'6500',description:'Hosting & Cloud',category:'Infrastructure'},
-  {code:'6510',description:'Network & Telecom',category:'Infrastructure'},
-  {code:'6900',description:'Other Operating Expense',category:'Other OpEx'}
+  {code:'54000',description:'Software Licenses',category:'Software & Licenses'},
+  {code:'55990',description:'Research Subscriptions',category:'Data & Analytics'},
+  {code:'54050',description:'Application Maintenance',category:'Software & Licenses'},
+  {code:'54275',description:'Server Mgmt / Plugs',category:'Infrastructure'},
+  {code:'62000',description:'Travel & Expense',category:'T&E'}
 ];
 
 function benchmark(s,f,c){return Math.round(SENIORITY_BASE[s]*FUNCTION_MULT[f]*COUNTRY_MULT[c])}
@@ -1214,8 +1215,16 @@ function ensureStateFields(){
   if(!state.forecastAssumptions.overrides)state.forecastAssumptions.overrides={};
   if(!state.allocOverrides)state.allocOverrides={};
   if(!state.accounts)state.accounts=DEFAULT_ACCOUNTS.map(a=>({...a}));
-  if(!state.vendorRows)state.vendorRows=[];
-  if(!state.teRows)state.teRows=[];
+  if(!state.vendorRows||!state.vendorRows.length){
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    const defProjId=genProj?genProj.id:'';
+    state.vendorRows=Array.from({length:10},()=>({parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:defProjId,acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}));
+  }
+  if(!state.teRows||!state.teRows.length){
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    const defProjId=genProj?genProj.id:'';
+    state.teRows=Array.from({length:10},()=>({expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:defProjId,acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}));
+  }
   // Migrate old allocations array to per-employee allocations
   if(state.allocations){
     state.allocations.forEach(a=>{
@@ -3705,20 +3714,24 @@ document.getElementById('baseCompFileInput').addEventListener('change',function(
 
 // ── DARK MODE & OPS VIEW ──
 const toggleDark=document.getElementById('toggleDark');
+const landingToggleDark=document.getElementById('landingToggleDark');
 const toggleOps=document.getElementById('toggleOps');
-toggleDark.addEventListener('change',()=>{
-  document.documentElement.classList.toggle('dark',toggleDark.checked);
-  localStorage.setItem('compPlanDark',toggleDark.checked?'1':'0');
-  // Re-render chart with updated colors
+function setDarkMode(on){
+  document.documentElement.classList.toggle('dark',on);
+  localStorage.setItem('compPlanDark',on?'1':'0');
+  toggleDark.checked=on;
+  landingToggleDark.checked=on;
   renderForecast();
-});
+}
+toggleDark.addEventListener('change',()=>setDarkMode(toggleDark.checked));
+landingToggleDark.addEventListener('change',()=>setDarkMode(landingToggleDark.checked));
 toggleOps.addEventListener('change',()=>{
   document.body.classList.toggle('ops-mode',toggleOps.checked);
   localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
   renderMonthly();
 });
 // Restore preferences
-if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;document.documentElement.classList.add('dark')}
+if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;landingToggleDark.checked=true;document.documentElement.classList.add('dark')}
 if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
 
 // ── WORKSPACES (localStorage) ──
@@ -4237,9 +4250,10 @@ function initVendorModule(){
     h+=`<td style="${blk(row.acctDesc)}"><select class="${prefix}-field ${prefix}-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
     h+=`<td class="${prefix}-acctCode" style="font-size:.78rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
     MO.forEach(m=>{
-      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="number" value="${row[m]||''}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px;text-align:right" step="any"></td>`;
+      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="number" value="${row[m]!==undefined&&row[m]!==''?row[m]:0}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px;text-align:right" step="any"></td>`;
     });
     h+=`<td style="font-weight:700;text-align:right;font-size:.8rem">${fmt(fy)}</td>`;
+    h+=`<td><input class="${prefix}-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
     h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-vi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     return h;
   }
@@ -4288,7 +4302,7 @@ function initVendorModule(){
     });
   }
 
-  function fields2colSpan(prefix){return prefix==='vr'?9:8}
+  function fields2colSpan(prefix){return prefix==='vr'?10:9}
 
   function renderFooter(tfootEl,dataArr,colSpan){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
@@ -4296,7 +4310,7 @@ function initVendorModule(){
     const fyTotal=moTotals.reduce((s,v)=>s+v,0);
     let ft=`<tr style="font-weight:700;background:var(--panel)"><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL</td>`;
     moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.8rem">${fmt(t)}</td>`);
-    ft+=`<td style="text-align:right;font-size:.8rem">${fmt(fyTotal)}</td><td></td></tr>`;
+    ft+=`<td style="text-align:right;font-size:.8rem">${fmt(fyTotal)}</td><td></td><td></td></tr>`;
     tfootEl.innerHTML=ft;
   }
 
@@ -4306,12 +4320,13 @@ function initVendorModule(){
     let h='';
     state.vendorRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'vr','vendor')});
     tbody.innerHTML=h;
-    renderFooter(tfoot,state.vendorRows,9);
+    renderFooter(tfoot,state.vendorRows,10);
     bindSpendRows(tbody,tfoot,state.vendorRows,'vr',renderVendorGrid);
   }
 
   document.getElementById('vendorAddRow').addEventListener('click',()=>{
-    state.vendorRows.push({parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:'',feb:'',mar:'',apr:'',may:'',jun:'',jul:'',aug:'',sep:'',oct:'',nov:'',dec:''});
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    state.vendorRows.push({parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
     saveState();renderVendorGrid();
   });
 
@@ -4325,7 +4340,7 @@ function initVendorModule(){
       if(lines.length<2){alert('CSV must have a header row and at least one data row.');return}
       const hdrs=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/[^a-z0-9]/g,''));
       const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-      const FIELD_MAP={'parentco':'parentCo','parent':'parentCo','vendorname':'vendorName','vendor':'vendorName','vendortype':'vendorType','type':'vendorType','businessunit':'businessUnit','bu':'businessUnit','bizline':'bizLine','businessline':'bizLine','function':'bizLine','market':'market','project':'project','acctdesc':'acctDesc','accountdescription':'acctDesc','account':'acctDesc'};
+      const FIELD_MAP={'parentco':'parentCo','parent':'parentCo','vendorname':'vendorName','vendor':'vendorName','vendortype':'vendorType','type':'vendorType','businessunit':'businessUnit','bu':'businessUnit','bizline':'bizLine','businessline':'bizLine','function':'bizLine','market':'market','project':'project','acctdesc':'acctDesc','accountdescription':'acctDesc','account':'acctDesc','notes':'notes'};
       MO_NAMES.forEach(m=>FIELD_MAP[m]=m);
       const colMap=hdrs.map(h=>FIELD_MAP[h]||null);
       for(let li=1;li<lines.length;li++){
@@ -4347,12 +4362,12 @@ function initVendorModule(){
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     let csv='Parent Co,Vendor Name,Vendor Type,Business Unit,Biz Line,Market,Project,Account Description,Account Code';
     MO.forEach(m=>csv+=','+m);
-    csv+=',Full Year\n';
+    csv+=',Full Year,Notes\n';
     state.vendorRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
       csv+=[r.parentCo,r.vendorName,r.vendorType,r.businessUnit,r.bizLine,r.market,r.project,r.acctDesc,acctDescToCode(r.acctDesc)].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',');
       moKeys.forEach(m=>csv+=','+(r[m]||0));
-      csv+=','+fy+'\n';
+      csv+=','+fy+',"'+(r.notes||'').replace(/"/g,'""')+'"\n';
     });
     const blob=new Blob([csv],{type:'text/csv'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='vendor_spend_export.csv';a.click();
@@ -4499,12 +4514,13 @@ function initVendorModule(){
     let h='';
     state.teRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'te','te')});
     tbody.innerHTML=h;
-    renderFooter(tfoot,state.teRows,8);
+    renderFooter(tfoot,state.teRows,9);
     bindSpendRows(tbody,tfoot,state.teRows,'te',renderTeGrid);
   }
 
   document.getElementById('teAddRow').addEventListener('click',()=>{
-    state.teRows.push({expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:'',feb:'',mar:'',apr:'',may:'',jun:'',jul:'',aug:'',sep:'',oct:'',nov:'',dec:''});
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    state.teRows.push({expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
     saveState();renderTeGrid();
   });
 
@@ -4512,11 +4528,11 @@ function initVendorModule(){
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     let csv='Expense Type,Description,Business Unit,Biz Line,Market,Project,Account Description,Account Code';
-    MO.forEach(m=>csv+=','+m);csv+=',Full Year\n';
+    MO.forEach(m=>csv+=','+m);csv+=',Full Year,Notes\n';
     state.teRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
       csv+=[r.expenseType,r.description||'',r.businessUnit,r.bizLine,r.market,r.project,r.acctDesc,acctDescToCode(r.acctDesc)].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',');
-      moKeys.forEach(m=>csv+=','+(r[m]||0));csv+=','+fy+'\n';
+      moKeys.forEach(m=>csv+=','+(r[m]||0));csv+=','+fy+',"'+(r.notes||'').replace(/"/g,'""')+'"\n';
     });
     const blob=new Blob([csv],{type:'text/csv'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='te_export.csv';a.click();
