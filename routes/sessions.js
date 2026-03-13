@@ -23,7 +23,7 @@ function generateCode() {
 const ADMIN_PASSWORD = 'alphabetsoup';
 
 router.post('/', async (req, res) => {
-  const { name, adminPassword } = req.body;
+  const { code: customCode, name, adminPassword } = req.body;
   if (!adminPassword || adminPassword !== ADMIN_PASSWORD) {
     return res.status(403).json({ error: 'Invalid admin password' });
   }
@@ -32,7 +32,17 @@ router.post('/', async (req, res) => {
   }
 
   const db = getDb();
-  const code = generateCode();
+  // Use custom code if provided, otherwise generate one
+  let code;
+  if (customCode && customCode.trim().length >= 3) {
+    code = customCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const existing = db.prepare('SELECT id FROM sessions WHERE code = ?').get(code);
+    if (existing) {
+      return res.status(409).json({ error: 'A session with that code already exists' });
+    }
+  } else {
+    code = generateCode();
+  }
   const hash = bcrypt.hashSync(adminPassword, 10);
 
   const result = db.prepare(

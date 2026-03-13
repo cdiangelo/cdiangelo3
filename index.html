@@ -220,6 +220,7 @@ body.ops-mode .ops-hide{display:none!important}
 body.scenario-open main,body.scenario-open header{margin-left:33.33vw;transition:margin-left .3s ease}
 body:not(.scenario-open) main,body:not(.scenario-open) header{transition:margin-left .3s ease}
 body.scenario-open .scenario-toggle-btn{left:33.33vw}
+body.scenario-open .data-toggle-btn{left:33.33vw}
 /* Data Management slide panel */
 .data-toggle-btn{position:fixed;left:0;top:calc(50% + 90px);transform:translateY(-50%);z-index:1100;background:#7b1fa2;color:#fff;border:none;padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s,left .3s ease}
 .data-toggle-btn:hover{background:#6a1b9a}
@@ -410,8 +411,9 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <!-- Admin: Create session -->
 <div class="step" id="sessionStepAdmin">
 <h2>Create New Session</h2>
-<p>Admin access required. This will generate a session code you can share.</p>
+<p>Admin access required. Choose a session code that others will use to join.</p>
 <div class="session-error" id="sessionErrorAdmin"></div>
+<input type="text" id="adminSessionCode" maxlength="8" placeholder="Session code (e.g. LCM27)" autocomplete="off" style="text-transform:uppercase;font-weight:600;letter-spacing:2px">
 <input type="text" id="adminSessionName" placeholder="Session name (e.g. Q3 2026 Budget)" autocomplete="off">
 <div style="position:relative">
 <input type="password" id="adminPassword" placeholder="Admin password" autocomplete="off" style="padding-right:50px">
@@ -421,12 +423,11 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <button class="btn-session btn-session-secondary" id="btnBackFromAdmin">Back</button>
 </div>
 
-<!-- Admin: Show code -->
+<!-- Admin: Session created confirmation -->
 <div class="step" id="sessionStepCode">
 <h2>Session Created!</h2>
-<p>Share this code with your team:</p>
-<div class="session-code-display" id="newSessionCode"></div>
 <div class="session-success" id="newSessionName" style="display:block"></div>
+<p style="font-size:.85rem;color:var(--text-dim);margin-top:8px">Your team can now join using the code you chose.</p>
 <button class="btn-session btn-session-primary" id="btnUseNewSession">Join This Session</button>
 <button class="btn-session btn-session-secondary" id="btnCloseAfterCreate">Close</button>
 </div>
@@ -492,7 +493,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="landingSessionBox" style="background:var(--panel);border:1px solid var(--border-light);border-radius:10px;padding:16px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <div style="flex:1;min-width:200px">
 <div style="font-weight:700;color:var(--accent);font-size:.95rem;margin-bottom:2px">Join a Session</div>
-<div style="font-size:.78rem;color:var(--text-dim)">Enter a session code to collaborate in real-time, or <span style="cursor:pointer;text-decoration:underline;color:var(--accent)" onclick="document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById('sessionStepAdmin').classList.add('active');document.getElementById('sessionErrorAdmin').style.display='none';document.getElementById('adminSessionName').value='';document.getElementById('adminPassword').value='';document.getElementById('sessionModal').classList.add('show')">create a new session</span>.</div>
+<div style="font-size:.78rem;color:var(--text-dim)">Enter a session code to collaborate in real-time, or <span style="cursor:pointer;text-decoration:underline;color:var(--accent)" onclick="document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById('sessionStepAdmin').classList.add('active');document.getElementById('sessionErrorAdmin').style.display='none';document.getElementById('adminSessionCode').value='';document.getElementById('adminSessionName').value='';document.getElementById('adminPassword').value='';document.getElementById('sessionModal').classList.add('show')">create a new session</span>.</div>
 </div>
 <div style="display:flex;gap:8px;align-items:center">
 <input type="text" id="landingCodeInput" maxlength="5" placeholder="_ _ _ _ _" autocomplete="off" style="width:120px;padding:8px 12px;font-size:1.3rem;text-align:center;letter-spacing:5px;text-transform:uppercase;font-weight:700;font-family:monospace;border:2px solid var(--border);border-radius:8px;background:var(--panel-inset);color:var(--text)">
@@ -1805,14 +1806,16 @@ function initSessionModal(){
     setTimeout(()=>document.getElementById('adminSessionName').focus(),100);
   });
   document.getElementById('btnCreateSession').addEventListener('click',async()=>{
+    const code=(document.getElementById('adminSessionCode').value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
     const name=document.getElementById('adminSessionName').value.trim();
     const pw=document.getElementById('adminPassword').value;
     const errEl=document.getElementById('sessionErrorAdmin');
+    if(!code||code.length<3){errEl.textContent='Session code is required (at least 3 characters).';errEl.style.display='block';return}
     if(!name){errEl.textContent='Session name is required.';errEl.style.display='block';return}
     if(!pw){errEl.textContent='Admin password is required.';errEl.style.display='block';return}
     try{
       const resp=await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name,adminPassword:pw})});
+        body:JSON.stringify({code,name,adminPassword:pw})});
       const ct=resp.headers.get('content-type')||'';
       if(!ct.includes('application/json')){
         const txt=await resp.text();
@@ -1821,8 +1824,7 @@ function initSessionModal(){
       }
       if(!resp.ok){const d=await resp.json();errEl.textContent=d.error||'Error';errEl.style.display='block';return}
       const session=await resp.json();
-      document.getElementById('newSessionCode').textContent=session.code;
-      document.getElementById('newSessionName').textContent=session.name;
+      document.getElementById('newSessionName').textContent=session.name+' — ready to join';
       document.getElementById('newSessionName').style.display='block';
       // Store for potential join
       sessionContext={code:session.code,sessionId:session.id,sessionName:session.name};
