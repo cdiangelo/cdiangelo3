@@ -220,6 +220,20 @@ body.ops-mode .ops-hide{display:none!important}
 body.scenario-open main,body.scenario-open header{margin-left:33.33vw;transition:margin-left .3s ease}
 body:not(.scenario-open) main,body:not(.scenario-open) header{transition:margin-left .3s ease}
 body.scenario-open .scenario-toggle-btn{left:33.33vw}
+/* Data Management slide panel */
+.data-toggle-btn{position:fixed;left:0;top:calc(50% + 90px);transform:translateY(-50%);z-index:1100;background:#7b1fa2;color:#fff;border:none;padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s,left .3s ease}
+.data-toggle-btn:hover{background:#6a1b9a}
+.data-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
+.data-slide-panel{position:fixed;left:0;top:0;bottom:0;width:33.33vw;min-width:380px;max-width:520px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+.data-slide-panel.open{transform:translateX(0)}
+body.data-open main,body.data-open header{margin-left:33.33vw;transition:margin-left .3s ease}
+body.data-open .data-toggle-btn{left:33.33vw}
+body.data-open .scenario-toggle-btn{left:33.33vw}
+.data-section{border-bottom:1px solid var(--border);padding:12px 0}
+.data-section:last-child{border-bottom:none}
+.data-section h4{font-size:.88rem;color:var(--text-dark);font-weight:600;margin:0 0 8px 0}
+.data-section p{font-size:.78rem;color:var(--text-dim);margin:0 0 8px 0}
+.data-section .btn{font-size:.78rem;padding:4px 12px}
 .exec-roster-cat{margin-bottom:16px}
 .exec-roster-cat .cat-header{font-weight:700;color:var(--accent);font-size:.95rem;padding:8px 0;border-bottom:2px solid var(--accent);margin-bottom:4px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
 .exec-roster-cat .cat-header .toggle-icon{font-size:.7rem;transition:transform .2s;margin-right:4px}
@@ -616,10 +630,13 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 <div class="chat-examples" id="budgetChatExamples">
 <button data-cmd="reduce software engineering headcount by 20%">-20% SWE HC</button>
+<button data-cmd="reduce senior engineers in us headcount by 15%">-15% Sr US Eng</button>
 <button data-cmd="swap 20% us for 10% india and 10% canada">Swap US→IN/CA</button>
-<button data-cmd="shift hire dates to 5/1">Shift hires to 5/1</button>
-<button data-cmd="cut vendor spend by 15%">Cut vendor 15%</button>
-<button data-cmd="increase all salary by 5%">+5% salary</button>
+<button data-cmd="promote all junior to mid">Promote Jr→Mid</button>
+<button data-cmd="cut Salesforce spend by 20%">Cut Salesforce 20%</button>
+<button data-cmd="cut airline t&e by 30%">Cut airline T&E 30%</button>
+<button data-cmd="set all bonus to 12%">Set bonus 12%</button>
+<button data-cmd="reduce all except interns headcount by 10%">-10% except interns</button>
 </div>
 <div class="chat-input-bar">
 <input id="budgetChatInput" placeholder="e.g. reduce senior headcount by 10%..." autocomplete="off">
@@ -647,7 +664,8 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <div class="chat-examples" id="fcChatExamples">
 <button data-cmd="freeze hiring">Freeze hiring</button>
 <button data-cmd="reduce software engineering headcount by 10% thru 2030">-10% SWE thru 2030</button>
-<button data-cmd="increase merit by 2%">+2% merit</button>
+<button data-cmd="set merit to 4%">Set merit 4%</button>
+<button data-cmd="set hires to 3 per quarter">3 hires/qtr</button>
 <button data-cmd="set attrition to 20%">Attrition→20%</button>
 <button data-cmd="set ai productivity to 1.5">AI prod 1.5x</button>
 </div>
@@ -660,6 +678,77 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 
 <!-- P&L Summary -->
 <div id="scenPnlSummary"></div>
+
+<!-- Saved Scenarios & Comparison -->
+<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
+<h4 style="color:var(--accent);font-size:.88rem;margin:0 0 8px 0">Saved Scenarios <span style="color:var(--text-dim);font-size:.72rem">(max 5)</span></h4>
+<div style="display:flex;gap:4px;margin-bottom:8px">
+<input id="scenSaveName" placeholder="Scenario name..." style="flex:1;padding:4px 8px;font-size:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--text)">
+<button class="btn btn-sm" id="scenSaveBudgetBtn" style="padding:2px 8px;font-size:.72rem">Save Budget</button>
+<button class="btn btn-sm" id="scenSaveFcBtn" style="padding:2px 8px;font-size:.72rem">Save Forecast</button>
+</div>
+<div id="savedScenariosList"></div>
+<div id="scenCompareTable" style="margin-top:8px"></div>
+</div>
+
+<!-- Export -->
+<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+<button class="btn btn-sm btn-primary" id="scenExportBtn" style="padding:4px 12px;font-size:.78rem">Export Scenario to Excel</button>
+</div>
+</div>
+
+<!-- Data Management Toggle Button -->
+<button class="data-toggle-btn" id="dataToggleBtn"><span class="arrow">&#9654;</span>D A T A</button>
+
+<!-- Data Management Slide Panel -->
+<div class="data-slide-panel" id="dataSlidePanel">
+<h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Data Management</h3>
+
+<div class="data-section">
+<h4>Workspaces</h4>
+<p>Save and switch between complete snapshots of your comp plan.</p>
+<div style="display:flex;gap:4px;margin-bottom:8px">
+<input id="dataPanelWsSaveName" placeholder="Workspace name..." style="flex:1;padding:4px 8px;font-size:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--text)">
+<button class="btn btn-primary" id="dataPanelWsSave">Save As</button>
+<button class="btn btn-success" id="dataPanelWsQuickSave">Quick Save</button>
+</div>
+<div id="dataPanelWsList" class="card-inset" style="max-height:200px;overflow-y:auto"></div>
+</div>
+
+<div class="data-section">
+<h4>Employee Roster</h4>
+<p>Bulk import/export employee data via Excel.</p>
+<button class="btn" id="dataPanelDlRoster">Download Template</button>
+<button class="btn btn-primary" id="dataPanelUploadRoster">Upload Roster</button>
+<input type="file" id="dataPanelRosterFile" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>Vendor Spend</h4>
+<p>Import/export vendor spend data via Excel.</p>
+<button class="btn" id="dataPanelVendorExport">Export Excel</button>
+<button class="btn btn-primary" id="dataPanelVendorImport">Import Excel</button>
+<input type="file" id="dataPanelVendorFile" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>T&amp;E</h4>
+<p>Import/export travel &amp; entertainment data via Excel.</p>
+<button class="btn" id="dataPanelTeExport">Export T&amp;E Excel</button>
+<button class="btn btn-primary" id="dataPanelTeImport">Import T&amp;E Excel</button>
+<input type="file" id="dataPanelTeFile" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>Backup &amp; Share</h4>
+<p>Full application state backup or shareable HTML export.</p>
+<button class="btn btn-primary" id="dataPanelExportJSON">Export JSON</button>
+<button class="btn" id="dataPanelImportJSON">Import JSON</button>
+<input type="file" id="dataPanelJsonFile" accept=".json" style="display:none">
+<div style="margin-top:8px">
+<button class="btn btn-primary" id="dataPanelExportHTML">Download Shareable HTML</button>
+</div>
+</div>
 </div>
 
 <!-- EMPLOYEES -->
@@ -4851,6 +4940,23 @@ function computeBudgetDelta(){
   html+=fmtDelta('OpEx',base.annual.opex,scen.annual.opex);
   html+=fmtDelta('Vendor/T&E',base.annual.oao,scen.annual.oao);
   html+=fmtDelta('Total Spend',base.annual.total,scen.annual.total);
+  // Group breakdown (collapsible)
+  const groups={};
+  FUNCTIONS.forEach(f=>{
+    const bEmps=state.employees.filter(e=>e.function===f);const sEmps=budgetScenario.emps.filter(e=>e.function===f);
+    if(bEmps.length||sEmps.length){
+      const bComp=bEmps.reduce((s,e)=>s+getTotalComp(e),0);const sComp=sEmps.reduce((s,e)=>s+getTotalComp(e),0);
+      if(bComp!==sComp||bEmps.length!==sEmps.length)groups[f]={bHc:bEmps.length,sHc:sEmps.length,bComp,sComp};
+    }
+  });
+  if(Object.keys(groups).length){
+    html+=`<details style="margin-top:4px;font-size:.72rem"><summary style="cursor:pointer;color:var(--text-dim)">Breakdown by function</summary>`;
+    for(const [f,g] of Object.entries(groups)){
+      const hcD=g.sHc-g.bHc;const compD=g.sComp-g.bComp;
+      html+=`<div style="padding:1px 0;color:var(--text)">${f}: HC ${g.bHc}→${g.sHc}${hcD?` (${hcD>0?'+':''}${hcD})`:''}, Comp ${fmt(g.bComp)}→${fmt(g.sComp)}${compD?` (${compD>0?'+':''}${fmt(compD)})`:''}</div>`;
+    }
+    html+='</details>';
+  }
   return html;
 }
 
@@ -4868,26 +4974,115 @@ function computeFcDelta(){
 
 // ── Group resolver ──
 function resolveGroup(text,emps){
-  const t=text.trim().toLowerCase();
-  if(t==='all'||t==='everyone')return e=>true;
-  // Countries
-  const country=COUNTRIES.find(c=>c.toLowerCase()===t||c.toLowerCase().startsWith(t));
-  if(country)return e=>e.country===country;
-  // Short aliases
+  const raw=text.trim().toLowerCase();
+  if(!raw)return null;
+  if(raw==='all'||raw==='everyone')return e=>true;
+  // Exclusion: "all except interns", "everyone except india"
+  const exm=raw.match(/^(.+?)\s+(?:except|excluding|but not)\s+(.+)$/);
+  if(exm){
+    const mainFilter=resolveGroup(exm[1],emps);
+    const exFilter=resolveGroup(exm[2],emps);
+    if(mainFilter&&exFilter)return e=>mainFilter(e)&&!exFilter(e);
+  }
+  // Compound: try to extract multiple dimensions from the text
+  // e.g. "senior software engineers in us"
   const countryAliases={'us':'United States','uk':'United Kingdom','ca':'Canada','de':'Germany','in':'India','au':'Australia','sg':'Singapore','nl':'Netherlands','br':'Brazil','pl':'Poland'};
-  if(countryAliases[t])return e=>e.country===countryAliases[t];
-  // Seniority
-  const sen=SENIORITY.find(s=>s.toLowerCase()===t||s.toLowerCase().startsWith(t));
-  if(sen)return e=>e.seniority===sen;
-  // Functions
-  const func=FUNCTIONS.find(f=>f.toLowerCase()===t||f.toLowerCase().includes(t));
-  if(func)return e=>e.function===func;
-  // Aliases
-  const funcAliases={'swe':'Software Engineering','software eng':'Software Engineering','data eng':'Data Engineering','devops':'DevOps/SRE','pm':'Product Management','qa':'QA Engineering','data sci':'Data Science','security':'Security Engineering','cloud':'Cloud Architecture','tpm':'Technical Program Management'};
-  for(const [alias,full] of Object.entries(funcAliases)){if(t.includes(alias))return e=>e.function===full}
-  // Business line
+  const funcAliases={'swe':'Software Engineering','software eng':'Software Engineering','data eng':'Data Engineering','devops':'DevOps/SRE','pm':'Product Management','qa':'QA Engineering','data sci':'Data Science','security':'Security Engineering','cloud':'Cloud Architecture','tpm':'Technical Program Management','it':'IT Operations'};
+  let filters=[];let remaining=raw;
+  // Extract "in [country]" pattern
+  const inMatch=remaining.match(/\s+in\s+(.+)$/i);
+  if(inMatch){
+    const cText=inMatch[1].trim();
+    const c=matchCountry(cText,countryAliases);
+    if(c){filters.push(e=>e.country===c);remaining=remaining.replace(/\s+in\s+.+$/i,'').trim()}
+  }
+  // Try each token/phrase against known dimensions
+  const parts=remaining.split(/\s+/);
+  let used=new Set();
+  // Try seniority
+  for(let i=0;i<parts.length;i++){
+    const chunk=parts.slice(i).join(' ');
+    const sen=SENIORITY.find(s=>s.toLowerCase()===chunk||s.toLowerCase()===parts[i]||s.toLowerCase().startsWith(parts[i]));
+    if(sen){filters.push(e=>e.seniority===sen);used.add(i);break}
+  }
+  // Try function (multi-word aware)
+  for(let len=parts.length;len>0;len--){
+    for(let i=0;i<=parts.length-len;i++){
+      if(used.has(i))continue;
+      const phrase=parts.slice(i,i+len).join(' ');
+      let func=FUNCTIONS.find(f=>f.toLowerCase()===phrase||f.toLowerCase().includes(phrase));
+      if(!func){for(const [alias,full] of Object.entries(funcAliases)){if(phrase.includes(alias)){func=full;break}}}
+      if(func){filters.push(e=>e.function===func);for(let j=i;j<i+len;j++)used.add(j);break}
+    }
+    if(filters.some(f=>f._isFunc))break;
+  }
+  // Try country (if not already matched via "in")
+  if(!filters.some(f=>f._isCountry)){
+    for(let i=0;i<parts.length;i++){
+      if(used.has(i))continue;
+      const c=matchCountry(parts[i],countryAliases);
+      if(c){const cf=e=>e.country===c;cf._isCountry=true;filters.push(cf);used.add(i);break}
+    }
+  }
+  // Try business line
+  for(let i=0;i<parts.length;i++){
+    if(used.has(i))continue;
+    const bl=state.bizLines.find(b=>b.name.toLowerCase().includes(parts[i])||b.code===parts[i]);
+    if(bl){filters.push(e=>e.businessLine===bl.code);used.add(i);break}
+  }
+  if(filters.length>0)return e=>filters.every(f=>f(e));
+  // Single-pass fallback for simple terms
+  const c=matchCountry(raw,countryAliases);if(c)return e=>e.country===c;
+  const sen=SENIORITY.find(s=>s.toLowerCase()===raw||s.toLowerCase().startsWith(raw));if(sen)return e=>e.seniority===sen;
+  const func=FUNCTIONS.find(f=>f.toLowerCase()===raw||f.toLowerCase().includes(raw));if(func)return e=>e.function===func;
+  for(const [alias,full] of Object.entries(funcAliases)){if(raw.includes(alias))return e=>e.function===full}
+  const bl=state.bizLines.find(b=>b.name.toLowerCase().includes(raw)||b.code===raw);if(bl)return e=>e.businessLine===bl.code;
+  return null;
+}
+function matchCountry(t,aliases){
+  t=t.trim().toLowerCase();
+  if(aliases[t])return aliases[t];
+  return COUNTRIES.find(c=>c.toLowerCase()===t||c.toLowerCase().startsWith(t))||null;
+}
+function suggestGroups(text){
+  const t=text.trim().toLowerCase();
+  const all=[...COUNTRIES,...SENIORITY,...FUNCTIONS,...state.bizLines.map(b=>b.name)];
+  const scored=all.map(g=>{const gl=g.toLowerCase();const dist=gl.includes(t)?0:t.includes(gl.slice(0,3))?1:levenshtein(t,gl);return {name:g,dist}});
+  scored.sort((a,b)=>a.dist-b.dist);
+  return scored.slice(0,3).filter(s=>s.dist<6).map(s=>s.name);
+}
+function levenshtein(a,b){
+  const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>i);
+  for(let j=1;j<=n;j++){let prev=d[0];d[0]=j;for(let i=1;i<=m;i++){const tmp=d[i];d[i]=Math.min(d[i-1]+1,d[i]+1,prev+(a[i-1]===b[j-1]?0:1));prev=tmp}}
+  return d[m];
+}
+function resolveVendorFilter(text,vRows,tRows){
+  const t=text.trim().toLowerCase();
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  // Try vendorName
+  let vf=vRows.filter(r=>(r.vendorName||'').toLowerCase().includes(t));
+  if(vf.length)return {vFilter:r=>(r.vendorName||'').toLowerCase().includes(t),tFilter:()=>false,desc:`vendor "${text.trim()}"`,vCount:vf.length,tCount:0};
+  // Try parentCo
+  vf=vRows.filter(r=>(r.parentCo||'').toLowerCase().includes(t));
+  if(vf.length)return {vFilter:r=>(r.parentCo||'').toLowerCase().includes(t),tFilter:()=>false,desc:`parent co "${text.trim()}"`,vCount:vf.length,tCount:0};
+  // Try vendorType
+  const vt=VENDOR_TYPES.find(v=>v.toLowerCase().includes(t));
+  if(vt){const f=r=>(r.vendorType||'')===vt;const vc=vRows.filter(f).length;return {vFilter:f,tFilter:()=>false,desc:`type "${vt}"`,vCount:vc,tCount:0}}
+  // Try acctDesc
+  vf=vRows.filter(r=>(r.acctDesc||'').toLowerCase().includes(t));
+  if(vf.length)return {vFilter:r=>(r.acctDesc||'').toLowerCase().includes(t),tFilter:()=>false,desc:`account "${text.trim()}"`,vCount:vf.length,tCount:0};
+  // Try project
+  const proj=state.projects.find(p=>p.code.toLowerCase().includes(t)||p.description.toLowerCase().includes(t)||(p.product||'').toLowerCase().includes(t));
+  if(proj){const f=r=>r.project===proj.id;const vc=vRows.filter(f).length;const tc=tRows.filter(f).length;return {vFilter:f,tFilter:f,desc:`project "${proj.code}"`,vCount:vc,tCount:tc}}
+  // Try expenseType (T&E)
+  const et=['Airline','Hotel','Other Travel','Food/Events','Large Event','Other'].find(e=>e.toLowerCase().includes(t));
+  if(et){const f=r=>(r.expenseType||'')===et;const tc=tRows.filter(f).length;return {vFilter:()=>false,tFilter:f,desc:`T&E type "${et}"`,vCount:0,tCount:tc}}
+  // Try bizLine
   const bl=state.bizLines.find(b=>b.name.toLowerCase().includes(t)||b.code===t);
-  if(bl)return e=>e.businessLine===bl.code;
+  if(bl){const f=r=>r.bizLine===bl.code;const vc=vRows.filter(f).length;const tc=tRows.filter(f).length;return {vFilter:f,tFilter:f,desc:`biz line "${bl.name}"`,vCount:vc,tCount:tc}}
+  // Try market
+  const mk=(state.markets||[]).find(m=>m.name.toLowerCase().includes(t)||m.code.toLowerCase().includes(t));
+  if(mk){const f=r=>r.market===mk.code;const vc=vRows.filter(f).length;const tc=tRows.filter(f).length;return {vFilter:f,tFilter:f,desc:`market "${mk.name}"`,vCount:vc,tCount:tc}}
   return null;
 }
 
@@ -4897,29 +5092,100 @@ function parseBudgetCommand(text){
   let m;
   // Reset
   if(/^reset$/i.test(text.trim())){initBudgetScenario();return {msg:'Scenario reset to baseline.',ok:true}}
+  function groupErr(g){const s=suggestGroups(g);return `Could not identify group "${g}".`+(s.length?` Did you mean: ${s.join(', ')}?`:' Try a country, seniority, or function name.')}
   // Reduce headcount by X%
-  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+headcount\s+by\s+(\d+)%/i);
+  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+headcount\s+by\s+(\d+\.?\d*)%/i);
   if(m){
-    const filter=resolveGroup(m[1],emps);const pct=parseInt(m[2]);
-    if(!filter)return {msg:`Could not identify group "${m[1]}". Try a country, seniority, or function name.`,ok:false};
+    const filter=resolveGroup(m[1],emps);const pct=parseFloat(m[2]);
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
     const matching=emps.filter(filter);const toRemove=Math.round(matching.length*pct/100);
     for(let i=0;i<toRemove;i++){const idx=emps.findIndex(filter);if(idx>=0)emps.splice(idx,1)}
     return {msg:`Removed ${toRemove} of ${matching.length} matching employees (${pct}% of ${m[1]}).`,ok:true};
   }
   // Increase/cut salary by X%
-  m=text.match(/(?:increase|raise|boost)\s+(.+?)\s+salary\s+by\s+(\d+)%/i);
+  m=text.match(/(?:increase|raise|boost)\s+(.+?)\s+salary\s+by\s+(\d+\.?\d*)%/i);
   if(m){
-    const filter=resolveGroup(m[1],emps);const pct=parseInt(m[2]);
-    if(!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    const filter=resolveGroup(m[1],emps);const pct=parseFloat(m[2]);
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
     let count=0;emps.forEach(e=>{if(filter(e)){e.salary=Math.round(e.salary*(1+pct/100));count++}});
     return {msg:`Increased salary by ${pct}% for ${count} employees.`,ok:true};
   }
-  m=text.match(/(?:cut|reduce|decrease)\s+(.+?)\s+salary\s+by\s+(\d+)%/i);
+  m=text.match(/(?:cut|reduce|decrease)\s+(.+?)\s+salary\s+by\s+(\d+\.?\d*)%/i);
   if(m){
-    const filter=resolveGroup(m[1],emps);const pct=parseInt(m[2]);
-    if(!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    const filter=resolveGroup(m[1],emps);const pct=parseFloat(m[2]);
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
     let count=0;emps.forEach(e=>{if(filter(e)){e.salary=Math.round(e.salary*(1-pct/100));count++}});
     return {msg:`Reduced salary by ${pct}% for ${count} employees.`,ok:true};
+  }
+  // Promote/demote [group] to [seniority]
+  m=text.match(/(?:promote|demote)\s+(.+?)\s+to\s+(.+)/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
+    const newSen=SENIORITY.find(s=>s.toLowerCase()===m[2].trim().toLowerCase()||s.toLowerCase().startsWith(m[2].trim().toLowerCase()));
+    if(!newSen)return {msg:`Unknown seniority "${m[2]}". Options: ${SENIORITY.join(', ')}`,ok:false};
+    let count=0;emps.forEach(e=>{if(filter(e)){e.seniority=newSen;e.salary=benchmark(newSen,e.function,e.country);count++}});
+    return {msg:`Changed ${count} employees to ${newSen}, salaries recalculated.`,ok:true};
+  }
+  // Set [group] salary to $X
+  m=text.match(/set\s+(.+?)\s+salary\s+to\s+\$?([\d,]+)/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
+    const amount=parseInt(m[2].replace(/,/g,''));
+    let count=0;emps.forEach(e=>{if(filter(e)){e.salary=amount;count++}});
+    return {msg:`Set salary to ${fmt(amount)} for ${count} employees.`,ok:true};
+  }
+  // Set [group] bonus to X%
+  m=text.match(/set\s+(.+?)\s+bonus\s+to\s+(\d+\.?\d*)%/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);const pct=parseFloat(m[2]);
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
+    let count=0;emps.forEach(e=>{if(filter(e)){e.bonusOverride=pct;count++}});
+    return {msg:`Set bonus to ${pct}% for ${count} employees.`,ok:true};
+  }
+  // Set [group] benefits to X%
+  m=text.match(/set\s+(.+?)\s+benefits\s+to\s+(\d+\.?\d*)%/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);const pct=parseFloat(m[2]);
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
+    let count=0;emps.forEach(e=>{if(filter(e)){e.benefitsOverride=pct;count++}});
+    return {msg:`Set benefits to ${pct}% for ${count} employees.`,ok:true};
+  }
+  // Move [group] to project [code]
+  m=text.match(/move\s+(.+?)\s+to\s+project\s+(.+)/i);
+  if(m){
+    const filter=resolveGroup(m[1],emps);
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
+    const proj=state.projects.find(p=>p.code.toLowerCase()===m[2].trim().toLowerCase()||p.description.toLowerCase().includes(m[2].trim().toLowerCase()));
+    if(!proj)return {msg:`Unknown project "${m[2]}". Check project codes.`,ok:false};
+    let count=0;emps.forEach(e=>{if(filter(e)){e.allocations=[{projId:proj.id,pct:100}];count++}});
+    return {msg:`Moved ${count} employees to project ${proj.code} (100% allocation).`,ok:true};
+  }
+  // Cut [expense type] T&E by X%
+  m=text.match(/cut\s+(airline|hotel|travel|food|event|other)\s+t&?e\s+by\s+(\d+\.?\d*)%/i);
+  if(m){
+    const typeMap={'airline':'Airline','hotel':'Hotel','travel':'Other Travel','food':'Food/Events','event':'Large Event','other':'Other'};
+    const et=typeMap[m[1].toLowerCase()]||m[1];const pct=parseFloat(m[2]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    let count=0;budgetScenario.teRows.forEach(r=>{if((r.expenseType||'')===et){MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});count++}});
+    return {msg:`Reduced ${et} T&E by ${pct}% across ${count} rows.`,ok:true};
+  }
+  // Set hiring ramp
+  m=text.match(/set\s+hiring\s+ramp\s+to\s+(\d+)\s+per\s+(quarter|month)/i);
+  if(m){
+    const num=parseInt(m[1]);const period=m[2].toLowerCase();
+    const perMonth=period==='quarter'?num/3:num;const total=Math.round(perMonth*12);
+    // Distribute new hires across remaining months
+    const startMonth=new Date().getMonth();
+    for(let mo=startMonth;mo<12;mo++){
+      const hiresThisMonth=Math.round(perMonth);
+      for(let i=0;i<hiresThisMonth;i++){
+        const template=emps[0]||{seniority:'Mid',function:'Software Engineering',country:'United States'};
+        const hireDate=`${CURRENT_YEAR}-${String(mo+1).padStart(2,'0')}-01`;
+        emps.push({id:uid(),name:`New Hire ${mo+1}-${i+1}`,country:template.country,seniority:template.seniority,function:template.function,salary:benchmark(template.seniority,template.function,template.country),capPct:template.capPct||0,notes:'Hiring ramp',hireDate,termDate:'',businessLine:template.businessLine||'',businessUnit:template.businessUnit||'',allocations:[]});
+      }
+    }
+    return {msg:`Set hiring ramp: ${num} per ${period} (${total} annualized). Added hires for remaining months.`,ok:true};
   }
   // Swap X% country1 for Y% country2 [and Z% country3]
   m=text.match(/swap\s+(\d+)%\s+(.+?)\s+for\s+(\d+)%\s+(.+?)(?:\s+and\s+(\d+)%\s+(.+))?$/i);
@@ -4974,29 +5240,22 @@ function parseBudgetCommand(text){
     }
     return {msg:`Added ${num} ${sen} ${func} in ${country} at ${fmt(benchmark(sen,func,country))} each.`,ok:true};
   }
-  // Cut vendor spend
-  m=text.match(/cut\s+vendor\s+spend\s+by\s+(\d+)%/i);
+  // Cut vendor/T&E spend (smart targeting)
+  m=text.match(/cut\s+(?:all\s+)?vendor\s+spend\s+by\s+(\d+\.?\d*)%/i);
   if(m){
-    const pct=parseInt(m[1]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const pct=parseFloat(m[1]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     budgetScenario.vendorRows.forEach(r=>MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))}));
     return {msg:`Reduced all vendor spend by ${pct}%.`,ok:true};
   }
-  // Cut specific type spend
-  m=text.match(/cut\s+(.+?)\s+spend\s+by\s+(\d+)%/i);
+  m=text.match(/cut\s+(.+?)\s+(?:spend|vendor|t&?e)\s+by\s+(\d+\.?\d*)%/i);
   if(m){
-    const type=m[1].trim().toLowerCase();const pct=parseInt(m[2]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    let count=0;
-    budgetScenario.vendorRows.forEach(r=>{
-      if((r.vendorType||'').toLowerCase().includes(type)||(r.acctDesc||'').toLowerCase().includes(type)){
-        MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});count++;
-      }
-    });
-    budgetScenario.teRows.forEach(r=>{
-      if((r.expenseType||'').toLowerCase().includes(type)||(r.description||'').toLowerCase().includes(type)){
-        MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});count++;
-      }
-    });
-    return {msg:`Reduced ${type} spend by ${pct}% across ${count} rows.`,ok:true};
+    const target=m[1].trim();const pct=parseFloat(m[2]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const vf=resolveVendorFilter(target,budgetScenario.vendorRows,budgetScenario.teRows);
+    if(!vf)return {msg:`Could not match "${target}" to any vendor, parent co, type, account, project, or T&E category.`,ok:false};
+    let vCount=0,tCount=0;
+    budgetScenario.vendorRows.forEach(r=>{if(vf.vFilter(r)){MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});vCount++}});
+    budgetScenario.teRows.forEach(r=>{if(vf.tFilter(r)){MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});tCount++}});
+    return {msg:`Reduced ${vf.desc} spend by ${pct}% (${vCount} vendor + ${tCount} T&E rows).`,ok:true};
   }
   // Set cap%
   m=text.match(/set\s+cap\s*%?\s+to\s+(\d+)/i);
@@ -5008,11 +5267,11 @@ function parseBudgetCommand(text){
   m=text.match(/terminate\s+(.+?)\s+on\s+(\S+)/i);
   if(m){
     const filter=resolveGroup(m[1],emps);const date=m[2];
-    if(!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    if(!filter)return {msg:groupErr(m[1]),ok:false};
     let count=0;emps.forEach(e=>{if(filter(e)){e.termDate=date;count++}});
     return {msg:`Set termination date to ${date} for ${count} employees.`,ok:true};
   }
-  return {msg:`I didn't understand that. Try commands like:\n• "reduce [group] headcount by X%"\n• "swap X% [country] for Y% [country]"\n• "shift hire dates to [date]"\n• "cut vendor spend by X%"\n• "add X [seniority] [function] in [country]"`,ok:false};
+  return {msg:`I didn't understand that. Try commands like:\n• "reduce [group] headcount by X%"\n• "promote [group] to [seniority]"\n• "set [group] salary to $X"\n• "set [group] bonus to X%"\n• "cut [vendor/type/account] spend by X%"\n• "cut [airline/hotel] T&E by X%"\n• "swap X% [country] for Y% [country]"\n• "move [group] to project [code]"\n• "add X [seniority] [function] in [country]"`,ok:false};
 }
 
 // ── Forecast Command Parser ──
@@ -5022,9 +5281,9 @@ function parseForecastCommand(text){
   let m;
   if(/^reset$/i.test(text.trim())){initForecastScenario();return {msg:'Forecast scenario reset to baseline.',ok:true}}
   // Reduce headcount by X% thru year
-  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+(?:headcount|hc)\s+by\s+(\d+)%(?:\s+thru\s+(\d{4}))?/i);
+  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+(?:headcount|hc)\s+by\s+(\d+\.?\d*)%(?:\s+thru\s+(\d{4}))?/i);
   if(m){
-    const pct=parseInt(m[2]);const thruYear=m[3]?parseInt(m[3]):FORECAST_YEARS[FORECAST_YEARS.length-1];
+    const pct=parseFloat(m[2]);const thruYear=m[3]?parseInt(m[3]):FORECAST_YEARS[FORECAST_YEARS.length-1];
     // Increase attrition to achieve this reduction
     FORECAST_YEARS.forEach((y,i)=>{if(y<=thruYear)fa.attrition[i]=Math.min(100,fa.attrition[i]+pct)});
     fa.toggles.attrition=true;
@@ -5038,12 +5297,18 @@ function parseForecastCommand(text){
     }
     return {msg:`Increased attrition by ${pct}% thru ${thruYear} to model headcount reduction.`,ok:true};
   }
+  // Set merit to X%
+  m=text.match(/set\s+merit\s+to\s+(\d+\.?\d*)%/i);
+  if(m){const v=parseFloat(m[1]);fa.merit=fa.merit.map(()=>v);fa.toggles.merit=true;return {msg:`Set merit to ${v}% for all years.`,ok:true}}
   // Increase merit by X%
-  m=text.match(/(?:increase|raise)\s+merit\s+by\s+(\d+)%/i);
-  if(m){const add=parseInt(m[1]);fa.merit=fa.merit.map(v=>v+add);fa.toggles.merit=true;return {msg:`Increased merit by ${add}% across all forecast years.`,ok:true}}
+  m=text.match(/(?:increase|raise)\s+merit\s+by\s+(\d+\.?\d*)%/i);
+  if(m){const add=parseFloat(m[1]);fa.merit=fa.merit.map(v=>v+add);fa.toggles.merit=true;return {msg:`Increased merit by ${add}% across all forecast years.`,ok:true}}
   // Set attrition to X%
   m=text.match(/set\s+attrition\s+to\s+(\d+)%?/i);
   if(m){const v=parseInt(m[1]);fa.attrition=fa.attrition.map(()=>v);fa.toggles.attrition=true;return {msg:`Set attrition to ${v}% for all years.`,ok:true}}
+  // Set hires to X per quarter
+  m=text.match(/set\s+hires?\s+to\s+(\d+)\s+per\s+quarter/i);
+  if(m){const v=parseInt(m[1])*4;fa.hires=fa.hires.map(()=>v);fa.toggles.hires=true;return {msg:`Set hires to ${m[1]} per quarter (${v}/year) for all years.`,ok:true}}
   // Set hires to X
   m=text.match(/set\s+hires?\s+to\s+(\d+)/i);
   if(m){const v=parseInt(m[1]);fa.hires=fa.hires.map(()=>v);fa.toggles.hires=true;return {msg:`Set annual hires to ${v} for all years.`,ok:true}}
@@ -5089,7 +5354,7 @@ function parseForecastCommand(text){
     if(metric.includes('capex'))return {msg:`Baseline CapEx: ${fmt(cur.capex)}`,ok:true};
     return {msg:`Baseline HC: ${cur.hc}, Total: ${fmt(cur.total)}, OpEx: ${fmt(cur.opex)}, CapEx: ${fmt(cur.capex)}`,ok:true};
   }
-  return {msg:`I didn't understand that. Try commands like:\n• "reduce [group] headcount by X% thru [year]"\n• "freeze hiring"\n• "set attrition to X%"\n• "increase merit by X%"\n• "set ai productivity to Xx"\n• "what is current headcount"`,ok:false};
+  return {msg:`I didn't understand that. Try commands like:\n• "reduce [group] headcount by X% thru [year]"\n• "freeze hiring"\n• "set attrition to X%"\n• "set merit to X%" / "increase merit by X%"\n• "set hires to X per quarter"\n• "set ai productivity to Xx"\n• "what is current headcount"`,ok:false};
 }
 
 // ── Chart Renderers ──
@@ -5299,12 +5564,16 @@ function initScenarioPane(){
   const toggleBtn=document.getElementById('scenarioToggleBtn');
   const arrowSpan=toggleBtn.querySelector('.arrow');
   toggleBtn.addEventListener('click',()=>{
+    // Close data panel if open (mutual exclusivity)
+    const dataPanel=document.getElementById('dataSlidePanel');
+    const dataBtn=document.getElementById('dataToggleBtn');
+    if(dataPanel.classList.contains('open')){dataPanel.classList.remove('open');document.body.classList.remove('data-open');dataBtn.querySelector('.arrow').innerHTML='&#9654;'}
     const isOpen=panel.classList.toggle('open');
     document.body.classList.toggle('scenario-open',isOpen);
     arrowSpan.innerHTML=isOpen?'&#9664;':'&#9654;';
     if(isOpen){
       if(!budgetScenario)initBudgetScenario();if(!forecastScenario)initForecastScenario();
-      renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary();
+      renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary();renderSavedScenarios();
     }
   });
   // Chat input handlers
@@ -5374,6 +5643,270 @@ function initScenarioPane(){
   document.getElementById('scenLinkFilters').addEventListener('change',function(){scenFiltersLinked=this.checked});
   // Initialize scenario data (charts render when panel opens)
   initBudgetScenario();initForecastScenario();
+  // Saved scenarios
+  document.getElementById('scenSaveBudgetBtn').addEventListener('click',()=>saveScenario('budget'));
+  document.getElementById('scenSaveFcBtn').addEventListener('click',()=>saveScenario('forecast'));
+  document.getElementById('scenExportBtn').addEventListener('click',exportScenarioToExcel);
+}
+
+// ── SAVED SCENARIOS & COMPARISON ──
+const SAVED_SCEN_KEY='compPlanSavedScenarios';
+function getSavedScenarios(){try{return JSON.parse(localStorage.getItem(SAVED_SCEN_KEY)||'[]')}catch(e){return[]}}
+function setSavedScenarios(arr){localStorage.setItem(SAVED_SCEN_KEY,JSON.stringify(arr))}
+
+function saveScenario(type){
+  const name=document.getElementById('scenSaveName').value.trim();
+  if(!name)return addChatMsg(type==='budget'?'budgetChatMessages':'fcChatMessages','Enter a name to save this scenario.','error');
+  const saved=getSavedScenarios();
+  if(saved.length>=5)return addChatMsg(type==='budget'?'budgetChatMessages':'fcChatMessages','Max 5 saved scenarios. Delete one first.','error');
+  const entry={name,type,timestamp:Date.now()};
+  if(type==='budget'){
+    const pnl=computeBudgetPnl(budgetScenario.emps,budgetScenario.vendorRows,budgetScenario.teRows);
+    entry.data=JSON.parse(JSON.stringify(budgetScenario));
+    entry.pnl={hc:pnl.annual.hc,opex:pnl.annual.opex,capex:pnl.annual.capex,oao:pnl.annual.oao,total:pnl.annual.total};
+  } else {
+    const pnlRows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
+    entry.data=JSON.parse(JSON.stringify(forecastScenario));
+    const lastRow=pnlRows[pnlRows.length-1]||{};
+    entry.pnl={hc:lastRow.hc||0,total:lastRow.total||0,opex:lastRow.opex||0};
+  }
+  saved.push(entry);setSavedScenarios(saved);
+  document.getElementById('scenSaveName').value='';
+  addChatMsg(type==='budget'?'budgetChatMessages':'fcChatMessages',`Scenario "${name}" saved.`,'system');
+  renderSavedScenarios();
+}
+
+function renderSavedScenarios(){
+  const saved=getSavedScenarios();
+  const list=document.getElementById('savedScenariosList');
+  if(!saved.length){list.innerHTML='<div style="color:var(--text-dim);font-size:.75rem">No saved scenarios</div>';document.getElementById('scenCompareTable').innerHTML='';return}
+  let html=saved.map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">
+    <span style="flex:1;color:var(--text)">${s.name} <span style="color:var(--text-dim)">(${s.type})</span></span>
+    <button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadSavedScenario(${i})">Load</button>
+    <button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteSavedScenario(${i})">×</button>
+  </div>`).join('');
+  list.innerHTML=html;
+  renderComparisonTable(saved);
+}
+
+function loadSavedScenario(idx){
+  const saved=getSavedScenarios();const s=saved[idx];if(!s)return;
+  if(s.type==='budget'){
+    budgetScenario=JSON.parse(JSON.stringify(s.data));budgetScenarioDirty=true;
+    document.getElementById('scenBudgetApply').style.display='inline-block';
+    addChatMsg('budgetChatMessages',`Loaded scenario "${s.name}".`,'system');
+    renderBudgetScenarioChart();
+  } else {
+    forecastScenario=JSON.parse(JSON.stringify(s.data));fcScenarioDirty=true;
+    document.getElementById('scenFcApply').style.display='inline-block';
+    addChatMsg('fcChatMessages',`Loaded scenario "${s.name}".`,'system');
+    renderFcScenarioChart();
+  }
+  renderScenarioPnlSummary();
+}
+
+function deleteSavedScenario(idx){
+  const saved=getSavedScenarios();saved.splice(idx,1);setSavedScenarios(saved);renderSavedScenarios();
+}
+
+function renderComparisonTable(saved){
+  const ct=document.getElementById('scenCompareTable');
+  if(!saved||!saved.length){ct.innerHTML='';return}
+  // Baseline P&L
+  const baseBudget=computeBudgetPnl(state.employees,state.vendorRows||[],state.teRows||[]);
+  const basePnl={hc:baseBudget.annual.hc,opex:baseBudget.annual.opex,capex:baseBudget.annual.capex,oao:baseBudget.annual.oao,total:baseBudget.annual.total};
+  const metrics=[{key:'hc',label:'Headcount',isCurrency:false},{key:'opex',label:'OpEx',isCurrency:true},{key:'total',label:'Total Spend',isCurrency:true}];
+  let html='<table style="width:100%;font-size:.72rem;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--text-dim)">Metric</th>';
+  html+='<th style="text-align:right;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--text-dim)">Baseline</th>';
+  saved.forEach(s=>{html+=`<th style="text-align:right;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--accent)">${s.name}</th>`});
+  html+='</tr></thead><tbody>';
+  metrics.forEach(met=>{
+    html+=`<tr><td style="padding:3px 4px;color:var(--text)">${met.label}</td>`;
+    const bv=basePnl[met.key]||0;
+    html+=`<td style="text-align:right;padding:3px 4px;color:var(--text)">${met.isCurrency?fmt(bv):bv}</td>`;
+    saved.forEach(s=>{
+      const sv=s.pnl[met.key]||0;const delta=sv-bv;
+      const color=delta<0?'var(--success)':delta>0?'var(--danger)':'var(--text-dim)';
+      html+=`<td style="text-align:right;padding:3px 4px;color:${color}">${met.isCurrency?fmt(sv):sv}${delta!==0?' <span style="font-size:.65rem">'+(delta>0?'+':'')+((met.isCurrency?fmt(delta):delta))+'</span>':''}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  ct.innerHTML=html;
+}
+
+// ── SCENARIO EXCEL EXPORT ──
+function exportScenarioToExcel(){
+  if(typeof XLSX==='undefined')return alert('XLSX library not loaded');
+  const wb=XLSX.utils.book_new();
+  // Sheet 1: Summary
+  const basePnl=computeBudgetPnl(state.employees,state.vendorRows||[],state.teRows||[]);
+  const scenPnl=computeBudgetPnl(budgetScenario.emps,budgetScenario.vendorRows,budgetScenario.teRows);
+  const summaryData=[
+    ['Metric','Baseline','Scenario','Delta'],
+    ['Headcount',basePnl.annual.hc,scenPnl.annual.hc,scenPnl.annual.hc-basePnl.annual.hc],
+    ['Total Comp',basePnl.annual.comp,scenPnl.annual.comp,scenPnl.annual.comp-basePnl.annual.comp],
+    ['OpEx',basePnl.annual.opex,scenPnl.annual.opex,scenPnl.annual.opex-basePnl.annual.opex],
+    ['CapEx',basePnl.annual.capex,scenPnl.annual.capex,scenPnl.annual.capex-basePnl.annual.capex],
+    ['Vendor/T&E',basePnl.annual.oao,scenPnl.annual.oao,scenPnl.annual.oao-basePnl.annual.oao],
+    ['Total Spend',basePnl.annual.total,scenPnl.annual.total,scenPnl.annual.total-basePnl.annual.total]
+  ];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summaryData),'Summary');
+  // Sheet 2: Monthly Detail
+  const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthlyData=[['Month','Comp OpEx','CapEx','Vendor/T&E','Total']];
+  scenPnl.monthly.forEach((m,i)=>monthlyData.push([MO[i],m.opex,m.capex,m.oao,m.total]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(monthlyData),'Monthly Detail');
+  // Sheet 3: Scenario Employees
+  const empData=[['Name','Country','Seniority','Function','Salary','Cap%','Hire Date','Term Date']];
+  budgetScenario.emps.forEach(e=>empData.push([e.name,e.country,e.seniority,e.function,e.salary,e.capPct||0,e.hireDate||'',e.termDate||'']));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(empData),'Employees');
+  // Sheet 4: Saved Scenarios Comparison
+  const saved=getSavedScenarios();
+  if(saved.length){
+    const cmpData=[['Metric','Baseline',...saved.map(s=>s.name)]];
+    ['hc','opex','total'].forEach(k=>{
+      const label=k==='hc'?'Headcount':k==='opex'?'OpEx':'Total';
+      const bv=basePnl.annual[k]||basePnl.annual.total;
+      cmpData.push([label,bv,...saved.map(s=>s.pnl[k]||0)]);
+    });
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cmpData),'Comparison');
+  }
+  xlsxDownload(wb,'scenario_analysis.xlsx');
+}
+
+// ── DATA MANAGEMENT PANEL ──
+function initDataPanel(){
+  const dataPanel=document.getElementById('dataSlidePanel');
+  const dataBtn=document.getElementById('dataToggleBtn');
+  const dataArrow=dataBtn.querySelector('.arrow');
+  dataBtn.addEventListener('click',()=>{
+    // Close scenario panel if open (mutual exclusivity)
+    const scenPanel=document.getElementById('scenarioSlidePanel');
+    const scenBtn=document.getElementById('scenarioToggleBtn');
+    if(scenPanel.classList.contains('open')){scenPanel.classList.remove('open');document.body.classList.remove('scenario-open');scenBtn.querySelector('.arrow').innerHTML='&#9654;'}
+    const isOpen=dataPanel.classList.toggle('open');
+    document.body.classList.toggle('data-open',isOpen);
+    dataArrow.innerHTML=isOpen?'&#9664;':'&#9654;';
+    if(isOpen)renderDataPanelWsList();
+  });
+
+  // Workspace: Save As
+  document.getElementById('dataPanelWsSave').addEventListener('click',()=>{
+    const name=document.getElementById('dataPanelWsSaveName').value.trim();
+    if(!name){alert('Please enter a workspace name');return}
+    saveWorkspaceAs(name);
+    document.getElementById('dataPanelWsSaveName').value='';
+    renderDataPanelWsList();renderWorkspaceList();
+  });
+  // Workspace: Quick Save
+  document.getElementById('dataPanelWsQuickSave').addEventListener('click',()=>{
+    saveWorkspaceAs(currentWorkspaceName);
+    renderDataPanelWsList();renderWorkspaceList();
+  });
+
+  // Employee Roster: Download Template (reuse existing handler logic)
+  document.getElementById('dataPanelDlRoster').addEventListener('click',()=>{
+    document.getElementById('btnDlRosterTemplate').click();
+  });
+  // Employee Roster: Upload
+  document.getElementById('dataPanelUploadRoster').addEventListener('click',()=>{
+    document.getElementById('dataPanelRosterFile').click();
+  });
+  document.getElementById('dataPanelRosterFile').addEventListener('change',function(){
+    // Delegate to the main roster file input handler
+    const mainInput=document.getElementById('rosterFileInput');
+    const dt=new DataTransfer();
+    if(this.files[0])dt.items.add(this.files[0]);
+    mainInput.files=dt.files;
+    mainInput.dispatchEvent(new Event('change'));
+    this.value='';
+  });
+
+  // Vendor Spend: Export (delegate to existing button)
+  document.getElementById('dataPanelVendorExport').addEventListener('click',()=>{
+    document.getElementById('vendorExportBtn').click();
+  });
+  // Vendor Spend: Import
+  document.getElementById('dataPanelVendorImport').addEventListener('click',()=>{
+    document.getElementById('dataPanelVendorFile').click();
+  });
+  document.getElementById('dataPanelVendorFile').addEventListener('change',function(){
+    const mainInput=document.getElementById('vendorFileInput');
+    const dt=new DataTransfer();
+    if(this.files[0])dt.items.add(this.files[0]);
+    mainInput.files=dt.files;
+    mainInput.dispatchEvent(new Event('change'));
+    this.value='';
+  });
+
+  // T&E: Export (delegate to existing button)
+  document.getElementById('dataPanelTeExport').addEventListener('click',()=>{
+    document.getElementById('teExportBtn').click();
+  });
+  // T&E: Import — use same vendor file handler pattern for T&E
+  document.getElementById('dataPanelTeImport').addEventListener('click',()=>{
+    document.getElementById('dataPanelTeFile').click();
+  });
+  document.getElementById('dataPanelTeFile').addEventListener('change',function(){
+    // T&E import: reuse the readExcelFile pattern
+    readExcelFile(this,wb=>{
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){alert('No data rows found.');return}
+      const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const FIELD_MAP={};
+      [['Expense Type','expenseType'],['Type','expenseType'],['Description','description'],['Business Unit','businessUnit'],['BU','businessUnit'],['Biz Line','bizLine'],['Business Line','bizLine'],['Market','market'],['Project','project'],['Account Description','acctDesc'],['Account','acctDesc'],['Notes','notes']].forEach(([k,v])=>{FIELD_MAP[k]=v;FIELD_MAP[k.toLowerCase()]=v});
+      MO_LABELS.forEach((m,i)=>{FIELD_MAP[m]=MO_NAMES[i];FIELD_MAP[m.toLowerCase()]=MO_NAMES[i]});
+      let imported=0;
+      rows.forEach(r=>{
+        const row={expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+        Object.keys(r).forEach(k=>{const mapped=FIELD_MAP[k]||FIELD_MAP[k.trim().toLowerCase()];if(mapped)row[mapped]=MO_NAMES.includes(mapped)?parseFloat(r[k])||0:String(r[k])});
+        state.teRows.push(row);imported++;
+      });
+      saveState();
+      alert(`Imported ${imported} T&E rows.`);
+    });
+  });
+
+  // Backup: Export JSON
+  document.getElementById('dataPanelExportJSON').addEventListener('click',()=>{
+    document.getElementById('btnExportJSON').click();
+  });
+  // Backup: Import JSON
+  document.getElementById('dataPanelImportJSON').addEventListener('click',()=>{
+    document.getElementById('dataPanelJsonFile').click();
+  });
+  document.getElementById('dataPanelJsonFile').addEventListener('change',function(){
+    const file=this.files[0];if(!file)return;
+    this.value='';
+    const reader=new FileReader();
+    reader.onload=ev=>{try{state=JSON.parse(ev.target.result);ensureStateFields();saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
+    reader.readAsText(file);
+  });
+  // Backup: Share HTML
+  document.getElementById('dataPanelExportHTML').addEventListener('click',()=>{
+    document.getElementById('btnExportHTML').click();
+  });
+}
+
+function renderDataPanelWsList(){
+  const container=document.getElementById('dataPanelWsList');
+  if(!container)return;
+  const idx=getWorkspaceIndex();
+  if(!idx.length){container.innerHTML='<div style="color:var(--text-dim);font-size:.78rem;padding:4px">No saved workspaces</div>';return}
+  let html='';
+  idx.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)).forEach(w=>{
+    const isActive=w.name===currentWorkspaceName;
+    const esc=w.name.replace(/'/g,"\\'");
+    html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">
+      <span style="flex:1;color:var(--text)">${w.name}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>
+      ${!isActive?`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadWorkspace('${w.key}','${esc}');renderDataPanelWsList()">Load</button>`:''}
+      <button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteWorkspace('${w.key}','${esc}');renderDataPanelWsList()">×</button>
+    </div>`;
+  });
+  container.innerHTML=html;
 }
 
 // ── VENDOR MODULE ──
@@ -6151,7 +6684,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
 loadState();
 currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
 updateWsDisplay();
-initDropdowns();renderAll();initScenarioPane();window._scenInited=true;
+initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
 renderPnlWalk();
 
 // ── Universal Sticky Notes ──
