@@ -215,21 +215,33 @@ body.ops-mode .ops-hide{display:none!important}
 .scenario-toggle-btn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1100;background:#1a8a3e;color:#fff;border:none;padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s,left .3s ease}
 .scenario-toggle-btn:hover{background:#15702f}
 .scenario-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
-.scenario-slide-panel{position:fixed;left:0;top:0;bottom:0;width:33.33vw;min-width:380px;max-width:520px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+.scenario-slide-panel{position:fixed;left:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
 .scenario-slide-panel.open{transform:translateX(0)}
-body.scenario-open main,body.scenario-open header{margin-left:33.33vw;transition:margin-left .3s ease}
+body.scenario-open main,body.scenario-open header{margin-left:50vw;transition:margin-left .3s ease}
 body:not(.scenario-open) main,body:not(.scenario-open) header{transition:margin-left .3s ease}
-body.scenario-open .scenario-toggle-btn{left:33.33vw}
-body.scenario-open .data-toggle-btn{left:33.33vw}
+body.scenario-open .scenario-toggle-btn{left:50vw}
+body.scenario-open .data-toggle-btn{left:50vw}
+body.scenario-open .section-title,body.data-open .section-title{font-size:.88rem}
+body.scenario-open header h1,body.data-open header h1{font-size:1rem}
+body.scenario-open nav button,body.data-open nav button{font-size:.72rem;padding:4px 8px}
 /* Data Management slide panel */
 .data-toggle-btn{position:fixed;left:0;top:calc(50% + 90px);transform:translateY(-50%);z-index:1100;background:#7b1fa2;color:#fff;border:none;padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s,left .3s ease}
 .data-toggle-btn:hover{background:#6a1b9a}
 .data-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
-.data-slide-panel{position:fixed;left:0;top:0;bottom:0;width:33.33vw;min-width:380px;max-width:520px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+.data-slide-panel{position:fixed;left:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
 .data-slide-panel.open{transform:translateX(0)}
-body.data-open main,body.data-open header{margin-left:33.33vw;transition:margin-left .3s ease}
-body.data-open .data-toggle-btn{left:33.33vw}
-body.data-open .scenario-toggle-btn{left:33.33vw}
+body.data-open main,body.data-open header{margin-left:50vw;transition:margin-left .3s ease}
+body.data-open .data-toggle-btn{left:50vw}
+body.data-open .scenario-toggle-btn{left:50vw}
+#forecastAssumptionsModal .modal{max-width:720px;width:95%;max-height:85vh}
+#forecastAssumptionsModal .modal-body{max-height:60vh;overflow-y:auto}
+#forecastAssumptionsModal .forecast-section{margin-bottom:8px;padding:8px 10px}
+#forecastAssumptionsModal .forecast-section p{font-size:.72rem;margin-bottom:6px}
+#forecastAssumptionsModal .forecast-section input{padding:4px 6px}
+.factor-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.factor-pill{background:var(--panel-inset);border:1px solid var(--border);border-radius:16px;padding:3px 12px;font-size:.76rem;cursor:pointer;transition:background .2s}
+.factor-pill:hover{background:var(--accent);color:#fff}
+.factor-pill.disabled{opacity:.4;text-decoration:line-through}
 .data-section{border-bottom:1px solid var(--border);padding:12px 0}
 .data-section:last-child{border-bottom:none}
 .data-section h4{font-size:.88rem;color:var(--text-dark);font-weight:600;margin:0 0 8px 0}
@@ -686,7 +698,8 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 <div class="chart-container"><canvas id="execMonthlyChart"></canvas></div>
-<div class="table-wrap"><table class="monthly-table" id="execMonthlyTable"></table></div>
+<button class="btn btn-sm" id="execTableToggle" style="margin:8px 0;font-size:.76rem">&#9654; Show Details</button>
+<div id="execTableWrap" class="table-wrap" style="display:none"><table class="monthly-table" id="execMonthlyTable"></table></div>
 </div>
 
 <!-- Pane 2: Long Term Forecast -->
@@ -792,7 +805,7 @@ Template Mode &mdash; changes saved in this browser only.
 <h3 class="section-title">Project / Market Directory</h3>
 <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Map each project code to a market code, product, and category. Each project has a 1:1 market assignment. Assign employees to projects in the Employees tab.</p>
 <div class="table-wrap"><table id="projectsTable"><thead><tr>
-<th>Project Code</th><th>Market Code</th><th>Product</th><th>Product Category</th><th>Description</th><th>Allocated FTE</th><th>Allocated Cost</th><th>Actions</th>
+<th>Project Code</th><th>Market Code</th><th>Biz Line</th><th>Product</th><th>Product Category</th><th>Description</th><th>Allocated FTE</th><th>Allocated Cost</th><th>Actions</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
@@ -955,9 +968,40 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- LONG TERM FORECAST -->
 <div id="tab-forecast" class="tab-content">
-<div class="card" style="margin-bottom:20px">
-<h3 class="section-title">Long Term Forecast Assumptions</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:20px">Configure assumptions to project compensation costs over the next 5 years. Toggle each factor on/off.</p>
+<div class="card">
+<h3 class="section-title">5-Year Projection</h3>
+<div id="forecastFactorPills" class="factor-pills"></div>
+<div class="controls" style="margin-bottom:16px">
+<div>
+<label>Split By</label>
+<div class="toggle-group" id="forecastSplitToggle">
+<button class="btn active" data-split="total">Total</button>
+<button class="btn" data-split="project">Project</button>
+<button class="btn" data-split="function">Function</button>
+<button class="btn" data-split="country">Country</button>
+</div>
+</div>
+<div>
+<label>View</label>
+<div class="toggle-group" id="forecastViewToggle">
+<button class="btn active" data-fview="total">Total Investment</button>
+<button class="btn" data-fview="opex">P&amp;L (OpEx)</button>
+</div>
+</div>
+</div>
+<div class="chart-container"><canvas id="forecastChart"></canvas></div>
+<div class="card" style="margin-top:12px;margin-bottom:16px"><div style="height:120px;position:relative"><canvas id="forecastFteChart"></canvas></div></div>
+<button class="btn btn-sm" id="forecastTableToggle" style="margin-bottom:8px;font-size:.76rem">&#9654; Show Details</button>
+<div id="forecastTableWrap" class="table-wrap" style="display:none"><table class="forecast-table" id="forecastTable"></table></div>
+</div>
+
+<!-- Forecast Assumptions Modal -->
+<div class="modal-overlay" id="forecastAssumptionsModal">
+<div class="modal">
+<button class="close-btn" id="closeForecastModal" style="position:absolute;right:12px;top:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-dim)">&times;</button>
+<h3 style="color:var(--accent);margin-bottom:12px">Forecast Assumptions</h3>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Configure assumptions to project compensation costs over the next 5 years. Toggle each factor on/off.</p>
+<div class="modal-body">
 
 <div class="card-inset forecast-section">
 <div class="toggle-row">
@@ -1003,7 +1047,7 @@ Template Mode &mdash; changes saved in this browser only.
 <label><strong>AI Productivity Gearing Factor</strong></label>
 <span class="expand-select"><label>Expand:</label><select id="expandAI" onchange="onExpandChange('ai',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
-<p style="color:var(--text-dim);font-size:.8rem;margin-bottom:12px">Tiered multiplier: reduces required headcount growth by this factor (1.0 = no effect, 0.8 = 20% fewer hires needed)</p>
+<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Tiered multiplier: reduces required headcount growth by this factor (1.0 = no effect, 0.8 = 20% fewer hires needed)</p>
 <div id="aiInputs"></div>
 </div>
 
@@ -1013,34 +1057,13 @@ Template Mode &mdash; changes saved in this browser only.
 <label><strong>Capitalization Rate (%)</strong></label>
 <span class="expand-select"><label>Expand:</label><select id="expandCapitalization" onchange="onExpandChange('capitalization',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
 </div>
-<p style="color:var(--text-dim);font-size:.8rem;margin-bottom:12px">Projected capitalization rate applied to total comp to derive CapEx offsets in the forecast. Overrides per-employee cap% in projections.</p>
+<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Projected capitalization rate applied to total comp to derive CapEx offsets in the forecast.</p>
 <div id="capitalizationInputs"></div>
 </div>
-</div>
 
-<div class="card">
-<h3 class="section-title">5-Year Projection</h3>
-<div class="controls" style="margin-bottom:16px">
-<div>
-<label>Split By</label>
-<div class="toggle-group" id="forecastSplitToggle">
-<button class="btn active" data-split="total">Total</button>
-<button class="btn" data-split="project">Project</button>
-<button class="btn" data-split="function">Function</button>
-<button class="btn" data-split="country">Country</button>
 </div>
+<div class="modal-actions"><button class="btn btn-primary" id="closeForecastModalBtn">Done</button></div>
 </div>
-<div>
-<label>View</label>
-<div class="toggle-group" id="forecastViewToggle">
-<button class="btn active" data-fview="total">Total Investment</button>
-<button class="btn" data-fview="opex">P&amp;L (OpEx)</button>
-</div>
-</div>
-</div>
-<div class="chart-container"><canvas id="forecastChart"></canvas></div>
-<div class="card" style="margin-top:12px;margin-bottom:16px"><div style="height:120px;position:relative"><canvas id="forecastFteChart"></canvas></div></div>
-<div class="table-wrap"><table class="forecast-table" id="forecastTable"></table></div>
 </div>
 </div>
 
@@ -1398,12 +1421,18 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- Budget Section -->
 <div style="margin-bottom:16px">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:4px">
 <h4 style="color:var(--accent);font-size:.88rem;margin:0">Current Year Budget</h4>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<div class="toggle-group" id="scenBudgetViewToggle" style="font-size:.72rem">
+<button class="btn active" data-sbview="total" style="padding:2px 8px;font-size:.72rem">Total Inv</button>
+<button class="btn" data-sbview="pnl" style="padding:2px 8px;font-size:.72rem">P&L</button>
+</div>
 <div class="toggle-group" id="scenBudgetSplitToggle" style="font-size:.72rem">
 <button class="btn active" data-sbsplit="none" style="padding:2px 8px;font-size:.72rem">Total</button>
 <button class="btn" data-sbsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
 <button class="btn" data-sbsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
+</div>
 </div>
 </div>
 <div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
@@ -1484,6 +1513,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </div>
+<div id="scenBudgetPnl" style="margin-top:8px"></div>
 
 <!-- Forecast Section -->
 <div style="margin-bottom:16px">
@@ -1530,12 +1560,16 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="set cap% to 35">Set cap% 35</button>
 </div>
 <div class="cmd-group" data-cat="growth">
+<button data-cmd="set hires to 1 per month">1 hire/mo</button>
+<button data-cmd="set hires to 2 per month">2 hires/mo</button>
 <button data-cmd="set hires to 3 per quarter">3 hires/qtr</button>
 <button data-cmd="set hires to 5 per quarter">5 hires/qtr</button>
 <button data-cmd="set hires to 20">20 hires/yr</button>
 <button data-cmd="set hires to 50">50 hires/yr</button>
 </div>
 <div class="cmd-group" data-cat="prod">
+<button data-cmd="reduce all headcount by 10% in 2028">All -10% in 2028</button>
+<button data-cmd="set merit to 4% in 2029">Merit 4% in 2029</button>
 <button data-cmd="set attrition to 20%">Attrition→20%</button>
 <button data-cmd="set attrition to 10%">Attrition→10%</button>
 <button data-cmd="set ai productivity to 0.9">AI prod 0.9x</button>
@@ -1549,9 +1583,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </div>
-
-<!-- P&L Summary -->
-<div id="scenPnlSummary"></div>
+<div id="scenFcPnl" style="margin-top:8px"></div>
 
 <!-- Saved Scenarios & Comparison -->
 <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
@@ -2176,7 +2208,7 @@ function ensureStateFields(){
   if(!state.employees)state.employees=[];
   if(!state.bonusMatrix){state.bonusMatrix={};SENIORITY.forEach(s=>{state.bonusMatrix[s]={};FUNCTIONS.forEach(f=>{state.bonusMatrix[s][f]=DEFAULT_BONUS[s]})})}
   if(!state.projects)state.projects=[];
-  state.projects.forEach(p=>{if(!p.description)p.description='';if(!p.marketCode)p.marketCode=''});
+  state.projects.forEach(p=>{if(!p.description)p.description='';if(!p.marketCode)p.marketCode='';if(!p.bizLineCode)p.bizLineCode=''});
   if(!state.markets)state.markets=DEFAULT_MARKETS.map(m=>({...m}));
   if(!state.bizLines)state.bizLines=DEFAULT_BIZ_LINES.map(b=>({...b}));
   // Ensure a default "General" project exists for unallocated employees
@@ -3230,7 +3262,7 @@ document.getElementById('btnAddProject').addEventListener('click',()=>{
   const description=document.getElementById('projDesc').value.trim();
   if(!code||!product||!category){alert('Please fill project code, product, and category');return}
   if(state.projects.some(p=>p.code===code)){alert('Project code already exists');return}
-  state.projects.push({id:uid(),code,marketCode,product,category,description});
+  state.projects.push({id:uid(),code,marketCode,bizLineCode:'',product,category,description});
   saveState();
   ['projCode','projProduct','projCategory','projDesc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('projMarket').value='';
@@ -3268,9 +3300,11 @@ function renderProjects(){
       });
     });
     const marketOpts=state.markets.map(m=>`<option value="${m.code}"${m.code===p.marketCode?' selected':''}>${m.code} — ${m.name}</option>`).join('');
+    const bizLineOpts=state.bizLines.map(b=>`<option value="${b.code}"${b.code===p.bizLineCode?' selected':''}>${b.code} — ${b.name}</option>`).join('');
     return `<tr>
       <td style="font-weight:600;color:var(--accent)">${p.code}</td>
       <td><select onchange="updateProjectMarket('${p.id}',this.value)" style="padding:4px 6px;font-size:.82rem"><option value="">—</option>${marketOpts}</select></td>
+      <td><select onchange="updateProjectBizLine('${p.id}',this.value)" style="padding:4px 6px;font-size:.82rem"><option value="">—</option>${bizLineOpts}</select></td>
       <td>${p.product}</td><td>${p.category}</td>
       <td style="font-size:.82rem;color:var(--text-dim)">${p.description||'—'}</td>
       <td>${allocFTE.toFixed(1)} FTE</td><td>${fmt(allocCost)}</td>
@@ -3281,6 +3315,10 @@ function renderProjects(){
 function updateProjectMarket(projId,marketCode){
   const p=state.projects.find(x=>x.id===projId);
   if(p){p.marketCode=marketCode;saveState()}
+}
+function updateProjectBizLine(projId,bizLineCode){
+  const p=state.projects.find(x=>x.id===projId);
+  if(p){p.bizLineCode=bizLineCode;saveState()}
 }
 
 // ── MARKET CODES MANAGEMENT ──
@@ -4636,7 +4674,49 @@ function renderForecastProjection(){
     });
   }
 }
-function renderForecast(){renderForecastInputs();renderForecastProjection()}
+function renderForecast(){renderForecastInputs();renderForecastProjection();renderForecastFactorPills()}
+
+function renderForecastFactorPills(){
+  const fa=state.forecastAssumptions;
+  const tog=fa.toggles||{};
+  const factors=[
+    {key:'attrition',label:'Attrition',val:fa.attrition[0],suffix:'%'},
+    {key:'hires',label:'Hires',val:fa.hires[0],suffix:fa.modes&&fa.modes.hires==='pct'?'%':'/yr'},
+    {key:'merit',label:'Merit',val:fa.merit[0],suffix:'%'},
+    {key:'market',label:'Market',val:fa.market[0],suffix:'%'},
+    {key:'ai',label:'AI Prod',val:fa.ai[0],suffix:'x'},
+    {key:'capitalization',label:'Cap Rate',val:fa.capitalization[0],suffix:'%'}
+  ];
+  const el=document.getElementById('forecastFactorPills');
+  if(!el)return;
+  el.innerHTML=factors.map(f=>{
+    const off=tog[f.key]===false;
+    return `<span class="factor-pill${off?' disabled':''}" data-factor="${f.key}">${f.label}: ${f.val}${f.suffix}</span>`;
+  }).join('')+' <button class="btn btn-sm" id="openForecastAssumptions" style="font-size:.72rem;padding:2px 10px">Customize</button>';
+  el.querySelectorAll('.factor-pill').forEach(p=>p.addEventListener('click',()=>openForecastAssumptionsModal()));
+  document.getElementById('openForecastAssumptions').addEventListener('click',openForecastAssumptionsModal);
+}
+
+function openForecastAssumptionsModal(){
+  document.getElementById('forecastAssumptionsModal').classList.add('show');
+}
+function closeForecastAssumptionsModal(){
+  document.getElementById('forecastAssumptionsModal').classList.remove('show');
+  renderForecastFactorPills();
+}
+
+// Forecast table toggle
+document.getElementById('forecastTableToggle').addEventListener('click',function(){
+  const wrap=document.getElementById('forecastTableWrap');
+  const vis=wrap.style.display!=='none';
+  wrap.style.display=vis?'none':'';
+  this.innerHTML=vis?'&#9654; Show Details':'&#9660; Hide Details';
+});
+
+// Forecast modal close handlers
+document.getElementById('closeForecastModal').addEventListener('click',closeForecastAssumptionsModal);
+document.getElementById('closeForecastModalBtn').addEventListener('click',closeForecastAssumptionsModal);
+document.getElementById('forecastAssumptionsModal').addEventListener('click',function(e){if(e.target===this)closeForecastAssumptionsModal()});
 
 // ── EXPORT ──
 function downloadCSV(content,filename){
@@ -5354,6 +5434,12 @@ document.querySelectorAll('#execFcSplitToggle .btn').forEach(b=>b.addEventListen
 document.querySelectorAll('#execFcViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#execFcViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcView=b.dataset.efview;renderExecView();
 }));
+document.getElementById('execTableToggle').addEventListener('click',function(){
+  const wrap=document.getElementById('execTableWrap');
+  const vis=wrap.style.display!=='none';
+  wrap.style.display=vis?'none':'';
+  this.innerHTML=vis?'&#9654; Show Details':'&#9660; Hide Details';
+});
 
 function getEmpSplitKey(emp,splitBy){
   if(splitBy==='function')return emp.function;
@@ -5697,7 +5783,7 @@ function renderExecView(){
 // ── SCENARIO ANALYSIS ──
 let budgetScenario=null,forecastScenario=null;
 let budgetChatHistory=[],fcChatHistory=[];
-let scenBudgetSplit='none',scenFcSplit='total',scenFiltersLinked=false;
+let scenBudgetSplit='none',scenBudgetView='total',scenFcSplit='total',scenFiltersLinked=false;
 let scenBudgetChartInst=null,scenFcChartInst=null;
 let budgetUndoStack=[],fcUndoStack=[];
 
@@ -5901,8 +5987,27 @@ function resolveVendorFilter(text,vRows,tRows){
   return null;
 }
 
+// ── Command Synonym Normalizer ──
+function normalizeCommand(text){
+  const synonyms=[
+    [/\b(?:layoff|lay off|let go|downsize|rif)\b/gi,'reduce'],
+    [/\b(?:slash|trim)\b/gi,'cut'],
+    [/\b(?:bump)\b/gi,'increase'],
+    [/\b(?:bring on|onboard)\b/gi,'add'],
+    [/\b(?:pause|stop)\s+(?:hiring|hires)\b/gi,'freeze hiring'],
+    [/\b(?:cap rate|capitalization rate)\b/gi,'cap%'],
+    [/\b(?:cost of living|cola|inflation)\b/gi,'market rate growth'],
+    [/\bheadcount\b/gi,'headcount'],
+    [/\bhc\b/gi,'headcount']
+  ];
+  let t=text;
+  synonyms.forEach(([re,rep])=>t=t.replace(re,rep));
+  return t;
+}
+
 // ── Budget Command Parser ──
 function parseBudgetCommand(text){
+  text=normalizeCommand(text);
   const emps=budgetScenario.emps;
   let m;
   // Reset
@@ -6104,12 +6209,33 @@ function parseBudgetCommand(text){
 
 // ── Forecast Command Parser ──
 function parseForecastCommand(text){
+  text=normalizeCommand(text);
   const emps=forecastScenario.emps;
   const fa=forecastScenario.assumptions;
   let m;
   if(/^reset$/i.test(text.trim())){initForecastScenario();return {msg:'Forecast scenario reset to baseline.',ok:true}}
+  // Set [metric] to X% in YYYY (single-year override)
+  m=text.match(/set\s+(merit|attrition|hires?|cap\s*%?|capitalization)\s+to\s+(\d+\.?\d*)%?\s+in\s+(\d{4})/i);
+  if(m){
+    const metric=m[1].toLowerCase().replace(/\s+/g,'');const v=parseFloat(m[2]);const yr=parseInt(m[3]);
+    const yi=FORECAST_YEARS.indexOf(yr);
+    if(yi<0)return {msg:`Year ${yr} not in forecast range (${FORECAST_YEARS[0]}-${FORECAST_YEARS[FORECAST_YEARS.length-1]}).`,ok:false};
+    if(metric.includes('merit')){fa.merit[yi]=v;fa.toggles.merit=true;return {msg:`Set merit to ${v}% in ${yr}.`,ok:true}}
+    if(metric.includes('attrition')){fa.attrition[yi]=v;fa.toggles.attrition=true;return {msg:`Set attrition to ${v}% in ${yr}.`,ok:true}}
+    if(metric.includes('hire')){fa.hires[yi]=v;fa.toggles.hires=true;return {msg:`Set hires to ${v} in ${yr}.`,ok:true}}
+    if(metric.includes('cap')){fa.capitalization[yi]=v;fa.toggles.capitalization=true;return {msg:`Set capitalization to ${v}% in ${yr}.`,ok:true}}
+  }
+  // Reduce headcount by X% in specific year (not thru)
+  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+(?:headcount)\s+by\s+(\d+\.?\d*)%\s+in\s+(\d{4})/i);
+  if(m){
+    const pct=parseFloat(m[2]);const yr=parseInt(m[3]);
+    const yi=FORECAST_YEARS.indexOf(yr);
+    if(yi<0)return {msg:`Year ${yr} not in forecast range.`,ok:false};
+    fa.attrition[yi]=Math.min(100,fa.attrition[yi]+pct);fa.toggles.attrition=true;
+    return {msg:`Increased attrition by ${pct}% in ${yr} only.`,ok:true};
+  }
   // Reduce headcount by X% thru year
-  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+(?:headcount|hc)\s+by\s+(\d+\.?\d*)%(?:\s+thru\s+(\d{4}))?/i);
+  m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+(?:headcount)\s+by\s+(\d+\.?\d*)%(?:\s+thru\s+(\d{4}))?/i);
   if(m){
     const pct=parseFloat(m[2]);const thruYear=m[3]?parseInt(m[3]):FORECAST_YEARS[FORECAST_YEARS.length-1];
     // Increase attrition to achieve this reduction
@@ -6134,6 +6260,9 @@ function parseForecastCommand(text){
   // Set attrition to X%
   m=text.match(/set\s+attrition\s+to\s+(\d+)%?/i);
   if(m){const v=parseInt(m[1]);fa.attrition=fa.attrition.map(()=>v);fa.toggles.attrition=true;return {msg:`Set attrition to ${v}% for all years.`,ok:true}}
+  // Set hires to X per month
+  m=text.match(/set\s+hires?\s+to\s+(\d+)\s+per\s+month/i);
+  if(m){const v=parseInt(m[1])*12;fa.hires=fa.hires.map(()=>v);fa.toggles.hires=true;return {msg:`Set hires to ${m[1]} per month (${v}/year) for all years.`,ok:true}}
   // Set hires to X per quarter
   m=text.match(/set\s+hires?\s+to\s+(\d+)\s+per\s+quarter/i);
   if(m){const v=parseInt(m[1])*4;fa.hires=fa.hires.map(()=>v);fa.toggles.hires=true;return {msg:`Set hires to ${m[1]} per quarter (${v}/year) for all years.`,ok:true}}
@@ -6214,9 +6343,15 @@ function renderBudgetScenarioChart(){
       const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
       return (budgetScenario.vendorRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0)+(budgetScenario.teRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
     });
-    datasets.push({label:'C&B OpEx',data:opexData,backgroundColor:isDark?'#5c6bc0':'#7986cb'});
-    datasets.push({label:'CapEx',data:capexData,backgroundColor:isDark?'#ef5350':'#e57373'});
-    datasets.push({label:'Vendor/T&E',data:oaoData,backgroundColor:isDark?'#ff9800':'#ffb74d'});
+    if(scenBudgetView==='pnl'){
+      datasets.push({label:'C&B OpEx',data:opexData,backgroundColor:isDark?'#5c6bc0':'#7986cb',stack:'pos'});
+      datasets.push({label:'Vendor/T&E',data:oaoData,backgroundColor:isDark?'#ff9800':'#ffb74d',stack:'pos'});
+      datasets.push({label:'CapEx',data:capexData.map(v=>-v),backgroundColor:isDark?'rgba(239,83,80,.5)':'rgba(229,115,115,.5)',stack:'neg'});
+    } else {
+      datasets.push({label:'C&B OpEx',data:opexData,backgroundColor:isDark?'#5c6bc0':'#7986cb'});
+      datasets.push({label:'CapEx',data:capexData,backgroundColor:isDark?'#ef5350':'#e57373'});
+      datasets.push({label:'Vendor/T&E',data:oaoData,backgroundColor:isDark?'#ff9800':'#ffb74d'});
+    }
   } else {
     const groups={};
     emps.forEach(e=>{
@@ -6368,9 +6503,15 @@ function applyFcScenario(){
   renderFcScenarioChart();renderScenarioPnlSummary();
 }
 
+function fmtC(v){if(Math.abs(v)>=1e6)return '$'+(v/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return '$'+(v/1e3).toFixed(0)+'K';return fmt(v)}
+function pnlRow(label,base,scen,isCost){
+  const d=scen-base;const cls=isCost?(d<0?'var(--success)':d>0?'var(--danger)':'var(--text-dim)'):(d<0?'var(--success)':'var(--text-dim)');
+  return `<tr><td>${label}</td><td style="text-align:right">${typeof base==='number'&&Math.abs(base)>999?fmtC(base):base}</td><td style="text-align:right">${typeof scen==='number'&&Math.abs(scen)>999?fmtC(scen):scen}</td><td style="text-align:right;color:${cls}">${typeof d==='number'&&Math.abs(d)>999?fmtC(d):d}</td></tr>`;
+}
 function renderScenarioPnlSummary(){
-  const el=document.getElementById('scenPnlSummary');
-  if(!el)return;
+  const bEl=document.getElementById('scenBudgetPnl');
+  const fEl=document.getElementById('scenFcPnl');
+  if(!bEl&&!fEl)return;
   const basePnl=computeBudgetPnl(JSON.parse(JSON.stringify(state.employees)),state.vendorRows,state.teRows);
   const scenPnl=computeBudgetPnl(budgetScenario.emps,budgetScenario.vendorRows,budgetScenario.teRows);
   const baseFc=projectForecast(state.employees);
@@ -6378,25 +6519,27 @@ function renderScenarioPnlSummary(){
   const lastYr=FORECAST_YEARS.length;
   const bLast=baseFc[lastYr]||baseFc[baseFc.length-1]||{};
   const sLast=scenFc[lastYr]||scenFc[scenFc.length-1]||{};
-  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.78rem">
-    <div style="background:var(--panel);padding:10px;border-radius:6px;border:1px solid var(--border)">
-      <strong style="color:var(--accent)">Budget Scenario vs Baseline</strong>
-      <table style="width:100%;margin-top:6px;font-size:.76rem"><tr><th style="text-align:left">Metric</th><th style="text-align:right">Baseline</th><th style="text-align:right">Scenario</th><th style="text-align:right">Delta</th></tr>
-      <tr><td>Headcount</td><td style="text-align:right">${basePnl.annual.hc}</td><td style="text-align:right">${scenPnl.annual.hc}</td><td style="text-align:right;color:${scenPnl.annual.hc<basePnl.annual.hc?'var(--success)':'var(--text-dim)'}">${scenPnl.annual.hc-basePnl.annual.hc}</td></tr>
-      <tr><td>C&B OpEx</td><td style="text-align:right">${fmt(basePnl.annual.opex)}</td><td style="text-align:right">${fmt(scenPnl.annual.opex)}</td><td style="text-align:right;color:${scenPnl.annual.opex<basePnl.annual.opex?'var(--success)':'var(--danger)'}">${fmt(scenPnl.annual.opex-basePnl.annual.opex)}</td></tr>
-      <tr><td>Vendor/T&E</td><td style="text-align:right">${fmt(basePnl.annual.oao)}</td><td style="text-align:right">${fmt(scenPnl.annual.oao)}</td><td style="text-align:right;color:${scenPnl.annual.oao<basePnl.annual.oao?'var(--success)':'var(--danger)'}">${fmt(scenPnl.annual.oao-basePnl.annual.oao)}</td></tr>
-      <tr style="font-weight:700"><td>Total Spend</td><td style="text-align:right">${fmt(basePnl.annual.total)}</td><td style="text-align:right">${fmt(scenPnl.annual.total)}</td><td style="text-align:right;color:${scenPnl.annual.total<basePnl.annual.total?'var(--success)':'var(--danger)'}">${fmt(scenPnl.annual.total-basePnl.annual.total)}</td></tr>
-      </table>
-    </div>
-    <div style="background:var(--panel);padding:10px;border-radius:6px;border:1px solid var(--border)">
-      <strong style="color:var(--accent)">Forecast Scenario vs Baseline (${FORECAST_YEARS[FORECAST_YEARS.length-1]})</strong>
-      <table style="width:100%;margin-top:6px;font-size:.76rem"><tr><th style="text-align:left">Metric</th><th style="text-align:right">Baseline</th><th style="text-align:right">Scenario</th><th style="text-align:right">Delta</th></tr>
-      <tr><td>Headcount</td><td style="text-align:right">${bLast.hc||0}</td><td style="text-align:right">${sLast.hc||0}</td><td style="text-align:right;color:${(sLast.hc||0)<(bLast.hc||0)?'var(--success)':'var(--text-dim)'}">${(sLast.hc||0)-(bLast.hc||0)}</td></tr>
-      <tr><td>Total Investment</td><td style="text-align:right">${fmt(bLast.total||0)}</td><td style="text-align:right">${fmt(sLast.total||0)}</td><td style="text-align:right;color:${(sLast.total||0)<(bLast.total||0)?'var(--success)':'var(--danger)'}">${fmt((sLast.total||0)-(bLast.total||0))}</td></tr>
-      <tr><td>OpEx</td><td style="text-align:right">${fmt(bLast.opex||0)}</td><td style="text-align:right">${fmt(sLast.opex||0)}</td><td style="text-align:right;color:${(sLast.opex||0)<(bLast.opex||0)?'var(--success)':'var(--danger)'}">${fmt((sLast.opex||0)-(bLast.opex||0))}</td></tr>
-      </table>
-    </div>
-  </div>`;
+  const tblStyle='width:100%;margin-top:4px;font-size:.72rem';
+  const thRow='<tr><th style="text-align:left;font-size:.68rem">Metric</th><th style="text-align:right;font-size:.68rem">Base</th><th style="text-align:right;font-size:.68rem">Scen</th><th style="text-align:right;font-size:.68rem">Delta</th></tr>';
+  const bTotInv=basePnl.annual.opex+basePnl.annual.capex+basePnl.annual.oao;
+  const sTotInv=scenPnl.annual.opex+scenPnl.annual.capex+scenPnl.annual.oao;
+  if(bEl)bEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
+    <strong style="color:var(--accent);font-size:.76rem">Budget: Scenario vs Baseline</strong>
+    <table style="${tblStyle}">${thRow}
+    ${pnlRow('HC',basePnl.annual.hc,scenPnl.annual.hc,false)}
+    ${pnlRow('C&B OpEx',basePnl.annual.opex,scenPnl.annual.opex,true)}
+    ${pnlRow('Vendor/T&E',basePnl.annual.oao,scenPnl.annual.oao,true)}
+    ${pnlRow('CapEx',basePnl.annual.capex,scenPnl.annual.capex,true)}
+    <tr style="font-weight:700">${pnlRow('Total Investment',bTotInv,sTotInv,true).replace(/<\/?tr>/g,'')}</tr>
+    </table></div>`;
+  if(fEl)fEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
+    <strong style="color:var(--accent);font-size:.76rem">Forecast vs Baseline (${FORECAST_YEARS[FORECAST_YEARS.length-1]})</strong>
+    <table style="${tblStyle}">${thRow}
+    ${pnlRow('HC',bLast.hc||0,sLast.hc||0,false)}
+    ${pnlRow('OpEx',bLast.opex||0,sLast.opex||0,true)}
+    ${pnlRow('CapEx',bLast.capex||0,sLast.capex||0,true)}
+    ${pnlRow('Total Inv',bLast.total||0,sLast.total||0,true)}
+    </table></div>`;
 }
 
 // ── Wire up scenario events ──
@@ -6475,6 +6618,14 @@ function initScenarioPane(){
         tab.classList.add('active');
         container.querySelector('.cmd-group[data-cat="'+tab.dataset.cat+'"]').classList.add('active');
       });
+    });
+  });
+  // Budget view toggle (Total Inv vs P&L)
+  document.querySelectorAll('#scenBudgetViewToggle button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('#scenBudgetViewToggle button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');scenBudgetView=btn.dataset.sbview;
+      renderBudgetScenarioChart();
     });
   });
   // Filter toggles
@@ -6988,6 +7139,13 @@ function initVendorModule(){
         const td=el.closest('td');
         if(el.tagName==='SELECT'||['parentCo','vendorName','description'].includes(f)){
           td.style.background=el.value?'':'#fffde7';
+        }
+        if(f==='project'){
+          const proj=state.projects.find(p=>p.id===el.value);
+          if(proj){
+            if(proj.marketCode){dataArr[i].market=proj.marketCode;const mSel=el.closest('tr').querySelector(`select.${prefix}-field[data-f="market"]`);if(mSel)mSel.value=proj.marketCode}
+            if(proj.bizLineCode){dataArr[i].bizLine=proj.bizLineCode;const bSel=el.closest('tr').querySelector(`select.${prefix}-field[data-f="bizLine"]`);if(bSel)bSel.value=proj.bizLineCode}
+          }
         }
         if(f==='acctDesc'){
           el.closest('tr').querySelector(`.${prefix}-acctCode`).textContent=acctDescToCode(el.value);
