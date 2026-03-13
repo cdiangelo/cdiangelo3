@@ -9,20 +9,34 @@ let dbReady = null;
 // Wrapper that mimics better-sqlite3 API on top of sql.js
 function wrapDb(sqlDb) {
   function saveToFile() {
-    const data = sqlDb.export();
-    fs.writeFileSync(DB_PATH, Buffer.from(data));
+    try {
+      const data = sqlDb.export();
+      fs.writeFileSync(DB_PATH, Buffer.from(data));
+    } catch (e) {
+      console.error('DB save error:', e);
+    }
   }
 
-  // Auto-save every 5 seconds if there are changes
-  let dirty = false;
-  setInterval(() => {
-    if (dirty) { saveToFile(); dirty = false; }
-  }, 5000);
+  // Debounced save — persists within 500ms of any write, batching rapid writes
+  let saveTimer = null;
+  function scheduleSave() {
+    if (!saveTimer) {
+      saveTimer = setTimeout(() => {
+        saveToFile();
+        saveTimer = null;
+      }, 500);
+    }
+  }
+
+  // Also save on process exit
+  process.on('exit', saveToFile);
+  process.on('SIGINT', () => { saveToFile(); process.exit(); });
+  process.on('SIGTERM', () => { saveToFile(); process.exit(); });
 
   return {
     exec(sql) {
       sqlDb.exec(sql);
-      dirty = true;
+      scheduleSave();
     },
     prepare(sql) {
       return {
@@ -55,7 +69,7 @@ function wrapDb(sqlDb) {
         },
         run(...params) {
           sqlDb.run(sql, params);
-          dirty = true;
+          scheduleSave();
           const lastId = sqlDb.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0];
           const changes = sqlDb.getRowsModified();
           return { lastInsertRowid: lastId, changes };
@@ -76,8 +90,10 @@ async function initDb() {
   if (fs.existsSync(DB_PATH)) {
     const fileBuffer = fs.readFileSync(DB_PATH);
     db = wrapDb(new SQL.Database(fileBuffer));
+    console.log('Loaded existing database from', DB_PATH);
   } else {
     db = wrapDb(new SQL.Database());
+    console.log('Created new database');
   }
 
   // Run schema
