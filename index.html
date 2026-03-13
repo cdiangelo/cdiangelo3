@@ -604,153 +604,6 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 
 </div>
 
-<!-- Scenario Analysis Toggle Button (always visible on left edge) -->
-<button class="scenario-toggle-btn" id="scenarioToggleBtn"><span class="arrow">&#9654;</span>S C E N A R I O</button>
-
-<!-- Scenario Analysis Slide Panel -->
-<div class="scenario-slide-panel" id="scenarioSlidePanel">
-<h3 style="color:#1a8a3e;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Scenario Analysis</h3>
-<label class="scenario-link-toggle" style="font-size:.78rem;margin-bottom:12px;display:block"><input type="checkbox" id="scenLinkFilters"> Link filters between panels</label>
-
-<!-- Budget Section -->
-<div style="margin-bottom:16px">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-<h4 style="color:var(--accent);font-size:.88rem;margin:0">Current Year Budget</h4>
-<div class="toggle-group" id="scenBudgetSplitToggle" style="font-size:.72rem">
-<button class="btn active" data-sbsplit="none" style="padding:2px 8px;font-size:.72rem">Total</button>
-<button class="btn" data-sbsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
-<button class="btn" data-sbsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
-</div>
-</div>
-<div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
-<div class="chatbot-panel">
-<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
-<div class="chat-messages" id="budgetChatMessages">
-<div class="chat-msg hint">Try a scenario below or type your own</div>
-</div>
-<div class="chat-examples" id="budgetChatExamples">
-<button data-cmd="reduce software engineering headcount by 20%">-20% SWE HC</button>
-<button data-cmd="reduce senior engineers in us headcount by 15%">-15% Sr US Eng</button>
-<button data-cmd="swap 20% us for 10% india and 10% canada">Swap US→IN/CA</button>
-<button data-cmd="promote all junior to mid">Promote Jr→Mid</button>
-<button data-cmd="cut Salesforce spend by 20%">Cut Salesforce 20%</button>
-<button data-cmd="cut airline t&e by 30%">Cut airline T&E 30%</button>
-<button data-cmd="set all bonus to 12%">Set bonus 12%</button>
-<button data-cmd="reduce all except interns headcount by 10%">-10% except interns</button>
-</div>
-<div class="chat-input-bar">
-<input id="budgetChatInput" placeholder="e.g. reduce senior headcount by 10%..." autocomplete="off">
-<button class="btn btn-primary" id="budgetChatSend">Send</button>
-</div>
-</div>
-</div>
-
-<!-- Forecast Section -->
-<div style="margin-bottom:16px">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-<h4 style="color:var(--accent);font-size:.88rem;margin:0">Long Term Forecast</h4>
-<div class="toggle-group" id="scenFcSplitToggle" style="font-size:.72rem">
-<button class="btn active" data-sfsplit="total" style="padding:2px 8px;font-size:.72rem">Total</button>
-<button class="btn" data-sfsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
-<button class="btn" data-sfsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
-</div>
-</div>
-<div class="scenario-chart-container"><canvas id="scenFcChart"></canvas></div>
-<div class="chatbot-panel">
-<div class="chatbot-header"><span>Forecast Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenFcApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Forecast</button><button class="btn btn-sm" id="scenFcUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenFcReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
-<div class="chat-messages" id="fcChatMessages">
-<div class="chat-msg hint">Try a scenario below or type your own</div>
-</div>
-<div class="chat-examples" id="fcChatExamples">
-<button data-cmd="freeze hiring">Freeze hiring</button>
-<button data-cmd="reduce software engineering headcount by 10% thru 2030">-10% SWE thru 2030</button>
-<button data-cmd="set merit to 4%">Set merit 4%</button>
-<button data-cmd="set hires to 3 per quarter">3 hires/qtr</button>
-<button data-cmd="set attrition to 20%">Attrition→20%</button>
-<button data-cmd="set ai productivity to 1.5">AI prod 1.5x</button>
-</div>
-<div class="chat-input-bar">
-<input id="fcChatInput" placeholder="e.g. freeze hiring thru 2030..." autocomplete="off">
-<button class="btn btn-primary" id="fcChatSend">Send</button>
-</div>
-</div>
-</div>
-
-<!-- P&L Summary -->
-<div id="scenPnlSummary"></div>
-
-<!-- Saved Scenarios & Comparison -->
-<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
-<h4 style="color:var(--accent);font-size:.88rem;margin:0 0 8px 0">Saved Scenarios <span style="color:var(--text-dim);font-size:.72rem">(max 5)</span></h4>
-<div style="display:flex;gap:4px;margin-bottom:8px">
-<input id="scenSaveName" placeholder="Scenario name..." style="flex:1;padding:4px 8px;font-size:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--text)">
-<button class="btn btn-sm" id="scenSaveBudgetBtn" style="padding:2px 8px;font-size:.72rem">Save Budget</button>
-<button class="btn btn-sm" id="scenSaveFcBtn" style="padding:2px 8px;font-size:.72rem">Save Forecast</button>
-</div>
-<div id="savedScenariosList"></div>
-<div id="scenCompareTable" style="margin-top:8px"></div>
-</div>
-
-<!-- Export -->
-<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
-<button class="btn btn-sm btn-primary" id="scenExportBtn" style="padding:4px 12px;font-size:.78rem">Export Scenario to Excel</button>
-</div>
-</div>
-
-<!-- Data Management Toggle Button -->
-<button class="data-toggle-btn" id="dataToggleBtn"><span class="arrow">&#9654;</span>D A T A</button>
-
-<!-- Data Management Slide Panel -->
-<div class="data-slide-panel" id="dataSlidePanel">
-<h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Data Management</h3>
-
-<div class="data-section">
-<h4>Workspaces</h4>
-<p>Save and switch between complete snapshots of your comp plan.</p>
-<div style="display:flex;gap:4px;margin-bottom:8px">
-<input id="dataPanelWsSaveName" placeholder="Workspace name..." style="flex:1;padding:4px 8px;font-size:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--text)">
-<button class="btn btn-primary" id="dataPanelWsSave">Save As</button>
-<button class="btn btn-success" id="dataPanelWsQuickSave">Quick Save</button>
-</div>
-<div id="dataPanelWsList" class="card-inset" style="max-height:200px;overflow-y:auto"></div>
-</div>
-
-<div class="data-section">
-<h4>Employee Roster</h4>
-<p>Bulk import/export employee data via Excel.</p>
-<button class="btn" id="dataPanelDlRoster">Download Template</button>
-<button class="btn btn-primary" id="dataPanelUploadRoster">Upload Roster</button>
-<input type="file" id="dataPanelRosterFile" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-
-<div class="data-section">
-<h4>Vendor Spend</h4>
-<p>Import/export vendor spend data via Excel.</p>
-<button class="btn" id="dataPanelVendorExport">Export Excel</button>
-<button class="btn btn-primary" id="dataPanelVendorImport">Import Excel</button>
-<input type="file" id="dataPanelVendorFile" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-
-<div class="data-section">
-<h4>T&amp;E</h4>
-<p>Import/export travel &amp; entertainment data via Excel.</p>
-<button class="btn" id="dataPanelTeExport">Export T&amp;E Excel</button>
-<button class="btn btn-primary" id="dataPanelTeImport">Import T&amp;E Excel</button>
-<input type="file" id="dataPanelTeFile" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-
-<div class="data-section">
-<h4>Backup &amp; Share</h4>
-<p>Full application state backup or shareable HTML export.</p>
-<button class="btn btn-primary" id="dataPanelExportJSON">Export JSON</button>
-<button class="btn" id="dataPanelImportJSON">Import JSON</button>
-<input type="file" id="dataPanelJsonFile" accept=".json" style="display:none">
-<div style="margin-top:8px">
-<button class="btn btn-primary" id="dataPanelExportHTML">Download Shareable HTML</button>
-</div>
-</div>
-</div>
-
 <!-- EMPLOYEES -->
 <div id="tab-employees" class="tab-content">
 <div class="card" style="margin-bottom:20px">
@@ -1412,6 +1265,153 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 </div>
 </main>
+</div>
+
+<!-- Scenario Analysis Toggle Button (always visible on left edge) -->
+<button class="scenario-toggle-btn" id="scenarioToggleBtn"><span class="arrow">&#9654;</span>S C E N A R I O</button>
+
+<!-- Scenario Analysis Slide Panel -->
+<div class="scenario-slide-panel" id="scenarioSlidePanel">
+<h3 style="color:#1a8a3e;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Scenario Analysis</h3>
+<label class="scenario-link-toggle" style="font-size:.78rem;margin-bottom:12px;display:block"><input type="checkbox" id="scenLinkFilters"> Link filters between panels</label>
+
+<!-- Budget Section -->
+<div style="margin-bottom:16px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<h4 style="color:var(--accent);font-size:.88rem;margin:0">Current Year Budget</h4>
+<div class="toggle-group" id="scenBudgetSplitToggle" style="font-size:.72rem">
+<button class="btn active" data-sbsplit="none" style="padding:2px 8px;font-size:.72rem">Total</button>
+<button class="btn" data-sbsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
+<button class="btn" data-sbsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
+</div>
+</div>
+<div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
+<div class="chatbot-panel">
+<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
+<div class="chat-messages" id="budgetChatMessages">
+<div class="chat-msg hint">Try a scenario below or type your own</div>
+</div>
+<div class="chat-examples" id="budgetChatExamples">
+<button data-cmd="reduce software engineering headcount by 20%">-20% SWE HC</button>
+<button data-cmd="reduce senior engineers in us headcount by 15%">-15% Sr US Eng</button>
+<button data-cmd="swap 20% us for 10% india and 10% canada">Swap US→IN/CA</button>
+<button data-cmd="promote all junior to mid">Promote Jr→Mid</button>
+<button data-cmd="cut Salesforce spend by 20%">Cut Salesforce 20%</button>
+<button data-cmd="cut airline t&e by 30%">Cut airline T&E 30%</button>
+<button data-cmd="set all bonus to 12%">Set bonus 12%</button>
+<button data-cmd="reduce all except interns headcount by 10%">-10% except interns</button>
+</div>
+<div class="chat-input-bar">
+<input id="budgetChatInput" placeholder="e.g. reduce senior headcount by 10%..." autocomplete="off">
+<button class="btn btn-primary" id="budgetChatSend">Send</button>
+</div>
+</div>
+</div>
+
+<!-- Forecast Section -->
+<div style="margin-bottom:16px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<h4 style="color:var(--accent);font-size:.88rem;margin:0">Long Term Forecast</h4>
+<div class="toggle-group" id="scenFcSplitToggle" style="font-size:.72rem">
+<button class="btn active" data-sfsplit="total" style="padding:2px 8px;font-size:.72rem">Total</button>
+<button class="btn" data-sfsplit="function" style="padding:2px 8px;font-size:.72rem">Function</button>
+<button class="btn" data-sfsplit="country" style="padding:2px 8px;font-size:.72rem">Country</button>
+</div>
+</div>
+<div class="scenario-chart-container"><canvas id="scenFcChart"></canvas></div>
+<div class="chatbot-panel">
+<div class="chatbot-header"><span>Forecast Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm btn-primary" id="scenFcApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Forecast</button><button class="btn btn-sm" id="scenFcUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenFcReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
+<div class="chat-messages" id="fcChatMessages">
+<div class="chat-msg hint">Try a scenario below or type your own</div>
+</div>
+<div class="chat-examples" id="fcChatExamples">
+<button data-cmd="freeze hiring">Freeze hiring</button>
+<button data-cmd="reduce software engineering headcount by 10% thru 2030">-10% SWE thru 2030</button>
+<button data-cmd="set merit to 4%">Set merit 4%</button>
+<button data-cmd="set hires to 3 per quarter">3 hires/qtr</button>
+<button data-cmd="set attrition to 20%">Attrition→20%</button>
+<button data-cmd="set ai productivity to 1.5">AI prod 1.5x</button>
+</div>
+<div class="chat-input-bar">
+<input id="fcChatInput" placeholder="e.g. freeze hiring thru 2030..." autocomplete="off">
+<button class="btn btn-primary" id="fcChatSend">Send</button>
+</div>
+</div>
+</div>
+
+<!-- P&L Summary -->
+<div id="scenPnlSummary"></div>
+
+<!-- Saved Scenarios & Comparison -->
+<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
+<h4 style="color:var(--accent);font-size:.88rem;margin:0 0 8px 0">Saved Scenarios <span style="color:var(--text-dim);font-size:.72rem">(max 5)</span></h4>
+<div style="display:flex;gap:4px;margin-bottom:8px">
+<input id="scenSaveName" placeholder="Scenario name..." style="flex:1;padding:4px 8px;font-size:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--text)">
+<button class="btn btn-sm" id="scenSaveBudgetBtn" style="padding:2px 8px;font-size:.72rem">Save Budget</button>
+<button class="btn btn-sm" id="scenSaveFcBtn" style="padding:2px 8px;font-size:.72rem">Save Forecast</button>
+</div>
+<div id="savedScenariosList"></div>
+<div id="scenCompareTable" style="margin-top:8px"></div>
+</div>
+
+<!-- Export -->
+<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+<button class="btn btn-sm btn-primary" id="scenExportBtn" style="padding:4px 12px;font-size:.78rem">Export Scenario to Excel</button>
+</div>
+</div>
+
+<!-- Data Management Toggle Button -->
+<button class="data-toggle-btn" id="dataToggleBtn"><span class="arrow">&#9654;</span>D A T A</button>
+
+<!-- Data Management Slide Panel -->
+<div class="data-slide-panel" id="dataSlidePanel">
+<h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Data Management</h3>
+
+<div class="data-section">
+<h4>Workspaces</h4>
+<p>Save and switch between complete snapshots of your comp plan.</p>
+<div style="display:flex;gap:4px;margin-bottom:8px">
+<input id="dataPanelWsSaveName" placeholder="Workspace name..." style="flex:1;padding:4px 8px;font-size:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--text)">
+<button class="btn btn-primary" id="dataPanelWsSave">Save As</button>
+<button class="btn btn-success" id="dataPanelWsQuickSave">Quick Save</button>
+</div>
+<div id="dataPanelWsList" class="card-inset" style="max-height:200px;overflow-y:auto"></div>
+</div>
+
+<div class="data-section">
+<h4>Employee Roster</h4>
+<p>Bulk import/export employee data via Excel.</p>
+<button class="btn" id="dataPanelDlRoster">Download Template</button>
+<button class="btn btn-primary" id="dataPanelUploadRoster">Upload Roster</button>
+<input type="file" id="dataPanelRosterFile" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>Vendor Spend</h4>
+<p>Import/export vendor spend data via Excel.</p>
+<button class="btn" id="dataPanelVendorExport">Export Excel</button>
+<button class="btn btn-primary" id="dataPanelVendorImport">Import Excel</button>
+<input type="file" id="dataPanelVendorFile" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>T&amp;E</h4>
+<p>Import/export travel &amp; entertainment data via Excel.</p>
+<button class="btn" id="dataPanelTeExport">Export T&amp;E Excel</button>
+<button class="btn btn-primary" id="dataPanelTeImport">Import T&amp;E Excel</button>
+<input type="file" id="dataPanelTeFile" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>Backup &amp; Share</h4>
+<p>Full application state backup or shareable HTML export.</p>
+<button class="btn btn-primary" id="dataPanelExportJSON">Export JSON</button>
+<button class="btn" id="dataPanelImportJSON">Import JSON</button>
+<input type="file" id="dataPanelJsonFile" accept=".json" style="display:none">
+<div style="margin-top:8px">
+<button class="btn btn-primary" id="dataPanelExportHTML">Download Shareable HTML</button>
+</div>
+</div>
 </div>
 
 <script>
