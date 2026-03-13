@@ -413,7 +413,10 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <p>Admin access required. This will generate a session code you can share.</p>
 <div class="session-error" id="sessionErrorAdmin"></div>
 <input type="text" id="adminSessionName" placeholder="Session name (e.g. Q3 2026 Budget)" autocomplete="off">
-<input type="password" id="adminPassword" placeholder="Admin password" autocomplete="off">
+<div style="position:relative">
+<input type="password" id="adminPassword" placeholder="Admin password" autocomplete="off" style="padding-right:50px">
+<button type="button" id="toggleAdminPw" style="position:absolute;right:8px;top:50%;transform:translateY(-65%);background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--text-dim);padding:2px 6px">Show</button>
+</div>
 <button class="btn-session btn-session-primary" id="btnCreateSession">Create Session</button>
 <button class="btn-session btn-session-secondary" id="btnBackFromAdmin">Back</button>
 </div>
@@ -1785,6 +1788,13 @@ function initSessionModal(){
   document.getElementById('btnBackToStep1').addEventListener('click',()=>{
     document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
     document.getElementById('sessionStep1').classList.add('active');
+  });
+
+  // Admin password show/hide toggle
+  document.getElementById('toggleAdminPw').addEventListener('click',()=>{
+    const inp=document.getElementById('adminPassword');
+    const btn=document.getElementById('toggleAdminPw');
+    if(inp.type==='password'){inp.type='text';btn.textContent='Hide'}else{inp.type='password';btn.textContent='Show'}
   });
 
   // Admin: Create session
