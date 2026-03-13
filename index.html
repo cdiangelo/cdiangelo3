@@ -1538,8 +1538,9 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="cmd-group" data-cat="prod">
 <button data-cmd="set attrition to 20%">Attrition→20%</button>
 <button data-cmd="set attrition to 10%">Attrition→10%</button>
-<button data-cmd="set ai productivity to 1.5">AI prod 1.5x</button>
-<button data-cmd="set ai productivity to 2.0">AI prod 2.0x</button>
+<button data-cmd="set ai productivity to 0.9">AI prod 0.9x</button>
+<button data-cmd="set ai productivity to 0.8">AI prod 0.8x</button>
+<button data-cmd="set ai productivity to 0.7">AI prod 0.7x</button>
 </div>
 </div>
 <div class="chat-input-bar">
@@ -6042,7 +6043,7 @@ function parseForecastCommand(text){
   if(m){const v=parseInt(m[1]);fa.capitalization=fa.capitalization.map(()=>v);fa.toggles.capitalization=true;return {msg:`Set capitalization to ${v}% across all forecast years.`,ok:true}}
   // Set AI productivity
   m=text.match(/set\s+ai\s+(?:productivity|gear|factor)\s+to\s+(\d+\.?\d*)/i);
-  if(m){const v=parseFloat(m[1]);fa.ai=fa.ai.map(()=>v);fa.toggles.ai=true;return {msg:`Set AI productivity factor to ${v}x for all years.`,ok:true}}
+  if(m){let v=parseFloat(m[1]);if(v>1){return {msg:`AI productivity factor must be between 0 and 1 (e.g. 0.7 = 30% fewer hires needed). Values above 1 are not valid since AI reduces headcount needs.`,ok:false}}v=Math.max(0,v);fa.ai=fa.ai.map(()=>v);fa.toggles.ai=true;return {msg:`Set AI productivity factor to ${v}x for all years (${Math.round((1-v)*100)}% hiring reduction).`,ok:true}}
   // What is current metric
   m=text.match(/what\s+is\s+(?:the\s+)?(?:current|baseline)\s+(.+)/i);
   if(m){
