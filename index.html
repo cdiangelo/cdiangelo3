@@ -413,7 +413,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <h2>Create New Session</h2>
 <p>Admin access required. Choose a session code that others will use to join.</p>
 <div class="session-error" id="sessionErrorAdmin"></div>
-<input type="text" id="adminSessionCode" maxlength="8" placeholder="Session code (e.g. LCM27)" autocomplete="off" style="text-transform:uppercase;font-weight:600;letter-spacing:2px">
+<input type="text" id="adminSessionCode" maxlength="8" placeholder="_ _ _ _ _" autocomplete="off" style="text-transform:uppercase;font-weight:600;letter-spacing:2px">
 <input type="text" id="adminSessionName" placeholder="Session name (e.g. Q3 2026 Budget)" autocomplete="off">
 <div style="position:relative">
 <input type="password" id="adminPassword" placeholder="Admin password" autocomplete="off" style="padding-right:50px">
@@ -6174,7 +6174,15 @@ function handleBudgetChat(text){
   }
   addChatMsg('budgetChatMessages',response,result.ok?'system':'error');
   // Re-sync forecast baseline from budget scenario employees
-  if(result.ok){initForecastScenario();renderFcScenarioChart()}
+  if(result.ok){
+    // Auto-apply scenario to state so all views reflect changes immediately
+    state.employees=JSON.parse(JSON.stringify(budgetScenario.emps));
+    state.vendorRows=JSON.parse(JSON.stringify(budgetScenario.vendorRows));
+    state.teRows=JSON.parse(JSON.stringify(budgetScenario.teRows));
+    saveState();
+    renderAll();
+    initForecastScenario();renderFcScenarioChart();
+  }
   renderScenarioPnlSummary();
 }
 
@@ -6197,6 +6205,13 @@ function handleFcChat(text){
     if(!fcUndoStack.length)document.getElementById('scenFcUndo').style.display='none';
   }
   addChatMsg('fcChatMessages',response,result.ok?'system':'error');
+  if(result.ok){
+    // Auto-apply forecast scenario to state so all views reflect changes immediately
+    state.employees=JSON.parse(JSON.stringify(forecastScenario.emps));
+    state.forecastAssumptions=JSON.parse(JSON.stringify(forecastScenario.assumptions));
+    saveState();
+    renderAll();
+  }
   renderScenarioPnlSummary();
 }
 
