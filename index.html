@@ -1821,7 +1821,8 @@ function initSessionModal(){
       if(!ct.includes('application/json')){
         const txt=await resp.text();
         console.error('Non-JSON response:',resp.status,txt.substring(0,200));
-        errEl.textContent='Server returned non-JSON response (status '+resp.status+'). Is the server running?';errEl.style.display='block';return;
+        const hint=resp.status===405?'The server may need to be restarted. Try refreshing the page.':'Is the server running?';
+        errEl.textContent='Server error (status '+resp.status+'). '+hint;errEl.style.display='block';return;
       }
       if(!resp.ok){const d=await resp.json();errEl.textContent=d.error||'Error';errEl.style.display='block';return}
       const session=await resp.json();
