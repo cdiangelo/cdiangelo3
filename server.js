@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const http = require('http');
-const { getDb } = require('./db/init');
+const { initDb, getDb } = require('./db/init');
 const { setupWebSocket } = require('./ws/handler');
 const sessionsRouter = require('./routes/sessions');
 const usersRouter = require('./routes/users');
@@ -28,10 +28,13 @@ app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// Initialize DB and WebSocket
-const db = getDb();
-setupWebSocket(server, db);
-
-server.listen(PORT, () => {
-  console.log(`CompPlan running on http://localhost:${PORT}`);
+// Initialize DB, then start server
+initDb().then((db) => {
+  setupWebSocket(server, db);
+  server.listen(PORT, () => {
+    console.log(`CompPlan running on http://localhost:${PORT}`);
+  });
+}).catch(err => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
 });
