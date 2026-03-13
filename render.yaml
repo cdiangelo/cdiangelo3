@@ -8,3 +8,9 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DB_PATH
+        value: /data/compplan.sqlite
+    disk:
+      name: compplan-data
+      mountPath: /data
+      sizeGB: 1

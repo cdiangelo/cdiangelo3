@@ -2,7 +2,7 @@ const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, 'compplan.sqlite');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'compplan.sqlite');
 let db = null;
 let dbReady = null;
 
