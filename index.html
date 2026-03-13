@@ -2169,9 +2169,12 @@ function loadState(){
   const markets=DEFAULT_MARKETS.map(m=>({...m}));
   const bizLines=DEFAULT_BIZ_LINES.map(b=>({...b}));
   state={employees,bonusMatrix,benefitsMatrix,benefitsCountryMult,projects,forecastAssumptions,allocOverrides,markets,bizLines};
+  ensureStateFields();
   saveState();
 }
 function ensureStateFields(){
+  if(!state.employees)state.employees=[];
+  if(!state.bonusMatrix){state.bonusMatrix={};SENIORITY.forEach(s=>{state.bonusMatrix[s]={};FUNCTIONS.forEach(f=>{state.bonusMatrix[s][f]=DEFAULT_BONUS[s]})})}
   if(!state.projects)state.projects=[];
   state.projects.forEach(p=>{if(!p.description)p.description='';if(!p.marketCode)p.marketCode=''});
   if(!state.markets)state.markets=DEFAULT_MARKETS.map(m=>({...m}));
@@ -4846,6 +4849,8 @@ document.getElementById('rosterFileInput').addEventListener('change',function(){
     flushEmp(); // flush last employee
 
     saveState();renderAll();
+    // Reset scenario snapshots so they pick up the new roster
+    budgetScenario=null;forecastScenario=null;budgetScenarioDirty=false;fcScenarioDirty=false;
     showUploadResult(`Roster Upload Complete\n${'─'.repeat(30)}\nAdded: ${added}\nUpdated: ${updated}\nSkipped: ${skipped}\n${errors.length?'\nWarnings:\n'+errors.join('\n'):'\nNo warnings.'}`);
   });
 });
