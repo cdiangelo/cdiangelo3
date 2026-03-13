@@ -57,7 +57,7 @@ function setupWebSocket(server, db) {
   return wss;
 }
 
-function handleAuth(ws, msg, db) {
+async function handleAuth(ws, msg, db) {
   const { sessionId, userId, userName, userColor, versionId } = msg;
   if (!sessionId || !userId || !versionId) return;
 
@@ -71,14 +71,19 @@ function handleAuth(ws, msg, db) {
 
   // Update presence in DB
   try {
-    db.prepare(
-      `INSERT OR REPLACE INTO presence (user_id, session_id, active_version_id, connected_at, last_ping)
-       VALUES (?, ?, ?, datetime('now'), datetime('now'))`
+    await db.prepare(
+      `INSERT INTO presence (user_id, session_id, active_version_id, connected_at, last_ping)
+       VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (user_id) DO UPDATE SET
+         session_id = EXCLUDED.session_id,
+         active_version_id = EXCLUDED.active_version_id,
+         connected_at = CURRENT_TIMESTAMP,
+         last_ping = CURRENT_TIMESTAMP`
     ).run(userId, sessionId, versionId);
   } catch (e) { /* ignore */ }
 
   // Broadcast presence to entire session
-  broadcastPresence(sessionId, db);
+  await broadcastPresence(sessionId, db);
 }
 
 function handleStateUpdate(ws, msg, db) {
@@ -110,17 +115,17 @@ function handleStateUpdate(ws, msg, db) {
   // Debounced save to DB (300ms)
   const saveKey = `${client.sessionId}:${client.versionId}`;
   if (savePending.has(saveKey)) clearTimeout(savePending.get(saveKey));
-  savePending.set(saveKey, setTimeout(() => {
+  savePending.set(saveKey, setTimeout(async () => {
     savePending.delete(saveKey);
     try {
-      db.prepare(
-        "UPDATE versions SET state_data = ?, updated_at = datetime('now') WHERE id = ? AND session_id = ?"
+      await db.prepare(
+        "UPDATE versions SET state_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND session_id = ?"
       ).run(stateData, client.versionId, client.sessionId);
     } catch (e) { /* ignore */ }
   }, 300));
 }
 
-function handleSwitchVersion(ws, msg, db) {
+async function handleSwitchVersion(ws, msg, db) {
   const client = clients.get(ws);
   if (!client) return;
 
@@ -145,19 +150,19 @@ function handleSwitchVersion(ws, msg, db) {
 
   // Update presence
   try {
-    db.prepare(
-      "UPDATE presence SET active_version_id = ?, last_ping = datetime('now') WHERE user_id = ?"
+    await db.prepare(
+      "UPDATE presence SET active_version_id = ?, last_ping = CURRENT_TIMESTAMP WHERE user_id = ?"
     ).run(versionId, client.userId);
   } catch (e) { /* ignore */ }
 
-  broadcastPresence(client.sessionId, db);
+  await broadcastPresence(client.sessionId, db);
 }
 
-function handlePing(ws, db) {
+async function handlePing(ws, db) {
   const client = clients.get(ws);
   if (!client) return;
   try {
-    db.prepare("UPDATE presence SET last_ping = datetime('now') WHERE user_id = ?").run(client.userId);
+    await db.prepare("UPDATE presence SET last_ping = CURRENT_TIMESTAMP WHERE user_id = ?").run(client.userId);
   } catch (e) { /* ignore */ }
 }
 
@@ -185,7 +190,7 @@ function handleCursor(ws, msg) {
   });
 }
 
-function handleDisconnect(ws, db) {
+async function handleDisconnect(ws, db) {
   const client = clients.get(ws);
   if (!client) return;
 
@@ -199,22 +204,22 @@ function handleDisconnect(ws, db) {
 
   // Remove presence
   try {
-    db.prepare('DELETE FROM presence WHERE user_id = ?').run(client.userId);
+    await db.prepare('DELETE FROM presence WHERE user_id = ?').run(client.userId);
   } catch (e) { /* ignore */ }
 
   const sessionId = client.sessionId;
   clients.delete(ws);
 
-  broadcastPresence(sessionId, db);
+  await broadcastPresence(sessionId, db);
 }
 
-function broadcastPresence(sessionId, db) {
+async function broadcastPresence(sessionId, db) {
   // Get all online users for this session
   let users = [];
   try {
-    users = db.prepare(
-      `SELECT p.user_id as id, u.display_name as name, u.color, p.active_version_id as versionId,
-              v.name as versionName
+    users = await db.prepare(
+      `SELECT p.user_id as id, u.display_name as name, u.color, p.active_version_id as "versionId",
+              v.name as "versionName"
        FROM presence p
        JOIN users u ON u.id = p.user_id
        LEFT JOIN versions v ON v.id = p.active_version_id

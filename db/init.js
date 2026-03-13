@@ -1,115 +1,69 @@
-const initSqlJs = require('sql.js');
+const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'compplan.sqlite');
+let pool = null;
 let db = null;
 let dbReady = null;
 
-// Wrapper that mimics better-sqlite3 API on top of sql.js
-function wrapDb(sqlDb) {
-  function saveToFile() {
-    try {
-      const data = sqlDb.export();
-      fs.writeFileSync(DB_PATH, Buffer.from(data));
-    } catch (e) {
-      console.error('DB save error:', e);
-    }
-  }
+// Convert ? placeholders to $1, $2, ...
+function pgify(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => `$${++i}`);
+}
 
-  // Debounced save — persists within 500ms of any write, batching rapid writes
-  let saveTimer = null;
-  function scheduleSave() {
-    if (!saveTimer) {
-      saveTimer = setTimeout(() => {
-        saveToFile();
-        saveTimer = null;
-      }, 500);
-    }
-  }
-
-  // Save on process exit (guard against duplicate handlers)
-  if (!process._dbExitRegistered) {
-    process._dbExitRegistered = true;
-    process.on('exit', saveToFile);
-    process.on('SIGINT', () => { saveToFile(); process.exit(0); });
-    process.on('SIGTERM', () => { saveToFile(); process.exit(0); });
-  }
-
+function wrapPool(p) {
   return {
     exec(sql) {
-      sqlDb.exec(sql);
-      scheduleSave();
+      return p.query(sql).catch(e => console.error('DB exec error:', e));
     },
     prepare(sql) {
+      const pgSql = pgify(sql);
       return {
-        get(...params) {
-          const stmt = sqlDb.prepare(sql);
-          stmt.bind(params);
-          let result = null;
-          if (stmt.step()) {
-            const cols = stmt.getColumnNames();
-            const vals = stmt.get();
-            result = {};
-            cols.forEach((c, i) => { result[c] = vals[i]; });
-          }
-          stmt.free();
-          return result;
+        async get(...params) {
+          const res = await p.query(pgSql, params);
+          return res.rows[0] || null;
         },
-        all(...params) {
-          const results = [];
-          const stmt = sqlDb.prepare(sql);
-          stmt.bind(params);
-          while (stmt.step()) {
-            const cols = stmt.getColumnNames();
-            const vals = stmt.get();
-            const row = {};
-            cols.forEach((c, i) => { row[c] = vals[i]; });
-            results.push(row);
-          }
-          stmt.free();
-          return results;
+        async all(...params) {
+          const res = await p.query(pgSql, params);
+          return res.rows;
         },
-        run(...params) {
-          sqlDb.run(sql, params);
-          scheduleSave();
-          const lastId = sqlDb.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0];
-          const changes = sqlDb.getRowsModified();
-          return { lastInsertRowid: lastId, changes };
+        async run(...params) {
+          // For INSERT statements, append RETURNING id to get lastInsertRowid
+          const isInsert = /^\s*INSERT\s/i.test(pgSql);
+          let finalSql = pgSql;
+          if (isInsert && !/RETURNING/i.test(pgSql)) {
+            finalSql = pgSql + ' RETURNING id';
+          }
+          const res = await p.query(finalSql, params);
+          const lastInsertRowid = isInsert && res.rows[0] ? res.rows[0].id : null;
+          return { lastInsertRowid, changes: res.rowCount };
         }
       };
     },
-    save() { saveToFile(); },
-    close() { saveToFile(); sqlDb.close(); }
+    save() { /* no-op — Postgres auto-persists */ },
+    close() { return p.end(); }
   };
 }
 
 async function initDb() {
   if (db) return db;
 
-  const SQL = await initSqlJs();
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
 
-  // Load existing DB file or create new
-  if (fs.existsSync(DB_PATH)) {
-    const fileBuffer = fs.readFileSync(DB_PATH);
-    db = wrapDb(new SQL.Database(fileBuffer));
-    console.log('Loaded existing database from', DB_PATH);
-  } else {
-    db = wrapDb(new SQL.Database());
-    console.log('Created new database');
-  }
+  db = wrapPool(pool);
+  console.log('Connected to PostgreSQL');
 
   // Run schema
   const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-  db.exec(schema);
-
-  // Enable foreign keys
-  db.exec('PRAGMA foreign_keys = ON');
+  await db.exec(schema);
 
   // Clean stale presence rows on startup
-  db.exec('DELETE FROM presence');
+  await db.exec('DELETE FROM presence');
 
-  db.save();
   return db;
 }
 
