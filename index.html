@@ -149,6 +149,17 @@ html.dark select,html.dark input,html.dark textarea{background:#2a2a2e;border-co
 html.dark tr:hover{background:rgba(212,82,77,.05)}
 html.dark .ws-list li:hover{background:rgba(212,82,77,.05)}
 html.dark .chart-container{background:rgba(255,255,255,.02);border-radius:8px;padding:8px}
+html.dark .pnl-walk-table tr.subtotal td{background:rgba(212,82,77,.08)}
+html.dark .pnl-walk-table tr.total td{background:rgba(212,82,77,.12)}
+html.dark .modal-overlay{background:rgba(0,0,0,.7)}
+html.dark .scenario-slide-panel table td,html.dark .data-slide-panel table td{color:var(--text)}
+html.dark .scenario-slide-panel table th,html.dark .data-slide-panel table th{color:var(--text-dim)}
+html.dark .btn{background:var(--panel-inset);color:var(--text);border-color:var(--border)}
+html.dark .btn:hover{background:var(--border);color:var(--text-dark)}
+html.dark .scenario-toggle-btn{background:rgba(58,125,68,.45);border-color:rgba(255,255,255,.1)}
+html.dark .scenario-toggle-btn:hover{background:rgba(58,125,68,.7)}
+html.dark .data-toggle-btn{background:rgba(123,31,162,.4);border-color:rgba(255,255,255,.1)}
+html.dark .data-toggle-btn:hover{background:rgba(123,31,162,.65)}
 /* Operations mode: hide individual comp values */
 body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
 body.ops-mode .comp-sensitive::selection{color:transparent}
@@ -212,8 +223,8 @@ body.ops-mode .ops-hide{display:none!important}
 .exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
 .exec-pane h3{color:var(--accent);font-size:1rem;font-weight:700;margin-bottom:16px}
 /* Scenario slide panel */
-.scenario-toggle-btn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1100;background:#1a8a3e;color:#fff;border:none;padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s,left .3s ease}
-.scenario-toggle-btn:hover{background:#15702f}
+.scenario-toggle-btn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1100;background:rgba(58,125,68,.65);color:#fff;border:1px solid rgba(255,255,255,.15);padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:1px 1px 6px rgba(0,0,0,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,left .3s ease}
+.scenario-toggle-btn:hover{background:rgba(58,125,68,.85)}
 .scenario-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
 .scenario-slide-panel{position:fixed;left:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
 .scenario-slide-panel.open{transform:translateX(0)}
@@ -224,9 +235,12 @@ body.scenario-open .data-toggle-btn{left:50vw}
 body.scenario-open .section-title,body.data-open .section-title{font-size:.88rem}
 body.scenario-open header h1,body.data-open header h1{font-size:1rem}
 body.scenario-open nav button,body.data-open nav button{font-size:.72rem;padding:4px 8px}
+body.scenario-open .landing-page,body.data-open .landing-page{max-width:100%;margin-left:0;padding:20px}
+body.scenario-open .landing-modules,body.data-open .landing-modules{grid-template-columns:1fr}
+body.scenario-open .pnl-walk .table-wrap,body.data-open .pnl-walk .table-wrap{overflow-x:auto}
 /* Data Management slide panel */
-.data-toggle-btn{position:fixed;left:0;top:calc(50% + 90px);transform:translateY(-50%);z-index:1100;background:#7b1fa2;color:#fff;border:none;padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:2px 2px 8px rgba(0,0,0,.2);transition:background .2s,left .3s ease}
-.data-toggle-btn:hover{background:#6a1b9a}
+.data-toggle-btn{position:fixed;left:0;top:calc(50% + 90px);transform:translateY(-50%);z-index:1100;background:rgba(123,31,162,.55);color:#fff;border:1px solid rgba(255,255,255,.15);padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:1px 1px 6px rgba(0,0,0,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,left .3s ease}
+.data-toggle-btn:hover{background:rgba(123,31,162,.75)}
 .data-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
 .data-slide-panel{position:fixed;left:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
 .data-slide-panel.open{transform:translateX(0)}
@@ -7922,14 +7936,24 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
 @keyframes shireSunRay{0%,100%{opacity:.15}50%{opacity:.35}}
 @keyframes shireButterfly{0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(15px,-10px) rotate(5deg)}50%{transform:translate(30px,0) rotate(-3deg)}75%{transform:translate(15px,8px) rotate(4deg)}100%{transform:translate(0,0) rotate(0deg)}}
 @keyframes shireGrass{0%,100%{transform:skewX(0deg)}50%{transform:skewX(3deg)}}
+@keyframes xmasLights{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes xmasSwing{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes snowfall{0%{transform:translateY(-10px) rotate(0deg);opacity:0}20%{opacity:.8}80%{opacity:.6}100%{transform:translateY(60px) rotate(180deg);opacity:0}}
+@keyframes xmasPulse{0%,100%{box-shadow:0 0 4px rgba(255,215,0,.3)}50%{box-shadow:0 0 12px rgba(255,215,0,.7)}}
 `;
   document.head.appendChild(style);
 
   const funBtn=document.createElement('button');
   funBtn.textContent='fun';
-  funBtn.style.cssText='position:fixed;bottom:8px;right:8px;z-index:9999;background:rgba(0,0,0,0.04);border:none;color:rgba(0,0,0,0.15);font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s;-webkit-tap-highlight-color:transparent';
-  funBtn.addEventListener('mouseenter',()=>funBtn.style.color='rgba(0,0,0,0.25)');
-  funBtn.addEventListener('mouseleave',()=>{if(!funBtn.dataset.on)funBtn.style.color='rgba(0,0,0,0.15)'});
+  const funDark=()=>document.documentElement.classList.contains('dark');
+  const funDimColor=()=>funDark()?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)';
+  const funHoverColor=()=>funDark()?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.25)';
+  const funBg=()=>funDark()?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
+  funBtn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${funBg()};border:none;color:${funDimColor()};font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s;-webkit-tap-highlight-color:transparent`;
+  funBtn.addEventListener('mouseenter',()=>funBtn.style.color=funHoverColor());
+  funBtn.addEventListener('mouseleave',()=>{if(!funBtn.dataset.on)funBtn.style.color=funDimColor()});
+  // Update fun button colors when dark mode toggles
+  new MutationObserver(()=>{funBtn.style.background=funBg();if(!funBtn.dataset.on)funBtn.style.color=funDimColor()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
   document.body.appendChild(funBtn);
 
   let funOverlay=null;
@@ -8103,19 +8127,265 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
     return o;
   }
 
+  function buildXmasJuly(){
+    const o=document.createElement('div');
+    o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;pointer-events:none;overflow:hidden';
+
+    // ── Top garland border ──
+    const topBar=document.createElement('div');
+    topBar.style.cssText='position:absolute;top:0;left:0;width:100%;height:38px';
+    // Garland SVG
+    const garland=document.createElement('div');
+    garland.style.cssText='position:absolute;top:0;left:0;width:200%;height:28px';
+    garland.innerHTML='<svg viewBox="0 0 2400 50" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="none" stroke="#1a6b2a" stroke-width="8" d="M0,15 C100,35 200,5 300,25 C400,45 500,10 600,30 C700,45 800,10 900,28 C1000,42 1100,8 1200,25 C1300,40 1400,10 1500,28 C1600,42 1700,8 1800,25 C1900,40 2000,12 2100,28 C2200,42 2300,10 2400,25"/><path fill="none" stroke="#2d8a3e" stroke-width="5" d="M0,18 C100,38 200,8 300,28 C400,48 500,13 600,33 C700,48 800,13 900,31 C1000,45 1100,11 1200,28 C1300,43 1400,13 1500,31 C1600,45 1700,11 1800,28 C1900,43 2000,15 2100,31 C2200,45 2300,13 2400,28"/></svg>';
+    topBar.appendChild(garland);
+
+    // String lights along top
+    const lightColors=['#ff3333','#33cc33','#ffcc00','#3399ff','#ff33cc','#ff6633'];
+    for(let i=0;i<20;i++){
+      const light=document.createElement('div');
+      const x=2+i*5;
+      const y=18+Math.sin(i*0.8)*8;
+      const c=lightColors[i%lightColors.length];
+      light.style.cssText=`position:absolute;top:${y}px;left:${x}%;width:8px;height:8px;background:${c};border-radius:50%;box-shadow:0 0 6px ${c},0 0 12px ${c}`;
+      light.style.animation=`xmasLights ${1.5+Math.random()*1.5}s ease-in-out ${Math.random()*2}s infinite`;
+      // Wire from garland to light
+      const wire=document.createElement('div');
+      wire.style.cssText=`position:absolute;top:${y-6}px;left:calc(${x}% + 3px);width:1px;height:6px;background:#555`;
+      topBar.appendChild(wire);
+      topBar.appendChild(light);
+    }
+
+    // Ornaments and tropical items along top
+    const topItems=[
+      {e:'\u{1F384}',x:8,y:2,sz:16},{e:'\u{1F334}',x:18,y:1,sz:14},{e:'\u{1F381}',x:28,y:4,sz:12},
+      {e:'\u{1F576}',x:38,y:3,sz:13},{e:'\u{1F385}',x:48,y:2,sz:14},{e:'\u{1F41A}',x:58,y:4,sz:11},
+      {e:'\u{1F9E6}',x:68,y:3,sz:12},{e:'\u{1F334}',x:78,y:1,sz:14},{e:'\u{1F384}',x:88,y:2,sz:15},
+      {e:'\u{1F381}',x:95,y:3,sz:12}
+    ];
+    topItems.forEach(t=>{
+      const el=document.createElement('div');
+      el.textContent=t.e;
+      el.style.cssText=`position:absolute;top:${t.y}px;left:${t.x}%;font-size:${t.sz}px;line-height:1;transform-origin:top center`;
+      el.style.animation=`xmasSwing ${3+Math.random()*2}s ease-in-out ${Math.random()*2}s infinite`;
+      topBar.appendChild(el);
+    });
+    o.appendChild(topBar);
+
+    // ── Left side border ──
+    const leftBar=document.createElement('div');
+    leftBar.style.cssText='position:absolute;top:38px;left:0;width:32px;height:calc(100% - 38px)';
+    // Vertical garland vine
+    const leftVine=document.createElement('div');
+    leftVine.style.cssText='position:absolute;top:0;left:8px;width:12px;height:100%;background:linear-gradient(180deg,#1a6b2a,#2d8a3e,#1a6b2a,#2d8a3e,#1a6b2a);border-radius:6px;opacity:.7';
+    leftBar.appendChild(leftVine);
+    // Left side lights
+    for(let i=0;i<12;i++){
+      const light=document.createElement('div');
+      const y=4+i*8;
+      const c=lightColors[i%lightColors.length];
+      const x=6+Math.sin(i*0.9)*8;
+      light.style.cssText=`position:absolute;top:${y}%;left:${x}px;width:7px;height:7px;background:${c};border-radius:50%;box-shadow:0 0 5px ${c},0 0 10px ${c}`;
+      light.style.animation=`xmasLights ${1.8+Math.random()*1.2}s ease-in-out ${Math.random()*3}s infinite`;
+      leftBar.appendChild(light);
+    }
+    // Left side ornaments
+    ['\u{1F384}','\u{1F334}','\u{1F381}','\u{1F576}','\u{1F41A}','\u{1F9E6}'].forEach((e,i)=>{
+      const el=document.createElement('div');el.textContent=e;
+      el.style.cssText=`position:absolute;top:${10+i*15}%;left:2px;font-size:13px;line-height:1`;
+      el.style.animation=`xmasSwing ${3+i*0.4}s ease-in-out ${i*0.5}s infinite`;
+      leftBar.appendChild(el);
+    });
+    o.appendChild(leftBar);
+
+    // ── Right side border ──
+    const rightBar=document.createElement('div');
+    rightBar.style.cssText='position:absolute;top:38px;right:0;width:32px;height:calc(100% - 38px)';
+    const rightVine=document.createElement('div');
+    rightVine.style.cssText='position:absolute;top:0;right:8px;width:12px;height:100%;background:linear-gradient(180deg,#2d8a3e,#1a6b2a,#2d8a3e,#1a6b2a,#2d8a3e);border-radius:6px;opacity:.7';
+    rightBar.appendChild(rightVine);
+    for(let i=0;i<12;i++){
+      const light=document.createElement('div');
+      const y=4+i*8;
+      const c=lightColors[(i+3)%lightColors.length];
+      const x=6+Math.sin(i*0.9+1)*8;
+      light.style.cssText=`position:absolute;top:${y}%;right:${x}px;width:7px;height:7px;background:${c};border-radius:50%;box-shadow:0 0 5px ${c},0 0 10px ${c}`;
+      light.style.animation=`xmasLights ${1.8+Math.random()*1.2}s ease-in-out ${Math.random()*3+0.5}s infinite`;
+      rightBar.appendChild(light);
+    }
+    ['\u{1F9E6}','\u{1F41A}','\u{1F576}','\u{1F381}','\u{1F334}','\u{1F384}'].forEach((e,i)=>{
+      const el=document.createElement('div');el.textContent=e;
+      el.style.cssText=`position:absolute;top:${10+i*15}%;right:2px;font-size:13px;line-height:1`;
+      el.style.animation=`xmasSwing ${3.2+i*0.4}s ease-in-out ${i*0.6}s infinite`;
+      rightBar.appendChild(el);
+    });
+    o.appendChild(rightBar);
+
+    // ── Sun in top-right corner ──
+    const sunWrap=document.createElement('div');
+    sunWrap.style.cssText='position:absolute;top:40px;right:40px;width:80px;height:80px';
+    const sun=document.createElement('div');
+    sun.style.cssText='position:absolute;top:0;left:0;width:70px;height:70px;background:radial-gradient(circle,#fff4b0 0%,#f9d423 35%,#f0c420 50%,rgba(249,212,35,0) 72%);border-radius:50%';
+    sun.style.animation='xmasPulse 3s ease-in-out infinite';
+    sunWrap.appendChild(sun);
+    // Sunglasses on the sun
+    const glasses=document.createElement('div');
+    glasses.textContent='\u{1F576}';
+    glasses.style.cssText='position:absolute;top:22px;left:18px;font-size:22px;line-height:1';
+    sunWrap.appendChild(glasses);
+    // Sun rays
+    for(let i=0;i<8;i++){
+      const ray=document.createElement('div');
+      const angle=i*45;
+      ray.style.cssText=`position:absolute;top:35px;left:35px;width:2px;height:20px;background:linear-gradient(to bottom,rgba(255,244,176,.5),transparent);transform-origin:top center;transform:rotate(${angle}deg) translateY(-42px)`;
+      ray.style.animation=`shireSunRay ${2+i*0.3}s ease-in-out ${i*0.2}s infinite`;
+      sunWrap.appendChild(ray);
+    }
+    o.appendChild(sunWrap);
+
+    // ── Beach scene bottom-left with chair under North Pole umbrella ──
+    const beachScene=document.createElement('div');
+    beachScene.style.cssText='position:absolute;bottom:0;left:0;width:280px;height:160px';
+
+    // Sandy ground
+    const sand=document.createElement('div');
+    sand.style.cssText='position:absolute;bottom:0;left:0;width:100%;height:50px;background:linear-gradient(180deg,#dfc48c 0%,#e8d5a3 40%,#f0deb0 100%);border-radius:0 40px 0 0';
+    beachScene.appendChild(sand);
+
+    // Sand sparkles
+    for(let i=0;i<8;i++){
+      const sp=document.createElement('div');
+      sp.style.cssText=`position:absolute;bottom:${5+Math.random()*35}px;left:${10+Math.random()*250}px;width:${1.5+Math.random()*2}px;height:${1.5+Math.random()*2}px;background:rgba(255,255,240,.9);border-radius:50%`;
+      sp.style.animation=`funSparkle ${1.5+Math.random()*2}s ease-in-out ${Math.random()*3}s infinite`;
+      beachScene.appendChild(sp);
+    }
+
+    // North Pole umbrella (red/white barber-pole striped)
+    const umbrellaGroup=document.createElement('div');
+    umbrellaGroup.style.cssText='position:absolute;bottom:45px;left:80px;transform-origin:bottom center';
+    umbrellaGroup.innerHTML=`
+      <div style="position:relative;width:100px">
+        <!-- Umbrella canopy -->
+        <div style="width:100px;height:50px;border-radius:100px 100px 4px 4px;background:conic-gradient(from 0deg,#cc0000 0deg,#cc0000 30deg,#fff 30deg,#fff 60deg,#cc0000 60deg,#cc0000 90deg,#fff 90deg,#fff 120deg,#cc0000 120deg,#cc0000 150deg,#fff 150deg,#fff 180deg);box-shadow:0 3px 12px rgba(0,0,0,.2)"></div>
+        <!-- Barber pole (red/white spiral) -->
+        <div style="width:5px;height:65px;margin:0 auto;background:repeating-linear-gradient(45deg,#cc0000 0px,#cc0000 5px,#fff 5px,#fff 10px);border-radius:2px"></div>
+        <!-- North Pole sign -->
+        <div style="position:absolute;top:55px;left:52px;transform:rotate(-5deg)">
+          <div style="background:#8B4513;padding:2px 6px;border-radius:2px;font-size:5px;color:#fff;font-weight:bold;white-space:nowrap;border:1px solid #6B3410;box-shadow:0 1px 3px rgba(0,0,0,.2)">N. POLE \u2192</div>
+          <div style="width:2px;height:8px;background:#8B4513;margin-left:1px"></div>
+        </div>
+      </div>`;
+    umbrellaGroup.style.animation='umbSway1 5s ease-in-out infinite';
+    beachScene.appendChild(umbrellaGroup);
+
+    // Shade under umbrella (dark elliptical shadow)
+    const shade=document.createElement('div');
+    shade.style.cssText='position:absolute;bottom:30px;left:65px;width:120px;height:35px;background:radial-gradient(ellipse,rgba(0,0,0,.15) 0%,rgba(0,0,0,.05) 60%,transparent 100%);border-radius:50%';
+    beachScene.appendChild(shade);
+
+    // Beach chair (CSS-drawn) under the umbrella
+    const chair=document.createElement('div');
+    chair.style.cssText='position:absolute;bottom:42px;left:95px;width:50px;height:35px';
+    chair.innerHTML=`
+      <div style="position:relative;width:100%;height:100%">
+        <!-- Chair back frame -->
+        <div style="position:absolute;bottom:0;left:5px;width:3px;height:32px;background:#8B4513;transform:rotate(15deg);transform-origin:bottom left;border-radius:1px"></div>
+        <!-- Chair front leg -->
+        <div style="position:absolute;bottom:0;right:8px;width:3px;height:18px;background:#8B4513;transform:rotate(-5deg);transform-origin:bottom right;border-radius:1px"></div>
+        <!-- Seat fabric (candy-cane striped) -->
+        <div style="position:absolute;bottom:12px;left:8px;width:35px;height:14px;background:repeating-linear-gradient(90deg,#cc0000 0px,#cc0000 4px,#fff 4px,#fff 8px);border-radius:2px;transform:rotate(-8deg);box-shadow:0 1px 3px rgba(0,0,0,.15)"></div>
+        <!-- Back rest (candy-cane striped) -->
+        <div style="position:absolute;bottom:18px;left:4px;width:14px;height:22px;background:repeating-linear-gradient(0deg,#cc0000 0px,#cc0000 3px,#fff 3px,#fff 6px);border-radius:2px 2px 0 0;transform:rotate(15deg);transform-origin:bottom left;box-shadow:0 1px 3px rgba(0,0,0,.1)"></div>
+      </div>`;
+    beachScene.appendChild(chair);
+
+    // Small palm tree
+    const palm=document.createElement('div');
+    palm.textContent='\u{1F334}';
+    palm.style.cssText='position:absolute;bottom:35px;left:20px;font-size:32px;line-height:1';
+    palm.style.animation='xmasSwing 6s ease-in-out infinite';
+    beachScene.appendChild(palm);
+
+    // Snowflakes falling around the umbrella area
+    for(let i=0;i<10;i++){
+      const snow=document.createElement('div');
+      snow.textContent='\u2744';
+      const x=40+Math.random()*200;
+      snow.style.cssText=`position:absolute;top:${Math.random()*60}px;left:${x}px;font-size:${6+Math.random()*8}px;color:rgba(200,220,255,.7);line-height:1`;
+      snow.style.animation=`snowfall ${2.5+Math.random()*3}s linear ${Math.random()*4}s infinite`;
+      beachScene.appendChild(snow);
+    }
+
+    // Surfboard leaning
+    const surfboard=document.createElement('div');
+    surfboard.style.cssText='position:absolute;bottom:38px;left:215px;width:8px;height:30px;background:linear-gradient(180deg,#ff6b6b,#feca57,#54a0ff);border-radius:4px 4px 2px 2px;transform:rotate(-20deg)';
+    beachScene.appendChild(surfboard);
+
+    // Candy cane
+    const candyCane=document.createElement('div');
+    candyCane.style.cssText='position:absolute;bottom:40px;left:250px;width:6px;height:25px;background:repeating-linear-gradient(0deg,#cc0000 0px,#cc0000 3px,#fff 3px,#fff 6px);border-radius:3px 3px 0 0;transform:rotate(10deg)';
+    const caneHook=document.createElement('div');
+    caneHook.style.cssText='position:absolute;top:-4px;right:-4px;width:10px;height:10px;border:3px solid transparent;border-top:3px solid #cc0000;border-right:3px solid #fff;border-radius:0 10px 0 0;transform:rotate(10deg)';
+    candyCane.appendChild(caneHook);
+    beachScene.appendChild(candyCane);
+
+    o.appendChild(beachScene);
+
+    // ── Bottom-right: small beach with waves ──
+    const brBeach=document.createElement('div');
+    brBeach.style.cssText='position:absolute;bottom:0;right:32px;width:200px;height:60px';
+    const brSand=document.createElement('div');
+    brSand.style.cssText='position:absolute;bottom:0;right:0;width:100%;height:30px;background:linear-gradient(180deg,#dfc48c,#f0deb0);border-radius:30px 0 0 0';
+    brBeach.appendChild(brSand);
+    // Small waves
+    const brWave=document.createElement('div');
+    brWave.style.cssText='position:absolute;bottom:20px;right:0;width:200%;height:18px;opacity:.5';
+    brWave.innerHTML='<svg viewBox="0 0 800 30" preserveAspectRatio="none" style="width:100%;height:100%"><path fill="#5dade2" d="M0,15 C50,5 100,25 150,12 C200,0 250,20 300,10 C350,0 400,22 450,12 C500,2 550,20 600,10 C650,0 700,20 750,12 C775,6 800,18 800,15 L800,30 L0,30Z"/></svg>';
+    brWave.style.animation='funW1 8s linear infinite';
+    brBeach.appendChild(brWave);
+    // Snowman on the beach
+    const snowman=document.createElement('div');
+    snowman.textContent='\u2603';
+    snowman.style.cssText='position:absolute;bottom:25px;right:60px;font-size:24px;line-height:1';
+    brBeach.appendChild(snowman);
+    // Santa hat
+    const santa=document.createElement('div');
+    santa.textContent='\u{1F385}';
+    santa.style.cssText='position:absolute;bottom:28px;right:120px;font-size:18px;line-height:1';
+    santa.style.animation='funBob 3s ease-in-out infinite';
+    brBeach.appendChild(santa);
+    o.appendChild(brBeach);
+
+    // ── Scattered snowflakes across viewport ──
+    for(let i=0;i<15;i++){
+      const snow=document.createElement('div');
+      snow.textContent='\u2744';
+      const x=5+Math.random()*90;
+      snow.style.cssText=`position:absolute;top:${-10+Math.random()*30}px;left:${x}%;font-size:${5+Math.random()*10}px;color:rgba(180,210,240,.4);line-height:1`;
+      snow.style.animation=`snowfall ${3+Math.random()*4}s linear ${Math.random()*5}s infinite`;
+      o.appendChild(snow);
+    }
+
+    return o;
+  }
+
   funBtn.addEventListener('click',()=>{
-    funState=(funState+1)%3;
+    funState=(funState+1)%4;
     clearOverlay();
     if(funState===0){
-      funBtn.dataset.on='';funBtn.style.color='rgba(0,0,0,0.15)';
+      funBtn.dataset.on='';funBtn.style.color=funDimColor();
     } else if(funState===1){
       funOverlay=buildBeach();
       document.body.appendChild(funOverlay);
       funBtn.dataset.on='1';funBtn.style.color='rgba(59,130,246,0.5)';
-    } else {
+    } else if(funState===2){
       funOverlay=buildShire();
       document.body.appendChild(funOverlay);
       funBtn.dataset.on='1';funBtn.style.color='rgba(46,139,87,0.6)';
+    } else {
+      funOverlay=buildXmasJuly();
+      document.body.appendChild(funOverlay);
+      funBtn.dataset.on='1';funBtn.style.color='rgba(220,20,60,0.5)';
     }
   });
 
