@@ -481,9 +481,21 @@ Template Mode &mdash; changes saved in this browser only.
 <p class="landing-subtitle">Select a module to begin, or review the consolidated P&amp;L summary below.</p>
 </div>
 <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
-<button class="btn btn-primary" onclick="openSessionModal()" style="font-size:.82rem;padding:6px 14px">Join Session</button>
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
 </div>
+</div>
+
+<!-- Session Join Box on Landing Page -->
+<div id="landingSessionBox" style="background:var(--panel);border:1px solid var(--border-light);border-radius:10px;padding:16px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<div style="flex:1;min-width:200px">
+<div style="font-weight:700;color:var(--accent);font-size:.95rem;margin-bottom:2px">Join a Session</div>
+<div style="font-size:.78rem;color:var(--text-dim)">Enter a session code to collaborate in real-time, or <span style="cursor:pointer;text-decoration:underline;color:var(--accent)" onclick="document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById('sessionStepAdmin').classList.add('active');document.getElementById('sessionModal').classList.add('show')">create a new session</span>.</div>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<input type="text" id="landingCodeInput" maxlength="5" placeholder="LCM27" autocomplete="off" style="width:120px;padding:8px 12px;font-size:1.3rem;text-align:center;letter-spacing:5px;text-transform:uppercase;font-weight:700;font-family:monospace;border:2px solid var(--border);border-radius:8px;background:var(--panel-inset);color:var(--text)">
+<button class="btn btn-primary" id="landingJoinBtn" style="padding:8px 18px;font-size:.9rem">Join</button>
+</div>
+<div id="landingCodeError" style="width:100%;color:var(--danger);font-size:.8rem;display:none"></div>
 </div>
 
 <div class="landing-modules">
@@ -1815,6 +1827,41 @@ function initSessionModal(){
     setTimeout(()=>document.getElementById('sessionDisplayName').focus(),100);
   });
   document.getElementById('btnCloseAfterCreate').addEventListener('click',closeSessionModal);
+
+  // Landing page inline join box
+  const landingJoinBtn=document.getElementById('landingJoinBtn');
+  const landingCodeInput=document.getElementById('landingCodeInput');
+  if(landingJoinBtn&&landingCodeInput){
+    async function handleLandingJoin(){
+      const code=landingCodeInput.value.trim().toUpperCase();
+      const errEl=document.getElementById('landingCodeError');
+      if(code.length<3){errEl.textContent='Enter a valid session code.';errEl.style.display='block';return}
+      errEl.style.display='none';
+      try{
+        const resp=await fetch(`/api/sessions/${code}`);
+        if(!resp.ok){errEl.textContent='Session not found. Check your code.';errEl.style.display='block';return}
+        const session=await resp.json();
+        sessionContext={code:session.code,sessionId:session.id,sessionName:session.name};
+        // Go straight to the name step in the modal
+        const m=document.getElementById('sessionModal');
+        m.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+        document.getElementById('sessionStep2').classList.add('active');
+        document.getElementById('sessionNameTitle').textContent=session.name||'Session '+session.code;
+        m.classList.add('show');
+        setTimeout(()=>document.getElementById('sessionDisplayName').focus(),100);
+      }catch(e){errEl.textContent='Connection error. Try again.';errEl.style.display='block'}
+    }
+    landingJoinBtn.addEventListener('click',handleLandingJoin);
+    landingCodeInput.addEventListener('keydown',e=>{if(e.key==='Enter')handleLandingJoin()});
+  }
+
+  // URL query param support: ?session=LCM27
+  const urlParams=new URLSearchParams(window.location.search);
+  const urlCode=urlParams.get('session');
+  if(urlCode&&!sessionContext){
+    landingCodeInput.value=urlCode;
+    setTimeout(()=>{if(landingJoinBtn)landingJoinBtn.click()},300);
+  }
 }
 
 // Enter session: load versions, connect WebSocket, switch to session mode
@@ -1862,8 +1909,10 @@ function updateSessionUI(){
   const banner=document.getElementById('templateBanner');
   const indicator=document.getElementById('wsIndicator');
   const presenceBar=document.getElementById('presenceBar');
+  const landingBox=document.getElementById('landingSessionBox');
   if(persistenceMode==='session'&&sessionContext){
     banner.style.display='none';
+    if(landingBox)landingBox.style.display='none';
     indicator.innerHTML=`Session: <strong style="color:var(--accent)">${sessionContext.code}</strong> | `+
       `Version: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage versions">${sessionContext.versionName||'Default'}</span>`+
       ` | <span style="font-size:.75rem;color:var(--text-dim)">${sessionContext.userName}</span>`+
@@ -1871,6 +1920,7 @@ function updateSessionUI(){
       `<span class="save-indicator" id="saveIndicator" style="display:none"></span>`;
   }else{
     banner.style.display='flex';
+    if(landingBox)landingBox.style.display='flex';
     indicator.innerHTML='Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">'+currentWorkspaceName+'</span>'+
       '<span class="save-indicator" id="saveIndicator" style="display:none"></span>';
     presenceBar.className='presence-bar';presenceBar.innerHTML='';
