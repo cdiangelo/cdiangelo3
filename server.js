@@ -13,6 +13,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '5mb' }));
 
+// Health check for Render
+app.get('/healthz', (req, res) => res.send('ok'));
+
 // API routes
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/sessions/:code/users', usersRouter);

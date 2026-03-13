@@ -28,10 +28,13 @@ function wrapDb(sqlDb) {
     }
   }
 
-  // Also save on process exit
-  process.on('exit', saveToFile);
-  process.on('SIGINT', () => { saveToFile(); process.exit(); });
-  process.on('SIGTERM', () => { saveToFile(); process.exit(); });
+  // Save on process exit (guard against duplicate handlers)
+  if (!process._dbExitRegistered) {
+    process._dbExitRegistered = true;
+    process.on('exit', saveToFile);
+    process.on('SIGINT', () => { saveToFile(); process.exit(0); });
+    process.on('SIGTERM', () => { saveToFile(); process.exit(0); });
+  }
 
   return {
     exec(sql) {
