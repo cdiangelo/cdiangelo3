@@ -1,0 +1,58 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const { getDb } = require('../db/init');
+
+const router = express.Router();
+
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function generateCode() {
+  const db = getDb();
+  for (let attempt = 0; attempt < 20; attempt++) {
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+      code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+    }
+    const existing = db.prepare('SELECT id FROM sessions WHERE code = ?').get(code);
+    if (!existing) return code;
+  }
+  throw new Error('Failed to generate unique session code');
+}
+
+// Create session (admin only)
+router.post('/', async (req, res) => {
+  const { name, adminPassword } = req.body;
+  const serverPassword = process.env.ADMIN_PASSWORD;
+  if (!serverPassword) {
+    return res.status(500).json({ error: 'Server ADMIN_PASSWORD not configured' });
+  }
+  if (!adminPassword || adminPassword !== serverPassword) {
+    return res.status(403).json({ error: 'Invalid admin password' });
+  }
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Session name is required' });
+  }
+
+  const db = getDb();
+  const code = generateCode();
+  const hash = bcrypt.hashSync(adminPassword, 10);
+
+  const result = db.prepare(
+    'INSERT INTO sessions (code, name, admin_hash) VALUES (?, ?, ?)'
+  ).run(code, name.trim(), hash);
+
+  res.json({ id: result.lastInsertRowid, code, name: name.trim() });
+});
+
+// Look up session by code
+router.get('/:code', (req, res) => {
+  const db = getDb();
+  const session = db.prepare(
+    'SELECT id, code, name, created_at FROM sessions WHERE code = ?'
+  ).get(req.params.code.toUpperCase());
+
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  res.json(session);
+});
+
+module.exports = router;

@@ -344,9 +344,102 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .sticky-note-panel .sn-body{flex:1;overflow-y:auto;padding:12px 14px;min-height:200px;max-height:50vh;outline:none;font-size:.88rem;line-height:1.6;color:var(--text)}
 .sticky-note-panel .sn-body:empty::before{content:'';display:inline-block;width:2px;height:1.1em;background:var(--accent);vertical-align:text-bottom;animation:snCursorBounce 1s ease-in-out infinite}
 @keyframes snCursorBounce{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.3;transform:translateY(-3px)}}
+/* Session modal */
+.session-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.session-modal-overlay.show{opacity:1}
+.session-modal{background:var(--panel);border-radius:12px;padding:32px 36px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.3);position:relative}
+.session-modal h2{color:var(--accent);margin-bottom:16px;font-size:1.3rem}
+.session-modal p{font-size:.88rem;color:var(--text-dim);margin-bottom:16px;line-height:1.5}
+.session-modal input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:1rem;background:var(--panel-inset);color:var(--text);margin-bottom:12px}
+.session-modal input.code-input{font-size:1.8rem;text-align:center;letter-spacing:8px;text-transform:uppercase;font-weight:700;font-family:monospace}
+.session-modal .btn-session{width:100%;padding:10px;font-size:1rem;border-radius:6px;border:none;cursor:pointer;font-weight:600;transition:background .15s}
+.session-modal .btn-session-primary{background:var(--accent);color:#fff}
+.session-modal .btn-session-primary:hover{background:var(--accent-light)}
+.session-modal .btn-session-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);margin-top:8px}
+.session-modal .session-error{color:var(--danger);font-size:.82rem;margin-bottom:8px;display:none}
+.session-modal .session-success{color:var(--success);font-size:.95rem;margin-bottom:8px;font-weight:600;text-align:center;display:none}
+.session-modal .session-code-display{font-size:2.2rem;text-align:center;font-weight:700;letter-spacing:6px;color:var(--accent);font-family:monospace;padding:12px;background:var(--panel-inset);border-radius:8px;margin:12px 0}
+.session-modal .step{display:none}
+.session-modal .step.active{display:block}
+.session-modal .admin-link{font-size:.78rem;color:var(--text-dim);cursor:pointer;text-align:center;margin-top:12px;text-decoration:underline}
+.session-modal .admin-link:hover{color:var(--accent)}
+.session-modal .close-btn{position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-dim);line-height:1}
+/* Template banner */
+.template-banner{background:var(--flag-bg);border-bottom:1px solid var(--flag-border);color:#856404;padding:8px 20px;text-align:center;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:12px}
+.template-banner .btn{font-size:.78rem;padding:4px 12px}
+/* Presence bar */
+.presence-bar{display:none;padding:4px 20px;background:var(--panel-inset);border-bottom:1px solid var(--border-light);font-size:.78rem;gap:12px;align-items:center}
+.presence-bar.active{display:flex}
+.presence-dot{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05);font-weight:500}
+.presence-dot::before{content:'';width:7px;height:7px;border-radius:50%;display:inline-block}
+.presence-dot.muted{opacity:.5;font-style:italic}
+/* Auto-save indicator */
+.save-indicator{font-size:.72rem;padding:2px 8px;border-radius:10px;font-weight:500;margin-left:8px}
+.save-indicator.saving{color:var(--warning)}
+.save-indicator.saved{color:var(--success)}
+.save-indicator.error{color:var(--danger)}
 </style>
 </head>
 <body>
+
+<!-- Session Join Modal -->
+<div class="session-modal-overlay" id="sessionModal">
+<div class="session-modal">
+<button class="close-btn" id="sessionModalClose">&times;</button>
+
+<!-- Step 1: Enter code -->
+<div class="step active" id="sessionStep1">
+<h2>Join a Session</h2>
+<p>Enter a 5-character session code to join a collaborative workspace.</p>
+<div class="session-error" id="sessionError1"></div>
+<input type="text" class="code-input" id="sessionCodeInput" maxlength="5" placeholder="LCM27" autocomplete="off">
+<button class="btn-session btn-session-primary" id="btnJoinCode">Join Session</button>
+<div class="admin-link" id="adminCreateLink">Admin: Create New Session</div>
+</div>
+
+<!-- Step 2: Enter display name -->
+<div class="step" id="sessionStep2">
+<h2 id="sessionNameTitle">Session</h2>
+<p>Choose a display name so others know who you are.</p>
+<div class="session-error" id="sessionError2"></div>
+<input type="text" id="sessionDisplayName" placeholder="Your name..." maxlength="30" autocomplete="off">
+<button class="btn-session btn-session-primary" id="btnJoinProfile">Enter Session</button>
+<button class="btn-session btn-session-secondary" id="btnBackToStep1">Back</button>
+</div>
+
+<!-- Admin: Create session -->
+<div class="step" id="sessionStepAdmin">
+<h2>Create New Session</h2>
+<p>Admin access required. This will generate a session code you can share.</p>
+<div class="session-error" id="sessionErrorAdmin"></div>
+<input type="text" id="adminSessionName" placeholder="Session name (e.g. Q3 2026 Budget)" autocomplete="off">
+<input type="password" id="adminPassword" placeholder="Admin password" autocomplete="off">
+<button class="btn-session btn-session-primary" id="btnCreateSession">Create Session</button>
+<button class="btn-session btn-session-secondary" id="btnBackFromAdmin">Back</button>
+</div>
+
+<!-- Admin: Show code -->
+<div class="step" id="sessionStepCode">
+<h2>Session Created!</h2>
+<p>Share this code with your team:</p>
+<div class="session-code-display" id="newSessionCode"></div>
+<div class="session-success" id="newSessionName" style="display:block"></div>
+<button class="btn-session btn-session-primary" id="btnUseNewSession">Join This Session</button>
+<button class="btn-session btn-session-secondary" id="btnCloseAfterCreate">Close</button>
+</div>
+
+</div>
+</div>
+
+<!-- Template Banner (shown when not in a session) -->
+<div class="template-banner" id="templateBanner" style="display:none">
+Template Mode &mdash; changes saved in this browser only.
+<button class="btn btn-primary" onclick="openSessionModal()">Join a Session</button>
+<button class="btn" onclick="document.getElementById('templateBanner').style.display='none'" title="Dismiss">&times;</button>
+</div>
+
+<!-- Presence Bar -->
+<div class="presence-bar" id="presenceBar"></div>
 <!-- Universal Sticky Note -->
 <button class="sticky-note-btn" id="stickyNoteBtn" title="Notes">&#9998;</button>
 <div class="sticky-note-panel" id="stickyNotePanel">
@@ -387,7 +480,10 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <h2>Budgeting &amp; Long Term Planning</h2>
 <p class="landing-subtitle">Select a module to begin, or review the consolidated P&amp;L summary below.</p>
 </div>
-<label class="header-toggle" title="Toggle dark mode" style="margin-top:8px"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
+<div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+<button class="btn btn-primary" onclick="openSessionModal()" style="font-size:.82rem;padding:6px 14px">Join Session</button>
+<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
+</div>
 </div>
 
 <div class="landing-modules">
@@ -433,7 +529,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 <header>
 <div class="container">
 <h1>Comp<span>Plan</span></h1>
-<span class="workspace-indicator">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span></span>
+<span class="workspace-indicator" id="wsIndicator">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span><span class="save-indicator" id="saveIndicator" style="display:none"></span></span>
 <nav id="mainNav">
 <div class="nav-group">
 <div class="nav-group-label">Summaries</div>
@@ -1501,6 +1597,12 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 </div>
 
 <div class="data-section">
+<h4>Full Data Export</h4>
+<p>Export all data (employees, vendors, T&amp;E) to a single Excel workbook.</p>
+<button class="btn btn-primary" id="dataPanelFullExport">Export All Data (Excel)</button>
+</div>
+
+<div class="data-section">
 <h4>Backup &amp; Share</h4>
 <p>Full application state backup or shareable HTML export.</p>
 <button class="btn btn-primary" id="dataPanelExportJSON">Export JSON</button>
@@ -1517,6 +1619,264 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 if(typeof Chart!=='undefined'&&typeof ChartDataLabels!=='undefined'){Chart.register(ChartDataLabels);Chart.defaults.plugins.datalabels={display:false}}
 // Set global chart font defaults
 if(typeof Chart!=='undefined'){Chart.defaults.font.size=12;Chart.defaults.font.family="'Inter','Segoe UI',system-ui,sans-serif"}
+
+// ── SESSION & PERSISTENCE ──
+let persistenceMode='template'; // 'template' or 'session'
+let sessionContext=null; // {code, sessionId, userId, userName, userColor, versionId, versionName}
+let ws=null; // WebSocket connection
+
+// Debounce utility
+function debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms)}}
+
+// Auto-save indicator
+function updateSaveIndicator(status){
+  const el=document.getElementById('saveIndicator');
+  if(!el)return;
+  if(persistenceMode==='template'){el.style.display='none';return}
+  el.style.display='inline';
+  el.className='save-indicator '+status;
+  el.textContent=status==='saving'?'Saving...':status==='saved'?'Saved':status==='error'?'Save error':'';
+  if(status==='saved')setTimeout(()=>{if(el.textContent==='Saved')el.style.display='none'},3000);
+}
+
+// Server save (debounced)
+const debouncedServerSave=debounce(async()=>{
+  if(!sessionContext||!sessionContext.versionId)return;
+  updateSaveIndicator('saving');
+  try{
+    const resp=await fetch(`/api/sessions/${sessionContext.code}/versions/${sessionContext.versionId}`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({stateData:JSON.stringify(state)})
+    });
+    if(!resp.ok)throw new Error('Save failed');
+    updateSaveIndicator('saved');
+  }catch(e){updateSaveIndicator('error');console.error('Auto-save error:',e)}
+},300);
+
+// WebSocket client
+function connectWebSocket(){
+  if(!sessionContext)return;
+  const protocol=location.protocol==='https:'?'wss:':'ws:';
+  ws=new WebSocket(`${protocol}//${location.host}`);
+  ws.onopen=()=>{
+    ws.send(JSON.stringify({type:'auth',sessionId:sessionContext.sessionId,userId:sessionContext.userId,
+      userName:sessionContext.userName,userColor:sessionContext.userColor,versionId:sessionContext.versionId}));
+    // Ping every 20s
+    ws._pingInterval=setInterval(()=>{if(ws.readyState===1)ws.send(JSON.stringify({type:'ping'}))},20000);
+  };
+  ws.onmessage=(event)=>{
+    let msg;try{msg=JSON.parse(event.data)}catch{return}
+    if(msg.type==='state_sync'&&msg.fromUserId!==sessionContext.userId){
+      applyRemoteState(msg.stateData,msg.fromUserName);
+    }else if(msg.type==='presence'){
+      updatePresenceIndicators(msg.users);
+    }
+  };
+  ws.onclose=()=>{
+    if(ws._pingInterval)clearInterval(ws._pingInterval);
+    if(sessionContext)setTimeout(connectWebSocket,2000); // auto-reconnect
+  };
+  ws.onerror=()=>{};
+}
+function disconnectWebSocket(){
+  const old=ws;ws=null;
+  if(old){if(old._pingInterval)clearInterval(old._pingInterval);old.close()}
+}
+function broadcastStateChange(){
+  if(ws&&ws.readyState===1){
+    ws.send(JSON.stringify({type:'state_update',stateData:JSON.stringify(state),timestamp:Date.now()}));
+  }
+}
+function applyRemoteState(stateJson,fromName){
+  const activeEl=document.activeElement;const activeId=activeEl?activeEl.id:null;
+  state=JSON.parse(stateJson);ensureStateFields();
+  if(typeof renderAll==='function')renderAll();
+  if(activeId){const el=document.getElementById(activeId);if(el)el.focus()}
+  showToast(fromName?`Updated by ${fromName}`:'Session updated');
+}
+function showToast(msg){
+  let t=document.getElementById('sessionToast');
+  if(!t){t=document.createElement('div');t.id='sessionToast';
+    t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--accent);color:#fff;padding:8px 16px;border-radius:8px;font-size:.82rem;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none';
+    document.body.appendChild(t)}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.opacity='0'},2500);
+}
+function updatePresenceIndicators(users){
+  const bar=document.getElementById('presenceBar');
+  if(!bar||!sessionContext)return;
+  bar.className='presence-bar active';
+  bar.innerHTML='<span style="color:var(--text-dim);margin-right:4px">Online:</span>'+
+    users.map(u=>{
+      const isMe=u.id===sessionContext.userId;
+      const onDiffVersion=u.versionId!==sessionContext.versionId;
+      const cls=onDiffVersion?'presence-dot muted':'presence-dot';
+      const suffix=onDiffVersion?` (${u.versionName||'other version'})`:'';
+      return `<span class="${cls}" style="--dot-color:${u.color}"><span style="background:${u.color};width:7px;height:7px;border-radius:50%;display:inline-block"></span>${u.name}${isMe?' (you)':''}${suffix}</span>`;
+    }).join('');
+}
+
+// Session modal logic
+function openSessionModal(){
+  const m=document.getElementById('sessionModal');
+  m.classList.add('show');
+  // Reset to step 1
+  m.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sessionStep1').classList.add('active');
+  document.getElementById('sessionCodeInput').value='';
+  document.getElementById('sessionError1').style.display='none';
+  setTimeout(()=>document.getElementById('sessionCodeInput').focus(),100);
+}
+function closeSessionModal(){document.getElementById('sessionModal').classList.remove('show')}
+
+// Session modal event wiring (runs after DOM ready, called from init)
+function initSessionModal(){
+  document.getElementById('sessionModalClose').addEventListener('click',closeSessionModal);
+  document.getElementById('sessionModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSessionModal()});
+
+  // Step 1: Join by code
+  document.getElementById('btnJoinCode').addEventListener('click',async()=>{
+    const code=document.getElementById('sessionCodeInput').value.trim().toUpperCase();
+    const errEl=document.getElementById('sessionError1');
+    if(code.length<3){errEl.textContent='Please enter a valid session code.';errEl.style.display='block';return}
+    try{
+      const resp=await fetch(`/api/sessions/${code}`);
+      if(!resp.ok){errEl.textContent='Session not found. Check your code.';errEl.style.display='block';return}
+      const session=await resp.json();
+      sessionContext={code:session.code,sessionId:session.id,sessionName:session.name};
+      document.getElementById('sessionNameTitle').textContent=session.name||'Session '+session.code;
+      document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+      document.getElementById('sessionStep2').classList.add('active');
+      setTimeout(()=>document.getElementById('sessionDisplayName').focus(),100);
+    }catch(e){errEl.textContent='Connection error. Try again.';errEl.style.display='block'}
+  });
+  document.getElementById('sessionCodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btnJoinCode').click()});
+
+  // Step 2: Enter display name
+  document.getElementById('btnJoinProfile').addEventListener('click',async()=>{
+    const name=document.getElementById('sessionDisplayName').value.trim();
+    const errEl=document.getElementById('sessionError2');
+    if(!name){errEl.textContent='Please enter your name.';errEl.style.display='block';return}
+    try{
+      const resp=await fetch(`/api/sessions/${sessionContext.code}/users`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({displayName:name})
+      });
+      if(!resp.ok){const d=await resp.json();errEl.textContent=d.error||'Error';errEl.style.display='block';return}
+      const user=await resp.json();
+      sessionContext.userId=user.id;sessionContext.userName=user.displayName;sessionContext.userColor=user.color;
+      await enterSession();
+      closeSessionModal();
+    }catch(e){errEl.textContent='Connection error. Try again.';errEl.style.display='block'}
+  });
+  document.getElementById('sessionDisplayName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btnJoinProfile').click()});
+  document.getElementById('btnBackToStep1').addEventListener('click',()=>{
+    document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sessionStep1').classList.add('active');
+  });
+
+  // Admin: Create session
+  document.getElementById('adminCreateLink').addEventListener('click',()=>{
+    document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sessionStepAdmin').classList.add('active');
+    document.getElementById('sessionErrorAdmin').style.display='none';
+    setTimeout(()=>document.getElementById('adminSessionName').focus(),100);
+  });
+  document.getElementById('btnCreateSession').addEventListener('click',async()=>{
+    const name=document.getElementById('adminSessionName').value.trim();
+    const pw=document.getElementById('adminPassword').value;
+    const errEl=document.getElementById('sessionErrorAdmin');
+    if(!name){errEl.textContent='Session name is required.';errEl.style.display='block';return}
+    if(!pw){errEl.textContent='Admin password is required.';errEl.style.display='block';return}
+    try{
+      const resp=await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name,adminPassword:pw})});
+      if(!resp.ok){const d=await resp.json();errEl.textContent=d.error||'Error';errEl.style.display='block';return}
+      const session=await resp.json();
+      document.getElementById('newSessionCode').textContent=session.code;
+      document.getElementById('newSessionName').textContent=session.name;
+      document.getElementById('newSessionName').style.display='block';
+      // Store for potential join
+      sessionContext={code:session.code,sessionId:session.id,sessionName:session.name};
+      document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+      document.getElementById('sessionStepCode').classList.add('active');
+    }catch(e){errEl.textContent='Connection error. Try again.';errEl.style.display='block'}
+  });
+  document.getElementById('btnBackFromAdmin').addEventListener('click',()=>{
+    document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sessionStep1').classList.add('active');
+  });
+
+  // After create: join or close
+  document.getElementById('btnUseNewSession').addEventListener('click',()=>{
+    document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sessionStep2').classList.add('active');
+    document.getElementById('sessionNameTitle').textContent=sessionContext.sessionName||'Session';
+    setTimeout(()=>document.getElementById('sessionDisplayName').focus(),100);
+  });
+  document.getElementById('btnCloseAfterCreate').addEventListener('click',closeSessionModal);
+}
+
+// Enter session: load versions, connect WebSocket, switch to session mode
+async function enterSession(){
+  persistenceMode='session';
+  // Load version list
+  const resp=await fetch(`/api/sessions/${sessionContext.code}/versions`);
+  const versions=await resp.json();
+  if(versions.length>0){
+    // Load most recent version
+    const v=versions[0];
+    const vResp=await fetch(`/api/sessions/${sessionContext.code}/versions/${v.id}`);
+    const vData=await vResp.json();
+    sessionContext.versionId=v.id;sessionContext.versionName=v.name;
+    state=JSON.parse(vData.state_data);ensureStateFields();
+  }else{
+    // Create default version with current state
+    const resp2=await fetch(`/api/sessions/${sessionContext.code}/versions`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:'Default',stateData:JSON.stringify(state),userId:sessionContext.userId})
+    });
+    const v=await resp2.json();
+    sessionContext.versionId=v.id;sessionContext.versionName='Default';
+  }
+  // Save to sessionStorage for refresh persistence
+  sessionStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
+  // Update UI
+  updateSessionUI();
+  initDropdowns();renderAll();
+  connectWebSocket();
+}
+
+// Leave session
+function leaveSession(){
+  persistenceMode='template';
+  disconnectWebSocket();
+  sessionContext=null;
+  sessionStorage.removeItem('compPlanSession');
+  updateSessionUI();
+  loadState();initDropdowns();renderAll();
+}
+
+// Update UI for current mode
+function updateSessionUI(){
+  const banner=document.getElementById('templateBanner');
+  const indicator=document.getElementById('wsIndicator');
+  const presenceBar=document.getElementById('presenceBar');
+  if(persistenceMode==='session'&&sessionContext){
+    banner.style.display='none';
+    indicator.innerHTML=`Session: <strong style="color:var(--accent)">${sessionContext.code}</strong> | `+
+      `Version: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage versions">${sessionContext.versionName||'Default'}</span>`+
+      ` | <span style="font-size:.75rem;color:var(--text-dim)">${sessionContext.userName}</span>`+
+      ` <span style="cursor:pointer;font-size:.72rem;color:var(--danger);margin-left:4px" onclick="leaveSession()" title="Leave session">Leave</span>`+
+      `<span class="save-indicator" id="saveIndicator" style="display:none"></span>`;
+  }else{
+    banner.style.display='flex';
+    indicator.innerHTML='Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">'+currentWorkspaceName+'</span>'+
+      '<span class="save-indicator" id="saveIndicator" style="display:none"></span>';
+    presenceBar.className='presence-bar';presenceBar.innerHTML='';
+  }
+}
+
 // ── DATA ──
 const COUNTRIES = ['United States','United Kingdom','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
 const COUNTRY_SHORT = ['US','UK','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
@@ -1714,7 +2074,10 @@ function ensureStateFields(){
     }
   });
 }
-function saveState(){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
+function saveState(){
+  if(persistenceMode==='template'){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
+  else{debouncedServerSave();broadcastStateChange()}
+}
 function getBonusPct(emp){if(!emp||!emp.seniority)return 10;return state.bonusMatrix[emp.seniority]?.[emp.function]??DEFAULT_BONUS[emp.seniority]??10}
 function getBonusAmt(emp){if(!emp)return 0;return Math.round((emp.salary||0)*getBonusPct(emp)/100)}
 function getBenefitsPct(emp){
@@ -4491,10 +4854,13 @@ function saveWorkspaceIndex(idx){
 }
 
 function updateWsDisplay(){
-  document.getElementById('wsNameDisplay').textContent=currentWorkspaceName;
+  if(persistenceMode==='session'&&sessionContext){updateSessionUI();return}
+  const el=document.getElementById('wsNameDisplay');
+  if(el)el.textContent=currentWorkspaceName;
 }
 
-function saveWorkspaceAs(name){
+// ── LOCAL workspace functions (template mode) ──
+function saveWorkspaceAsLocal(name){
   if(!name||!name.trim())return;
   name=name.trim();
   const idx=getWorkspaceIndex();
@@ -4510,70 +4876,127 @@ function saveWorkspaceAs(name){
   updateWsDisplay();
   renderWorkspaceList();
 }
-
-function loadWorkspace(key,name){
+function loadWorkspaceLocal(key,name){
   if(!confirm(`Load workspace "${name}"? Any unsaved changes to "${currentWorkspaceName}" will be lost.`))return;
   const raw=localStorage.getItem(key);
   if(!raw){alert('Workspace data not found');return}
-  state=JSON.parse(raw);
-  ensureStateFields();
-  currentWorkspaceName=name;
-  localStorage.setItem('compPlanActiveWS',name);
-  saveState();
-  updateWsDisplay();
-  initDropdowns();
-  renderAll();
+  state=JSON.parse(raw);ensureStateFields();
+  currentWorkspaceName=name;localStorage.setItem('compPlanActiveWS',name);
+  saveState();updateWsDisplay();initDropdowns();renderAll();
 }
-
-function deleteWorkspace(key,name){
+function deleteWorkspaceLocal(key,name){
   if(!confirm(`Delete workspace "${name}"? This cannot be undone.`))return;
   localStorage.removeItem(key);
-  let idx=getWorkspaceIndex();
-  idx=idx.filter(w=>w.key!==key);
-  saveWorkspaceIndex(idx);
-  renderWorkspaceList();
+  let idx=getWorkspaceIndex();idx=idx.filter(w=>w.key!==key);saveWorkspaceIndex(idx);renderWorkspaceList();
 }
-
-function renameWorkspace(key,oldName){
+function renameWorkspaceLocal(key,oldName){
   const newName=prompt('Rename workspace:',oldName);
   if(!newName||!newName.trim()||newName.trim()===oldName)return;
   const trimmed=newName.trim();
   const newKey='ws_'+trimmed.replace(/[^a-zA-Z0-9_-]/g,'_');
   const idx=getWorkspaceIndex();
   if(newKey!==key&&idx.find(w=>w.key===newKey)){alert('A workspace with that name already exists');return}
-  const entry=idx.find(w=>w.key===key);
-  if(!entry)return;
-  if(newKey!==key){
-    const data=localStorage.getItem(key);
-    localStorage.setItem(newKey,data);
-    localStorage.removeItem(key);
-    entry.key=newKey;
-  }
-  entry.name=trimmed;
-  saveWorkspaceIndex(idx);
-  if(currentWorkspaceName===oldName){
-    currentWorkspaceName=trimmed;
-    localStorage.setItem('compPlanActiveWS',trimmed);
-    updateWsDisplay();
-  }
+  const entry=idx.find(w=>w.key===key);if(!entry)return;
+  if(newKey!==key){const data=localStorage.getItem(key);localStorage.setItem(newKey,data);localStorage.removeItem(key);entry.key=newKey}
+  entry.name=trimmed;saveWorkspaceIndex(idx);
+  if(currentWorkspaceName===oldName){currentWorkspaceName=trimmed;localStorage.setItem('compPlanActiveWS',trimmed);updateWsDisplay()}
   renderWorkspaceList();
 }
-
-function duplicateWorkspace(key,name){
+function duplicateWorkspaceLocal(key,name){
   const newName=prompt('Name for the copy:',name+' (Copy)');
   if(!newName||!newName.trim())return;
   const newKey='ws_'+newName.trim().replace(/[^a-zA-Z0-9_-]/g,'_');
   const idx=getWorkspaceIndex();
   if(idx.find(w=>w.key===newKey)){alert('A workspace with that name already exists');return}
-  const data=localStorage.getItem(key);
-  localStorage.setItem(newKey,data);
+  const data=localStorage.getItem(key);localStorage.setItem(newKey,data);
   const parsed=data?JSON.parse(data):null;
   idx.push({key:newKey,name:newName.trim(),savedAt:new Date().toISOString(),employees:parsed?.employees?.length||0,projects:parsed?.projects?.length||0});
-  saveWorkspaceIndex(idx);
-  renderWorkspaceList();
+  saveWorkspaceIndex(idx);renderWorkspaceList();
+}
+
+// ── SERVER version functions (session mode) ──
+async function saveVersionToServer(name){
+  if(!sessionContext)return;
+  try{
+    const resp=await fetch(`/api/sessions/${sessionContext.code}/versions`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:name.trim(),stateData:JSON.stringify(state),userId:sessionContext.userId})
+    });
+    if(!resp.ok){const d=await resp.json();alert(d.error||'Error saving version');return}
+    const v=await resp.json();
+    sessionContext.versionId=v.id;sessionContext.versionName=v.name;
+    sessionStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
+    updateSessionUI();renderWorkspaceList();
+    if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'switch_version',versionId:v.id}));
+    showToast('Version saved: '+v.name);
+  }catch(e){alert('Error saving version')}
+}
+async function loadVersionFromServer(versionId,name){
+  if(!sessionContext)return;
+  try{
+    const resp=await fetch(`/api/sessions/${sessionContext.code}/versions/${versionId}`);
+    if(!resp.ok){alert('Version not found');return}
+    const v=await resp.json();
+    state=JSON.parse(v.state_data);ensureStateFields();
+    sessionContext.versionId=v.id;sessionContext.versionName=v.name;
+    sessionStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
+    updateSessionUI();initDropdowns();renderAll();
+    if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'switch_version',versionId:v.id}));
+    showToast('Loaded: '+v.name);
+  }catch(e){alert('Error loading version')}
+}
+async function deleteVersionFromServer(versionId,name){
+  if(!confirm(`Delete version "${name}"? This cannot be undone.`))return;
+  try{
+    const resp=await fetch(`/api/sessions/${sessionContext.code}/versions/${versionId}`,{method:'DELETE'});
+    if(!resp.ok){const d=await resp.json();alert(d.error||'Error');return}
+    renderWorkspaceList();
+  }catch(e){alert('Error deleting version')}
+}
+async function renameVersionOnServer(versionId,oldName){
+  const newName=prompt('Rename version:',oldName);
+  if(!newName||!newName.trim()||newName.trim()===oldName)return;
+  try{
+    const resp=await fetch(`/api/sessions/${sessionContext.code}/versions/${versionId}/rename`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:newName.trim()})
+    });
+    if(!resp.ok){const d=await resp.json();alert(d.error||'Error');return}
+    if(sessionContext.versionId===versionId){sessionContext.versionName=newName.trim();sessionStorage.setItem('compPlanSession',JSON.stringify(sessionContext));updateSessionUI()}
+    renderWorkspaceList();
+  }catch(e){alert('Error renaming version')}
+}
+async function duplicateVersionOnServer(versionId,name){
+  const newName=prompt('Name for the copy:',name+' (Copy)');
+  if(!newName||!newName.trim())return;
+  try{
+    const resp=await fetch(`/api/sessions/${sessionContext.code}/versions/${versionId}/duplicate`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:newName.trim(),userId:sessionContext.userId})
+    });
+    if(!resp.ok){const d=await resp.json();alert(d.error||'Error');return}
+    renderWorkspaceList();showToast('Version duplicated');
+  }catch(e){alert('Error duplicating version')}
+}
+
+// ── Unified workspace/version wrapper functions ──
+function saveWorkspaceAs(name){
+  if(persistenceMode==='session'){saveVersionToServer(name)}else{saveWorkspaceAsLocal(name)}
+}
+function loadWorkspace(keyOrId,name){
+  if(persistenceMode==='session'){loadVersionFromServer(keyOrId,name)}else{loadWorkspaceLocal(keyOrId,name)}
+}
+function deleteWorkspace(keyOrId,name){
+  if(persistenceMode==='session'){deleteVersionFromServer(keyOrId,name)}else{deleteWorkspaceLocal(keyOrId,name)}
+}
+function renameWorkspace(keyOrId,name){
+  if(persistenceMode==='session'){renameVersionOnServer(keyOrId,name)}else{renameWorkspaceLocal(keyOrId,name)}
+}
+function duplicateWorkspace(keyOrId,name){
+  if(persistenceMode==='session'){duplicateVersionOnServer(keyOrId,name)}else{duplicateWorkspaceLocal(keyOrId,name)}
 }
 
 function renderWorkspaceList(){
+  if(persistenceMode==='session'){renderVersionList();return}
   const idx=getWorkspaceIndex();
   const container=document.getElementById('wsListContainer');
   if(!idx.length){
@@ -4603,47 +5026,105 @@ function renderWorkspaceList(){
   container.innerHTML=html;
 }
 
-function openWorkspaceModal(){
-  const modal=document.getElementById('wsModal');
-  const idx=getWorkspaceIndex();
-  let html='<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Current: <strong style="color:var(--accent)">'+currentWorkspaceName+'</strong></p>';
-  if(idx.length){
-    html+='<ul class="ws-list" style="border:1px solid var(--border-light);border-radius:6px;max-height:300px;overflow-y:auto">';
-    idx.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)).forEach(w=>{
-      const isActive=w.name===currentWorkspaceName;
-      const esc=w.name.replace(/'/g,"\\'");
+// Render version list (session mode)
+async function renderVersionList(){
+  const container=document.getElementById('wsListContainer');
+  if(!container||!sessionContext)return;
+  container.innerHTML='<p style="color:var(--text-dim);font-size:.82rem">Loading versions...</p>';
+  try{
+    const resp=await fetch(`/api/sessions/${sessionContext.code}/versions`);
+    const versions=await resp.json();
+    if(!versions.length){container.innerHTML='<p style="color:var(--text-dim);font-size:.85rem">No versions yet.</p>';return}
+    let html='<ul class="ws-list">';
+    versions.forEach(v=>{
+      const isActive=v.id===sessionContext.versionId;
+      const date=new Date(v.updated_at);
+      const dateStr=date.toLocaleDateString()+' '+date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      const esc=v.name.replace(/'/g,"\\'");
       html+=`<li>
         <div class="ws-info">
-          <div class="ws-title">${w.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
-          <div class="ws-meta">${w.employees||0} employees, ${w.projects||0} projects</div>
+          <div class="ws-title">${v.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
+          <div class="ws-meta">${v.created_by_name?'by '+v.created_by_name+' — ':''}Updated ${dateStr}</div>
         </div>
-        ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadWorkspace('${w.key}','${esc}');closeWorkspaceModal()">Load</button>`:''}
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadVersionFromServer(${v.id},'${esc}')">Load</button>`:''}
+          <button class="btn btn-sm" onclick="renameVersionOnServer(${v.id},'${esc}')">Rename</button>
+          <button class="btn btn-sm" onclick="duplicateVersionOnServer(${v.id},'${esc}')">Copy</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteVersionFromServer(${v.id},'${esc}')">Del</button>
+        </div>
       </li>`;
     });
     html+='</ul>';
-  } else {
-    html+='<p style="color:var(--text-dim);font-size:.85rem">No saved workspaces. Go to the Export tab to save one.</p>';
+    container.innerHTML=html;
+  }catch(e){container.innerHTML='<p style="color:var(--danger);font-size:.82rem">Error loading versions</p>'}
+}
+
+function openWorkspaceModal(){
+  const modal=document.getElementById('wsModal');
+  if(persistenceMode==='session'&&sessionContext){
+    // Session mode: show versions
+    let html='<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Session: <strong style="color:var(--accent)">'+sessionContext.code+'</strong> | Current: <strong style="color:var(--accent)">'+(sessionContext.versionName||'Default')+'</strong></p>';
+    html+='<div id="wsModalVersionList"><p style="color:var(--text-dim);font-size:.82rem">Loading...</p></div>';
+    document.getElementById('wsModalContent').innerHTML=html;
+    modal.classList.add('show');
+    // Load versions async
+    fetch(`/api/sessions/${sessionContext.code}/versions`).then(r=>r.json()).then(versions=>{
+      const listEl=document.getElementById('wsModalVersionList');
+      if(!listEl)return;
+      if(!versions.length){listEl.innerHTML='<p style="color:var(--text-dim);font-size:.82rem">No versions.</p>';return}
+      let h='<ul class="ws-list" style="border:1px solid var(--border-light);border-radius:6px;max-height:300px;overflow-y:auto">';
+      versions.forEach(v=>{
+        const isActive=v.id===sessionContext.versionId;
+        const esc=v.name.replace(/'/g,"\\'");
+        h+=`<li><div class="ws-info"><div class="ws-title">${v.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
+          <div class="ws-meta">${v.created_by_name?v.created_by_name+' — ':''}${new Date(v.updated_at).toLocaleDateString()}</div></div>
+          ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadVersionFromServer(${v.id},'${esc}');closeWorkspaceModal()">Load</button>`:''}</li>`;
+      });
+      h+='</ul>';
+      listEl.innerHTML=h;
+    }).catch(()=>{});
+  }else{
+    // Template mode: show local workspaces
+    const idx=getWorkspaceIndex();
+    let html='<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px">Current: <strong style="color:var(--accent)">'+currentWorkspaceName+'</strong></p>';
+    if(idx.length){
+      html+='<ul class="ws-list" style="border:1px solid var(--border-light);border-radius:6px;max-height:300px;overflow-y:auto">';
+      idx.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)).forEach(w=>{
+        const isActive=w.name===currentWorkspaceName;
+        const esc=w.name.replace(/'/g,"\\'");
+        html+=`<li><div class="ws-info"><div class="ws-title">${w.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
+          <div class="ws-meta">${w.employees||0} employees, ${w.projects||0} projects</div></div>
+          ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadWorkspace('${w.key}','${esc}');closeWorkspaceModal()">Load</button>`:''}</li>`;
+      });
+      html+='</ul>';
+    }else{
+      html+='<p style="color:var(--text-dim);font-size:.85rem">No saved workspaces. Go to the Export tab to save one.</p>';
+    }
+    document.getElementById('wsModalContent').innerHTML=html;
+    modal.classList.add('show');
   }
-  document.getElementById('wsModalContent').innerHTML=html;
-  modal.classList.add('show');
 }
 function closeWorkspaceModal(){document.getElementById('wsModal').classList.remove('show')}
 document.getElementById('wsModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeWorkspaceModal()});
 
 document.getElementById('btnWsSave').addEventListener('click',()=>{
   const name=document.getElementById('wsSaveName').value.trim();
-  if(!name){alert('Please enter a workspace name');return}
+  if(!name){alert('Please enter a name');return}
   saveWorkspaceAs(name);
   document.getElementById('wsSaveName').value='';
 });
 document.getElementById('btnWsQuickSave').addEventListener('click',()=>{
-  saveWorkspaceAs(currentWorkspaceName);
+  if(persistenceMode==='session'&&sessionContext){
+    saveWorkspaceAs(sessionContext.versionName||'Default');
+  }else{
+    saveWorkspaceAs(currentWorkspaceName);
+  }
 });
 
-// Auto-save current workspace every 60 seconds
+// Auto-save current workspace every 60 seconds (template mode only; session mode auto-saves on each change)
 setInterval(()=>{
-  if(state.employees&&state.employees.length>0&&currentWorkspaceName){
-    saveWorkspaceAs(currentWorkspaceName);
+  if(persistenceMode==='template'&&state.employees&&state.employees.length>0&&currentWorkspaceName){
+    saveWorkspaceAsLocal(currentWorkspaceName);
   }
 },60000);
 
@@ -6053,11 +6534,135 @@ function initDataPanel(){
   document.getElementById('dataPanelExportHTML').addEventListener('click',()=>{
     document.getElementById('btnExportHTML').click();
   });
+
+  // Full Data Export (Excel with all sheets)
+  document.getElementById('dataPanelFullExport').addEventListener('click',()=>{
+    if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}
+    const wb=XLSX.utils.book_new();
+    const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    // Sheet 1: Employees
+    const empRows=state.employees.map(e=>{
+      const row={Name:e.name,Country:e.country,Seniority:e.seniority,Function:e.function,
+        Salary:e.salary,'Bonus %':getBonusPct(e),'Bonus $':getBonusAmt(e),
+        'Benefits %':getBenefitsPct(e),'Benefits $':getBenefitsAmt(e),
+        'Total Comp':getTotalComp(e),'Cap %':e.capPct||0,
+        'CapEx':Math.round(getTotalComp(e)*(e.capPct||0)/100),
+        'OpEx':Math.round(getTotalComp(e)*(1-(e.capPct||0)/100)),
+        'Hire Date':e.hireDate||'','Term Date':e.termDate||'',
+        Market:e.marketCode||'','Business Line':e.businessLine||'',
+        'Business Unit':e.businessUnit||'',Notes:e.notes||''};
+      // Add allocation info
+      if(e.allocations&&e.allocations.length){
+        e.allocations.forEach((a,i)=>{
+          const proj=state.projects.find(p=>p.id===a.projId);
+          row[`Alloc ${i+1} Project`]=proj?proj.code:'';
+          row[`Alloc ${i+1} %`]=a.pct;
+        });
+      }
+      return row;
+    });
+    if(empRows.length){
+      const ws1=XLSX.utils.json_to_sheet(empRows);
+      XLSX.utils.book_append_sheet(wb,ws1,'Employees');
+    }
+
+    // Sheet 2: Projects
+    const projRows=state.projects.map(p=>({Code:p.code,Name:p.name,Category:p.category||'',
+      Product:p.product||'',Description:p.description||'',Market:p.marketCode||'','Cap %':p.capPct||0}));
+    if(projRows.length){
+      const ws2=XLSX.utils.json_to_sheet(projRows);
+      XLSX.utils.book_append_sheet(wb,ws2,'Projects');
+    }
+
+    // Sheet 3: Vendor Spend
+    if(state.vendorRows&&state.vendorRows.length){
+      const vendorData=state.vendorRows.map(r=>{
+        const row={'Parent Co':r.parentCo||'','Vendor Name':r.vendorName||'','Vendor Type':r.vendorType||'',
+          'Business Unit':r.businessUnit||'','Biz Line':r.bizLine||'',Market:r.market||'',
+          Project:r.project||'','Account Desc':r.acctDesc||'',Notes:r.notes||''};
+        MO_NAMES.forEach((m,i)=>{row[MO_LABELS[i]]=r[m]||0});
+        row['Full Year']=MO_NAMES.reduce((s,m)=>s+(r[m]||0),0);
+        return row;
+      });
+      const ws3=XLSX.utils.json_to_sheet(vendorData);
+      XLSX.utils.book_append_sheet(wb,ws3,'Vendor Spend');
+    }
+
+    // Sheet 4: T&E
+    if(state.teRows&&state.teRows.length){
+      const teData=state.teRows.map(r=>{
+        const row={'Expense Type':r.expenseType||'',Description:r.description||'',
+          'Business Unit':r.businessUnit||'','Biz Line':r.bizLine||'',Market:r.market||'',
+          Project:r.project||'','Account Desc':r.acctDesc||'',Notes:r.notes||''};
+        MO_NAMES.forEach((m,i)=>{row[MO_LABELS[i]]=r[m]||0});
+        row['Full Year']=MO_NAMES.reduce((s,m)=>s+(r[m]||0),0);
+        return row;
+      });
+      const ws4=XLSX.utils.json_to_sheet(teData);
+      XLSX.utils.book_append_sheet(wb,ws4,'T&E');
+    }
+
+    // Sheet 5: Bonus Matrix
+    const bonusRows=[];
+    Object.keys(state.bonusMatrix||{}).forEach(sen=>{
+      const row={Seniority:sen};
+      Object.keys(state.bonusMatrix[sen]||{}).forEach(fn=>{row[fn]=state.bonusMatrix[sen][fn]});
+      bonusRows.push(row);
+    });
+    if(bonusRows.length){
+      const ws5=XLSX.utils.json_to_sheet(bonusRows);
+      XLSX.utils.book_append_sheet(wb,ws5,'Bonus Matrix');
+    }
+
+    // Sheet 6: Benefits Matrix
+    const benRows=[];
+    Object.keys(state.benefitsMatrix||{}).forEach(sen=>{
+      const row={Seniority:sen};
+      Object.keys(state.benefitsMatrix[sen]||{}).forEach(fn=>{row[fn]=state.benefitsMatrix[sen][fn]});
+      benRows.push(row);
+    });
+    if(benRows.length){
+      const ws6=XLSX.utils.json_to_sheet(benRows);
+      XLSX.utils.book_append_sheet(wb,ws6,'Benefits Matrix');
+    }
+
+    // Sheet 7: Accounts
+    if(state.accounts&&state.accounts.length){
+      const acctRows=state.accounts.map(a=>({Code:a.code,Description:a.description,Category:a.category||'',Group:a.group||''}));
+      const ws7=XLSX.utils.json_to_sheet(acctRows);
+      XLSX.utils.book_append_sheet(wb,ws7,'Accounts');
+    }
+
+    const fileName=`CompPlan_FullExport_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb,fileName);
+    showToast('Exported: '+fileName);
+  });
 }
 
 function renderDataPanelWsList(){
   const container=document.getElementById('dataPanelWsList');
   if(!container)return;
+  if(persistenceMode==='session'&&sessionContext){
+    // Session mode: show versions
+    container.innerHTML='<div style="color:var(--text-dim);font-size:.78rem;padding:4px">Loading versions...</div>';
+    fetch(`/api/sessions/${sessionContext.code}/versions`).then(r=>r.json()).then(versions=>{
+      if(!versions.length){container.innerHTML='<div style="color:var(--text-dim);font-size:.78rem;padding:4px">No versions</div>';return}
+      let html='';
+      versions.forEach(v=>{
+        const isActive=v.id===sessionContext.versionId;
+        const esc=v.name.replace(/'/g,"\\'");
+        html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">
+          <span style="flex:1;color:var(--text)">${v.name}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>
+          ${!isActive?`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadVersionFromServer(${v.id},'${esc}');renderDataPanelWsList()">Load</button>`:''}
+          <button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteVersionFromServer(${v.id},'${esc}');renderDataPanelWsList()">×</button>
+        </div>`;
+      });
+      container.innerHTML=html;
+    }).catch(()=>{container.innerHTML='<div style="color:var(--danger);font-size:.78rem;padding:4px">Error</div>'});
+    return;
+  }
   const idx=getWorkspaceIndex();
   if(!idx.length){container.innerHTML='<div style="color:var(--text-dim);font-size:.78rem;padding:4px">No saved workspaces</div>';return}
   let html='';
@@ -6845,11 +7450,38 @@ document.querySelector('#appShell header .container').insertBefore(backBtn,docum
 
 // ── INIT ──
 function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
-loadState();
-currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
-updateWsDisplay();
-initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-renderPnlWalk();
+
+// Check for session auto-reconnect
+(async function initApp(){
+  const savedSession=sessionStorage.getItem('compPlanSession');
+  if(savedSession){
+    try{
+      sessionContext=JSON.parse(savedSession);
+      // Verify session still exists
+      const resp=await fetch(`/api/sessions/${sessionContext.code}`);
+      if(resp.ok){
+        persistenceMode='session';
+        // Load the version
+        const vResp=await fetch(`/api/sessions/${sessionContext.code}/versions/${sessionContext.versionId}`);
+        if(vResp.ok){
+          const v=await vResp.json();
+          state=JSON.parse(v.state_data);ensureStateFields();
+          updateSessionUI();initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
+          initSessionModal();renderPnlWalk();connectWebSocket();
+          return;
+        }
+      }
+    }catch(e){/* fall through to template mode */}
+    // Failed to reconnect — fall back to template
+    sessionContext=null;sessionStorage.removeItem('compPlanSession');
+  }
+  // Template mode
+  loadState();
+  currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
+  updateWsDisplay();updateSessionUI();
+  initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
+  initSessionModal();renderPnlWalk();
+})();
 
 // ── Universal Sticky Notes ──
 (function(){
