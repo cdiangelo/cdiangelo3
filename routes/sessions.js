@@ -20,13 +20,11 @@ function generateCode() {
 }
 
 // Create session (admin only)
+const ADMIN_PASSWORD = 'alphabetsoup';
+
 router.post('/', async (req, res) => {
   const { name, adminPassword } = req.body;
-  const serverPassword = process.env.ADMIN_PASSWORD;
-  if (!serverPassword) {
-    return res.status(500).json({ error: 'Server ADMIN_PASSWORD not configured' });
-  }
-  if (!adminPassword || adminPassword !== serverPassword) {
+  if (!adminPassword || adminPassword !== ADMIN_PASSWORD) {
     return res.status(403).json({ error: 'Invalid admin password' });
   }
   if (!name || !name.trim()) {
