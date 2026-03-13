@@ -1813,6 +1813,12 @@ function initSessionModal(){
     try{
       const resp=await fetch('/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name,adminPassword:pw})});
+      const ct=resp.headers.get('content-type')||'';
+      if(!ct.includes('application/json')){
+        const txt=await resp.text();
+        console.error('Non-JSON response:',resp.status,txt.substring(0,200));
+        errEl.textContent='Server returned non-JSON response (status '+resp.status+'). Is the server running?';errEl.style.display='block';return;
+      }
       if(!resp.ok){const d=await resp.json();errEl.textContent=d.error||'Error';errEl.style.display='block';return}
       const session=await resp.json();
       document.getElementById('newSessionCode').textContent=session.code;

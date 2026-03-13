@@ -18,9 +18,14 @@ app.use('/api/sessions', sessionsRouter);
 app.use('/api/sessions/:code/users', usersRouter);
 app.use('/api/sessions/:code/versions', versionsRouter);
 
-// Serve the app
+// Serve the app — must come AFTER API routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Catch-all: return 404 JSON for unknown API routes instead of HTML
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'Not found' });
 });
 
 // Initialize DB and WebSocket
