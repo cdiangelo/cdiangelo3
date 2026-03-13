@@ -2039,7 +2039,7 @@ async function enterSession(){
     sessionContext.versionId=v.id;sessionContext.versionName='Default';
   }
   // Save to sessionStorage for refresh persistence
-  sessionStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
+  localStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
   // Update UI
   updateSessionUI();
   initDropdowns();renderAll();
@@ -2051,7 +2051,7 @@ function leaveSession(){
   persistenceMode='template';
   disconnectWebSocket();
   sessionContext=null;
-  sessionStorage.removeItem('compPlanSession');
+  localStorage.removeItem('compPlanSession');
   updateSessionUI();
   loadState();initDropdowns();renderAll();
 }
@@ -5132,7 +5132,7 @@ async function saveVersionToServer(name){
     if(!resp.ok){const d=await resp.json();alert(d.error||'Error saving version');return}
     const v=await resp.json();
     sessionContext.versionId=v.id;sessionContext.versionName=v.name;
-    sessionStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
+    localStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
     updateSessionUI();renderWorkspaceList();
     if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'switch_version',versionId:v.id}));
     showToast('Version saved: '+v.name);
@@ -5146,7 +5146,7 @@ async function loadVersionFromServer(versionId,name){
     const v=await resp.json();
     state=JSON.parse(v.state_data);ensureStateFields();
     sessionContext.versionId=v.id;sessionContext.versionName=v.name;
-    sessionStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
+    localStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
     updateSessionUI();initDropdowns();renderAll();
     if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'switch_version',versionId:v.id}));
     showToast('Loaded: '+v.name);
@@ -5168,7 +5168,7 @@ async function renameVersionOnServer(versionId,oldName){
       method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:newName.trim()})
     });
     if(!resp.ok){const d=await resp.json();alert(d.error||'Error');return}
-    if(sessionContext.versionId===versionId){sessionContext.versionName=newName.trim();sessionStorage.setItem('compPlanSession',JSON.stringify(sessionContext));updateSessionUI()}
+    if(sessionContext.versionId===versionId){sessionContext.versionName=newName.trim();localStorage.setItem('compPlanSession',JSON.stringify(sessionContext));updateSessionUI()}
     renderWorkspaceList();
   }catch(e){alert('Error renaming version')}
 }
@@ -6313,12 +6313,6 @@ function handleBudgetChat(text){
   addChatMsg('budgetChatMessages',response,result.ok?'system':'error');
   // Re-sync forecast baseline from budget scenario employees
   if(result.ok){
-    // Auto-apply scenario to state so all views reflect changes immediately
-    state.employees=JSON.parse(JSON.stringify(budgetScenario.emps));
-    state.vendorRows=JSON.parse(JSON.stringify(budgetScenario.vendorRows));
-    state.teRows=JSON.parse(JSON.stringify(budgetScenario.teRows));
-    saveState();
-    renderAll();
     initForecastScenario();renderFcScenarioChart();
   }
   renderScenarioPnlSummary();
@@ -6343,13 +6337,6 @@ function handleFcChat(text){
     if(!fcUndoStack.length)document.getElementById('scenFcUndo').style.display='none';
   }
   addChatMsg('fcChatMessages',response,result.ok?'system':'error');
-  if(result.ok){
-    // Auto-apply forecast scenario to state so all views reflect changes immediately
-    state.employees=JSON.parse(JSON.stringify(forecastScenario.emps));
-    state.forecastAssumptions=JSON.parse(JSON.stringify(forecastScenario.assumptions));
-    saveState();
-    renderAll();
-  }
   renderScenarioPnlSummary();
 }
 
@@ -7671,11 +7658,11 @@ backBtn.addEventListener('click',showLanding);
 document.querySelector('#appShell header .container').insertBefore(backBtn,document.querySelector('#appShell header .container').children[1]);
 
 // ── INIT ──
-function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList()}
+function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList();renderPnlWalk()}
 
 // Check for session auto-reconnect
 (async function initApp(){
-  const savedSession=sessionStorage.getItem('compPlanSession');
+  const savedSession=localStorage.getItem('compPlanSession');
   if(savedSession){
     try{
       sessionContext=JSON.parse(savedSession);
@@ -7695,7 +7682,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
       }
     }catch(e){/* fall through to template mode */}
     // Failed to reconnect — fall back to template
-    sessionContext=null;sessionStorage.removeItem('compPlanSession');
+    sessionContext=null;localStorage.removeItem('compPlanSession');
   }
   // Template mode
   loadState();
