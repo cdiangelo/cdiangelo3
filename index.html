@@ -10363,13 +10363,13 @@ function renderPnlWalk(){
   // Columns = P&L line items
   const cols=[
     {key:'hc',label:'HC',isCurrency:false},
-    {key:'cbOpex',label:'C&B OpEx',isCurrency:true},
+    {key:'cbOpex',label:'C&B',isCurrency:true},
     {key:'oao',label:'OAO',isCurrency:true},
-    {key:'adjEbitda',label:'Adj. EBITDA',isCurrency:true,cls:'subtotal'},
+    {key:'adjEbitda',label:'Adj EBITDA',isCurrency:true,cls:'subtotal'},
     {key:'da',label:'D&A',isCurrency:true},
-    {key:'totalOpex',label:'Total OpEx',isCurrency:true,cls:'subtotal'},
+    {key:'totalOpex',label:'OpEx',isCurrency:true,cls:'subtotal'},
     {key:'capex',label:'CapEx',isCurrency:true},
-    {key:'totInv',label:'Total Investment',isCurrency:true,cls:'total'}
+    {key:'totInv',label:'Tot Inv',isCurrency:true,cls:'total'}
   ];
 
   function fmtCell(c,v){
@@ -10377,8 +10377,8 @@ function renderPnlWalk(){
     return `<td class="num" style="${style}">${c.isCurrency?fmt(v):v}</td>`;
   }
 
-  let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset)">Product Category</th>';
-  cols.forEach(c=>h+=`<th style="text-align:right;white-space:nowrap">${c.label}</th>`);
+  let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap">Product Category</th>';
+  cols.forEach(c=>{const wrap=c.label.length>12?'white-space:normal;max-width:70px':'white-space:nowrap';h+=`<th style="text-align:right;${wrap}">${c.label}</th>`});
   h+='</tr></thead><tbody>';
 
   catKeys.forEach(cat=>{
