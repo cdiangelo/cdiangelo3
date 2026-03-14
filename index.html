@@ -1206,7 +1206,9 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="empPivotTableWrap" style="overflow:auto;max-height:220px"><table class="pnl-walk-table" id="empPivotTable" style="font-size:.76rem"></table></div>
 </div>
 </div>
-<div class="controls" style="justify-content:flex-end;margin-bottom:8px">
+<div class="controls" style="justify-content:flex-end;margin-bottom:8px;gap:6px">
+<button class="btn" id="btnImportRoster" style="padding:4px 12px;font-size:.82rem">Import Roster</button>
+<input type="file" id="empInlineRosterFile" accept=".xlsx,.xls,.csv" style="display:none">
 <button class="btn" id="btnClearAllEmps" style="background:var(--danger);color:#fff">Clear All</button>
 </div>
 <div class="emp-filter-bar" style="display:flex;flex-wrap:nowrap;gap:6px;align-items:center;margin-bottom:8px;padding:6px 10px;background:var(--panel-inset);border-radius:6px;border:1px solid var(--border);overflow-x:auto">
@@ -3999,6 +4001,15 @@ function startEdit(id){
 }
 function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);delete state.allocOverrides[id];saveState();renderAll()}}
 document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('Remove all employees? This cannot be undone.')){state.employees=[];state.allocOverrides={};saveState();renderAll()}});
+document.getElementById('btnImportRoster').addEventListener('click',()=>document.getElementById('empInlineRosterFile').click());
+document.getElementById('empInlineRosterFile').addEventListener('change',function(){
+  const mainInput=document.getElementById('rosterFileInput');
+  const dt=new DataTransfer();
+  if(this.files[0])dt.items.add(this.files[0]);
+  mainInput.files=dt.files;
+  mainInput.dispatchEvent(new Event('change'));
+  this.value='';
+});
 
 let inlineEditId=null;
 let inlineEditAllocs=null;
