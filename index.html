@@ -1724,6 +1724,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <nav style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap" id="vendorNav">
 <button class="btn active" data-vtab="vendor-grid">Vendor Spend</button>
 <button class="btn" data-vtab="vendor-te">T&amp;E</button>
+<button class="btn" data-vtab="vendor-contractors">Contractors</button>
 <button class="btn" data-vtab="vendor-dims">Dimensions</button>
 <button class="btn" data-vtab="vendor-scratch">Scratch Pad</button>
 </nav>
@@ -2060,6 +2061,106 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <tbody id="teTotalRow"></tbody>
 <tbody id="teTbody"></tbody>
 <tfoot id="teTfoot" style="display:none"></tfoot>
+</table>
+</div>
+</div>
+</div>
+
+<!-- Contractors Tab -->
+<div id="vtab-vendor-contractors" class="vtab-content" style="display:none">
+
+<!-- Contractor Month Range Filter -->
+<div id="contractorMonthRangeWrap" style="margin-bottom:10px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:2px;display:block">Month Range</label>
+<div id="contractorMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div><div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div><div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div><div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<div id="contractorMonthRangeLabel" style="font-size:.65rem;color:var(--text-dim);margin-top:2px">All months (click or drag to select range)</div>
+</div>
+
+<!-- Contractor Quick-Adjust Panel -->
+<div class="qa-panel" id="contractorQaPanel">
+<div class="qa-panel-header" id="contractorQaToggle">
+<h4><span style="color:#6366f1">&#9654;</span> Quick Adjust — Contractors <span class="qa-arrow">&#9654;</span></h4>
+<span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
+</div>
+<div class="qa-panel-body">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+<div><label class="qa-step-label">Month</label>
+<select id="contractorQaMo" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="all">All Months</option>
+<option value="jan">Jan</option><option value="feb">Feb</option><option value="mar">Mar</option>
+<option value="apr">Apr</option><option value="may">May</option><option value="jun">Jun</option>
+<option value="jul">Jul</option><option value="aug">Aug</option><option value="sep">Sep</option>
+<option value="oct">Oct</option><option value="nov">Nov</option><option value="dec">Dec</option>
+</select></div>
+<div><label class="qa-step-label">Increment</label>
+<select id="contractorQaStep" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="5000">$5K</option><option value="10000">$10K</option><option value="25000">$25K</option><option value="50000">$50K</option><option value="100000">$100K</option>
+</select></div>
+<div><label class="qa-step-label">Filter</label>
+<input id="contractorQaSearch" type="text" placeholder="Search contractors..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
+<button class="btn btn-sm" id="contractorQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+</div>
+<div class="qa-row-list" id="contractorQaList"></div>
+<div class="qa-total-bar"><span>Total Contractor Spend</span><span class="qa-total-amt" id="contractorQaTotal">$0</span></div>
+<div class="qa-add-form" id="contractorQaAddForm">
+<div><label>Name</label><input id="contractorQaNewName" placeholder="Contractor name..." style="width:140px"></div>
+<div><label>Business Unit</label><select id="contractorQaNewBU" style="width:110px"><option value="">—</option></select></div>
+<div><label>Account</label><select id="contractorQaNewAcct" style="width:140px"><option value="">—</option></select></div>
+<button class="btn btn-sm" style="background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;padding:4px 12px;font-size:.78rem" id="contractorQaAddBtn">+ Add Contractor</button>
+</div>
+<div class="qa-history" id="contractorQaHistory"></div>
+</div>
+</div>
+
+<!-- Contractor Detail Grid -->
+<div class="card" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+<h3 class="section-title" style="margin:0">Contractor Detail</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<div class="toggle-group" id="contractorScaleToggle" style="margin-right:8px">
+<button class="btn active" data-cscale="1" style="padding:3px 10px;font-size:.78rem">$ Singles</button>
+<button class="btn" data-cscale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
+<button class="btn" data-cscale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
+</div>
+<div class="toggle-group" id="contractorViewToggle" style="margin-right:4px">
+<button class="btn active" data-cview="expense" style="padding:3px 10px;font-size:.78rem">Expense</button>
+<button class="btn" data-cview="capex" style="padding:3px 10px;font-size:.78rem">CapEx</button>
+<button class="btn" data-cview="opex" style="padding:3px 10px;font-size:.78rem">OpEx</button>
+</div>
+<button class="btn" id="contractorAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
+<button class="btn" id="contractorClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All Rows</button>
+<button class="btn" id="contractorImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
+<button class="btn" id="contractorExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
+<input type="file" id="contractorFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+</div>
+<div style="overflow-x:auto">
+<table class="comp-table" id="contractorTable" style="font-size:.8rem;min-width:2400px">
+<thead><tr>
+<th style="width:30px"></th>
+<th style="width:30px" title="Color tag">&#9679;</th>
+<th style="min-width:140px">Contractor Name</th>
+<th style="min-width:100px">Rate / Hours</th>
+<th style="min-width:80px">CapEx %</th>
+<th style="min-width:100px">Notes</th>
+<th class="sortable" data-csort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
+<th class="sortable" data-csort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
+<th class="sortable" data-csort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
+<th class="sortable" data-csort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
+<th class="sortable" data-csort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
+<th style="min-width:80px">Account Code</th>
+<th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
+<th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
+<th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
+<th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
+<th class="sortable num-col-lg" data-csort="fullYear" style="font-weight:700">Full Year <span class="sort-arrow"></span></th>
+<th style="width:40px"></th>
+</tr></thead>
+<tbody id="contractorTotalRow"></tbody>
+<tbody id="contractorTbody"></tbody>
+<tfoot id="contractorTfoot" style="display:none"></tfoot>
 </table>
 </div>
 </div>
@@ -2541,6 +2642,14 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" id="dataPanelTeExport">Export T&amp;E Excel</button>
 <button class="btn btn-primary" id="dataPanelTeImport">Import T&amp;E Excel</button>
 <input type="file" id="dataPanelTeFile" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>Contractors</h4>
+<p>Import/export contractor data via Excel.</p>
+<button class="btn" id="dataPanelContractorExport">Export Contractors Excel</button>
+<button class="btn btn-primary" id="dataPanelContractorImport">Import Contractors Excel</button>
+<input type="file" id="dataPanelContractorFile" accept=".xlsx,.xls,.csv" style="display:none">
 </div>
 
 <div class="data-section">
@@ -3241,6 +3350,7 @@ function ensureStateFields(){
   if(!state.customRates)state.customRates=[];
   if(!state.accounts)state.accounts=DEFAULT_ACCOUNTS.map(a=>({...a}));
   state.accounts.forEach(a=>{if(!a.group)a.group=a.category==='T&E'?'te':'vendor';});
+  if(!state.contractorRows)state.contractorRows=[];
   if(!state.vendorRows||!state.vendorRows.length){
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     const defProjId=genProj?genProj.id:'';
@@ -10100,14 +10210,40 @@ function initDataPanel(){
       [['Expense Type','expenseType'],['Type','expenseType'],['Description','description'],['Business Unit','businessUnit'],['BU','businessUnit'],['Biz Line','bizLine'],['Business Line','bizLine'],['Market','market'],['Project','project'],['Account Description','acctDesc'],['Account','acctDesc'],['Notes','notes']].forEach(([k,v])=>{FIELD_MAP[k]=v;FIELD_MAP[k.toLowerCase()]=v});
       MO_LABELS.forEach((m,i)=>{FIELD_MAP[m]=MO_NAMES[i];FIELD_MAP[m.toLowerCase()]=MO_NAMES[i]});
       let imported=0;
+      const startIdx=state.teRows.length;
       rows.forEach(r=>{
         const row={expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
         Object.keys(r).forEach(k=>{const mapped=FIELD_MAP[k]||FIELD_MAP[k.trim().toLowerCase()];if(mapped)row[mapped]=MO_NAMES.includes(mapped)?parseFloat(r[k])||0:String(r[k])});
         state.teRows.push(row);imported++;
       });
+      // Ask about scale of imported values
+      const scale=prompt(`Imported ${imported} T&E rows.\n\nWere values loaded as:\n  1 = Singles (actual dollars)\n  2 = Thousands ($K)\n  3 = Millions ($M)\n\nEnter 1, 2, or 3:`,'1');
+      const mult=scale==='2'?1000:scale==='3'?1000000:1;
+      if(mult>1){
+        const MO_K=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+        for(let idx=startIdx;idx<state.teRows.length;idx++){
+          MO_K.forEach(m=>{state.teRows[idx][m]=Math.round((state.teRows[idx][m]||0)*mult)});
+        }
+      }
       saveState();
-      alert(`Imported ${imported} T&E rows.`);
     });
+  });
+
+  // Contractors: Export (delegate to existing button)
+  document.getElementById('dataPanelContractorExport').addEventListener('click',()=>{
+    document.getElementById('contractorExportBtn').click();
+  });
+  // Contractors: Import
+  document.getElementById('dataPanelContractorImport').addEventListener('click',()=>{
+    document.getElementById('dataPanelContractorFile').click();
+  });
+  document.getElementById('dataPanelContractorFile').addEventListener('change',function(){
+    const mainInput=document.getElementById('contractorFileInput');
+    const dt=new DataTransfer();
+    if(this.files[0])dt.items.add(this.files[0]);
+    mainInput.files=dt.files;
+    mainInput.dispatchEvent(new Event('change'));
+    this.value='';
   });
 
   // Backup: Export JSON
@@ -10201,6 +10337,20 @@ function initDataPanel(){
       });
       const ws4=XLSX.utils.json_to_sheet(teData);
       XLSX.utils.book_append_sheet(wb,ws4,'T&E');
+    }
+
+    // Sheet 4b: Contractors
+    if(state.contractorRows&&state.contractorRows.length){
+      const cData=state.contractorRows.map(r=>{
+        const row={Name:r.name||'','Hourly Rate':r.hourlyRate||0,'Monthly Hours':r.monthlyHours||0,
+          'CapEx %':r.capPct||0,'Business Unit':r.businessUnit||'','Biz Line':r.bizLine||'',
+          Market:r.market||'',Project:r.project||'','Account Desc':r.acctDesc||'',Notes:r.notes||''};
+        MO_NAMES.forEach((m,i)=>{row[MO_LABELS[i]]=r[m]||0});
+        row['Full Year']=MO_NAMES.reduce((s,m)=>s+(r[m]||0),0);
+        return row;
+      });
+      const wsC=XLSX.utils.json_to_sheet(cData);
+      XLSX.utils.book_append_sheet(wb,wsC,'Contractors');
     }
 
     // Sheet 5: Bonus Matrix
@@ -10326,6 +10476,7 @@ function initVendorModule(){
       if(b.dataset.vtab==='vendor-scratch')setTimeout(initVendorScratch,50);
       if(b.dataset.vtab==='vendor-dims')renderVendorDims();
       if(b.dataset.vtab==='vendor-te'){renderTeGrid();refreshTePivot()}
+      if(b.dataset.vtab==='vendor-contractors')renderContractorGrid();
     });
   });
 
@@ -10654,16 +10805,64 @@ function initVendorModule(){
       fieldPairs.forEach(([k,v])=>{FIELD_MAP[k]=v;FIELD_MAP[k.toLowerCase()]=v});
       MO_LABELS.forEach((m,i)=>{FIELD_MAP[m]=MO_NAMES[i];FIELD_MAP[m.toLowerCase()]=MO_NAMES[i]});
       let imported=0;
+      const startIdx=state.vendorRows.length;
       rows.forEach(r=>{
         const row={parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
         Object.keys(r).forEach(k=>{const mapped=FIELD_MAP[k]||FIELD_MAP[k.trim().toLowerCase()];if(mapped)row[mapped]=MO_NAMES.includes(mapped)?parseFloat(r[k])||0:String(r[k])});
         state.vendorRows.push(row);
         imported++;
       });
+      // Ask about scale of imported values
+      const scale=prompt(`Imported ${imported} vendor rows.\n\nWere values loaded as:\n  1 = Singles (actual dollars)\n  2 = Thousands ($K)\n  3 = Millions ($M)\n\nEnter 1, 2, or 3:`,'1');
+      const mult=scale==='2'?1000:scale==='3'?1000000:1;
+      if(mult>1){
+        for(let idx=startIdx;idx<state.vendorRows.length;idx++){
+          MO_NAMES.forEach(m=>{state.vendorRows[idx][m]=Math.round((state.vendorRows[idx][m]||0)*mult)});
+        }
+      }
       saveState();renderVendorGrid();
-      alert(`Imported ${imported} rows.`);
     });
   });
+
+  // Build a Reference Values sheet for re-upload mapping
+  function buildRefValuesSheet(){
+    const data=[];
+    // Markets
+    data.push(['--- Markets ---','','']);
+    data.push(['Market Code','Market Name','']);
+    state.markets.forEach(m=>data.push([m.code,m.name,'']));
+    data.push([]);
+    // Business Lines
+    data.push(['--- Business Lines ---','','']);
+    data.push(['BL Code','BL Name','']);
+    state.bizLines.forEach(b=>data.push([b.code,b.name,'']));
+    data.push([]);
+    // Projects
+    data.push(['--- Projects ---','','','']);
+    data.push(['Project Code','Product','Category','Market']);
+    state.projects.forEach(p=>data.push([p.code,p.product||'',p.category||'',p.marketCode||'']));
+    data.push([]);
+    // Accounts
+    data.push(['--- Accounts ---','','','']);
+    data.push(['Account Code','Description','Category','Group']);
+    state.accounts.forEach(a=>data.push([a.code,a.description,a.category||'',a.group||'']));
+    data.push([]);
+    // Vendor Types
+    data.push(['--- Vendor Types ---']);
+    VENDOR_TYPES.forEach(v=>data.push([v]));
+    data.push([]);
+    // Expense Types
+    data.push(['--- Expense Types ---']);
+    EXPENSE_TYPES.forEach(v=>data.push([v]));
+    data.push([]);
+    // Business Units
+    data.push(['--- Business Units ---']);
+    const buOpts=Object.values(COUNTRY_BU).filter((v,i,a)=>a.indexOf(v)===i);
+    buOpts.forEach(b=>data.push([b]));
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:20},{wch:24},{wch:20},{wch:14}];
+    return ws;
+  }
 
   document.getElementById('vendorExportBtn').addEventListener('click',()=>{
     if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
@@ -10680,6 +10879,7 @@ function initVendorModule(){
     ws['!cols']=[{wch:16},{wch:18},{wch:16},{wch:16},{wch:14},{wch:14},{wch:10},{wch:12},{wch:20},{wch:12},...MO.map(()=>({wch:12})),{wch:14}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Vendor Spend');
+    XLSX.utils.book_append_sheet(wb,buildRefValuesSheet(),'Reference Values');
     xlsxDownload(wb,'vendor_spend_export.xlsx');
   });
 
@@ -10853,6 +11053,9 @@ function initVendorModule(){
     document.getElementById('vBizCode').value='';document.getElementById('vBizName').value='';
   });
 
+  // Month range filter state (must be declared before renderVendorGrid/renderTeGrid)
+  let vendorSelectedMonths=new Set(), teSelectedMonths=new Set();
+
   // ── T&E Tab ──
   function ensureTeRows(){
     if(!state.teRows||!state.teRows.length){
@@ -10900,10 +11103,297 @@ function initVendorModule(){
     ws['!cols']=[{wch:16},{wch:18},{wch:16},{wch:14},{wch:14},{wch:10},{wch:12},{wch:20},{wch:12},...MO.map(()=>({wch:12})),{wch:14}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'T&E Spend');
+    XLSX.utils.book_append_sheet(wb,buildRefValuesSheet(),'Reference Values');
     xlsxDownload(wb,'te_spend_export.xlsx');
   });
 
   renderTeGrid();
+
+  // ── Contractors Tab ──
+  let contractorSelectedMonths=new Set();
+  let contractorAmtScale=1;
+  let contractorView='expense'; // expense, capex, opex
+  let contractorSortCol=null,contractorSortAsc=true;
+
+  function buildContractorRow(row,i){
+    const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const buOpts=BU_OPTIONS.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    const mktOpts=state.markets.map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
+    const blOpts=state.bizLines.map(b=>`<option value="${esc(b.code)}">${esc(b.code)} — ${esc(b.name)}</option>`).join('');
+    const projOpts=state.projects.map(p=>`<option value="${esc(p.id)}">${esc(p.code)}</option>`).join('');
+    const acctOpts=state.accounts.filter(a=>(a.group||'vendor')==='vendor').map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
+    const BLANK_BG=getBlankBg();const blk=v=>!v?BLANK_BG:'';
+    const tagColor=row._colorTag||'';
+    const tagDefault=document.documentElement.classList.contains('dark')?'#2a2a2e':'#eee';
+    const tagDotStyle=`width:16px;height:16px;border-radius:3px;cursor:pointer;display:inline-block;border:1px solid var(--border);background:${tagColor||tagDefault}`;
+    const expanded=row._rateExpanded;
+    const hourly=parseFloat(row.hourlyRate)||0;
+    const hours=parseFloat(row.monthlyHours)||0;
+    const computed=Math.round(hourly*hours);
+    const capPct=parseFloat(row.capPct)||0;
+
+    let h=`<tr data-ci="${i}" draggable="false" style="${tagColor?'border-left:3px solid '+tagColor:''}"><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem;position:relative"><span class="row-color-tag" data-vi="${i}" data-prefix="cr" style="${tagDotStyle}" title="Color tag"></span></td>`;
+    // Name
+    h+=`<td style="${blk(row.name)}"><input class="cr-field" data-f="name" value="${esc(row.name)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+    // Rate / Hours — expandable cell
+    h+=`<td style="vertical-align:top;min-width:100px">`;
+    h+=`<div style="display:flex;align-items:center;gap:4px"><button class="cr-rate-toggle btn btn-sm" data-ci="${i}" style="padding:0 4px;font-size:.65rem;line-height:1.3;border:1px solid var(--border);background:transparent;color:var(--text-dim)" title="Toggle rate calculator">${expanded?'▼':'▶'}</button>`;
+    h+=`<span style="font-size:.72rem;color:var(--text-dim)">${hourly>0&&hours>0?'$'+hourly.toLocaleString()+'/hr × '+hours+'h = $'+computed.toLocaleString()+'/mo':'Enter rate ▶'}</span></div>`;
+    if(expanded){
+      h+=`<div style="margin-top:4px;display:flex;flex-direction:column;gap:3px;padding:4px;background:var(--panel-inset);border-radius:4px">`;
+      h+=`<div style="display:flex;align-items:center;gap:4px"><label style="font-size:.68rem;color:var(--text-dim);width:50px">$/hr</label><input class="cr-field cr-rate-input" data-f="hourlyRate" type="number" value="${hourly||''}" step="any" style="width:80px;font-size:.76rem;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
+      h+=`<div style="display:flex;align-items:center;gap:4px"><label style="font-size:.68rem;color:var(--text-dim);width:50px">Hrs/mo</label><input class="cr-field cr-rate-input" data-f="monthlyHours" type="number" value="${hours||''}" step="any" style="width:80px;font-size:.76rem;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
+      h+=`<button class="btn btn-sm cr-apply-rate" data-ci="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply to all months</button>`;
+      h+=`</div>`;
+    }
+    h+=`</td>`;
+    // CapEx %
+    h+=`<td><input class="cr-field" data-f="capPct" type="number" value="${capPct}" min="0" max="100" step="1" style="width:60px;border:none;background:transparent;font-size:.82rem;padding:2px 4px;text-align:right">%</td>`;
+    // Notes
+    h+=`<td><input class="cr-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
+    // Shared dimension columns
+    h+=`<td style="${blk(row.businessUnit)}"><select class="cr-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
+    h+=`<td style="${blk(row.bizLine)}"><select class="cr-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
+    h+=`<td style="${blk(row.market)}"><select class="cr-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
+    h+=`<td style="${blk(row.project)}"><select class="cr-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
+    h+=`<td style="${blk(row.acctDesc)}"><select class="cr-field cr-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
+    h+=`<td class="cr-acctCode" style="font-size:.78rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
+    // Monthly columns — display based on view toggle
+    MO.forEach(m=>{
+      const raw=parseFloat(row[m])||0;
+      const capAmt=Math.round(raw*capPct/100);
+      const opAmt=raw-capAmt;
+      let displayed;
+      if(contractorView==='capex')displayed=contractorAmtScale===1?capAmt:Math.round((capAmt/contractorAmtScale)*100)/100;
+      else if(contractorView==='opex')displayed=contractorAmtScale===1?opAmt:Math.round((opAmt/contractorAmtScale)*100)/100;
+      else displayed=contractorAmtScale===1?raw:Math.round((raw/contractorAmtScale)*100)/100;
+      const isReadonly=contractorView!=='expense';
+      h+=`<td><input class="cr-field cr-mo" data-f="${m}" type="number" value="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right${isReadonly?';color:var(--text-dim)':''}" step="any" ${isReadonly?'readonly':''}></td>`;
+    });
+    // Full Year
+    const rawFy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
+    let fyDisplay;
+    if(contractorView==='capex')fyDisplay=Math.round(rawFy*capPct/100);
+    else if(contractorView==='opex')fyDisplay=rawFy-Math.round(rawFy*capPct/100);
+    else fyDisplay=rawFy;
+    const fySuffix=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
+    const fyScaled=contractorAmtScale===1?fyDisplay:Math.round((fyDisplay/contractorAmtScale)*100)/100;
+    h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">$${fyScaled.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuffix}</td>`;
+    h+=`<td><button class="btn btn-sm btn-danger cr-del" data-ci="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
+    return h;
+  }
+
+  function renderContractorFooter(){
+    const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const totalEl=document.getElementById('contractorTotalRow');
+    const capPcts=state.contractorRows.map(r=>parseFloat(r.capPct)||0);
+    const moTotals=MO.map((m,mi)=>{
+      return state.contractorRows.reduce((s,r,ri)=>{
+        const raw=parseFloat(r[m])||0;
+        const cp=capPcts[ri];
+        if(contractorView==='capex')return s+Math.round(raw*cp/100);
+        if(contractorView==='opex')return s+(raw-Math.round(raw*cp/100));
+        return s+raw;
+      },0);
+    });
+    const hasFilter=contractorSelectedMonths.size>0&&contractorSelectedMonths.size<12;
+    const fyTotal=hasFilter?moTotals.filter((_,i)=>contractorSelectedMonths.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
+    const colSpan=12;// name,rate,cap%,notes,BU,BL,market,proj,acctDesc,acctCode = 10 + 2 (drag,tag)
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL${hasFilter?' (filtered)':''}${contractorView!=='expense'?' — '+contractorView.toUpperCase():''}</td>`;
+    moTotals.forEach((t,mi)=>{
+      const dim=hasFilter&&!contractorSelectedMonths.has(mi)?'opacity:.35;':'';
+      const sv=contractorAmtScale===1?t:Math.round((t/contractorAmtScale)*100)/100;
+      const suf=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
+      ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;${dim}">$${sv.toLocaleString('en-US',{maximumFractionDigits:2})}${suf}</td>`;
+    });
+    const fySv=contractorAmtScale===1?fyTotal:Math.round((fyTotal/contractorAmtScale)*100)/100;
+    const fySuf=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
+    ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;font-weight:700">$${fySv.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuf}</td><td></td></tr>`;
+    totalEl.innerHTML=ft;
+  }
+
+  function renderContractorGrid(){
+    const tbody=document.getElementById('contractorTbody');
+    let h='';
+    state.contractorRows.forEach((row,i)=>{h+=buildContractorRow(row,i)});
+    tbody.innerHTML=h;
+    renderContractorFooter();
+    // Bind fields
+    const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    // Set selected dropdown values
+    tbody.querySelectorAll('tr').forEach(tr=>{
+      const i=+tr.dataset.ci;if(isNaN(i))return;
+      const row=state.contractorRows[i];if(!row)return;
+      tr.querySelectorAll('select.cr-field').forEach(sel=>{
+        const f=sel.dataset.f;if(f&&row[f])sel.value=row[f];
+      });
+    });
+    // Field changes
+    tbody.querySelectorAll('.cr-field').forEach(el=>{
+      el.addEventListener('change',()=>{
+        const tr=el.closest('tr');const i=+tr.dataset.ci;
+        const f=el.dataset.f;const row=state.contractorRows[i];if(!row)return;
+        if(MO.includes(f)){
+          if(contractorView!=='expense')return;// readonly in capex/opex view
+          row[f]=Math.round(unscaleVal(parseFloat(el.value)||0));
+          // Recalc footer
+          renderContractorFooter();
+        } else if(f==='capPct'){
+          row[f]=Math.max(0,Math.min(100,parseFloat(el.value)||0));
+          renderContractorGrid();
+        } else if(f==='hourlyRate'||f==='monthlyHours'){
+          row[f]=parseFloat(el.value)||0;
+        } else {
+          row[f]=el.value;
+          if(f==='acctDesc'){
+            const codeCell=tr.querySelector('.cr-acctCode');
+            if(codeCell)codeCell.textContent=acctDescToCode(el.value);
+          }
+        }
+        saveState();
+      });
+    });
+    // Rate toggle
+    tbody.querySelectorAll('.cr-rate-toggle').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.ci;
+        state.contractorRows[i]._rateExpanded=!state.contractorRows[i]._rateExpanded;
+        renderContractorGrid();
+      });
+    });
+    // Apply rate to all months
+    tbody.querySelectorAll('.cr-apply-rate').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.ci;const row=state.contractorRows[i];
+        const monthlyAmt=Math.round((parseFloat(row.hourlyRate)||0)*(parseFloat(row.monthlyHours)||0));
+        MO.forEach(m=>{row[m]=monthlyAmt});
+        saveState();renderContractorGrid();
+      });
+    });
+    // Delete
+    tbody.querySelectorAll('.cr-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.ci;
+        state.contractorRows.splice(i,1);
+        saveState();renderContractorGrid();refreshVendorPivot();renderPnlWalk();renderLandingCharts();
+      });
+    });
+    // Color tags
+    tbody.querySelectorAll('.row-color-tag[data-prefix="cr"]').forEach(dot=>{
+      dot.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        const i=+dot.dataset.vi;const row=state.contractorRows[i];if(!row)return;
+        const PALETTE=['#e74c3c','#e67e22','#f1c40f','#2ecc71','#3498db','#9b59b6','#1abc9c','#e91e63',''];
+        const cur=row._colorTag||'';const idx=PALETTE.indexOf(cur);
+        row._colorTag=PALETTE[(idx+1)%PALETTE.length];
+        saveState();renderContractorGrid();
+      });
+    });
+  }
+
+  // Add contractor row
+  document.getElementById('contractorAddRow').addEventListener('click',()=>{
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    state.contractorRows.push({name:'',hourlyRate:0,monthlyHours:0,capPct:0,businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+    saveState();renderContractorGrid();
+  });
+
+  // Clear all contractor rows
+  document.getElementById('contractorClearAllRows').addEventListener('click',()=>{
+    if(!confirm('Clear all data from all Contractor rows?'))return;
+    const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    state.contractorRows.forEach(r=>{r.name='';r.hourlyRate=0;r.monthlyHours=0;r.capPct=0;r.businessUnit='';r.bizLine='';r.market='';r.project='';r.acctDesc='';r.notes='';moKeys.forEach(m=>r[m]=0)});
+    saveState();renderContractorGrid();renderPnlWalk();renderLandingCharts();
+  });
+
+  // Contractor scale toggle
+  document.querySelectorAll('#contractorScaleToggle button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      contractorAmtScale=parseInt(btn.dataset.cscale);
+      document.querySelectorAll('#contractorScaleToggle button').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.cscale)===contractorAmtScale));
+      renderContractorGrid();
+    });
+  });
+
+  // Contractor view toggle (expense/capex/opex)
+  document.querySelectorAll('#contractorViewToggle button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      contractorView=btn.dataset.cview;
+      document.querySelectorAll('#contractorViewToggle button').forEach(b=>b.classList.toggle('active',b.dataset.cview===contractorView));
+      renderContractorGrid();
+    });
+  });
+
+  // Contractor import
+  document.getElementById('contractorImportBtn').addEventListener('click',()=>document.getElementById('contractorFileInput').click());
+  document.getElementById('contractorFileInput').addEventListener('change',function(){
+    readExcelFile(this,wb=>{
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){alert('No data rows found.');return}
+      const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const FIELD_MAP={};
+      [['Contractor Name','name'],['Name','name'],['Hourly Rate','hourlyRate'],['Rate','hourlyRate'],['Monthly Hours','monthlyHours'],['Hours','monthlyHours'],['CapEx %','capPct'],['CapEx','capPct'],['Cap %','capPct'],['Business Unit','businessUnit'],['BU','businessUnit'],['Biz Line','bizLine'],['Business Line','bizLine'],['Market','market'],['Project','project'],['Account Description','acctDesc'],['Account','acctDesc'],['Notes','notes']].forEach(([k,v])=>{FIELD_MAP[k]=v;FIELD_MAP[k.toLowerCase()]=v});
+      MO_LABELS.forEach((m,i)=>{FIELD_MAP[m]=MO_NAMES[i];FIELD_MAP[m.toLowerCase()]=MO_NAMES[i]});
+      let imported=0;
+      const startIdx=state.contractorRows.length;
+      rows.forEach(r=>{
+        const row={name:'',hourlyRate:0,monthlyHours:0,capPct:0,businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+        Object.keys(r).forEach(k=>{const mapped=FIELD_MAP[k]||FIELD_MAP[k.trim().toLowerCase()];if(mapped)row[mapped]=['hourlyRate','monthlyHours','capPct',...MO_NAMES].includes(mapped)?parseFloat(r[k])||0:String(r[k])});
+        state.contractorRows.push(row);imported++;
+      });
+      const scale=prompt(`Imported ${imported} contractor rows.\n\nWere values loaded as:\n  1 = Singles (actual dollars)\n  2 = Thousands ($K)\n  3 = Millions ($M)\n\nEnter 1, 2, or 3:`,'1');
+      const mult=scale==='2'?1000:scale==='3'?1000000:1;
+      if(mult>1){
+        for(let idx=startIdx;idx<state.contractorRows.length;idx++){
+          MO_NAMES.forEach(m=>{state.contractorRows[idx][m]=Math.round((state.contractorRows[idx][m]||0)*mult)});
+        }
+      }
+      saveState();renderContractorGrid();
+    });
+  });
+
+  // Contractor export
+  document.getElementById('contractorExportBtn').addEventListener('click',()=>{
+    if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
+    const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const headers=['Contractor Name','Hourly Rate','Monthly Hours','CapEx %','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code',...MO,'Full Year'];
+    const data=[headers];
+    state.contractorRows.forEach(r=>{
+      const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
+      const projObj=state.projects.find(p=>p.id===r.project);
+      data.push([r.name||'',r.hourlyRate||0,r.monthlyHours||0,r.capPct||0,r.notes||'',r.businessUnit||'',r.bizLine||'',r.market||'',projObj?projObj.code:(r.project||''),r.acctDesc||'',acctDescToCode(r.acctDesc),...moKeys.map(m=>parseFloat(r[m])||0),fy]);
+    });
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:20},{wch:12},{wch:14},{wch:10},{wch:16},{wch:14},{wch:14},{wch:10},{wch:12},{wch:20},{wch:12},...MO.map(()=>({wch:12})),{wch:14}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Contractors');
+    XLSX.utils.book_append_sheet(wb,buildRefValuesSheet(),'Reference Values');
+    xlsxDownload(wb,'contractor_export.xlsx');
+  });
+
+  // Contractor sort click handlers
+  document.querySelectorAll('#contractorTable th.sortable').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const col=th.dataset.csort;
+      if(contractorSortCol===col){contractorSortAsc=!contractorSortAsc}else{contractorSortCol=col;contractorSortAsc=true}
+      // Sort contractor rows
+      const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      const dir=contractorSortAsc?1:-1;
+      state.contractorRows.sort((a,b)=>{
+        let va,vb;
+        if(col==='fullYear'){va=MO.reduce((s,m)=>s+(parseFloat(a[m])||0),0);vb=MO.reduce((s,m)=>s+(parseFloat(b[m])||0),0)}
+        else{va=a[col]||'';vb=b[col]||''}
+        if(typeof va==='number'&&typeof vb==='number')return (va-vb)*dir;
+        return String(va).localeCompare(String(vb))*dir;
+      });
+      saveState();renderContractorGrid();
+    });
+  });
+
+  renderContractorGrid();
 
   // ── Projects in Dimensions ──
   function renderVendorProjects(){
@@ -10983,7 +11473,6 @@ function initVendorModule(){
   // ── Pivot filter state ──
   let vPivotBand='all', tePivotBand='all';
   let vPivotSelectedVendors=new Set(), tePivotSelectedDescs=new Set();
-  let vendorSelectedMonths=new Set(), teSelectedMonths=new Set(); // month range filters
 
   function parseBand(band){
     if(!band||band==='all')return null;
@@ -11473,6 +11962,11 @@ function initVendorModule(){
     document.getElementById('teQaPanel').classList.toggle('open');
     if(document.getElementById('teQaPanel').classList.contains('open'))renderTeQaList();
   });
+  // Contractor QA: toggle panel
+  document.getElementById('contractorQaToggle').addEventListener('click',()=>{
+    document.getElementById('contractorQaPanel').classList.toggle('open');
+    if(document.getElementById('contractorQaPanel').classList.contains('open'))renderContractorQaList();
+  });
 
   // Populate add-form dropdowns
   function populateVendorQaDropdowns(){
@@ -11696,34 +12190,170 @@ function initVendorModule(){
   document.getElementById('teQaSearch').addEventListener('input',renderTeQaList);
   document.getElementById('teQaMo').addEventListener('change',renderTeQaList);
 
-  // ── Vendor & T&E Month Range Bars ──
+  // ── Contractor Quick-Adjust ──
+  let contractorQaUndoStack=[], contractorQaHistory=[];
+
+  function populateContractorQaDropdowns(){
+    const buOpts=Object.values(COUNTRY_BU).filter((v,i,a)=>a.indexOf(v)===i);
+    const buSel=document.getElementById('contractorQaNewBU');
+    buSel.innerHTML='<option value="">—</option>'+buOpts.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    const acctSel=document.getElementById('contractorQaNewAcct');
+    acctSel.innerHTML='<option value="">—</option>'+state.accounts.filter(a=>(a.group||'vendor')==='vendor').map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
+  }
+
+  function renderContractorQaList(){
+    populateContractorQaDropdowns();
+    const search=(document.getElementById('contractorQaSearch').value||'').toLowerCase();
+    const moSel=document.getElementById('contractorQaMo').value;
+    const rows=state.contractorRows||[];
+    const grouped={};
+    rows.forEach((r,idx)=>{
+      const name=r.name||'(unnamed)';
+      if(search&&!name.toLowerCase().includes(search))return;
+      if(!grouped[name])grouped[name]={indices:[],fy:0,moAmts:{}};
+      grouped[name].indices.push(idx);
+      QA_MO.forEach(m=>{
+        grouped[name].moAmts[m]=(grouped[name].moAmts[m]||0)+(parseFloat(r[m])||0);
+      });
+      const cActiveMo=contractorSelectedMonths.size>0?QA_MO.filter((_,i)=>contractorSelectedMonths.has(i)):QA_MO;
+      grouped[name].fy+=cActiveMo.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
+    });
+    const list=document.getElementById('contractorQaList');
+    const entries=Object.entries(grouped).sort((a,b)=>b[1].fy-a[1].fy);
+    if(!entries.length){list.innerHTML='<div style="padding:12px;color:var(--text-dim);font-size:.8rem;text-align:center">No contractors found</div>';updateContractorQaTotal();return}
+    const cRangeLabel=contractorSelectedMonths.size>0&&contractorSelectedMonths.size<12?'Range':'FY';
+    let h='';
+    entries.forEach(([name,g])=>{
+      const displayAmt=moSel==='all'?g.fy:(g.moAmts[moSel]||0);
+      const moLabel=moSel==='all'?cRangeLabel:QA_MO_LABELS[QA_MO.indexOf(moSel)];
+      h+=`<div class="qa-row-item" data-qa-name="${esc(name)}">
+        <span class="qa-row-name" title="${esc(name)}">${esc(name)}</span>
+        <span class="qa-row-fy">${moLabel}: ${qaFmt(displayAmt)}</span>
+        <div class="qa-mo-adj">
+          <button class="qa-dec-btn" data-qa-name="${esc(name)}" data-dir="-1" title="Decrease">−</button>
+          <button class="qa-inc-btn" data-qa-name="${esc(name)}" data-dir="1" title="Increase">+</button>
+        </div>
+      </div>`;
+    });
+    list.innerHTML=h;
+    list.querySelectorAll('.qa-inc-btn,.qa-dec-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const vName=btn.dataset.qaName;
+        const dir=parseInt(btn.dataset.dir);
+        const step=parseInt(document.getElementById('contractorQaStep').value)||5000;
+        if(step%5000!==0)return;
+        const mo=document.getElementById('contractorQaMo').value;
+        contractorQaUndoStack.push(JSON.parse(JSON.stringify(state.contractorRows)));
+        document.getElementById('contractorQaUndo').style.display='';
+        const g=grouped[vName];
+        if(!g)return;
+        const targetMos=mo==='all'?(contractorSelectedMonths.size>0?QA_MO.filter((_,i)=>contractorSelectedMonths.has(i)):QA_MO):[mo];
+        const perRow=Math.round((step*dir)/g.indices.length);
+        g.indices.forEach(idx=>{
+          targetMos.forEach(m=>{
+            state.contractorRows[idx][m]=Math.round((parseFloat(state.contractorRows[idx][m])||0)+perRow);
+          });
+        });
+        const moLabel=mo==='all'?(contractorSelectedMonths.size>0?targetMos.map(m=>QA_MO_LABELS[QA_MO.indexOf(m)]).join(', '):'all months'):QA_MO_LABELS[QA_MO.indexOf(mo)];
+        contractorQaHistory.unshift(`${dir>0?'+':''}${qaFmt(step*dir)} → ${vName} (${moLabel})`);
+        if(contractorQaHistory.length>20)contractorQaHistory.pop();
+        saveState();renderContractorQaList();renderContractorGrid();renderPnlWalk();renderLandingCharts();
+      });
+    });
+    updateContractorQaTotal();
+    renderContractorQaHistoryList();
+  }
+  function updateContractorQaTotal(){
+    const activeMo=contractorSelectedMonths.size>0?QA_MO.filter((_,i)=>contractorSelectedMonths.has(i)):QA_MO;
+    const total=(state.contractorRows||[]).reduce((s,r)=>s+activeMo.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+    document.getElementById('contractorQaTotal').textContent=qaFmt(total);
+  }
+  function renderContractorQaHistoryList(){
+    const el=document.getElementById('contractorQaHistory');
+    el.innerHTML=contractorQaHistory.map(h=>`<div class="qa-history-item">${esc(h)}</div>`).join('');
+  }
+
+  // Contractor QA: undo
+  document.getElementById('contractorQaUndo').addEventListener('click',()=>{
+    if(!contractorQaUndoStack.length)return;
+    state.contractorRows=contractorQaUndoStack.pop();
+    if(contractorQaHistory.length)contractorQaHistory.shift();
+    if(!contractorQaUndoStack.length)document.getElementById('contractorQaUndo').style.display='none';
+    saveState();renderContractorQaList();renderContractorGrid();renderPnlWalk();renderLandingCharts();
+  });
+
+  // Contractor QA: add new entry
+  document.getElementById('contractorQaAddBtn').addEventListener('click',()=>{
+    const name=document.getElementById('contractorQaNewName').value.trim();
+    if(!name){alert('Enter a contractor name');return}
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    const row={name,hourlyRate:0,monthlyHours:0,capPct:0,businessUnit:document.getElementById('contractorQaNewBU').value,bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:document.getElementById('contractorQaNewAcct').value,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    state.contractorRows.push(row);
+    contractorQaHistory.unshift('Added: '+name);
+    document.getElementById('contractorQaNewName').value='';
+    saveState();renderContractorQaList();renderContractorGrid();
+  });
+
+  // Contractor QA: search filter
+  document.getElementById('contractorQaSearch').addEventListener('input',renderContractorQaList);
+  document.getElementById('contractorQaMo').addEventListener('change',renderContractorQaList);
+
+  // ── Vendor, T&E & Contractor Month Range Bars ──
   const vendorMonthBar=createSpendMonthRangeBar('vendorMonthRangeBar','vendorMonthRangeLabel',vendorSelectedMonths,function(){
     renderVendorGrid();refreshVendorPivot();renderVendorQaList();
   });
   const teMonthBar=createSpendMonthRangeBar('teMonthRangeBar','teMonthRangeLabel',teSelectedMonths,function(){
     renderTeGrid();refreshTePivot();renderTeQaList();
   });
+  const contractorMonthBar=createSpendMonthRangeBar('contractorMonthRangeBar','contractorMonthRangeLabel',contractorSelectedMonths,function(){
+    renderContractorGrid();renderContractorQaList();
+  });
   vendorMonthBar.init();
   teMonthBar.init();
+  contractorMonthBar.init();
 
   // Initial render
   renderVendorGrid();
   renderAccounts();
   refreshVendorPivot();
-  window.renderVendorGridPublic=function(){renderVendorGrid();renderTeGrid();refreshVendorPivot();refreshTePivot()};
+  window.renderVendorGridPublic=function(){renderVendorGrid();renderTeGrid();renderContractorGrid();refreshVendorPivot();refreshTePivot()};
 }
 
 function getVendorOaoTotal(){
   const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   const vTotal=(state.vendorRows||[]).reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
   const tTotal=(state.teRows||[]).reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
-  return vTotal+tTotal;
+  // Contractor OpEx (expense - capex) goes to OAO
+  const cOpex=(state.contractorRows||[]).reduce((s,r)=>{
+    const capPct=parseFloat(r.capPct)||0;
+    return s+moKeys.reduce((ms,m)=>{const raw=parseFloat(r[m])||0;return ms+(raw-Math.round(raw*capPct/100))},0);
+  },0);
+  return vTotal+tTotal+cOpex;
 }
 function getVendorOaoByMonth(mi){
   const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   const vAmt=(state.vendorRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
   const tAmt=(state.teRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
-  return vAmt+tAmt;
+  // Contractor OpEx for this month
+  const cOpex=(state.contractorRows||[]).reduce((s,r)=>{
+    const raw=parseFloat(r[moKeys[mi]])||0;const capPct=parseFloat(r.capPct)||0;
+    return s+(raw-Math.round(raw*capPct/100));
+  },0);
+  return vAmt+tAmt+cOpex;
+}
+function getContractorCapExTotal(){
+  const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  return (state.contractorRows||[]).reduce((s,r)=>{
+    const capPct=parseFloat(r.capPct)||0;
+    return s+moKeys.reduce((ms,m)=>ms+Math.round((parseFloat(r[m])||0)*capPct/100),0);
+  },0);
+}
+function getContractorCapExByMonth(mi){
+  const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  return (state.contractorRows||[]).reduce((s,r)=>{
+    const raw=parseFloat(r[moKeys[mi]])||0;const capPct=parseFloat(r.capPct)||0;
+    return s+Math.round(raw*capPct/100);
+  },0);
 }
 
 // ── LANDING PAGE ──
@@ -11857,11 +12487,15 @@ function renderPnlWalk(){
     });
   });
 
-  // Distribute vendor/T&E OAO across categories/products proportionally by HC
+  // Distribute vendor/T&E/contractor OAO across categories/products proportionally by HC
   const oaoTotal=getVendorOaoTotal();
+  const contractorCapEx=getContractorCapExTotal();
+  // Add contractor CapEx to employee capex totals
+  totals.capex+=contractorCapEx;
   function enrichWithOao(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
     d.oao=Math.round(oaoTotal*share);
+    d.capex+=Math.round(contractorCapEx*share);
     d.adjEbitda=d.cbOpex+d.oao;
     d.da=0;
     d.totalOpex=d.adjEbitda;
@@ -11981,7 +12615,7 @@ function renderLandingCharts(){
     const lcc=getChartColors();
     if(isPnl){
       const opex=MO_SHORT.map((_,mi)=>{const c=emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
-      const capex=MO_SHORT.map((_,mi)=>-emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0));
+      const capex=MO_SHORT.map((_,mi)=>-(emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0)+getContractorCapExByMonth(mi)));
       budgetDS.push({label:'OpEx',data:opex,backgroundColor:lcc[4],stack:'pos'});
       budgetDS.push({label:'CapEx',data:capex,backgroundColor:lcc[0],stack:'neg'});
     } else {
