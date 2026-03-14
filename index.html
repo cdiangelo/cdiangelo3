@@ -154,8 +154,6 @@ html.dark .pnl-walk-table tr.total td{background:rgba(212,82,77,.12)}
 html.dark .modal-overlay{background:rgba(0,0,0,.7)}
 html.dark .scenario-slide-panel table td,html.dark .data-slide-panel table td{color:var(--text)}
 html.dark .scenario-slide-panel table th,html.dark .data-slide-panel table th{color:var(--text-dim)}
-html.dark .stat-card .value{color:#d0a0a0}
-html.dark .stat-card .value[style*="--success"]{color:#90c898}
 html.dark .btn{background:var(--panel-inset);color:var(--text);border-color:var(--border)}
 html.dark .btn:hover{background:var(--border);color:var(--text-dark)}
 html.dark .scenario-toggle-btn{background:rgba(58,125,68,.45);border-color:rgba(255,255,255,.1)}
@@ -2648,15 +2646,16 @@ function renderStats(emps){
   const totalComp=emps.reduce((a,e)=>a+getProratedComp(e),0);
   const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
   const totalOpEx=totalComp-totalCapEx;
+  const svc=getStatValueColor();
   document.getElementById('statCards').innerHTML=`
-    <div class="stat-card"><div class="label">Total Headcount</div><div class="value">${totalHC}</div></div>
-    <div class="stat-card"><div class="label">${CURRENT_YEAR} Base Cost</div><div class="value">${fmt(totalBase)}</div></div>
-    <div class="stat-card"><div class="label">Avg Base Salary</div><div class="value">${fmt(avgBase)}</div></div>
-    <div class="stat-card"><div class="label">${CURRENT_YEAR} Bonus Cost</div><div class="value">${fmt(totalBonus)}</div></div>
-    <div class="stat-card"><div class="label">${CURRENT_YEAR} Benefits Cost</div><div class="value">${fmt(totalBenefits)}</div></div>
-    <div class="stat-card"><div class="label">${CURRENT_YEAR} Total Comp</div><div class="value">${fmt(totalComp)}</div></div>
-    <div class="stat-card"><div class="label">${CURRENT_YEAR} OpEx (P&L)</div><div class="value">${fmt(totalOpEx)}</div></div>
-    <div class="stat-card"><div class="label">${CURRENT_YEAR} CapEx Offset</div><div class="value">${fmt(totalCapEx)}</div></div>`;
+    <div class="stat-card"><div class="label">Total Headcount</div><div class="value" style="color:${svc}">${totalHC}</div></div>
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} Base Cost</div><div class="value" style="color:${svc}">${fmt(totalBase)}</div></div>
+    <div class="stat-card"><div class="label">Avg Base Salary</div><div class="value" style="color:${svc}">${fmt(avgBase)}</div></div>
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} Bonus Cost</div><div class="value" style="color:${svc}">${fmt(totalBonus)}</div></div>
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} Benefits Cost</div><div class="value" style="color:${svc}">${fmt(totalBenefits)}</div></div>
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} Total Comp</div><div class="value" style="color:${svc}">${fmt(totalComp)}</div></div>
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} OpEx (P&L)</div><div class="value" style="color:${svc}">${fmt(totalOpEx)}</div></div>
+    <div class="stat-card"><div class="label">${CURRENT_YEAR} CapEx Offset</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>`;
 }
 const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a','#5e7a8b','#8b7a5e','#6b8b7a','#7a8b5e'];
 const CHART_COLORS_MUTED_DARK=['#c4a0a0','#a0b8c8','#c8b8a0','#b0a0c0','#a0c0a0','#c0a0b0','#a0b0c0','#c0b0a0','#a0c0b0','#b0c0a0'];
@@ -2669,6 +2668,21 @@ function getChartColors(){
   if(chartColorScheme==='mono')return isDark?CHART_COLORS_MONO_DARK:CHART_COLORS_MONO;
   if(chartColorScheme==='neon')return CHART_COLORS_NEON;
   return isDark?CHART_COLORS_MUTED_DARK:CHART_COLORS;
+}
+function getSparkColor(type){
+  // type: 'primary' (HC, Comp, OpEx), 'danger' (CapEx)
+  const isDark=document.documentElement.classList.contains('dark');
+  if(chartColorScheme==='mono')return isDark?'#bbbbbb':'#555555';
+  if(chartColorScheme==='neon')return type==='danger'?'#ff006e':'#00f5d4';
+  // muted
+  if(isDark)return type==='danger'?'#e0a8a8':'#a0c8b0';
+  return type==='danger'?'#8b2020':'#3a7d44';
+}
+function getStatValueColor(){
+  const isDark=document.documentElement.classList.contains('dark');
+  if(chartColorScheme==='mono')return isDark?'#cccccc':'var(--accent)';
+  if(chartColorScheme==='neon')return isDark?'#00f5d4':'var(--accent)';
+  return isDark?'#c8b0b0':'var(--accent)';
 }
 function hexToRgba(hex,alpha){
   if(hex.startsWith('rgba'))return hex.replace(/,[\d.]+\)$/,','+alpha+')');
@@ -5386,10 +5400,12 @@ async function loadVersionFromServer(versionId,name){
     state=JSON.parse(v.state_data);ensureStateFields();
     sessionContext.versionId=v.id;sessionContext.versionName=v.name;
     localStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
-    updateSessionUI();initDropdowns();renderAll();
+    execFilterProduct='';execFilterCategory='';
+    updateSessionUI();initDropdowns();
+    try{renderAll()}catch(re){console.error('Render error after load:',re)}
     if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'switch_version',versionId:v.id}));
     showToast('Loaded: '+v.name);
-  }catch(e){alert('Error loading version')}
+  }catch(e){console.error('Error loading version:',e);alert('Error loading version: '+e.message)}
 }
 async function deleteVersionFromServer(versionId,name){
   if(!confirm(`Delete version "${name}"? This cannot be undone.`))return;
@@ -5796,10 +5812,17 @@ async function executeVersionMerge(){
       body:JSON.stringify({name:promptName,state_data:JSON.stringify(merged),created_by:sessionContext.userId,created_by_name:sessionContext.userName})
     });
     if(!resp.ok)throw new Error('Save failed');
+    const saved=await resp.json();
     wsMergeMode=false;wsMergeSelected.clear();
+    // Auto-load the merged version
+    state=merged;ensureStateFields();
+    execFilterProduct='';execFilterCategory='';
+    if(saved.id){sessionContext.versionId=saved.id;sessionContext.versionName=promptName;localStorage.setItem('compPlanSession',JSON.stringify(sessionContext))}
+    updateSessionUI();initDropdowns();
+    try{renderAll()}catch(re){console.error('Render error after merge load:',re)}
     renderWorkspaceList();renderDataPanelWsList();
-    alert(`Merged version "${promptName}" created with ${merged.employees.length} employees and ${merged.projects.length} projects.`);
-  }catch(e){alert('Error saving merged version: '+e.message)}
+    showToast(`Merged "${promptName}" — ${merged.employees.length} employees, ${merged.projects.length} projects`);
+  }catch(e){console.error('Merge save error:',e);alert('Error saving merged version: '+e.message)}
 }
 
 document.getElementById('btnWsSave').addEventListener('click',()=>{
@@ -5942,10 +5965,11 @@ function renderExecView(){
   emps.forEach(e=>{periodMonths.forEach(mi=>{periodComp+=getMonthlyComp(e,mi);periodCapEx+=getMonthlyCapEx(e,mi)})});
   const periodOpEx=periodComp-periodCapEx;
   const periodLabel=execPeriod==='full'||isQuarterly?'Full Year':execPeriod.toUpperCase();
+  const svColor=getStatValueColor();
   document.getElementById('execStatCards').innerHTML=
-    `<div class="stat-card"><div class="label">Headcount</div><div class="value">${emps.length}</div><canvas class="sparkline" id="sparkHC"></canvas></div>`+
-    `<div class="stat-card"><div class="label">${periodLabel} Comp</div><div class="value">${fmt(periodComp)}</div><canvas class="sparkline" id="sparkComp"></canvas></div>`+
-    `<div class="stat-card"><div class="label">${periodLabel} CapEx</div><div class="value">${fmt(periodCapEx)}</div><canvas class="sparkline" id="sparkCapEx"></canvas></div>`+
+    `<div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svColor}">${emps.length}</div><canvas class="sparkline" id="sparkHC"></canvas></div>`+
+    `<div class="stat-card"><div class="label">${periodLabel} Comp</div><div class="value" style="color:${svColor}">${fmt(periodComp)}</div><canvas class="sparkline" id="sparkComp"></canvas></div>`+
+    `<div class="stat-card"><div class="label">${periodLabel} CapEx</div><div class="value" style="color:${svColor}">${fmt(periodCapEx)}</div><canvas class="sparkline" id="sparkCapEx"></canvas></div>`+
     `<div class="stat-card"><div class="label">${periodLabel} OpEx</div><div class="value" style="color:var(--success)">${fmt(periodOpEx)}</div><canvas class="sparkline" id="sparkOpEx"></canvas></div>`;
 
   // Sparkline data
@@ -5954,12 +5978,11 @@ function renderExecView(){
   const sparkCompData=MONTH_IDX.map(mi=>emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0));
   const sparkCapExData=MONTH_IDX.map(mi=>emps.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0));
   const sparkOpExData=MONTH_IDX.map(mi=>emps.reduce((a,e)=>a+getMonthlyComp(e,mi)-getMonthlyCapEx(e,mi),0));
-  const isDarkSpark=document.documentElement.classList.contains('dark');
   requestAnimationFrame(()=>{
-    renderSparkline('sparkHC',sparkHCData,isDarkSpark?'#b0d0b8':'#3a7d44');
-    renderSparkline('sparkComp',sparkCompData,isDarkSpark?'#b0d0b8':'#3a7d44');
-    renderSparkline('sparkCapEx',sparkCapExData,isDarkSpark?'#e0a8a8':'#8b2020');
-    renderSparkline('sparkOpEx',sparkOpExData,isDarkSpark?'#b0d0b8':'#3a7d44');
+    renderSparkline('sparkHC',sparkHCData,getSparkColor('primary'));
+    renderSparkline('sparkComp',sparkCompData,getSparkColor('primary'));
+    renderSparkline('sparkCapEx',sparkCapExData,getSparkColor('danger'));
+    renderSparkline('sparkOpEx',sparkOpExData,getSparkColor('primary'));
   });
 
   // ── Pane 1: Monthly chart split by selected dimension ──
