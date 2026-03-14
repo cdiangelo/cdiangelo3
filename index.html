@@ -12697,6 +12697,18 @@ function renderLandingCharts(){
   });
 
   // ── Long-Term Forecast Chart ──
+  // Include vendor/T&E/contractor costs so LTF matches the PnL table's Tot Inv
+  const _oaoTotal=getVendorOaoTotal();
+  const _cCapEx=getContractorCapExTotal();
+  function _enrichFcRows(rows){
+    rows.forEach((r,i)=>{
+      // Current year: add actual OAO + contractor CapEx; future years: carry OAO flat
+      r.total+=_oaoTotal+_cCapEx;
+      r.capex+=_cCapEx;
+      r.opex+=_oaoTotal;
+    });
+    return rows;
+  }
   if(landingForecastChartInst)landingForecastChartInst.destroy();
   let fcDS=[];
   const yearLabels=getDisplayFcLabels();
@@ -12705,9 +12717,16 @@ function renderLandingCharts(){
     const groups={};
     emps.forEach(e=>{const key=getPnlSplitKey(e,split);if(key!=null){if(!groups[key])groups[key]=[];groups[key].push(e)}});
     const gNames=Object.keys(groups).sort();
+    const _splitOaoShare=gNames.length>0?1/gNames.length:1;
     gNames.forEach((g,gi)=>{
       try{
       const rows=projectForecast(groups[g],g);
+      // Distribute OAO proportionally across split groups
+      rows.forEach(r=>{
+        r.total+=Math.round((_oaoTotal+_cCapEx)*_splitOaoShare);
+        r.capex+=Math.round(_cCapEx*_splitOaoShare);
+        r.opex+=Math.round(_oaoTotal*_splitOaoShare);
+      });
       if(isPnl){
         fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.opex),backgroundColor:getChartColors()[gi%getChartColors().length],stack:'pos'});
         if(rows.some(r=>r.capex>0))fcDS.push({label:g+' (CapEx)',data:rows.map(r=>-r.capex),backgroundColor:hexToRgba(getChartColors()[gi%getChartColors().length],0.35),stack:'neg'});
@@ -12717,7 +12736,7 @@ function renderLandingCharts(){
       }catch(e){console.warn('Forecast group error for '+g+':',e)}
     });
   } else {
-    const rows=projectForecast(emps);
+    const rows=_enrichFcRows(projectForecast(emps));
     const lfc=getChartColors();
     if(isPnl){
       fcDS.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:lfc[4],stack:'pos'});
