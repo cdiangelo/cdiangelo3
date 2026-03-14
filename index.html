@@ -566,6 +566,10 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
+<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon">
+<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="landingColorSchemeSlider">
+<span class="color-scheme-label" id="landingColorSchemeLabel">Muted</span>
+</div>
 </div>
 </div>
 
@@ -2692,10 +2696,17 @@ function drawMonoPattern(ctx,px,py,pw,ph,patIdx,fg){
   ctx.restore();
 }
 // Mono pattern overlay plugin for Chart.js — draws hatch/dot patterns over grey bars + legend swatches
+// Only applies patterns when a chart has >3 visible bar datasets (otherwise tinted greys are enough)
 const monoPatternPlugin={
   id:'monoPatterns',
+  _needsPatterns(chart){
+    if(chartColorScheme!=='mono')return false;
+    let barCount=0;
+    chart.data.datasets.forEach((ds,i)=>{const m=chart.getDatasetMeta(i);if(!m.hidden&&m.type!=='line')barCount++});
+    return barCount>3;
+  },
   afterDatasetsDraw(chart){
-    if(chartColorScheme!=='mono')return;
+    if(!this._needsPatterns(chart))return;
     const isDark=document.documentElement.classList.contains('dark');
     const ctx=chart.ctx;
     const fg=isDark?'rgba(255,255,255,0.22)':'rgba(0,0,0,0.15)';
@@ -2712,7 +2723,7 @@ const monoPatternPlugin={
     });
   },
   afterDraw(chart){
-    if(chartColorScheme!=='mono')return;
+    if(!this._needsPatterns(chart))return;
     const isDark=document.documentElement.classList.contains('dark');
     const fg=isDark?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.2)';
     const legend=chart.legend;
@@ -2723,7 +2734,6 @@ const monoPatternPlugin={
       const meta=chart.getDatasetMeta(item.datasetIndex!=null?item.datasetIndex:i);
       if(meta.type==='line')return;
       const{left,top,width,height}=item;
-      // Legend box is drawn at item position; Chart.js uses boxWidth from options
       const bw=legend.options.labels.boxWidth||40;
       const bh=legend.options.labels.boxHeight||Math.min(height||12,12);
       const bx=item.left!=null?item.left:0;
@@ -5374,29 +5384,35 @@ toggleOps.addEventListener('change',()=>{
 // Restore preferences
 if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;landingToggleDark.checked=true;document.documentElement.classList.add('dark')}
 if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
-// Color scheme slider
+// Color scheme slider (synced across app + landing)
 const colorSchemeSlider=document.getElementById('colorSchemeSlider');
 const colorSchemeLabel=document.getElementById('colorSchemeLabel');
+const landingColorSchemeSlider=document.getElementById('landingColorSchemeSlider');
+const landingColorSchemeLabel=document.getElementById('landingColorSchemeLabel');
 const COLOR_SCHEME_NAMES=['Muted','Mono','Neon'];
 const COLOR_SCHEME_KEYS=['muted','mono','neon'];
 function applyColorSchemeClass(){
   document.body.classList.remove('cs-muted','cs-mono','cs-neon');
   document.body.classList.add('cs-'+chartColorScheme);
 }
-colorSchemeSlider.addEventListener('input',()=>{
-  const v=parseInt(colorSchemeSlider.value);
+function syncColorSchemeSliders(idx){
+  colorSchemeSlider.value=idx;colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
+  landingColorSchemeSlider.value=idx;landingColorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
+}
+function onColorSchemeChange(v){
   chartColorScheme=COLOR_SCHEME_KEYS[v];
-  colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[v];
+  syncColorSchemeSliders(v);
   localStorage.setItem('compPlanColorScheme',chartColorScheme);
   applyColorSchemeClass();
   renderAll();renderLandingCharts();
-});
+}
+colorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(colorSchemeSlider.value)));
+landingColorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(landingColorSchemeSlider.value)));
 const savedScheme=localStorage.getItem('compPlanColorScheme');
 if(savedScheme&&COLOR_SCHEME_KEYS.includes(savedScheme)){
   chartColorScheme=savedScheme;
   const idx=COLOR_SCHEME_KEYS.indexOf(savedScheme);
-  colorSchemeSlider.value=idx;
-  colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
+  syncColorSchemeSliders(idx);
 }
 applyColorSchemeClass();
 
