@@ -3908,17 +3908,18 @@ function renderEmpPivot(){
     const canvas=document.getElementById('empPivotChart');
     if(empPivotChartInst)empPivotChartInst.destroy();
     const COLORS=['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#65a30d','#ea580c','#4f46e5','#0d9488','#b91c1c'];
+    const chartLabels=colVals.map(v=>v.length>14?v.slice(0,12)+'…':v).concat(['Total']);
     const datasets=sortedRows.map((rv,ri)=>({
       label:rv.length>20?rv.slice(0,18)+'…':rv,
-      data:colVals.map(cv=>pivot[rv][cv]),
+      data:colVals.map(cv=>pivot[rv][cv]).concat([rowTotals[rv]]),
       backgroundColor:COLORS[ri%COLORS.length],
       stack:'s0'
     }));
     empPivotChartInst=new Chart(canvas,{
-      type:'bar',data:{labels:colVals.map(v=>v.length>14?v.slice(0,12)+'…':v),datasets},
+      type:'bar',data:{labels:chartLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom',labels:{boxWidth:8,font:{size:8}}},datalabels:{display:false}},
-        scales:{x:{stacked:true,ticks:{font:{size:8}}},y:{stacked:true,ticks:{font:{size:8},callback:function(v){return isCurrency?(v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v):v}}}}
+        plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}},datalabels:{display:false}},
+        scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:function(v){return isCurrency?(v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v):v}}}}
       }
     });
   }
@@ -3927,9 +3928,11 @@ function renderEmpPivot(){
   const tbl=document.getElementById('empPivotTable');
   const colTotals={};colVals.forEach(cv=>{colTotals[cv]=sortedRows.reduce((s,rv)=>s+pivot[rv][cv],0)});
   const grandTotal=Object.values(colTotals).reduce((s,v)=>s+v,0);
-  let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);font-size:.7rem"></th>';
-  colVals.forEach(cv=>h+=`<th style="text-align:right;font-size:.7rem;white-space:nowrap">${cv}</th>`);
-  h+='<th style="text-align:right;font-size:.7rem;font-weight:700">Total</th></tr></thead><tbody>';
+  const nDataCols=colVals.length+1; // +1 for Total
+  const datColW=Math.floor(100/(nDataCols+1))+'%'; // +1 accounts for row label col
+  let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);font-size:.72rem;width:auto"></th>';
+  colVals.forEach(cv=>h+=`<th style="text-align:right;font-size:.72rem;white-space:nowrap;width:${datColW}">${cv}</th>`);
+  h+=`<th style="text-align:right;font-size:.72rem;font-weight:700;width:${datColW}">Total</th></tr></thead><tbody>`;
   sortedRows.forEach(rv=>{
     h+=`<tr><td style="font-weight:600;font-size:.74rem;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1">${rv}</td>`;
     colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;${v===0?'color:var(--text-dim)':''}">${v===0?'—':isCurrency?fmt(v):v}</td>`});
@@ -3939,6 +3942,7 @@ function renderEmpPivot(){
   colVals.forEach(cv=>h+=`<td class="num" style="font-size:.74rem">${isCurrency?fmt(colTotals[cv]):colTotals[cv]}</td>`);
   h+=`<td class="num" style="font-size:.74rem;font-weight:800">${isCurrency?fmt(grandTotal):grandTotal}</td></tr></tbody>`;
   tbl.innerHTML=h;
+  tbl.style.tableLayout='fixed';
 }
 document.getElementById('empPivotRowDim').addEventListener('change',renderEmpPivot);
 document.getElementById('empPivotColDim').addEventListener('change',renderEmpPivot);
