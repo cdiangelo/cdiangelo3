@@ -382,7 +382,8 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .scen-emp-list .emp-name{color:var(--text);font-weight:500}
 .scen-emp-list .emp-meta{color:var(--text-dim);white-space:nowrap}
 .scen-emp-list .emp-count{padding:4px 8px;color:var(--text-dim);font-style:italic}
-.stat-card canvas.sparkline{display:block;width:calc(100% - 16px);height:28px;margin:8px auto 0}
+.stat-card{overflow:hidden}
+.stat-card canvas.sparkline{display:block;width:100%;height:28px;margin-top:8px;box-sizing:border-box}
 .exec-pane-toggle{cursor:pointer;user-select:none}
 .exec-pane-toggle:hover{opacity:.8}
 .exec-pane.collapsed .exec-pane-body{display:none}
@@ -5772,10 +5773,10 @@ function renderSparkline(canvasId,data,color){
   const canvas=document.getElementById(canvasId);
   if(!canvas)return;
   const dpr=window.devicePixelRatio||1;
-  const w=canvas.parentElement.clientWidth||160;
-  const h=32;
+  const w=canvas.clientWidth||canvas.parentElement.clientWidth-40||120;
+  const h=28;
   canvas.width=w*dpr;canvas.height=h*dpr;
-  canvas.style.width=w+'px';canvas.style.height=h+'px';
+  canvas.style.height=h+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
   if(!data||!data.length)return;
@@ -5914,7 +5915,8 @@ function renderExecView(){
       const color=execSplit==='none'?(isDark?'#d4524d':'#8b2020'):CHART_COLORS[i%CHART_COLORS.length];
       return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y',order:2};
     });
-    if(execSplit!=='none')stackedBarDatalabels(datasets,tickColor);
+    if(execSplit!=='none'){stackedBarDatalabels(datasets,tickColor)}
+    else{datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}})}
     // FTE count line
     datasets.push({label:'Allocated FTE',data:monthlyFte,type:'line',borderColor:isDark?'#4fc3f7':'#0277bd',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:isDark?'#4fc3f7':'#0277bd',yAxisID:'y1',tension:0.3,datalabels:{display:false},order:0});
     // Avg Annualized FTE comp line
@@ -5923,7 +5925,7 @@ function renderExecView(){
       type:'bar',
       data:{labels:periodLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:execSplit==='none'?{display:false}:{}},
+        plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}},
