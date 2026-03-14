@@ -905,8 +905,8 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="appShell" style="display:none">
 <header>
 <div class="container">
-<h1>Comp<span>Plan</span></h1>
-<button class="btn btn-sm" id="compBackBtn" onclick="showLanding()">Back to Overview</button>
+<div style="display:flex;align-items:center;gap:8px"><h1>Comp<span>Plan</span></h1>
+<button class="btn btn-sm" id="compBackBtn" onclick="showLanding()">Back to Overview</button></div>
 <span class="workspace-indicator" id="wsIndicator">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span><span class="save-indicator" id="saveIndicator" style="display:none"></span></span>
 <nav id="mainNav">
 <div class="nav-group">
@@ -1017,7 +1017,7 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- Pane 1: Monthly Dashboard with split-by -->
 <div class="exec-pane collapsed">
-<h3 class="exec-pane-toggle" onclick="toggleExecPane(this)"><span class="toggle-icon" style="font-size:.7rem;margin-right:6px;display:inline-block">&#9660;</span>Trend Views</h3>
+<h3 class="exec-pane-toggle" onclick="toggleExecPane(this)"><span class="toggle-icon" style="font-size:.7rem;margin-right:6px;display:inline-block">&#9660;</span>Trend Views<span id="execTrendYearLabel" style="font-weight:400;color:var(--text-dim)"> — 2026</span></h3>
 <div class="exec-pane-body">
 <div class="controls" style="margin-bottom:12px">
 <div>
@@ -1048,6 +1048,12 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="btn" data-eperiod="mtd">MTD</button>
 <button class="btn" data-eperiod="qtd">QTD</button>
 <button class="btn" data-eperiod="ytd">YTD</button>
+</div>
+</div>
+<div>
+<label>Year</label>
+<div class="toggle-group" id="execTrendYearToggle">
+<button class="btn active" data-etrendyr="current">2026</button>
 </div>
 </div>
 <div id="curMonthWrapExec">
@@ -1901,8 +1907,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="depreciationModule" style="display:none">
 <header>
 <div class="container" style="display:flex;align-items:center;gap:16px">
-<h1 style="font-size:1.3rem;color:var(--accent)">D&amp;A<span style="color:var(--secondary)">&amp; Assets</span></h1>
-<button class="btn btn-sm" id="depBackBtn">Back to Overview</button>
+<div style="display:flex;align-items:center;gap:8px"><h1 style="font-size:1.3rem;color:var(--accent)">D&amp;A<span style="color:var(--secondary)">&amp; Assets</span></h1>
+<button class="btn btn-sm" id="depBackBtn">Back to Overview</button></div>
 </div>
 </header>
 <main class="container" style="padding-top:24px">
@@ -2218,6 +2224,17 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Data Management Slide Panel -->
 <div class="data-slide-panel" id="dataSlidePanel">
 <h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Data Management</h3>
+
+<div class="data-section">
+<h4>Current Plan Year</h4>
+<p>Set the base year for your detailed comp plan. Forecast years automatically follow.</p>
+<div style="display:flex;align-items:center;gap:8px">
+<select id="currentYearSelect" style="padding:5px 10px;font-size:.88rem;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);font-weight:600">
+<option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
+</select>
+<span id="currentYearFcLabel" style="font-size:.76rem;color:var(--text-dim)">Forecast: 2027–2031</span>
+</div>
+</div>
 
 <div class="data-section">
 <h4>Workspaces</h4>
@@ -2800,7 +2817,8 @@ const DEFAULT_BONUS = {Junior:5,'Mid-Level':8,Senior:12,Staff:15,Principal:18,Ma
 const DEFAULT_BENEFITS = {Junior:18,'Mid-Level':20,Senior:22,Staff:24,Principal:26,Manager:23,Director:28,'VP/Head':32};
 const BENEFITS_COUNTRY_MULT = {'United States':1.00,'United Kingdom':0.85,Canada:0.90,Germany:0.95,India:0.40,Australia:0.88,Singapore:0.75,Netherlands:0.92,Brazil:0.50,Poland:0.55};
 const COUNTRY_BU = {'United States':'US001','United Kingdom':'UK001','Canada':'CA001','Germany':'DE001','India':'IN001','Australia':'AU001','Singapore':'SG001','Netherlands':'NL001','Brazil':'BR001','Poland':'PL001'};
-const FORECAST_YEARS = [2026,2027,2028,2029,2030];
+let FORECAST_YEARS = [2027,2028,2029,2030,2031];
+function rebuildForecastYears(){FORECAST_YEARS=[CURRENT_YEAR+1,CURRENT_YEAR+2,CURRENT_YEAR+3,CURRENT_YEAR+4,CURRENT_YEAR+5]}
 
 const DEFAULT_MARKETS = [
   {code:'US0001',name:'United States'},{code:'UK0002',name:'United Kingdom'},{code:'CA0003',name:'Canada'},
@@ -3002,7 +3020,7 @@ function getBenefitsAmt(emp){if(!emp)return 0;return Math.round((emp.salary||0)*
 function getTotalComp(emp){if(!emp)return 0;return (emp.salary||0)+getBonusAmt(emp)+getBenefitsAmt(emp)}
 
 // ── Date proration helpers ──
-const CURRENT_YEAR=new Date().getFullYear();
+let CURRENT_YEAR=2026;
 function daysInMonth(year,month){return new Date(year,month+1,0).getDate()}
 function getMonthFactor(emp,monthIdx,year){
   if(!year)year=CURRENT_YEAR;
@@ -3383,18 +3401,23 @@ const yoyArrowsPlugin={
     if(nLabels<2)return;
     // Sum visible stacked values per x-index (respects legend toggle)
     const totals=[];
-    let hasNeg=false;
+    const yPositions=[]; // actual values for y-positioning (may be negative)
     for(let i=0;i<nLabels;i++){
       let sumPos=0,sumNeg=0;
       datasets.forEach((ds,di)=>{
         const meta=chart.getDatasetMeta(di);
         if(meta.hidden)return;
         const v=ds.data[i];if(typeof v!=='number')return;
-        if(ds.stack==='neg'){sumNeg+=v;hasNeg=true}
+        if(ds.stack==='neg'){sumNeg+=v}
         else if(v>0)sumPos+=v;
       });
-      // If only negative datasets visible, use absolute neg values
-      totals.push(sumPos||Math.abs(sumNeg));
+      if(sumPos>0){
+        totals.push(sumPos);
+        yPositions.push(sumPos);
+      } else {
+        totals.push(Math.abs(sumNeg));
+        yPositions.push(sumNeg); // keep negative for correct y-positioning
+      }
     }
     // Find first visible dataset for bar positions
     let visMetaIdx=0;
@@ -3418,8 +3441,8 @@ const yoyArrowsPlugin={
       const barR=meta0.data[i+1];
       // Y position: map value to pixel using y scale
       const yScale=chart.scales.y;
-      const y1=yScale.getPixelForValue(totals[i]);
-      const y2=yScale.getPixelForValue(totals[i+1]);
+      const y1=yScale.getPixelForValue(yPositions[i]);
+      const y2=yScale.getPixelForValue(yPositions[i+1]);
       const halfW=barL.width?barL.width/2:12;
       const x1=barL.x+halfW+2;
       const x2=barR.x-halfW-2;
@@ -6860,7 +6883,7 @@ setInterval(()=>{
 },60000);
 
 // ── EXEC VIEW ──
-let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total';
+let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total',execTrendYear='current';
 let execMonthlyChart=null,execForecastChart=null,execFcSparkChart=null;
 let execFcCollapsed=true;
 let execFilterProduct='',execFilterCategory='';
@@ -6886,6 +6909,21 @@ document.querySelectorAll('#execViewToggle .btn').forEach(b=>b.addEventListener(
 document.querySelectorAll('#execPeriodToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#execPeriodToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execPeriod=b.dataset.eperiod;renderExecView();
 }));
+// Year toggle for trend view
+function buildExecTrendYearToggle(){
+  const wrap=document.getElementById('execTrendYearToggle');
+  if(!wrap)return;
+  wrap.innerHTML='<button class="btn'+(execTrendYear==='current'?' active':'')+'" data-etrendyr="current">'+CURRENT_YEAR+'</button>'+
+    FORECAST_YEARS.map(y=>'<button class="btn'+(execTrendYear===String(y)?' active':'')+'" data-etrendyr="'+y+'">'+y+'</button>').join('');
+  wrap.querySelectorAll('.btn').forEach(b=>b.addEventListener('click',()=>{
+    wrap.querySelectorAll('.btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+    execTrendYear=b.dataset.etrendyr;
+    const yrLabel=execTrendYear==='current'?String(CURRENT_YEAR):execTrendYear;
+    document.getElementById('execTrendYearLabel').textContent=' — '+yrLabel;
+    renderExecView();
+  }));
+}
+buildExecTrendYearToggle();
 document.querySelectorAll('#execFcSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#execFcSplitToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcSplit=b.dataset.efsplit;renderExecView();
 }));
@@ -7035,6 +7073,10 @@ function renderExecView(){
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
+  // Sync trend year header label
+  const trendYrLabel=execTrendYear==='current'?String(CURRENT_YEAR):execTrendYear;
+  const trendYrEl=document.getElementById('execTrendYearLabel');
+  if(trendYrEl)trendYrEl.textContent=' — '+trendYrLabel;
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   // ── Period range ──
@@ -7085,20 +7127,43 @@ function renderExecView(){
   const groupNames=Object.keys(splitGroups).sort();
 
   // Build monthly data per group (full 12 months, then slice for period)
+  const isForecastYear=execTrendYear!=='current';
   const monthlyDataFull={};
-  groupNames.forEach(g=>{
-    monthlyDataFull[g]=MONTH_SHORT.map((_,mi)=>{
+  if(isForecastYear){
+    // For forecast years, derive monthly from forecast annual totals using current year's distribution pattern
+    const selYear=parseInt(execTrendYear);
+    const fcYearIdx=FORECAST_YEARS.indexOf(selYear);
+    groupNames.forEach(g=>{
       const gEmps=splitGroups[g];
-      return gEmps.reduce((a,e)=>{
-        if(execView==='opex'){
-          const comp=getMonthlyComp(e,mi);
-          const cap=getMonthlyCapEx(e,mi);
-          return a+comp-cap;
-        }
+      // Current year monthly pattern for this group
+      const curMonthly=MONTH_SHORT.map((_,mi)=>gEmps.reduce((a,e)=>{
+        if(execView==='opex'){return a+getMonthlyComp(e,mi)-getMonthlyCapEx(e,mi)}
         return a+getMonthlyComp(e,mi);
-      },0);
+      },0));
+      const curTotal=curMonthly.reduce((a,v)=>a+v,0);
+      // Get forecast annual total for this group
+      const fcRows=projectForecast(gEmps,execSplit!=='none'?g:undefined);
+      const fcRow=fcYearIdx>=0&&fcRows[fcYearIdx+1]?fcRows[fcYearIdx+1]:null;
+      const fcAnnual=fcRow?(execView==='opex'?fcRow.opex:fcRow.total):0;
+      // Scale current monthly pattern to forecast annual
+      const scale=curTotal?fcAnnual/curTotal:0;
+      monthlyDataFull[g]=curMonthly.map(v=>Math.round(v*scale));
     });
-  });
+  } else {
+    groupNames.forEach(g=>{
+      monthlyDataFull[g]=MONTH_SHORT.map((_,mi)=>{
+        const gEmps=splitGroups[g];
+        return gEmps.reduce((a,e)=>{
+          if(execView==='opex'){
+            const comp=getMonthlyComp(e,mi);
+            const cap=getMonthlyCapEx(e,mi);
+            return a+comp-cap;
+          }
+          return a+getMonthlyComp(e,mi);
+        },0);
+      });
+    });
+  }
   const monthlyData={};
   groupNames.forEach(g=>{
     const raw=monthlyDataFull[g];
@@ -7120,16 +7185,30 @@ function renderExecView(){
   });
 
   // Build FTE and Avg Annualized FTE Comp overlay data (period-scoped)
-  const monthlyFteFull=MONTH_SHORT.map((_,mi)=>{
-    let fte=0;
-    emps.forEach(e=>{const f=getMonthFactor(e,mi);if(f>0){const allocTotal=(e.allocations||[]).reduce((s,a)=>s+a.pct,0);fte+=f*(allocTotal/100)}});
-    return Math.round(fte*100)/100;
-  });
-  const monthlyAvgAnnFteCompFull=MONTH_SHORT.map((_,mi)=>{
-    if(!monthlyFteFull[mi])return 0;
-    const mComp=emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0);
-    return Math.round((mComp/monthlyFteFull[mi])*12);
-  });
+  let monthlyFteFull,monthlyAvgAnnFteCompFull;
+  if(isForecastYear){
+    // For forecast years, use projected HC as flat FTE across all months
+    const selYear=parseInt(execTrendYear);
+    const fcYearIdx=FORECAST_YEARS.indexOf(selYear);
+    const fcRows=projectForecast(emps);
+    const fcRow=fcYearIdx>=0&&fcRows[fcYearIdx+1]?fcRows[fcYearIdx+1]:null;
+    const fcHC=fcRow?fcRow.hc:emps.length;
+    const fcTotal=fcRow?fcRow.total:0;
+    const avgAnnComp=fcHC?Math.round(fcTotal/fcHC):0;
+    monthlyFteFull=MONTH_SHORT.map(()=>fcHC);
+    monthlyAvgAnnFteCompFull=MONTH_SHORT.map(()=>avgAnnComp);
+  } else {
+    monthlyFteFull=MONTH_SHORT.map((_,mi)=>{
+      let fte=0;
+      emps.forEach(e=>{const f=getMonthFactor(e,mi);if(f>0){const allocTotal=(e.allocations||[]).reduce((s,a)=>s+a.pct,0);fte+=f*(allocTotal/100)}});
+      return Math.round(fte*100)/100;
+    });
+    monthlyAvgAnnFteCompFull=MONTH_SHORT.map((_,mi)=>{
+      if(!monthlyFteFull[mi])return 0;
+      const mComp=emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0);
+      return Math.round((mComp/monthlyFteFull[mi])*12);
+    });
+  }
   let monthlyFte,monthlyAvgAnnFteComp;
   if(isQuarterly){
     // Average FTE per quarter, average ann. comp per quarter
@@ -7162,7 +7241,7 @@ function renderExecView(){
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}},
-          y1:{beginAtZero:true,position:'right',title:{display:true,text:'FTE',color:tickColor,font:{size:12}},ticks:{color:isDark?'#4fc3f7':'#0277bd'},grid:{drawOnChartArea:false}}
+          y1:{beginAtZero:true,position:'right',title:{display:true,text:'FTE',color:tickColor,font:{size:12}},ticks:{color:tickColor},grid:{drawOnChartArea:false}}
         }
       }
     });
@@ -9241,6 +9320,16 @@ function initDataPanel(){
     document.body.classList.toggle('data-open',isOpen);
     dataArrow.innerHTML=isOpen?'&#9664;':'&#9654;';
     if(isOpen)renderDataPanelWsList();
+  });
+
+  // Current Year selector
+  document.getElementById('currentYearSelect').addEventListener('change',function(){
+    CURRENT_YEAR=parseInt(this.value);
+    rebuildForecastYears();
+    document.getElementById('currentYearFcLabel').textContent='Forecast: '+FORECAST_YEARS[0]+'–'+FORECAST_YEARS[4];
+    // Update exec trend year toggle options
+    buildExecTrendYearToggle();
+    renderAll();renderLandingCharts();
   });
 
   // Workspace: Save As
