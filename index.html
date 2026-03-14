@@ -1731,6 +1731,15 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Vendor Spend Grid Tab -->
 <div id="vtab-vendor-grid" class="vtab-content" style="display:block">
 
+<!-- Vendor Month Range Filter -->
+<div id="vendorMonthRangeWrap" style="margin-bottom:10px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:2px;display:block">Month Range</label>
+<div id="vendorMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div><div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div><div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div><div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<div id="vendorMonthRangeLabel" style="font-size:.65rem;color:var(--text-dim);margin-top:2px">All months (click or drag to select range)</div>
+</div>
+
 <!-- Vendor Quick-Adjust Panel -->
 <div class="qa-panel" id="vendorQaPanel">
 <div class="qa-panel-header" id="vendorQaToggle">
@@ -1892,6 +1901,15 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- T&E Tab -->
 <div id="vtab-vendor-te" class="vtab-content" style="display:none">
+
+<!-- T&E Month Range Filter -->
+<div id="teMonthRangeWrap" style="margin-bottom:10px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:2px;display:block">Month Range</label>
+<div id="teMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div><div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div><div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div><div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<div id="teMonthRangeLabel" style="font-size:.65rem;color:var(--text-dim);margin-top:2px">All months (click or drag to select range)</div>
+</div>
 
 <!-- T&E Quick-Adjust Panel -->
 <div class="qa-panel" id="teQaPanel">
@@ -9114,6 +9132,59 @@ function initExecMonthRangeBar(){
   document.addEventListener('touchend',()=>{onFinish()});
 }
 
+// ── Generic Month Range Bar factory for Vendor/T&E tabs ──
+function createSpendMonthRangeBar(barId, labelId, selectedSet, onChangeCallback){
+  function render(){
+    const bar=document.getElementById(barId);
+    if(!bar)return;
+    bar.querySelectorAll('.month-cell').forEach(cell=>{
+      const mo=parseInt(cell.dataset.mo);
+      cell.classList.toggle('active',selectedSet.has(mo));
+    });
+    const label=document.getElementById(labelId);
+    if(label){
+      if(!selectedSet.size){label.textContent='All months (click or drag to select range)'}
+      else{const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const sorted=[...selectedSet].sort((a,b)=>a-b);label.textContent=sorted.map(m=>MO_SHORT[m]).join(', ')}
+    }
+  }
+  function init(){
+    const bar=document.getElementById(barId);
+    if(!bar||bar._inited)return;bar._inited=true;
+    let dragging=false,startMo=null;
+    function getMo(e){const cell=e.target.closest('.month-cell');return cell?parseInt(cell.dataset.mo):null}
+    function selectRange(from,to){
+      const lo=Math.min(from,to),hi=Math.max(from,to);
+      selectedSet.clear();
+      for(let i=lo;i<=hi;i++)selectedSet.add(i);
+      render();
+    }
+    function onFinish(){if(dragging){dragging=false;onChangeCallback()}}
+    bar.addEventListener('mousedown',e=>{
+      const mo=getMo(e);if(mo===null)return;
+      dragging=true;startMo=mo;
+      if(selectedSet.size===1&&selectedSet.has(mo)){selectedSet.clear();render();dragging=false;onChangeCallback();return}
+      selectRange(mo,mo);e.preventDefault();
+    });
+    bar.addEventListener('mousemove',e=>{if(!dragging)return;const mo=getMo(e);if(mo===null)return;selectRange(startMo,mo)});
+    document.addEventListener('mouseup',()=>{onFinish()});
+    bar.addEventListener('touchstart',e=>{
+      const touch=e.touches[0];const el=document.elementFromPoint(touch.clientX,touch.clientY);
+      if(!el||!el.classList.contains('month-cell'))return;
+      const mo=parseInt(el.dataset.mo);dragging=true;startMo=mo;
+      if(selectedSet.size===1&&selectedSet.has(mo)){selectedSet.clear();render();dragging=false;onChangeCallback();return}
+      selectRange(mo,mo);e.preventDefault();
+    },{passive:false});
+    bar.addEventListener('touchmove',e=>{
+      if(!dragging)return;
+      const touch=e.touches[0];const el=document.elementFromPoint(touch.clientX,touch.clientY);
+      if(!el||!el.classList.contains('month-cell'))return;
+      selectRange(startMo,parseInt(el.dataset.mo));e.preventDefault();
+    },{passive:false});
+    document.addEventListener('touchend',()=>{onFinish()});
+  }
+  return {init,render};
+}
+
 function getEmpProducts(emp){
   if(!emp.allocations||!emp.allocations.length)return [];
   return emp.allocations.map(a=>{const p=state.projects.find(pr=>pr.id===a.projId);return p?p.product:null}).filter(Boolean);
@@ -10321,7 +10392,7 @@ function initVendorModule(){
     return h;
   }
 
-  function bindSpendRows(tbodyEl,tfootEl,dataArr,prefix,renderFn){
+  function bindSpendRows(tbodyEl,tfootEl,dataArr,prefix,renderFn,monthFilter){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     // Set selected values
     tbodyEl.querySelectorAll('tr').forEach(tr=>{
@@ -10364,7 +10435,7 @@ function initVendorModule(){
           const cells=el.closest('tr').querySelectorAll('td');
           cells[cells.length-2].textContent=fmtScaled(fy2);
           // Recalc footer
-          renderFooter(tfootEl,dataArr,fields2colSpan(prefix));
+          renderFooter(tfootEl,dataArr,fields2colSpan(prefix),monthFilter);
         }
         saveState();
       });
@@ -10499,12 +10570,16 @@ function initVendorModule(){
 
   function fields2colSpan(prefix){return prefix==='vr'?11:10}
 
-  function renderFooter(tfootEl,dataArr,colSpan){
+  function renderFooter(tfootEl,dataArr,colSpan,monthFilter){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     const moTotals=MO.map(m=>dataArr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
-    const fyTotal=moTotals.reduce((s,v)=>s+v,0);
-    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL</td>`;
-    moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(t)}</td>`);
+    const hasFilter=monthFilter&&monthFilter.size>0&&monthFilter.size<12;
+    const fyTotal=hasFilter?moTotals.filter((_,i)=>monthFilter.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL${hasFilter?' (filtered)':''}</td>`;
+    moTotals.forEach((t,mi)=>{
+      const dim=hasFilter&&!monthFilter.has(mi)?'opacity:.35;':'';
+      ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;${dim}">${fmtScaled(t)}</td>`;
+    });
     ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fyTotal)}</td><td></td></tr>`;
     tfootEl.innerHTML=ft;
   }
@@ -10549,8 +10624,8 @@ function initVendorModule(){
     let h='';
     state.vendorRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'vr','vendor')});
     tbody.innerHTML=h;
-    renderFooter(totalEl,state.vendorRows,10);
-    bindSpendRows(tbody,totalEl,state.vendorRows,'vr',renderVendorGrid);
+    renderFooter(totalEl,state.vendorRows,10,vendorSelectedMonths);
+    bindSpendRows(tbody,totalEl,state.vendorRows,'vr',renderVendorGrid,vendorSelectedMonths);
   }
 
   document.getElementById('vendorAddRow').addEventListener('click',()=>{
@@ -10794,8 +10869,8 @@ function initVendorModule(){
     let h='';
     state.teRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'te','te')});
     tbody.innerHTML=h;
-    renderFooter(totalEl,state.teRows,9);
-    bindSpendRows(tbody,totalEl,state.teRows,'te',renderTeGrid);
+    renderFooter(totalEl,state.teRows,9,teSelectedMonths);
+    bindSpendRows(tbody,totalEl,state.teRows,'te',renderTeGrid,teSelectedMonths);
   }
 
   document.getElementById('teAddRow').addEventListener('click',()=>{
@@ -10908,6 +10983,7 @@ function initVendorModule(){
   // ── Pivot filter state ──
   let vPivotBand='all', tePivotBand='all';
   let vPivotSelectedVendors=new Set(), tePivotSelectedDescs=new Set();
+  let vendorSelectedMonths=new Set(), teSelectedMonths=new Set(); // month range filters
 
   function parseBand(band){
     if(!band||band==='all')return null;
@@ -10918,11 +10994,14 @@ function initVendorModule(){
   }
 
   function buildPivot(rows, rowDim, colDim, filters){
-    const {band, selectedNames, nameField, notesSearch}=filters||{};
-    // Compute full-year per row and enrich with product/productType from linked project
+    const {band, selectedNames, nameField, notesSearch, monthFilter}=filters||{};
+    // Determine which month keys to include
+    const activeMoIdx=monthFilter&&monthFilter.size>0?[...monthFilter]:null;
+    const activeMoKeys=activeMoIdx?activeMoIdx.sort((a,b)=>a-b).map(i=>MO_KEYS[i]):MO_KEYS;
+    // Compute full-year per row (scoped to selected months) and enrich with product/productType
     let withFY=rows.map(r=>{
       const proj=r.project?state.projects.find(p=>p.id===r.project):null;
-      return {...r, _fy:MO_KEYS.reduce((s,m)=>s+(parseFloat(r[m])||0),0), _product:proj?proj.product||'':'', _productType:proj?proj.category||'':''};
+      return {...r, _fy:activeMoKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0), _product:proj?proj.product||'':'', _productType:proj?proj.category||'':''};
     }).filter(r=>r._fy>0);
     // Apply dollar band filter
     const bandRange=parseBand(band);
@@ -10949,11 +11028,16 @@ function initVendorModule(){
     topRows.forEach(r=>{
       const rv=r[rowDim]||'(blank)';
       const cv=r[colDim]||'(blank)';
-      MO_KEYS.forEach((m,mi)=>{const v=parseFloat(r[m])||0;pivot[rv][cv].months[mi]+=v;pivot[rv][cv].total+=v});
+      MO_KEYS.forEach((m,mi)=>{
+        const v=parseFloat(r[m])||0;
+        pivot[rv][cv].months[mi]+=v;
+        // Only add to total if this month is in the active range
+        if(!activeMoIdx||activeMoIdx.includes(mi))pivot[rv][cv].total+=v;
+      });
     });
 
     const totalSpend=topRows.reduce((s,r)=>s+r._fy,0);
-    return {rowVals,colVals,pivot,topRows,totalSpend,topCount:topRows.length,allCount:rows.length};
+    return {rowVals,colVals,pivot,topRows,totalSpend,topCount:topRows.length,allCount:rows.length,monthFilter:activeMoIdx};
   }
 
   // ── Vendor name pills ──
@@ -11043,10 +11127,13 @@ function initVendorModule(){
 
   function renderPivotChart(canvasId, data, chartInstRef, rowDim, nameField){
     if(typeof Chart==='undefined')return null;
-    const {rowVals,colVals,pivot,topRows}=data;
+    const {rowVals,colVals,pivot,topRows,monthFilter}=data;
+    // Determine which months to show on x-axis
+    const chartMonthIdx=monthFilter||MO_KEYS.map((_,i)=>i);
+    const chartLabels=chartMonthIdx.map(i=>MO_LABELS_SHORT[i]);
     // Monthly stacked bar: x-axis = months, stacks = rowDim values (clustered by colDim)
     // We show monthly totals grouped by the row dimension
-    const rowTotals={};rowVals.forEach(rv=>{rowTotals[rv]=MO_KEYS.reduce((s,m,mi)=>{
+    const rowTotals={};rowVals.forEach(rv=>{rowTotals[rv]=chartMonthIdx.reduce((s,mi)=>{
       let moSum=0;colVals.forEach(cv=>{moSum+=pivot[rv][cv].months[mi]});return s+moSum;
     },0)});
     const sortedRows=[...rowVals].sort((a,b)=>rowTotals[b]-rowTotals[a]);
@@ -11054,7 +11141,7 @@ function initVendorModule(){
     const datasets=[...sortedRows].reverse().map((rv,i)=>{
       const ri=sortedRows.length-1-i;
       return {label:rv,
-        data:MO_LABELS_SHORT.map((_,mi)=>{let s=0;colVals.forEach(cv=>{s+=pivot[rv][cv].months[mi]});return s}),
+        data:chartMonthIdx.map(mi=>{let s=0;colVals.forEach(cv=>{s+=pivot[rv][cv].months[mi]});return s}),
         backgroundColor:getChartColors()[ri%getChartColors().length],
         stack:'stack0'};
     });
@@ -11067,9 +11154,10 @@ function initVendorModule(){
         const rv=r[rowDim]||'(blank)';
         const name=r[nameField]||'';
         if(!name)return;
-        MO_KEYS.forEach((m,mi)=>{
+        chartMonthIdx.forEach((mi,di)=>{
+          const m=MO_KEYS[mi];
           if((parseFloat(r[m])||0)>0){
-            const key=rv+'|'+mi;
+            const key=rv+'|'+di;
             if(!namesByRowMonth[key])namesByRowMonth[key]=new Set();
             namesByRowMonth[key].add(name);
           }
@@ -11085,7 +11173,7 @@ function initVendorModule(){
     const _gridC=_isDark?'rgba(255,255,255,.08)':'#ddd';
     return new Chart(ctx,{
       type:'bar',
-      data:{labels:MO_LABELS_SHORT,datasets},
+      data:{labels:chartLabels,datasets},
       options:{
         responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10},color:_tickC}},
@@ -11122,7 +11210,7 @@ function initVendorModule(){
     const rowDim=document.getElementById('vPivotRowDim').value;
     const colDim=document.getElementById('vPivotColDim').value;
     const notesSearch=document.getElementById('vPivotNotesSearch').value.trim();
-    const filters={band:vPivotBand,selectedNames:vPivotSelectedVendors,nameField:'vendorName',notesSearch};
+    const filters={band:vPivotBand,selectedNames:vPivotSelectedVendors,nameField:'vendorName',notesSearch,monthFilter:vendorSelectedMonths};
     const data=buildPivot(state.vendorRows||[],rowDim,colDim,filters);
     renderVendorPills();
     if(!data.topRows.length){
@@ -11139,7 +11227,7 @@ function initVendorModule(){
     const rowDim=document.getElementById('tePivotRowDim').value;
     const colDim=document.getElementById('tePivotColDim').value;
     const notesSearch=document.getElementById('tePivotNotesSearch').value.trim();
-    const filters={band:tePivotBand,selectedNames:tePivotSelectedDescs,nameField:'description',notesSearch};
+    const filters={band:tePivotBand,selectedNames:tePivotSelectedDescs,nameField:'description',notesSearch,monthFilter:teSelectedMonths};
     const data=buildPivot(state.teRows||[],rowDim,colDim,filters);
     renderTeDescPills();
     if(!data.topRows.length){
@@ -11422,15 +11510,17 @@ function initVendorModule(){
       QA_MO.forEach(m=>{
         grouped[name].moAmts[m]=(grouped[name].moAmts[m]||0)+(parseFloat(r[m])||0);
       });
-      grouped[name].fy+=QA_MO.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
+      const vActiveMo=vendorSelectedMonths.size>0?QA_MO.filter((_,i)=>vendorSelectedMonths.has(i)):QA_MO;
+      grouped[name].fy+=vActiveMo.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
     });
     const list=document.getElementById('vendorQaList');
     const entries=Object.entries(grouped).sort((a,b)=>b[1].fy-a[1].fy);
     if(!entries.length){list.innerHTML='<div style="padding:12px;color:var(--text-dim);font-size:.8rem;text-align:center">No vendors found</div>';updateVendorQaTotal();return}
+    const vRangeLabel=vendorSelectedMonths.size>0&&vendorSelectedMonths.size<12?'Range':'FY';
     let h='';
     entries.forEach(([name,g])=>{
       const displayAmt=moSel==='all'?g.fy:(g.moAmts[moSel]||0);
-      const moLabel=moSel==='all'?'FY':QA_MO_LABELS[QA_MO.indexOf(moSel)];
+      const moLabel=moSel==='all'?vRangeLabel:QA_MO_LABELS[QA_MO.indexOf(moSel)];
       h+=`<div class="qa-row-item" data-qa-name="${esc(name)}">
         <span class="qa-row-name" title="${esc(name)}">${esc(name)}</span>
         <span class="qa-row-fy">${moLabel}: ${qaFmt(displayAmt)}</span>
@@ -11472,7 +11562,9 @@ function initVendorModule(){
     renderVendorQaHistoryList();
   }
   function updateVendorQaTotal(){
-    const total=(state.vendorRows||[]).reduce((s,r)=>s+QA_MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+    const activeMo=vendorSelectedMonths.size>0?QA_MO.filter((_,i)=>vendorSelectedMonths.has(i)):QA_MO;
+    const total=(state.vendorRows||[]).reduce((s,r)=>s+activeMo.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+    const label=vendorSelectedMonths.size>0&&vendorSelectedMonths.size<12?'Filtered Vendor Spend':'Total Vendor Spend';
     document.getElementById('vendorQaTotal').textContent=qaFmt(total);
   }
   function renderVendorQaHistoryList(){
@@ -11520,15 +11612,17 @@ function initVendorModule(){
       QA_MO.forEach(m=>{
         grouped[name].moAmts[m]=(grouped[name].moAmts[m]||0)+(parseFloat(r[m])||0);
       });
-      grouped[name].fy+=QA_MO.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
+      const tActiveMo=teSelectedMonths.size>0?QA_MO.filter((_,i)=>teSelectedMonths.has(i)):QA_MO;
+      grouped[name].fy+=tActiveMo.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
     });
     const list=document.getElementById('teQaList');
     const entries=Object.entries(grouped).sort((a,b)=>b[1].fy-a[1].fy);
     if(!entries.length){list.innerHTML='<div style="padding:12px;color:var(--text-dim);font-size:.8rem;text-align:center">No T&amp;E entries found</div>';updateTeQaTotal();return}
+    const tRangeLabel=teSelectedMonths.size>0&&teSelectedMonths.size<12?'Range':'FY';
     let h='';
     entries.forEach(([name,g])=>{
       const displayAmt=moSel==='all'?g.fy:(g.moAmts[moSel]||0);
-      const moLabel=moSel==='all'?'FY':QA_MO_LABELS[QA_MO.indexOf(moSel)];
+      const moLabel=moSel==='all'?tRangeLabel:QA_MO_LABELS[QA_MO.indexOf(moSel)];
       h+=`<div class="qa-row-item" data-qa-name="${esc(name)}">
         <span class="qa-row-name" title="${esc(name)}">${esc(name)}</span>
         <span class="qa-row-fy">${moLabel}: ${qaFmt(displayAmt)}</span>
@@ -11567,7 +11661,8 @@ function initVendorModule(){
     renderTeQaHistoryList();
   }
   function updateTeQaTotal(){
-    const total=(state.teRows||[]).reduce((s,r)=>s+QA_MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+    const activeMo=teSelectedMonths.size>0?QA_MO.filter((_,i)=>teSelectedMonths.has(i)):QA_MO;
+    const total=(state.teRows||[]).reduce((s,r)=>s+activeMo.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
     document.getElementById('teQaTotal').textContent=qaFmt(total);
   }
   function renderTeQaHistoryList(){
@@ -11600,6 +11695,16 @@ function initVendorModule(){
   // T&E QA: search filter
   document.getElementById('teQaSearch').addEventListener('input',renderTeQaList);
   document.getElementById('teQaMo').addEventListener('change',renderTeQaList);
+
+  // ── Vendor & T&E Month Range Bars ──
+  const vendorMonthBar=createSpendMonthRangeBar('vendorMonthRangeBar','vendorMonthRangeLabel',vendorSelectedMonths,function(){
+    renderVendorGrid();refreshVendorPivot();renderVendorQaList();
+  });
+  const teMonthBar=createSpendMonthRangeBar('teMonthRangeBar','teMonthRangeLabel',teSelectedMonths,function(){
+    renderTeGrid();refreshTePivot();renderTeQaList();
+  });
+  vendorMonthBar.init();
+  teMonthBar.init();
 
   // Initial render
   renderVendorGrid();
