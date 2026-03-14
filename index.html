@@ -220,21 +220,55 @@ html.dark body.cs-mono .stat-card .label{color:#888}
 body.cs-neon .stat-card .value{color:#3a86ff!important}
 html.dark body.cs-neon .stat-card .value{color:#00f5d4!important}
 /* Crisp scheme — sharp white/black, minimal, editorial */
+body.cs-crisp{--accent:#444;--accent-light:#555;--danger:#666;--success:#555;--warning:#777;--bg:#e0e0e0;--panel:#ebebeb;--panel-inset:#e4e4e4}
 body.cs-crisp .stat-card .value{color:#111!important;font-weight:700}
 body.cs-crisp h3,body.cs-crisp .exec-pane h3,body.cs-crisp .landing-chart-title{color:#111;font-weight:700}
 body.cs-crisp .stat-card .label{color:#666}
-body.cs-crisp .stat-card{border:1px solid #d0d0d0;background:#fafafa}
-body.cs-crisp .panel,body.cs-crisp .card{background:#fff;border:1px solid #ddd}
-body.cs-crisp table th{background:#f5f5f5;border-bottom:2px solid #222}
-body.cs-crisp table td{border-bottom:1px solid #eee}
-body.cs-crisp tr:nth-child(even) td{background:#fafafa}
-html.dark body.cs-crisp .stat-card .value{color:#c0c0c0!important;font-weight:700}
-html.dark body.cs-crisp h3,html.dark body.cs-crisp .exec-pane h3,html.dark body.cs-crisp .landing-chart-title{color:#c0c0c0;font-weight:700}
-html.dark body.cs-crisp .stat-card .label{color:#aaa}
-html.dark body.cs-crisp .stat-card{border:1px solid #444;background:#1e1e22}
-html.dark body.cs-crisp table th{background:#252529;border-bottom:2px solid #666}
-html.dark body.cs-crisp table td{border-bottom:1px solid #333}
-html.dark body.cs-crisp tr:nth-child(even) td{background:#222226}
+body.cs-crisp .stat-card{border:1px solid #ccc;background:#f0f0f0}
+body.cs-crisp .panel,body.cs-crisp .card{background:#f0f0f0;border:1px solid #ccc}
+body.cs-crisp table th{background:#e8e8e8;border-bottom:2px solid #222}
+body.cs-crisp table td{border-bottom:1px solid #ddd}
+body.cs-crisp tr:nth-child(even) td{background:#eaeaea}
+body.cs-crisp a{color:#444}
+body.cs-crisp header h1{color:#222}
+body.cs-crisp header{background:#ebebeb}
+body.cs-crisp nav button.active{background:#333;border-color:#333;color:#f0f0f0}
+body.cs-crisp .btn-danger{background:#555;border-color:#555}
+body.cs-crisp .btn.active,body.cs-crisp .btn-primary{background:#333;border-color:#333}
+body.cs-crisp .toggle-group .btn.active{background:#333}
+body.cs-crisp th{color:#333}
+body.cs-crisp .benchmark-badge{background:rgba(0,0,0,.05);border-color:#999;color:#444}
+body.cs-crisp .section-title{color:#222}
+body.cs-crisp .forecast-section h4{color:#333}
+body.cs-crisp .modal h3{color:#222}
+body.cs-crisp .export-card h3{color:#333}
+body.cs-crisp .ws-list .ws-active{color:#555}
+html.dark body.cs-crisp{--accent:#999;--accent-light:#aaa;--danger:#999;--success:#888;--warning:#aaa;--bg:#141416;--panel:#1a1a1e;--panel-inset:#161618;--text:#b0b0b4;--text-dim:#808086;--text-dark:#c0c0c4;--border:#2a2a2e;--border-light:#222226}
+html.dark body.cs-crisp .stat-card .value{color:#b0b0b4!important;font-weight:700}
+html.dark body.cs-crisp h3,html.dark body.cs-crisp .exec-pane h3,html.dark body.cs-crisp .landing-chart-title{color:#b0b0b4;font-weight:700}
+html.dark body.cs-crisp .stat-card .label{color:#808086}
+html.dark body.cs-crisp .stat-card{border:1px solid #2a2a2e;background:#1a1a1e}
+html.dark body.cs-crisp table th{background:#1e1e22;border-bottom:2px solid #444}
+html.dark body.cs-crisp table td{border-bottom:1px solid #252529}
+html.dark body.cs-crisp tr:nth-child(even) td{background:#1c1c20}
+html.dark body.cs-crisp a{color:#888}
+html.dark body.cs-crisp header h1{color:#b0b0b4}
+html.dark body.cs-crisp header h1 span{color:#808086}
+html.dark body.cs-crisp nav button.active{background:#333338;color:#b0b0b4;border-color:#444}
+html.dark body.cs-crisp nav button{color:#808086;border-color:#2a2a2e}
+html.dark body.cs-crisp select,html.dark body.cs-crisp input,html.dark body.cs-crisp textarea{background:#1e1e22;border-color:#2a2a2e;color:#b0b0b4}
+html.dark body.cs-crisp header{background:#1a1a1e;border-bottom-color:#2a2a2e}
+html.dark body.cs-crisp .btn-danger{background:#555;border-color:#555}
+html.dark body.cs-crisp .btn.active,html.dark body.cs-crisp .btn-primary{background:#444;border-color:#444}
+html.dark body.cs-crisp .toggle-group .btn.active{background:#444}
+html.dark body.cs-crisp th{color:#999}
+html.dark body.cs-crisp .benchmark-badge{background:rgba(255,255,255,.05);border-color:#555;color:#888}
+html.dark body.cs-crisp .section-title{color:#b0b0b4}
+html.dark body.cs-crisp .forecast-section h4{color:#999}
+html.dark body.cs-crisp .modal h3{color:#b0b0b4}
+html.dark body.cs-crisp .export-card h3{color:#999}
+html.dark body.cs-crisp .ws-list .ws-active{color:#888}
+html.dark body.cs-crisp tr:hover{background:rgba(255,255,255,.02)}
 /* ── Mobile Responsive ── */
 @media(max-width:768px){
   .stat-cards{grid-template-columns:1fr 1fr}
