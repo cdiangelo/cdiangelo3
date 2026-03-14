@@ -5307,24 +5307,41 @@ function renderWorkspaceList(){
     container.innerHTML='<p style="color:var(--text-dim);font-size:.85rem">No saved workspaces yet. Use "Save As" above to create your first workspace.</p>';
     return;
   }
-  let html='<ul class="ws-list">';
+  // Merge mode header
+  let html='';
+  if(idx.length>=2){
+    html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">`;
+    html+=`<button class="btn btn-sm${wsMergeMode?' btn-danger':''}" onclick="toggleWsMergeMode()">${wsMergeMode?'Cancel Merge':'Merge Workspaces'}</button>`;
+    if(wsMergeMode){
+      html+=`<span style="color:var(--text-dim);font-size:.8rem">Select 2+ workspaces to combine</span>`;
+      html+=`<button class="btn btn-sm btn-primary" onclick="executeWsMerge()" ${wsMergeSelected.size<2?'disabled':''}style="margin-left:auto">Merge Selected (${wsMergeSelected.size})</button>`;
+    }
+    html+=`</div>`;
+  }
+  html+='<ul class="ws-list">';
   idx.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)).forEach(w=>{
     const isActive=w.name===currentWorkspaceName;
     const date=new Date(w.savedAt);
     const dateStr=date.toLocaleDateString()+' '+date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     const esc=w.name.replace(/'/g,"\\'");
-    html+=`<li>
-      <div class="ws-info">
+    const isChecked=wsMergeSelected.has(w.key);
+    html+=`<li>`;
+    if(wsMergeMode){
+      html+=`<label style="display:flex;align-items:center;cursor:pointer;margin-right:8px"><input type="checkbox" ${isChecked?'checked':''} onchange="toggleWsMergeSelect('${w.key}')" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer"></label>`;
+    }
+    html+=`<div class="ws-info">
         <div class="ws-title">${w.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
         <div class="ws-meta">${w.employees||0} employees, ${w.projects||0} projects — Saved ${dateStr}</div>
-      </div>
-      <div style="display:flex;gap:4px;flex-shrink:0">
+      </div>`;
+    if(!wsMergeMode){
+      html+=`<div style="display:flex;gap:4px;flex-shrink:0">
         ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadWorkspace('${w.key}','${esc}')">Load</button>`:''}
         <button class="btn btn-sm" onclick="renameWorkspace('${w.key}','${esc}')">Rename</button>
         <button class="btn btn-sm" onclick="duplicateWorkspace('${w.key}','${esc}')">Copy</button>
         <button class="btn btn-sm btn-danger" onclick="deleteWorkspace('${w.key}','${esc}')">Del</button>
-      </div>
-    </li>`;
+      </div>`;
+    }
+    html+=`</li>`;
   });
   html+='</ul>';
   container.innerHTML=html;
@@ -5410,6 +5427,132 @@ function openWorkspaceModal(){
 }
 function closeWorkspaceModal(){document.getElementById('wsModal').classList.remove('show')}
 document.getElementById('wsModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeWorkspaceModal()});
+
+// ── Workspace Merge ──
+let wsMergeMode=false;
+let wsMergeSelected=new Set();
+
+function toggleWsMergeMode(){
+  wsMergeMode=!wsMergeMode;
+  wsMergeSelected.clear();
+  renderWorkspaceList();
+}
+
+function toggleWsMergeSelect(key){
+  if(wsMergeSelected.has(key))wsMergeSelected.delete(key);
+  else wsMergeSelected.add(key);
+  renderWorkspaceList();
+}
+
+function executeWsMerge(){
+  if(wsMergeSelected.size<2){alert('Select at least 2 workspaces to merge.');return}
+  const idx=getWorkspaceIndex();
+  const selected=[...wsMergeSelected];
+  // Load all selected workspace states
+  const states=[];
+  const names=[];
+  for(const key of selected){
+    const raw=localStorage.getItem(key);
+    if(!raw){const ws=idx.find(w=>w.key===key);alert(`Could not load workspace "${ws?.name||key}".`);return}
+    states.push(JSON.parse(raw));
+    const ws=idx.find(w=>w.key===key);
+    names.push(ws?.name||key);
+  }
+  // Merge: first workspace is the base, subsequent workspaces are merged in
+  const merged=JSON.parse(JSON.stringify(states[0]));
+  // Track existing IDs to remap references
+  for(let si=1;si<states.length;si++){
+    const src=states[si];
+    const projIdMap={};
+    // Merge projects (dedupe by code)
+    if(src.projects){
+      src.projects.forEach(p=>{
+        const existing=merged.projects.find(mp=>mp.code===p.code);
+        if(existing){projIdMap[p.id]=existing.id}
+        else{const newP=JSON.parse(JSON.stringify(p));newP.id=uid();projIdMap[p.id]=newP.id;merged.projects.push(newP)}
+      });
+    }
+    // Merge employees (always add — different workspaces have different people)
+    if(src.employees){
+      src.employees.forEach(e=>{
+        const newE=JSON.parse(JSON.stringify(e));
+        newE.id=uid();
+        // Remap allocation project IDs
+        if(newE.allocations){
+          newE.allocations.forEach(a=>{if(projIdMap[a.projId])a.projId=projIdMap[a.projId]});
+        }
+        merged.employees.push(newE);
+      });
+    }
+    // Merge markets (dedupe by code)
+    if(src.markets){
+      src.markets.forEach(m=>{if(!merged.markets.some(mm=>mm.code===m.code))merged.markets.push(JSON.parse(JSON.stringify(m)))});
+    }
+    // Merge bizLines (dedupe by code)
+    if(src.bizLines){
+      src.bizLines.forEach(b=>{if(!merged.bizLines.some(mb=>mb.code===b.code))merged.bizLines.push(JSON.parse(JSON.stringify(b)))});
+    }
+    // Merge accounts (dedupe by code)
+    if(src.accounts){
+      src.accounts.forEach(a=>{if(!merged.accounts.some(ma=>ma.code===a.code))merged.accounts.push(JSON.parse(JSON.stringify(a)))});
+    }
+    // Merge vendor rows (append all)
+    if(src.vendorRows){
+      src.vendorRows.forEach(r=>{const nr=JSON.parse(JSON.stringify(r));nr.id=uid();merged.vendorRows.push(nr)});
+    }
+    // Merge T&E rows (append all)
+    if(src.teRows){
+      src.teRows.forEach(r=>{const nr=JSON.parse(JSON.stringify(r));nr.id=uid();merged.teRows.push(nr)});
+    }
+    // Merge custom rates (dedupe by country+seniority+function)
+    if(src.customRates){
+      src.customRates.forEach(cr=>{
+        if(!merged.customRates.some(mr=>mr.country===cr.country&&mr.seniority===cr.seniority&&mr.function===cr.function)){
+          merged.customRates.push(JSON.parse(JSON.stringify(cr)));
+        }
+      });
+    }
+    // Merge bonus matrix (fill gaps only — don't overwrite base workspace values)
+    if(src.bonusMatrix){
+      for(const [sen,funcs] of Object.entries(src.bonusMatrix)){
+        if(!merged.bonusMatrix[sen])merged.bonusMatrix[sen]={};
+        for(const [func,val] of Object.entries(funcs)){
+          if(merged.bonusMatrix[sen][func]==null)merged.bonusMatrix[sen][func]=val;
+        }
+      }
+    }
+    // Merge benefits matrix (fill gaps only)
+    if(src.benefitsMatrix){
+      for(const [sen,funcs] of Object.entries(src.benefitsMatrix)){
+        if(!merged.benefitsMatrix[sen])merged.benefitsMatrix[sen]={};
+        for(const [func,val] of Object.entries(funcs)){
+          if(merged.benefitsMatrix[sen][func]==null)merged.benefitsMatrix[sen][func]=val;
+        }
+      }
+    }
+    // Merge benefits country multipliers (fill gaps only)
+    if(src.benefitsCountryMult){
+      for(const [c,v] of Object.entries(src.benefitsCountryMult)){
+        if(merged.benefitsCountryMult[c]==null)merged.benefitsCountryMult[c]=v;
+      }
+    }
+  }
+  // Save as new workspace
+  const mergeName='Merged — '+names.join(' + ');
+  const promptName=prompt('Name for merged workspace:',mergeName);
+  if(!promptName)return;
+  // Store merged state
+  const key='ws_'+promptName.replace(/[^a-zA-Z0-9_-]/g,'_');
+  localStorage.setItem(key,JSON.stringify(merged));
+  const wsIdx=getWorkspaceIndex();
+  const existing=wsIdx.find(w=>w.key===key);
+  const meta={key,name:promptName,savedAt:new Date().toISOString(),employees:merged.employees.length,projects:merged.projects.length};
+  if(existing)Object.assign(existing,meta);else wsIdx.push(meta);
+  saveWorkspaceIndex(wsIdx);
+  wsMergeMode=false;wsMergeSelected.clear();
+  renderWorkspaceList();
+  alert(`Merged workspace "${promptName}" created with ${merged.employees.length} employees and ${merged.projects.length} projects. Use Load to switch to it.`);
+}
 
 document.getElementById('btnWsSave').addEventListener('click',()=>{
   const name=document.getElementById('wsSaveName').value.trim();
@@ -7045,14 +7188,28 @@ function renderDataPanelWsList(){
   const idx=getWorkspaceIndex();
   if(!idx.length){container.innerHTML='<div style="color:var(--text-dim);font-size:.78rem;padding:4px">No saved workspaces</div>';return}
   let html='';
+  if(idx.length>=2){
+    html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">`;
+    html+=`<button class="btn btn-sm${wsMergeMode?' btn-danger':''}" style="padding:1px 6px;font-size:.68rem" onclick="toggleWsMergeMode();renderDataPanelWsList()">${wsMergeMode?'Cancel':'Merge'}</button>`;
+    if(wsMergeMode&&wsMergeSelected.size>=2){
+      html+=`<button class="btn btn-sm btn-primary" style="padding:1px 6px;font-size:.68rem" onclick="executeWsMerge();renderDataPanelWsList()">Merge (${wsMergeSelected.size})</button>`;
+    }
+    html+=`</div>`;
+  }
   idx.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)).forEach(w=>{
     const isActive=w.name===currentWorkspaceName;
     const esc=w.name.replace(/'/g,"\\'");
-    html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">
-      <span style="flex:1;color:var(--text)">${w.name}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>
-      ${!isActive?`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadWorkspace('${w.key}','${esc}');renderDataPanelWsList()">Load</button>`:''}
-      <button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteWorkspace('${w.key}','${esc}');renderDataPanelWsList()">×</button>
-    </div>`;
+    const isChecked=wsMergeSelected.has(w.key);
+    html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">`;
+    if(wsMergeMode){
+      html+=`<input type="checkbox" ${isChecked?'checked':''} onchange="toggleWsMergeSelect('${w.key}');renderDataPanelWsList()" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer">`;
+    }
+    html+=`<span style="flex:1;color:var(--text)">${w.name}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
+    if(!wsMergeMode){
+      html+=`${!isActive?`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadWorkspace('${w.key}','${esc}');renderDataPanelWsList()">Load</button>`:''}`;
+      html+=`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteWorkspace('${w.key}','${esc}');renderDataPanelWsList()">×</button>`;
+    }
+    html+=`</div>`;
   });
   container.innerHTML=html;
 }
