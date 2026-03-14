@@ -2640,6 +2640,9 @@ function initSessionModal(){
       sessionContext.userId=user.id;sessionContext.userName=user.displayName;sessionContext.userColor=user.color;
       loadUserColorScheme();
       closeSessionModal();
+      // Immediately clear template state so stale data never shows during async load
+      state={employees:[],projects:[],vendorRows:[],teRows:[],forecastAssumptions:{toggles:{},attrition:[],hires:[],merit:[],market:[],ai:[],capitalization:[]},allocOverrides:{}};
+      ensureStateFields();renderAll();
       try{await enterSession()}catch(re){console.error('Session enter error:',re)}
     }catch(e){errEl.textContent='Connection error. Try again.';errEl.style.display='block'}
   });
@@ -9131,6 +9134,7 @@ function applyBudgetScenario(){
   document.getElementById('budgetScenStatus').innerHTML='<span style="color:var(--success)">&#10003;</span> Scenario applied to your budget.';
   // Re-render everything with new data
   renderAll();
+  try{refreshVendorPivot();refreshTePivot()}catch(e){}
   initBudgetScenario(); // re-clone from new baseline
   renderBudgetScenarioChart();renderScenarioPnlSummary();
 }
@@ -10074,7 +10078,7 @@ function initVendorModule(){
     if(!confirm('Clear all data from all vendor rows? This keeps the rows but zeros out all values and text.'))return;
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     state.vendorRows.forEach(r=>{r.parentCo='';r.vendorName='';r.vendorType='';r.businessUnit='';r.bizLine='';r.market='';r.project='';r.acctDesc='';r.notes='';moKeys.forEach(m=>r[m]=0)});
-    saveState();renderVendorGrid();
+    saveState();renderVendorGrid();refreshVendorPivot();renderPnlWalk();renderLandingCharts();
   });
 
   // ── CSV Import / Export ──
@@ -10319,7 +10323,7 @@ function initVendorModule(){
     if(!confirm('Clear all data from all T&E rows? This keeps the rows but zeros out all values and text.'))return;
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     state.teRows.forEach(r=>{r.expenseType='';r.description='';r.businessUnit='';r.bizLine='';r.market='';r.project='';r.acctDesc='';r.notes='';moKeys.forEach(m=>r[m]=0)});
-    saveState();renderTeGrid();
+    saveState();renderTeGrid();refreshTePivot();renderPnlWalk();renderLandingCharts();
   });
 
   document.getElementById('teExportBtn').addEventListener('click',()=>{
@@ -10640,6 +10644,7 @@ function initVendorModule(){
     if(!data.topRows.length){
       document.getElementById('vPivotThead').innerHTML='';
       document.getElementById('vPivotTbody').innerHTML='<tr><td style="padding:12px;color:var(--text-dim)">No vendor spend data matching filters</td></tr>';
+      if(vPivotChartInst){vPivotChartInst.destroy();vPivotChartInst=null}
       return;
     }
     renderPivotTable(document.getElementById('vPivotThead'),document.getElementById('vPivotTbody'),document.getElementById('vPivotWrap'),data,fmtScaled);
@@ -10656,6 +10661,7 @@ function initVendorModule(){
     if(!data.topRows.length){
       document.getElementById('tePivotThead').innerHTML='';
       document.getElementById('tePivotTbody').innerHTML='<tr><td style="padding:12px;color:var(--text-dim)">No T&amp;E spend data matching filters</td></tr>';
+      if(tePivotChartInst){tePivotChartInst.destroy();tePivotChartInst=null}
       return;
     }
     renderPivotTable(document.getElementById('tePivotThead'),document.getElementById('tePivotTbody'),document.getElementById('tePivotWrap'),data,fmtScaled);
@@ -11207,7 +11213,12 @@ function renderLandingCharts(){
 
 
 // ── INIT ──
-function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList();renderPnlWalk();renderLandingCharts();if(budgetScenario&&!budgetScenarioDirty){initBudgetScenario();initForecastScenario()}renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary()}
+function renderAll(){
+  const fns=[renderExecView,renderDashboard,renderEmployees,renderProjects,renderMarkets,renderBizLines,renderBonusMatrix,renderBenefitsMatrix,renderMonthly,renderForecast,renderWorkspaceList,renderPnlWalk,renderLandingCharts,
+    function(){if(budgetScenario&&!budgetScenarioDirty){initBudgetScenario();initForecastScenario()}},
+    renderBudgetScenarioChart,renderFcScenarioChart,renderScenarioPnlSummary];
+  fns.forEach(fn=>{try{fn()}catch(e){console.error('Render error in '+fn.name+':',e)}});
+}
 
 // Check for session auto-reconnect
 (async function initApp(){
