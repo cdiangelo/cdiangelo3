@@ -4096,16 +4096,26 @@ function createScratchPad(cfg){
   // ── Whiteboard ──
   const canvas=document.getElementById(cfg.canvas);
   const ctx=canvas.getContext('2d');
-  const WB_COLORS=['#1a1a1a','#e74c3c','#2980b9','#27ae60','#f39c12','#8e44ad','#e67e22','#ecf0f1'];
-  let wbColor=WB_COLORS[0],wbOpacity=1,wbSize=3,wbShowGrid=false,wbDrawing=false;
+  function getWbColors(){
+    const isDark=document.documentElement.classList.contains('dark');
+    const base=isDark?'#ffffff':'#1a1a1a';
+    return [base].concat(getChartColors().slice(0,7));
+  }
+  let wbColor=getWbColors()[0],wbOpacity=1,wbSize=3,wbShowGrid=false,wbDrawing=false;
   let wbHistory=[],wbShapeStart=null,wbSelection=null,wbSelImg=null,wbSelOffset=null;
   const swatches=document.getElementById(cfg.wbColorSwatchesId);
-  WB_COLORS.forEach(c=>{
-    const s=document.createElement('span');
-    s.style.cssText=`width:18px;height:18px;border-radius:3px;cursor:pointer;border:2px solid ${c===wbColor?'var(--accent)':'transparent'};background:${c};display:inline-block`;
-    s.addEventListener('click',()=>{wbColor=c;swatches.querySelectorAll('span').forEach(x=>x.style.borderColor='transparent');s.style.borderColor='var(--accent)'});
-    swatches.appendChild(s);
-  });
+  function renderWbSwatches(){
+    swatches.innerHTML='';
+    const colors=getWbColors();
+    if(colors.indexOf(wbColor)===-1)wbColor=colors[0];
+    colors.forEach(c=>{
+      const s=document.createElement('span');
+      s.style.cssText=`width:18px;height:18px;border-radius:3px;cursor:pointer;border:2px solid ${c===wbColor?'var(--accent)':'transparent'};background:${c};display:inline-block`;
+      s.addEventListener('click',()=>{wbColor=c;swatches.querySelectorAll('span').forEach(x=>x.style.borderColor='transparent');s.style.borderColor='var(--accent)'});
+      swatches.appendChild(s);
+    });
+  }
+  renderWbSwatches();
 
   function resizeWbCanvas(){
     const rect=canvas.parentElement.getBoundingClientRect();
@@ -4525,7 +4535,9 @@ function createScratchPad(cfg){
     document.getElementById(cfg.exportBtn).addEventListener('click',exportToExcel);
   }
 
-  return {resizeWbCanvas,exportToExcel};
+  if(typeof colorSchemeCallbacks!=='undefined')colorSchemeCallbacks.push(renderWbSwatches);
+
+  return {resizeWbCanvas,exportToExcel,renderWbSwatches};
 }
 
 const scratchPadCfg={grid:'scratchGrid',addRow:'scratchAddRow',addCol:'scratchAddCol',clear:'scratchClear',showFormulas:'scratchShowFormulas',exportBtn:'scratchExport',exportName:'scratch_sheet',canvas:'wbCanvas',wbSizeId:'wbSize',wbOpacityId:'wbOpacity',wbColorSwatchesId:'wbColorSwatches',wbGridId:'wbGrid',wbShapeId:'wbShape',wbUndoId:'wbUndo',wbClearId:'wbClearBtn'};
