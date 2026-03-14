@@ -457,6 +457,8 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 @media(max-width:900px){.scenario-grid{grid-template-columns:1fr}}
 /* Sticky note panel */
 .sticky-note-btn{position:fixed;top:12px;right:16px;z-index:10000;background:var(--panel);border:1px solid var(--border);color:var(--accent);font-size:1.1rem;width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .2s}
+body.session-active .sticky-note-btn{top:42px}
+body.session-active .sticky-note-panel{top:86px}
 .sticky-note-btn:hover{background:var(--accent);color:#fff;transform:scale(1.08)}
 .sticky-note-panel{position:fixed;top:56px;right:16px;width:380px;max-height:70vh;z-index:10000;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);display:none;flex-direction:column;overflow:hidden}
 .sticky-note-panel.open{display:flex}
