@@ -9502,6 +9502,9 @@ function initDataPanel(){
     // Update forecast header label
     const fcLabel=document.getElementById('execFcViewLabel');
     if(fcLabel){const suffix=execFcView==='opex'?' — C&B OpEx':' — Total Investment';fcLabel.textContent=suffix}
+    // Re-render charts that show year labels on axes (data unchanged, only labels update)
+    try{renderForecastProjection()}catch(e){}
+    try{renderLandingCharts()}catch(e){}
   });
 
   // Workspace: Save As
