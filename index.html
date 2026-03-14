@@ -6802,6 +6802,7 @@ document.getElementById('execFcHeader').addEventListener('click',()=>{
   document.getElementById('execFcSparkWrap').style.display=execFcCollapsed?'':'none';
   document.getElementById('execFcArrow').textContent=execFcCollapsed?'▶':'▼';
   if(execFcCollapsed)renderExecFcSparkline();
+  else renderExecView();
 });
 function renderExecFcSparkline(){
   if(typeof Chart==='undefined')return;
@@ -7154,7 +7155,7 @@ function renderExecView(){
       stackedBarDatalabels(ds,tickColor,null,'execFc');
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -7200,7 +7201,7 @@ function renderExecView(){
       stackedBarDatalabels(ds,tickColor,null,'execFc');
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -10822,10 +10823,10 @@ function renderLandingCharts(){
 
 // Add back-to-landing button in header
 const backBtn=document.createElement('button');
-backBtn.className='btn btn-sm';backBtn.textContent='Overview';backBtn.style.marginLeft='auto';
+backBtn.className='btn btn-sm';backBtn.textContent='Overview';backBtn.style.marginLeft='12px';
 backBtn.addEventListener('click',showLanding);
-const headerToggles=document.querySelector('#appShell header .header-toggles');
-headerToggles.parentNode.insertBefore(backBtn,headerToggles);
+const headerH1=document.querySelector('#appShell header h1');
+headerH1.after(backBtn);
 
 // ── INIT ──
 function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList();renderPnlWalk();renderLandingCharts();renderBudgetScenarioChart();renderFcScenarioChart()}
