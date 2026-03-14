@@ -1338,11 +1338,11 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="vtab-vendor-grid" class="vtab-content" style="display:block">
 <!-- Vendor Spend Analysis — pivot + chart -->
 <div class="card" id="vendorTopSpendCard" style="margin-bottom:12px">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
-<h3 class="section-title" style="margin:0">Vendor Spend Analysis</h3>
-<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<label style="font-size:.75rem;color:var(--text-dim)">Rows:</label>
-<select id="vPivotRowDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+<h3 class="section-title" style="margin:0;font-size:.92rem">Vendor Spend Analysis</h3>
+<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+<label style="font-size:.7rem;color:var(--text-dim)">Rows:</label>
+<select id="vPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
 <option value="vendorType">Vendor Type</option>
 <option value="parentCo">Parent Co</option>
 <option value="businessUnit">Business Unit</option>
@@ -1351,8 +1351,8 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="acctDesc">Account</option>
 <option value="vendorName">Vendor Name</option>
 </select>
-<label style="font-size:.75rem;color:var(--text-dim)">Columns:</label>
-<select id="vPivotColDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
+<label style="font-size:.7rem;color:var(--text-dim)">Cols:</label>
+<select id="vPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
 <option value="businessUnit">Business Unit</option>
 <option value="vendorType">Vendor Type</option>
 <option value="parentCo">Parent Co</option>
@@ -1361,7 +1361,7 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="acctDesc">Account</option>
 <option value="vendorName">Vendor Name</option>
 </select>
-<button class="btn btn-primary" id="vPivotRefresh" style="padding:4px 12px;font-size:.78rem">Refresh</button>
+<button class="btn btn-primary" id="vPivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
 </div>
 </div>
 <!-- Filter bar: dollar band, vendor multi-select, notes search -->
@@ -1426,7 +1426,7 @@ Template Mode &mdash; changes saved in this browser only.
 <table class="comp-table" id="vendorTable" style="font-size:.8rem;min-width:2200px">
 <thead><tr>
 <th style="width:30px"></th>
-<th style="width:30px">#</th>
+<th style="width:30px" title="Color tag">&#9679;</th>
 <th class="sortable" data-vsort="parentCo" style="min-width:120px">Parent Co <span class="sort-arrow"></span></th>
 <th class="sortable" data-vsort="vendorName" style="min-width:130px">Vendor Name <span class="sort-arrow"></span></th>
 <th class="sortable" data-vsort="vendorType" style="min-width:140px">Vendor Type <span class="sort-arrow"></span></th>
@@ -1455,11 +1455,11 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="vtab-vendor-te" class="vtab-content" style="display:none">
 <!-- T&E Spend Analysis — pivot + chart -->
 <div class="card" id="teTopSpendCard" style="margin-bottom:12px">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
-<h3 class="section-title" style="margin:0">T&amp;E Spend Analysis</h3>
-<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<label style="font-size:.75rem;color:var(--text-dim)">Rows:</label>
-<select id="tePivotRowDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+<h3 class="section-title" style="margin:0;font-size:.92rem">T&amp;E Spend Analysis</h3>
+<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+<label style="font-size:.7rem;color:var(--text-dim)">Rows:</label>
+<select id="tePivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
 <option value="expenseType">Expense Type</option>
 <option value="businessUnit">Business Unit</option>
 <option value="bizLine">Bus. Line</option>
@@ -1467,8 +1467,8 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="acctDesc">Account</option>
 <option value="description">Description</option>
 </select>
-<label style="font-size:.75rem;color:var(--text-dim)">Columns:</label>
-<select id="tePivotColDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
+<label style="font-size:.7rem;color:var(--text-dim)">Cols:</label>
+<select id="tePivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
 <option value="businessUnit">Business Unit</option>
 <option value="expenseType">Expense Type</option>
 <option value="bizLine">Bus. Line</option>
@@ -1476,7 +1476,7 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="acctDesc">Account</option>
 <option value="description">Description</option>
 </select>
-<button class="btn btn-primary" id="tePivotRefresh" style="padding:4px 12px;font-size:.78rem">Refresh</button>
+<button class="btn btn-primary" id="tePivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
 </div>
 </div>
 <!-- Filter bar: dollar band, description multi-select, notes search -->
@@ -1532,14 +1532,14 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="btn" data-vscale="1000000">$M Millions</button>
 </div>
 <button class="btn" id="teAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
-<button class="btn" id="teExportBtn" style="padding:4px 12px;font-size:.82rem">Export CSV</button>
+<button class="btn" id="teExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
 </div>
 </div>
 <div style="overflow-x:auto">
 <table class="comp-table" id="teTable" style="font-size:.8rem;min-width:2200px">
 <thead><tr>
 <th style="width:30px"></th>
-<th style="width:30px">#</th>
+<th style="width:30px" title="Color tag">&#9679;</th>
 <th style="min-width:130px">Expense Type</th>
 <th style="min-width:120px">Description</th>
 <th style="min-width:100px">Notes</th>
@@ -8998,7 +8998,10 @@ function initVendorModule(){
     const acctOpts=state.accounts.filter(a=>(a.group||'vendor')===acctGroup).map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
     const fy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
     const BLANK_BG=getBlankBg();const blk=v=>!v?BLANK_BG:'';
-    let h=`<tr data-vi="${i}" draggable="false"><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem">${i+1}</td>`;
+    // Color tag: use whiteboard color suite for row tagging
+    const tagColor=row._colorTag||'';
+    const tagDotStyle=`width:16px;height:16px;border-radius:3px;cursor:pointer;display:inline-block;border:1px solid var(--border);background:${tagColor||'#fff'}`;
+    let h=`<tr data-vi="${i}" draggable="false" style="${tagColor?'border-left:3px solid '+tagColor:''}"><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem;position:relative"><span class="row-color-tag" data-vi="${i}" data-prefix="${prefix}" style="${tagDotStyle}" title="Color tag"></span></td>`;
     // Custom first columns per type
     if(fields==='vendor'){
       h+=`<td style="${blk(row.parentCo)}"><input class="${prefix}-field" data-f="parentCo" value="${esc(row.parentCo)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
@@ -9145,6 +9148,45 @@ function initVendorModule(){
         document.addEventListener('mouseup',onUp);
       });
     });
+    // Color tag click handler — show popup with whiteboard color swatches
+    tbodyEl.querySelectorAll('.row-color-tag').forEach(dot=>{
+      dot.addEventListener('click',e=>{
+        e.stopPropagation();
+        // Remove any existing color-tag popup
+        document.querySelectorAll('.color-tag-popup').forEach(p=>p.remove());
+        const i=+dot.dataset.vi;
+        const popup=document.createElement('div');
+        popup.className='color-tag-popup';
+        popup.style.cssText='position:absolute;z-index:999;background:var(--bg,#fff);border:1px solid var(--border,#ccc);border-radius:6px;padding:6px;display:flex;gap:3px;flex-wrap:wrap;max-width:140px;box-shadow:0 2px 8px rgba(0,0,0,.18)';
+        // White (clear) option
+        const colors=[''].concat(getWbTagColors());
+        colors.forEach(c=>{
+          const s=document.createElement('span');
+          s.style.cssText=`width:18px;height:18px;border-radius:3px;cursor:pointer;display:inline-block;border:1px solid var(--border,#ccc);background:${c||'#fff'}`;
+          if(c===(dataArr[i]._colorTag||''))s.style.borderColor='var(--accent)';
+          s.title=c||'None';
+          s.addEventListener('click',()=>{
+            dataArr[i]._colorTag=c;
+            saveState();renderFn();
+            popup.remove();
+          });
+          popup.appendChild(s);
+        });
+        dot.closest('td').appendChild(popup);
+        // Close on outside click
+        setTimeout(()=>{
+          function closePopup(ev){if(!popup.contains(ev.target)){popup.remove();document.removeEventListener('click',closePopup)}}
+          document.addEventListener('click',closePopup);
+        },0);
+      });
+    });
+  }
+
+  // Color palette for row tags — same suite as whiteboard swatches
+  function getWbTagColors(){
+    const isDark=document.documentElement.classList.contains('dark');
+    const base=isDark?'#ffffff':'#1a1a1a';
+    return [base].concat(getChartColors().slice(0,7));
   }
 
   function fields2colSpan(prefix){return prefix==='vr'?11:10}
@@ -9449,17 +9491,21 @@ function initVendorModule(){
   });
 
   document.getElementById('teExportBtn').addEventListener('click',()=>{
+    if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    let csv='Expense Type,Description,Business Unit,Biz Line,Market,Project,Account Description,Account Code';
-    MO.forEach(m=>csv+=','+m);csv+=',Full Year,Notes\n';
+    const headers=['Expense Type','Description','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code',...MO,'Full Year'];
+    const data=[headers];
     state.teRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
-      csv+=[r.expenseType,r.description||'',r.businessUnit,r.bizLine,r.market,r.project,r.acctDesc,acctDescToCode(r.acctDesc)].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',');
-      moKeys.forEach(m=>csv+=','+(r[m]||0));csv+=','+fy+',"'+(r.notes||'').replace(/"/g,'""')+'"\n';
+      const projObj=state.projects.find(p=>p.id===r.project);
+      data.push([r.expenseType||'',r.description||'',r.notes||'',r.businessUnit||'',r.bizLine||'',r.market||'',projObj?projObj.code:(r.project||''),r.acctDesc||'',acctDescToCode(r.acctDesc),...moKeys.map(m=>parseFloat(r[m])||0),fy]);
     });
-    const blob=new Blob([csv],{type:'text/csv'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='te_export.csv';a.click();
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:16},{wch:18},{wch:16},{wch:14},{wch:14},{wch:10},{wch:12},{wch:20},{wch:12},...MO.map(()=>({wch:12})),{wch:14}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'T&E Spend');
+    xlsxDownload(wb,'te_spend_export.xlsx');
   });
 
   renderTeGrid();
