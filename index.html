@@ -298,14 +298,19 @@ body.ops-mode .exec-roster-prod .prod-header{cursor:default}
 .landing-module:hover{transform:translateY(-4px);box-shadow:0 0 24px rgba(139,32,32,.25);border-color:var(--accent)}
 .landing-module.disabled{opacity:.65;cursor:default}
 .landing-module.disabled:hover{transform:none;box-shadow:none;border-color:var(--border)}
-.pnl-walk{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:32px}
-.pnl-walk h3{color:var(--accent);font-size:1rem;margin-bottom:16px}
+.landing-charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.landing-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.landing-chart-card canvas{width:100%;height:180px}
+.landing-chart-title{font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+@media(max-width:900px){.landing-charts{grid-template-columns:1fr}}
+.pnl-walk{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:32px}
+.pnl-walk h3{color:var(--accent);font-size:1rem;margin-bottom:10px}
 .pnl-walk-table{width:100%;border-collapse:collapse}
 .pnl-walk-table.compact{width:auto;min-width:0}
-.pnl-walk-table th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);padding:8px 12px;border-bottom:2px solid var(--border);background:var(--panel-inset)}
-.pnl-walk-table td{padding:10px 12px;font-size:.88rem;border-bottom:1px solid var(--border-light)}
-.pnl-walk-table tr.subtotal td{font-weight:700;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);color:var(--accent);background:rgba(139,32,32,.04)}
-.pnl-walk-table tr.total td{font-weight:700;border-top:3px double var(--accent);color:var(--text-dark);font-size:.95rem;background:rgba(139,32,32,.07)}
+.pnl-walk-table th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);padding:5px 10px;border-bottom:2px solid var(--border);background:var(--panel-inset)}
+.pnl-walk-table td{padding:6px 10px;font-size:.82rem;border-bottom:1px solid var(--border-light)}
+.pnl-walk-table tr.subtotal td{font-weight:700;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);color:var(--accent);background:rgba(139,32,32,.04);padding:5px 10px;font-size:.82rem}
+.pnl-walk-table tr.total td{font-weight:700;border-top:3px double var(--accent);color:var(--text-dark);font-size:.84rem;background:rgba(139,32,32,.07);padding:5px 10px}
 .pnl-walk-table td.num{text-align:right;font-variant-numeric:tabular-nums}
 .pnl-walk-table td.label-cell{color:var(--text-dim);padding-left:20px;font-size:.84rem}
 .pnl-walk-table td.section-label{font-weight:600;color:var(--text-dark)}
@@ -577,6 +582,17 @@ Template Mode &mdash; changes saved in this browser only.
 <h3><span class="mod-icon">&#9670;</span> Depreciation, CapEx &amp; Asset Summary</h3>
 <p>Depreciation schedules, capital expenditure tracking, and consolidated asset reporting.</p>
 <span class="mod-badge coming">In Development</span>
+</div>
+</div>
+
+<div class="landing-charts">
+<div class="landing-chart-card">
+<div class="landing-chart-title">Monthly Budget</div>
+<canvas id="landingBudgetChart"></canvas>
+</div>
+<div class="landing-chart-card">
+<div class="landing-chart-title">Long-Term Forecast</div>
+<canvas id="landingForecastChart"></canvas>
 </div>
 </div>
 
@@ -8298,7 +8314,7 @@ function showLanding(){
   document.getElementById('appShell').style.display='none';
   document.getElementById('vendorModule').style.display='none';
   document.getElementById('depreciationModule').style.display='none';
-  renderPnlWalk();
+  renderPnlWalk();renderLandingCharts();
 }
 function showApp(){
   document.getElementById('landingPage').style.display='none';
@@ -8333,7 +8349,7 @@ document.getElementById('depBackBtn').addEventListener('click',showLanding);
 // P&L split toggle
 document.querySelectorAll('#pnlSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#pnlSplitToggle .btn').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');pnlSplit=b.dataset.pnlsplit;renderPnlWalk();
+  b.classList.add('active');pnlSplit=b.dataset.pnlsplit;renderPnlWalk();renderLandingCharts();
 }));
 
 function getPnlSplitKey(emp,split){
@@ -8459,6 +8475,62 @@ function renderPnlWalk(){
   }
 }
 
+let landingBudgetChartInst=null,landingForecastChartInst=null;
+
+function renderLandingCharts(){
+  if(typeof Chart==='undefined')return;
+  const emps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  const isDark=document.documentElement.classList.contains('dark');
+  const tickColor=isDark?'#ffffff':'#5a5a5a';
+  const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
+  const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const split=pnlSplit;
+  const useSplit=split!=='total'&&split!=='month'&&split!=='quarter';
+
+  // ── Monthly Budget Chart ──
+  if(landingBudgetChartInst)landingBudgetChartInst.destroy();
+  let budgetDS=[];
+  if(useSplit){
+    const groups={};
+    emps.forEach(e=>{const key=getPnlSplitKey(e,split);if(!groups[key])groups[key]=[];groups[key].push(e)});
+    Object.keys(groups).sort().forEach((g,gi)=>{
+      const data=MO_SHORT.map((_,mi)=>groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0));
+      budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data,backgroundColor:CHART_COLORS[gi%CHART_COLORS.length]});
+    });
+  } else {
+    const data=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
+    budgetDS.push({label:'Total Comp',data,backgroundColor:isDark?'#d4524d':'#8b2020'});
+  }
+  landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
+    type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9}}},datalabels:{display:false}},
+      scales:{x:{stacked:useSplit,ticks:{color:tickColor,font:{size:9}},grid:{display:false}},y:{stacked:useSplit,beginAtZero:true,ticks:{color:tickColor,font:{size:9},callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}}
+  });
+
+  // ── Long-Term Forecast Chart ──
+  if(landingForecastChartInst)landingForecastChartInst.destroy();
+  let fcDS=[];
+  const yearLabels=FORECAST_YEARS.map((y,i)=>i===0?'Current':'Year '+(i));
+  if(useSplit){
+    const groups={};
+    emps.forEach(e=>{const key=getPnlSplitKey(e,split);if(!groups[key])groups[key]=[];groups[key].push(e)});
+    const gNames=Object.keys(groups).sort();
+    gNames.forEach((g,gi)=>{
+      const rows=projectForecast(groups[g],g);
+      fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.total),backgroundColor:CHART_COLORS[gi%CHART_COLORS.length]});
+    });
+  } else {
+    const rows=projectForecast(emps);
+    fcDS.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:isDark?'#4a9d54':'#3a7d44'});
+    fcDS.push({label:'CapEx',data:rows.map(r=>r.capex),backgroundColor:isDark?'#d4524d':'#8b2020'});
+  }
+  landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
+    type:'bar',data:{labels:yearLabels,datasets:fcDS},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9}}},datalabels:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{display:false}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:9},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}}
+  });
+}
+
 // Add back-to-landing button in header
 const backBtn=document.createElement('button');
 backBtn.className='btn btn-sm';backBtn.textContent='Overview';backBtn.style.marginLeft='8px';
@@ -8466,7 +8538,7 @@ backBtn.addEventListener('click',showLanding);
 document.querySelector('#appShell header .container').insertBefore(backBtn,document.querySelector('#appShell header .container').children[1]);
 
 // ── INIT ──
-function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList();renderPnlWalk()}
+function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList();renderPnlWalk();renderLandingCharts()}
 
 // Check for session auto-reconnect
 (async function initApp(){
@@ -8484,7 +8556,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
           const v=await vResp.json();
           state=JSON.parse(v.state_data);ensureStateFields();
           updateSessionUI();initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-          initSessionModal();renderPnlWalk();connectWebSocket();
+          initSessionModal();renderPnlWalk();renderLandingCharts();connectWebSocket();
           return;
         }
       }
@@ -8497,7 +8569,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
   currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
   updateWsDisplay();updateSessionUI();
   initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-  initSessionModal();renderPnlWalk();
+  initSessionModal();renderPnlWalk();renderLandingCharts();
 })();
 
 // ── Universal Sticky Notes ──
