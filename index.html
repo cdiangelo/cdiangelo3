@@ -1792,7 +1792,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Vendor Spend Analysis — pivot + chart -->
 <div class="card" id="vendorTopSpendCard" style="margin-bottom:12px">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
-<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap">Vendor Spend Analysis</h3>
+<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('vendorAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Vendor Spend Analysis</h3>
 <div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
 <label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Rows:</label>
 <select id="vPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
@@ -1821,6 +1821,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn btn-primary" id="vPivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
 </div>
 </div>
+<div id="vendorAnalysisBody">
 <!-- Filter bar: dollar band, vendor multi-select, notes search -->
 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px;padding:8px 10px;background:var(--panel-inset);border-radius:6px">
 <div style="flex:0 0 auto">
@@ -1862,6 +1863,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" id="vPivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
 </div>
 <div id="vPivotImpact" style="display:none"></div>
+</div><!-- /vendorAnalysisBody -->
 </div>
 <!-- Vendor Spend Detail grid -->
 <div class="card" style="margin-bottom:12px">
@@ -1973,7 +1975,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- T&E Spend Analysis — pivot + chart -->
 <div class="card" id="teTopSpendCard" style="margin-bottom:12px">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
-<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap">T&amp;E Spend Analysis</h3>
+<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('teAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>T&amp;E Spend Analysis</h3>
 <div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
 <label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Rows:</label>
 <select id="tePivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
@@ -2000,6 +2002,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn btn-primary" id="tePivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
 </div>
 </div>
+<div id="teAnalysisBody">
 <!-- Filter bar: dollar band, description multi-select, notes search -->
 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px;padding:8px 10px;background:var(--panel-inset);border-radius:6px">
 <div style="flex:0 0 auto">
@@ -2041,6 +2044,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" id="tePivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
 </div>
 <div id="tePivotImpact" style="display:none"></div>
+</div><!-- /teAnalysisBody -->
 </div>
 <!-- T&E Detail grid -->
 <div class="card" style="margin-bottom:12px">
@@ -2134,6 +2138,80 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 
+<!-- Contractor Spend Analysis — pivot + chart -->
+<div class="card" id="contractorTopSpendCard" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
+<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('contractorAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Contractor Spend Analysis</h3>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Rows:</label>
+<select id="crPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="vendorName">Vendor Name</option>
+<option value="name">Contractor Name</option>
+<option value="businessUnit">Business Unit</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+<option value="_product">Product</option>
+<option value="_productType">Product Type</option>
+</select>
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Cols:</label>
+<select id="crPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="businessUnit">Business Unit</option>
+<option value="vendorName">Vendor Name</option>
+<option value="name">Contractor Name</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+<option value="_product">Product</option>
+<option value="_productType">Product Type</option>
+</select>
+<button class="btn btn-primary" id="crPivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
+</div>
+</div>
+<div id="contractorAnalysisBody">
+<!-- Filter bar: dollar band, contractor multi-select, notes search -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px;padding:8px 10px;background:var(--panel-inset);border-radius:6px">
+<div style="flex:0 0 auto">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Spend Range (Full Year)</label>
+<div style="display:flex;gap:3px;flex-wrap:wrap" id="crBandGroup">
+<button class="scen-pill active" data-band="all" onclick="toggleCrBand(this)">All</button>
+<button class="scen-pill" data-band="0-50000" onclick="toggleCrBand(this)">$0 – $50K</button>
+<button class="scen-pill" data-band="50000-100000" onclick="toggleCrBand(this)">$50K – $100K</button>
+<button class="scen-pill" data-band="100000-500000" onclick="toggleCrBand(this)">$100K – $500K</button>
+<button class="scen-pill" data-band="500000-1000000" onclick="toggleCrBand(this)">$500K – $1M</button>
+<button class="scen-pill" data-band="1000000-" onclick="toggleCrBand(this)">$1M+</button>
+</div>
+</div>
+<div style="flex:1;min-width:180px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Contractors</label>
+<input id="crPivotNameSearch" type="text" placeholder="Search contractors..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;margin-bottom:3px;box-sizing:border-box">
+<div id="crPivotNamePills" class="scen-pill-group" style="max-height:60px;overflow-y:auto"></div>
+</div>
+<div style="flex:0 0 160px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Notes Search</label>
+<input id="crPivotNotesSearch" type="text" placeholder="Filter by notes..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;box-sizing:border-box">
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div style="overflow:auto;max-height:500px;position:relative" id="crPivotWrap">
+<table class="comp-table" id="crPivotTable" style="font-size:.78rem">
+<thead id="crPivotThead"></thead>
+<tbody id="crPivotTbody"></tbody>
+</table>
+</div>
+<div style="position:relative;min-height:320px">
+<canvas id="crPivotChart"></canvas>
+</div>
+</div>
+<div id="crPivotAdjBar" class="pivot-adj-bar" style="display:none">
+<span style="font-weight:600">Adjust selected:</span>
+<label>Cut by</label><input type="number" id="crPivotAdjPct" value="10" min="1" max="100" style="width:60px">%
+<button class="btn btn-primary" id="crPivotAdjApply" style="padding:3px 12px;font-size:.78rem">Apply</button>
+<button class="btn" id="crPivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
+</div>
+<div id="crPivotImpact" style="display:none"></div>
+</div><!-- /contractorAnalysisBody -->
+</div>
 <!-- Contractor Detail Grid -->
 <div class="card" style="margin-bottom:12px">
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
@@ -9805,7 +9883,7 @@ function applyBudgetScenario(){
   document.getElementById('budgetScenStatus').innerHTML='<span style="color:var(--success)">&#10003;</span> Scenario applied to your budget.';
   // Re-render everything with new data
   renderAll();
-  try{refreshVendorPivot();refreshTePivot()}catch(e){}
+  try{refreshVendorPivot();refreshTePivot();refreshContractorPivot()}catch(e){}
   initBudgetScenario(); // re-clone from new baseline
   renderBudgetScenarioChart();renderScenarioPnlSummary();
 }
@@ -10514,7 +10592,7 @@ function initVendorModule(){
       if(b.dataset.vtab==='vendor-scratch')setTimeout(initVendorScratch,50);
       if(b.dataset.vtab==='vendor-dims')renderVendorDims();
       if(b.dataset.vtab==='vendor-te'){renderTeGrid();refreshTePivot()}
-      if(b.dataset.vtab==='vendor-contractors')renderContractorGrid();
+      if(b.dataset.vtab==='vendor-contractors'){renderContractorGrid();refreshContractorPivot()}
     });
   });
 
@@ -11332,7 +11410,7 @@ function initVendorModule(){
       btn.addEventListener('click',()=>{
         const i=+btn.dataset.ci;
         state.contractorRows.splice(i,1);
-        saveState();renderContractorGrid();refreshVendorPivot();renderPnlWalk();renderLandingCharts();
+        saveState();renderContractorGrid();refreshContractorPivot();renderPnlWalk();renderLandingCharts();
       });
     });
     // Color tags
@@ -11360,7 +11438,7 @@ function initVendorModule(){
     if(!confirm('Clear all data from all Contractor rows?'))return;
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     state.contractorRows.forEach(r=>{r.name='';r.vendorName='';r.hourlyRate=0;r.monthlyHours=0;r._startMonth=0;r._endMonth=11;r.capPct=0;r.businessUnit='';r.bizLine='';r.market='';r.project='';r.acctDesc='';r.notes='';moKeys.forEach(m=>r[m]=0)});
-    saveState();renderContractorGrid();renderPnlWalk();renderLandingCharts();
+    saveState();renderContractorGrid();refreshContractorPivot();renderPnlWalk();renderLandingCharts();
   });
 
   // Contractor scale toggle
@@ -11528,8 +11606,8 @@ function initVendorModule(){
   const PIVOT_COLORS=['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#65a30d','#ea580c','#4f46e5','#0d9488','#b91c1c','#7e22ce','#0284c7','#c2410c','#15803d'];
 
   // ── Pivot filter state ──
-  let vPivotBand='all', tePivotBand='all';
-  let vPivotSelectedVendors=new Set(), tePivotSelectedDescs=new Set();
+  let vPivotBand='all', tePivotBand='all', crPivotBand='all';
+  let vPivotSelectedVendors=new Set(), tePivotSelectedDescs=new Set(), crPivotSelectedNames=new Set();
 
   function parseBand(band){
     if(!band||band==='all')return null;
@@ -11637,6 +11715,45 @@ function initVendorModule(){
     document.querySelectorAll('#teBandGroup .scen-pill').forEach(b=>b.classList.toggle('active',b.dataset.band===tePivotBand));
     refreshTePivot();
   };
+  // ── Collapsible spend analysis sections ──
+  window.toggleAnalysisSection=function(bodyId,headerEl){
+    const body=document.getElementById(bodyId);
+    if(!body)return;
+    const arrow=headerEl.querySelector('.analysis-arrow');
+    if(body.style.display==='none'){
+      body.style.display='';
+      if(arrow)arrow.style.transform='rotate(90deg)';
+    } else {
+      body.style.display='none';
+      if(arrow)arrow.style.transform='rotate(0deg)';
+    }
+  };
+
+  window.toggleCrBand=function(btn){
+    crPivotBand=btn.dataset.band;
+    document.querySelectorAll('#crBandGroup .scen-pill').forEach(b=>b.classList.toggle('active',b.dataset.band===crPivotBand));
+    refreshContractorPivot();
+  };
+
+  // ── Contractor name pills ──
+  function renderContractorPills(){
+    const search=(document.getElementById('crPivotNameSearch').value||'').toLowerCase();
+    const names=[...new Set((state.contractorRows||[]).map(r=>r.name||'').filter(Boolean))].sort();
+    const filtered=search?names.filter(n=>n.toLowerCase().includes(search)):names;
+    const el=document.getElementById('crPivotNamePills');
+    el.innerHTML=filtered.map(n=>{
+      const active=crPivotSelectedNames.has(n)?'active':'';
+      return `<button class="scen-pill ${active}" data-cname="${esc(n)}">${esc(n)}</button>`;
+    }).join('')||'<span style="font-size:.7rem;color:var(--text-dim)">No contractors</span>';
+    el.querySelectorAll('.scen-pill').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const name=btn.dataset.cname;
+        if(crPivotSelectedNames.has(name))crPivotSelectedNames.delete(name);else crPivotSelectedNames.add(name);
+        btn.classList.toggle('active',crPivotSelectedNames.has(name));
+        refreshContractorPivot();
+      });
+    });
+  }
 
   function renderPivotTable(theadEl, tbodyEl, wrapEl, data, scaleFn){
     const {rowVals,colVals,pivot}=data;
@@ -11669,7 +11786,7 @@ function initVendorModule(){
     tbodyEl.innerHTML=tb;
   }
 
-  let vPivotChartInst=null, tePivotChartInst=null;
+  let vPivotChartInst=null, tePivotChartInst=null, crPivotChartInst=null;
 
   function renderPivotChart(canvasId, data, chartInstRef, rowDim, nameField){
     if(typeof Chart==='undefined')return null;
@@ -11786,9 +11903,26 @@ function initVendorModule(){
     tePivotChartInst=renderPivotChart('tePivotChart',data,tePivotChartInst,rowDim,'expenseType');
   }
 
+  function refreshContractorPivot(){
+    const rowDim=document.getElementById('crPivotRowDim').value;
+    const colDim=document.getElementById('crPivotColDim').value;
+    const notesSearch=document.getElementById('crPivotNotesSearch').value.trim();
+    const filters={band:crPivotBand,selectedNames:crPivotSelectedNames,nameField:'name',notesSearch,monthFilter:contractorSelectedMonths};
+    const data=buildPivot(state.contractorRows||[],rowDim,colDim,filters);
+    renderContractorPills();
+    if(!data.topRows.length){
+      document.getElementById('crPivotThead').innerHTML='';
+      document.getElementById('crPivotTbody').innerHTML='<tr><td style="padding:12px;color:var(--text-dim)">No contractor spend data matching filters</td></tr>';
+      if(crPivotChartInst){crPivotChartInst.destroy();crPivotChartInst=null}
+      return;
+    }
+    renderPivotTable(document.getElementById('crPivotThead'),document.getElementById('crPivotTbody'),document.getElementById('crPivotWrap'),data,fmtScaled);
+    crPivotChartInst=renderPivotChart('crPivotChart',data,crPivotChartInst,rowDim,'name');
+  }
+
   // ── Pivot Row Selection & Refinement ──
-  let vPivotSelectedRows=new Set(), tePivotSelectedRows=new Set();
-  let vPivotAppliedAdjs=[], tePivotAppliedAdjs=[]; // {id, rowDim, rowVal, pct, preDelta, rows affected}
+  let vPivotSelectedRows=new Set(), tePivotSelectedRows=new Set(), crPivotSelectedRows=new Set();
+  let vPivotAppliedAdjs=[], tePivotAppliedAdjs=[], crPivotAppliedAdjs=[]; // {id, rowDim, rowVal, pct, preDelta, rows affected}
 
   function bindPivotRowClicks(tbodyEl, selectedSet, adjBarId){
     tbodyEl.querySelectorAll('tr').forEach(tr=>{
@@ -11984,6 +12118,28 @@ function initVendorModule(){
     document.getElementById('tePivotAdjBar').style.display='none';
   });
 
+  // Contractor pivot row selection override
+  const _origRefreshContractorPivot=refreshContractorPivot;
+  refreshContractorPivot=function(){
+    _origRefreshContractorPivot();
+    bindPivotRowClicks(document.getElementById('crPivotTbody'),crPivotSelectedRows,'crPivotAdjBar');
+    document.getElementById('crPivotTbody').querySelectorAll('tr').forEach(tr=>{
+      if(crPivotSelectedRows.has(tr.dataset.rowval))tr.classList.add('selected');
+    });
+    document.getElementById('crPivotAdjBar').style.display=crPivotSelectedRows.size?'flex':'none';
+  };
+
+  document.getElementById('crPivotAdjApply').addEventListener('click',()=>{
+    const rowDim=document.getElementById('crPivotRowDim').value;
+    applyPivotAdj(state.contractorRows,rowDim,crPivotSelectedRows,'crPivotAdjPct',crPivotAppliedAdjs,'crPivotImpact',()=>{renderContractorGrid();refreshContractorPivot()},fmtScaled);
+    document.getElementById('crPivotAdjBar').style.display='none';
+  });
+  document.getElementById('crPivotAdjClear').addEventListener('click',()=>{
+    crPivotSelectedRows.clear();
+    document.querySelectorAll('#crPivotTbody .pivot-row-sel').forEach(tr=>tr.classList.remove('selected'));
+    document.getElementById('crPivotAdjBar').style.display='none';
+  });
+
   document.getElementById('vPivotRefresh').addEventListener('click',refreshVendorPivot);
   document.getElementById('vPivotRowDim').addEventListener('change',refreshVendorPivot);
   document.getElementById('vPivotColDim').addEventListener('change',refreshVendorPivot);
@@ -11995,6 +12151,12 @@ function initVendorModule(){
   document.getElementById('tePivotColDim').addEventListener('change',refreshTePivot);
   document.getElementById('tePivotDescSearch').addEventListener('input',renderTeDescPills);
   document.getElementById('tePivotNotesSearch').addEventListener('input',refreshTePivot);
+
+  document.getElementById('crPivotRefresh').addEventListener('click',refreshContractorPivot);
+  document.getElementById('crPivotRowDim').addEventListener('change',refreshContractorPivot);
+  document.getElementById('crPivotColDim').addEventListener('change',refreshContractorPivot);
+  document.getElementById('crPivotNameSearch').addEventListener('input',renderContractorPills);
+  document.getElementById('crPivotNotesSearch').addEventListener('input',refreshContractorPivot);
 
   // ── Quick-Adjust Panels (Vendor & T&E) ──
   const QA_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
@@ -12314,7 +12476,7 @@ function initVendorModule(){
         const moLabel=mo==='all'?(contractorSelectedMonths.size>0?targetMos.map(m=>QA_MO_LABELS[QA_MO.indexOf(m)]).join(', '):'all months'):QA_MO_LABELS[QA_MO.indexOf(mo)];
         contractorQaHistory.unshift(`${dir>0?'+':''}${qaFmt(step*dir)} → ${vName} (${moLabel})`);
         if(contractorQaHistory.length>20)contractorQaHistory.pop();
-        saveState();renderContractorQaList();renderContractorGrid();renderPnlWalk();renderLandingCharts();
+        saveState();renderContractorQaList();renderContractorGrid();refreshContractorPivot();renderPnlWalk();renderLandingCharts();
       });
     });
     updateContractorQaTotal();
@@ -12336,7 +12498,7 @@ function initVendorModule(){
     state.contractorRows=contractorQaUndoStack.pop();
     if(contractorQaHistory.length)contractorQaHistory.shift();
     if(!contractorQaUndoStack.length)document.getElementById('contractorQaUndo').style.display='none';
-    saveState();renderContractorQaList();renderContractorGrid();renderPnlWalk();renderLandingCharts();
+    saveState();renderContractorQaList();renderContractorGrid();refreshContractorPivot();renderPnlWalk();renderLandingCharts();
   });
 
   // Contractor QA: add new entry
@@ -12364,7 +12526,7 @@ function initVendorModule(){
     teQaMonthBar.render();renderTeGrid();refreshTePivot();renderTeQaList();
   });
   const contractorMonthBar=createSpendMonthRangeBar('contractorMonthRangeBar','contractorMonthRangeLabel',contractorSelectedMonths,function(){
-    renderContractorGrid();renderContractorQaList();
+    renderContractorGrid();renderContractorQaList();refreshContractorPivot();
   });
   // QA-embedded bars (inside quick-adjust panels) — share the same selectedMonths sets
   const vendorQaMonthBar=createSpendMonthRangeBar('vendorQaMonthRangeBar','vendorQaMonthRangeLabel',vendorSelectedMonths,function(){
@@ -12383,7 +12545,8 @@ function initVendorModule(){
   renderVendorGrid();
   renderAccounts();
   refreshVendorPivot();
-  window.renderVendorGridPublic=function(){renderVendorGrid();renderTeGrid();renderContractorGrid();refreshVendorPivot();refreshTePivot()};
+  refreshContractorPivot();
+  window.renderVendorGridPublic=function(){renderVendorGrid();renderTeGrid();renderContractorGrid();refreshVendorPivot();refreshTePivot();refreshContractorPivot()};
 }
 
 function getVendorOaoTotal(){
