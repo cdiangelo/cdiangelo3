@@ -10148,50 +10148,62 @@ function getPnlFilteredEmps(){
   if(pnlFilterMarket){emps=emps.filter(e=>{const ms=getEmpMarkets(e);return ms.some(m=>m.code===pnlFilterMarket)})}
   return emps;
 }
+let pnlExpandedCats=new Set();
 function renderPnlWalk(){
   populatePnlFilters();
   const emps=getPnlFilteredEmps();
-  const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   const tbl=document.getElementById('pnlWalkTable');
 
-  // Build matrix: rows = product categories, columns = P&L accounts
+  // Build matrix: rows = product categories, with product drill-down
+  // Group employees by category → product
   const catGroups={};
   emps.forEach(e=>{
     const p=getEmpProject(e);
     const cat=p?p.category||'Uncategorized':'Uncategorized';
-    if(!catGroups[cat])catGroups[cat]={emps:[]};
+    const prod=p?p.product||'Unassigned':'Unassigned';
+    if(!catGroups[cat])catGroups[cat]={emps:[],products:{}};
     catGroups[cat].emps.push(e);
+    if(!catGroups[cat].products[prod])catGroups[cat].products[prod]=[];
+    catGroups[cat].products[prod].push(e);
   });
   const catKeys=Object.keys(catGroups).sort();
 
-  // Compute per-category P&L data
+  // Compute P&L data for a group of employees
+  function computePnl(empList){
+    let comp=0,capex=0;
+    empList.forEach(e=>{for(let mi=0;mi<12;mi++){comp+=getMonthlyComp(e,mi);capex+=getMonthlyCapEx(e,mi)}});
+    return {hc:empList.length,cbOpex:comp-capex,capex};
+  }
+
+  // Compute per-category and per-product P&L data
   const catData={};
+  const prodData={};
   const totals={hc:0,cbOpex:0,oao:0,adjEbitda:0,da:0,totalOpex:0,capex:0,totInv:0};
   catKeys.forEach(cat=>{
-    const ce=catGroups[cat].emps;
-    let comp=0,capex=0;
-    ce.forEach(e=>{for(let mi=0;mi<12;mi++){comp+=getMonthlyComp(e,mi);capex+=getMonthlyCapEx(e,mi)}});
-    const cbOpex=comp-capex;
-    // Distribute OAO proportionally by category headcount share
-    catData[cat]={hc:ce.length,cbOpex,capex};
-    totals.hc+=ce.length;totals.cbOpex+=cbOpex;totals.capex+=capex;
+    catData[cat]=computePnl(catGroups[cat].emps);
+    totals.hc+=catData[cat].hc;totals.cbOpex+=catData[cat].cbOpex;totals.capex+=catData[cat].capex;
+    prodData[cat]={};
+    Object.keys(catGroups[cat].products).sort().forEach(prod=>{
+      prodData[cat][prod]=computePnl(catGroups[cat].products[prod]);
+    });
   });
-  // Distribute vendor/T&E OAO across categories proportionally
+
+  // Distribute vendor/T&E OAO across categories/products proportionally by HC
   const oaoTotal=getVendorOaoTotal();
+  function enrichWithOao(d,totalHc){
+    const share=totalHc>0?d.hc/totalHc:0;
+    d.oao=Math.round(oaoTotal*share);
+    d.adjEbitda=d.cbOpex+d.oao;
+    d.da=0;
+    d.totalOpex=d.adjEbitda;
+    d.totInv=d.totalOpex+d.capex;
+  }
   catKeys.forEach(cat=>{
-    const share=totals.hc>0?catData[cat].hc/totals.hc:0;
-    const oao=Math.round(oaoTotal*share);
-    catData[cat].oao=oao;
-    catData[cat].adjEbitda=catData[cat].cbOpex+oao;
-    catData[cat].da=0;
-    catData[cat].totalOpex=catData[cat].adjEbitda;
-    catData[cat].totInv=catData[cat].totalOpex+catData[cat].capex;
+    enrichWithOao(catData[cat],totals.hc);
+    Object.keys(prodData[cat]).forEach(prod=>enrichWithOao(prodData[cat][prod],totals.hc));
   });
-  totals.oao=oaoTotal;
-  totals.adjEbitda=totals.cbOpex+oaoTotal;
-  totals.da=0;
-  totals.totalOpex=totals.adjEbitda;
-  totals.totInv=totals.totalOpex+totals.capex;
+  totals.oao=oaoTotal;totals.adjEbitda=totals.cbOpex+oaoTotal;totals.da=0;
+  totals.totalOpex=totals.adjEbitda;totals.totInv=totals.totalOpex+totals.capex;
 
   // Columns = P&L line items
   const cols=[
@@ -10203,28 +10215,54 @@ function renderPnlWalk(){
     {key:'totInv',label:'Total Investment',isCurrency:true,cls:'total'}
   ];
 
+  function fmtCell(c,v){
+    const style=c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':'';
+    return `<td class="num" style="${style}">${c.isCurrency?fmt(v):v}</td>`;
+  }
+
   let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset)">Product Category</th>';
   cols.forEach(c=>h+=`<th style="text-align:right;white-space:nowrap">${c.label}</th>`);
   h+='</tr></thead><tbody>';
 
   catKeys.forEach(cat=>{
     const d=catData[cat];
-    h+=`<tr><td style="font-weight:600;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1">${cat}</td>`;
-    cols.forEach(c=>{
-      const v=d[c.key];
-      h+=`<td class="num" style="${c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':''}">${c.isCurrency?fmt(v):v}</td>`;
-    });
+    const prodKeys=Object.keys(catGroups[cat].products).sort();
+    const hasProducts=prodKeys.length>1||(prodKeys.length===1&&prodKeys[0]!==cat);
+    const expanded=pnlExpandedCats.has(cat);
+    const arrow=hasProducts?(expanded?'▼':'▶'):'';
+    const arrowStyle=hasProducts?'cursor:pointer;user-select:none':'';
+    h+=`<tr class="pnl-cat-row" data-cat="${esc(cat)}"><td style="font-weight:600;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1;${arrowStyle}"><span class="pnl-cat-arrow" style="font-size:.65rem;margin-right:4px;display:inline-block;width:10px;color:var(--text-dim)">${arrow}</span>${esc(cat)}</td>`;
+    cols.forEach(c=>h+=fmtCell(c,d[c.key]));
     h+='</tr>';
+    // Product sub-rows (shown when expanded)
+    if(hasProducts&&expanded){
+      prodKeys.forEach(prod=>{
+        const pd=prodData[cat][prod];
+        h+=`<tr class="pnl-prod-row" style="background:var(--panel-inset)"><td style="padding-left:28px;white-space:nowrap;position:sticky;left:0;background:var(--panel-inset);z-index:1;font-size:.78rem;color:var(--text-dim)">${esc(prod)}</td>`;
+        cols.forEach(c=>h+=`<td class="num" style="font-size:.78rem;color:var(--text-dim);${c.cls==='subtotal'?'font-weight:600;color:var(--accent)':c.cls==='total'?'font-weight:600':''}">${c.isCurrency?fmt(pd[c.key]):pd[c.key]}</td>`);
+        h+='</tr>';
+      });
+    }
   });
 
   // Total row
-  h+=`<tr class="total"><td style="position:sticky;left:0;background:var(--panel);z-index:1">Total</td>`;
-  cols.forEach(c=>{
-    h+=`<td class="num">${c.isCurrency?fmt(totals[c.key]):totals[c.key]}</td>`;
-  });
+  h+=`<tr class="total"><td style="position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:10px;margin-right:4px"></span>Total</td>`;
+  cols.forEach(c=>h+=`<td class="num">${c.isCurrency?fmt(totals[c.key]):totals[c.key]}</td>`);
   h+='</tr></tbody>';
   tbl.innerHTML=h;
   tbl.classList.remove('compact');
+
+  // Bind expand/collapse clicks on category rows
+  tbl.querySelectorAll('.pnl-cat-row').forEach(tr=>{
+    tr.addEventListener('click',()=>{
+      const cat=tr.dataset.cat;
+      const prodKeys=Object.keys(catGroups[cat]?.products||{});
+      const hasProducts=prodKeys.length>1||(prodKeys.length===1&&prodKeys[0]!==cat);
+      if(!hasProducts)return;
+      if(pnlExpandedCats.has(cat))pnlExpandedCats.delete(cat);else pnlExpandedCats.add(cat);
+      renderPnlWalk();
+    });
+  });
 }
 
 let landingBudgetChartInst=null,landingForecastChartInst=null,landingChartView='pnl';
