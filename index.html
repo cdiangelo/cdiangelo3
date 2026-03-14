@@ -355,9 +355,18 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .cmd-group.active{display:flex}
 .cmd-group button{font-size:.7rem;padding:2px 8px;border-radius:10px;background:var(--panel-inset);border:1px solid var(--border);cursor:pointer;color:var(--text-dim)}
 .cmd-group button:hover{border-color:var(--accent);color:var(--accent)}
-.scen-status{padding:6px 12px;font-size:.78rem;color:var(--text);border-bottom:1px solid var(--border);min-height:24px;display:flex;align-items:center;gap:8px}
+.scen-status{padding:0;font-size:.78rem;color:var(--text);border-bottom:1px solid var(--border);max-height:140px;overflow-y:auto}
 .scen-status:empty{display:none}
 .scen-status .chat-delta{margin:0;padding:4px 8px;background:var(--panel-inset);border-radius:6px;font-size:.74rem;font-family:monospace;display:inline-block}
+.scen-history-entry{display:flex;align-items:flex-start;gap:8px;padding:5px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s}
+.scen-history-entry:last-child{border-bottom:none}
+.scen-history-entry:hover{background:var(--panel-inset)}
+.scen-history-entry.selected{background:rgba(var(--accent-rgb,58,125,68),.08);border-left:2px solid var(--accent)}
+.scen-history-entry input[type=radio]{margin-top:3px;accent-color:var(--accent);cursor:pointer}
+.scen-history-entry .entry-content{flex:1;min-width:0}
+.scen-history-entry .entry-msg{font-size:.76rem;color:var(--text)}
+.scen-history-entry .entry-label{font-size:.65rem;font-weight:600;text-transform:uppercase;color:var(--accent);margin-right:4px}
+.scen-history-entry .entry-refinement{color:#8e6bc0;font-style:italic}
 .scen-action-pane{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--panel-inset)}
 .scen-filter-section{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .scen-pill-group{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;max-height:90px;overflow-y:auto}
@@ -1476,7 +1485,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
 <div class="chatbot-panel" id="budgetScenPanel">
-<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm" id="scenDetailOut" style="padding:2px 10px;font-size:.72rem" onclick="toggleDetailOut()">Refine</button><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
+<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm" id="scenDetailOut" style="padding:2px 10px;font-size:.72rem;opacity:.5" onclick="toggleDetailOut()" disabled>Detail Out</button><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div id="budgetScenStatus" class="scen-status"></div>
 <div id="budgetActionPane" class="scen-action-pane" style="display:none">
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
@@ -5512,6 +5521,20 @@ function executeWsMerge(){
   }
   // Merge: first workspace is the base, subsequent workspaces are merged in
   const merged=JSON.parse(JSON.stringify(states[0]));
+  // Ensure arrays exist on base
+  if(!merged.employees)merged.employees=[];
+  if(!merged.projects)merged.projects=[];
+  if(!merged.markets)merged.markets=[];
+  if(!merged.bizLines)merged.bizLines=[];
+  if(!merged.accounts)merged.accounts=[];
+  if(!merged.vendorRows)merged.vendorRows=[];
+  if(!merged.teRows)merged.teRows=[];
+  if(!merged.customRates)merged.customRates=[];
+  if(!merged.bonusMatrix)merged.bonusMatrix={};
+  if(!merged.benefitsMatrix)merged.benefitsMatrix={};
+  if(!merged.benefitsCountryMult)merged.benefitsCountryMult={};
+  // Build dedup set from base employees
+  const empKeys=new Set(merged.employees.map(e=>(e.name||'').toLowerCase()+'|'+(e.function||'')+'|'+(e.country||'')));
   // Track existing IDs to remap references
   for(let si=1;si<states.length;si++){
     const src=states[si];
@@ -5524,9 +5547,12 @@ function executeWsMerge(){
         else{const newP=JSON.parse(JSON.stringify(p));newP.id=uid();projIdMap[p.id]=newP.id;merged.projects.push(newP)}
       });
     }
-    // Merge employees (always add — different workspaces have different people)
+    // Merge employees (dedupe by name+function+country, keep one copy)
     if(src.employees){
       src.employees.forEach(e=>{
+        const key=(e.name||'').toLowerCase()+'|'+(e.function||'')+'|'+(e.country||'');
+        if(empKeys.has(key))return; // skip duplicate
+        empKeys.add(key);
         const newE=JSON.parse(JSON.stringify(e));
         newE.id=uid();
         // Remap allocation project IDs
@@ -5608,11 +5634,32 @@ function executeWsMerge(){
 
 function mergeStates(states){
   const merged=JSON.parse(JSON.stringify(states[0]));
+  // Ensure arrays exist on merged base
+  if(!merged.employees)merged.employees=[];
+  if(!merged.projects)merged.projects=[];
+  if(!merged.markets)merged.markets=[];
+  if(!merged.bizLines)merged.bizLines=[];
+  if(!merged.accounts)merged.accounts=[];
+  if(!merged.vendorRows)merged.vendorRows=[];
+  if(!merged.teRows)merged.teRows=[];
+  if(!merged.customRates)merged.customRates=[];
+  if(!merged.bonusMatrix)merged.bonusMatrix={};
+  if(!merged.benefitsMatrix)merged.benefitsMatrix={};
+  if(!merged.benefitsCountryMult)merged.benefitsCountryMult={};
+  // Build existing employee dedup set from base state
+  const empKeys=new Set(merged.employees.map(e=>(e.name||'').toLowerCase()+'|'+(e.function||'')+'|'+(e.country||'')));
   for(let si=1;si<states.length;si++){
     const src=states[si];
     const projIdMap={};
     if(src.projects){src.projects.forEach(p=>{const existing=merged.projects.find(mp=>mp.code===p.code);if(existing){projIdMap[p.id]=existing.id}else{const newP=JSON.parse(JSON.stringify(p));newP.id=uid();projIdMap[p.id]=newP.id;merged.projects.push(newP)}})}
-    if(src.employees){src.employees.forEach(e=>{const newE=JSON.parse(JSON.stringify(e));newE.id=uid();if(newE.allocations){newE.allocations.forEach(a=>{if(projIdMap[a.projId])a.projId=projIdMap[a.projId]})}merged.employees.push(newE)})}
+    if(src.employees){src.employees.forEach(e=>{
+      const key=(e.name||'').toLowerCase()+'|'+(e.function||'')+'|'+(e.country||'');
+      if(empKeys.has(key))return; // skip duplicate
+      empKeys.add(key);
+      const newE=JSON.parse(JSON.stringify(e));newE.id=uid();
+      if(newE.allocations){newE.allocations.forEach(a=>{if(projIdMap[a.projId])a.projId=projIdMap[a.projId]})}
+      merged.employees.push(newE);
+    })}
     if(src.markets){src.markets.forEach(m=>{if(!merged.markets.some(mm=>mm.code===m.code))merged.markets.push(JSON.parse(JSON.stringify(m)))})}
     if(src.bizLines){src.bizLines.forEach(b=>{if(!merged.bizLines.some(mb=>mb.code===b.code))merged.bizLines.push(JSON.parse(JSON.stringify(b)))})}
     if(src.accounts){src.accounts.forEach(a=>{if(!merged.accounts.some(ma=>ma.code===a.code))merged.accounts.push(JSON.parse(JSON.stringify(a)))})}
@@ -6103,6 +6150,8 @@ let scenBudgetChartInst=null,scenFcChartInst=null;
 let budgetUndoStack=[],fcUndoStack=[];
 let scenSelectedMonth=null;
 let scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+let scenActionHistory=[]; // {id, cmd, scopedCmd, msg, delta, isRefinement, parentId}
+let scenSelectedActionId=null;
 
 function initBudgetScenario(){
   budgetScenario={
@@ -6816,7 +6865,7 @@ function buildScopedCommand(text){
   return text.replace(/\ball\b/i,scope);
 }
 
-function handleBudgetChat(text){
+function handleBudgetChat(text,isRefinement,parentId){
   if(!text.trim())return;
   const scopedText=buildScopedCommand(text);
   // Save undo snapshot before command (skip for reset)
@@ -6829,9 +6878,17 @@ function handleBudgetChat(text){
   if(result.ok){
     renderBudgetScenarioChart();
     const delta=computeBudgetDelta();
-    statusEl.innerHTML=`<span style="color:var(--success)">&#10003;</span> ${result.msg}<div class="chat-delta">${delta}</div>`;
-    if(!/^reset$/i.test(text.trim())){budgetScenarioDirty=true}else{budgetScenarioDirty=false;budgetUndoStack=[];document.getElementById('scenBudgetUndo').style.display='none'}
+    if(!/^reset$/i.test(text.trim())){
+      budgetScenarioDirty=true;
+      const entry={id:Date.now(),cmd:text,scopedCmd:scopedText,msg:result.msg,delta,isRefinement:!!isRefinement,parentId:parentId||null};
+      scenActionHistory.push(entry);
+    } else {
+      budgetScenarioDirty=false;budgetUndoStack=[];
+      document.getElementById('scenBudgetUndo').style.display='none';
+      scenActionHistory=[];scenSelectedActionId=null;
+    }
     document.getElementById('scenBudgetApply').style.display=budgetScenarioDirty?'inline-block':'none';
+    renderScenActionHistory();
   } else {
     budgetUndoStack.pop();
     if(!budgetUndoStack.length)document.getElementById('scenBudgetUndo').style.display='none';
@@ -6844,6 +6901,38 @@ function handleBudgetChat(text){
     if(document.getElementById('budgetActionPane').style.display!=='none')filterScenEmpList();
   }
   renderScenarioPnlSummary();
+  updateDetailOutBtn();
+}
+
+function renderScenActionHistory(){
+  const el=document.getElementById('budgetScenStatus');
+  if(!scenActionHistory.length){el.innerHTML='';return}
+  el.innerHTML=scenActionHistory.map(e=>{
+    const checked=scenSelectedActionId===e.id?'checked':'';
+    const selCls=scenSelectedActionId===e.id?' selected':'';
+    const label=e.isRefinement?'<span class="entry-label entry-refinement">Refinement Adj</span>':'';
+    return `<div class="scen-history-entry${selCls}" onclick="selectScenAction(${e.id})">
+      <input type="radio" name="scenAction" ${checked} onclick="event.stopPropagation();selectScenAction(${e.id})">
+      <div class="entry-content">
+        <div class="entry-msg">${label}<span style="color:var(--success)">&#10003;</span> ${e.msg}</div>
+        <div class="chat-delta">${e.delta}</div>
+      </div>
+    </div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+function selectScenAction(id){
+  scenSelectedActionId=(scenSelectedActionId===id)?null:id;
+  renderScenActionHistory();
+  updateDetailOutBtn();
+}
+
+function updateDetailOutBtn(){
+  const btn=document.getElementById('scenDetailOut');
+  const hasSelection=scenSelectedActionId!=null;
+  btn.disabled=!hasSelection;
+  btn.style.opacity=hasSelection?'1':'.5';
 }
 
 // ── Action Pane Functions ──
@@ -6869,20 +6958,35 @@ function openActionPane(monthIdx){
 }
 
 function toggleDetailOut(){
+  if(scenSelectedActionId==null)return;
   const pane=document.getElementById('budgetActionPane');
   const btn=document.getElementById('scenDetailOut');
   if(pane.style.display!=='none'){
     closeActionPane();
-  } else {
-    scenFilterState={product:new Set(),function:new Set(),country:new Set()};
-    scenSelectedMonth=null;
-    document.getElementById('scenMonthBadge').style.display='none';
-    document.getElementById('scenMonthSelect').value='';
-    document.getElementById('scenEmpSearch').value='';
-    pane.style.display='block';
-    btn.classList.add('active');
-    populateActionPanePills();
+    return;
   }
+  // Find the selected action
+  const action=scenActionHistory.find(a=>a.id===scenSelectedActionId);
+  if(!action)return;
+  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+  scenSelectedMonth=null;
+  document.getElementById('scenMonthBadge').style.display='none';
+  document.getElementById('scenMonthSelect').value='';
+  document.getElementById('scenEmpSearch').value='';
+  pane.style.display='block';
+  btn.classList.add('active');
+  // Show prompt with the action being refined
+  const prompt=pane.querySelector('.scen-detail-prompt');
+  if(prompt)prompt.remove();
+  const promptDiv=document.createElement('div');
+  promptDiv.className='scen-detail-prompt';
+  promptDiv.style.cssText='padding:6px 10px;margin-bottom:8px;background:rgba(142,107,192,.1);border:1px solid rgba(142,107,192,.3);border-radius:6px;font-size:.75rem;color:var(--text)';
+  promptDiv.innerHTML=`<strong style="color:#8e6bc0">Refining:</strong> "${action.msg}" — Select product, function, and/or country filters below, then click a preset action to apply a scoped refinement.`;
+  pane.insertBefore(promptDiv,pane.firstChild);
+  // Store the command being refined for re-execution
+  pane.dataset.refineCmd=action.cmd;
+  pane.dataset.refineActionId=action.id;
+  populateActionPanePills();
 }
 
 function onScenMonthChange(val){
@@ -6902,7 +7006,12 @@ function clearScenFilters(){
 }
 
 function closeActionPane(){
-  document.getElementById('budgetActionPane').style.display='none';
+  const pane=document.getElementById('budgetActionPane');
+  pane.style.display='none';
+  const prompt=pane.querySelector('.scen-detail-prompt');
+  if(prompt)prompt.remove();
+  delete pane.dataset.refineCmd;
+  delete pane.dataset.refineActionId;
   document.getElementById('scenMonthBadge').style.display='none';
   document.getElementById('scenDetailOut').classList.remove('active');
   scenSelectedMonth=null;
@@ -7070,8 +7179,10 @@ function initScenarioPane(){
   document.getElementById('scenBudgetUndo').addEventListener('click',()=>{
     if(!budgetUndoStack.length)return;
     budgetScenario=budgetUndoStack.pop();
+    scenActionHistory.pop();
+    if(scenSelectedActionId!=null&&!scenActionHistory.find(a=>a.id===scenSelectedActionId))scenSelectedActionId=null;
     if(!budgetUndoStack.length){document.getElementById('scenBudgetUndo').style.display='none';budgetScenarioDirty=false;document.getElementById('scenBudgetApply').style.display='none'}
-    document.getElementById('budgetScenStatus').innerHTML='<span style="color:var(--text-dim)">&#8630;</span> Undo: reverted to previous state.';
+    renderScenActionHistory();updateDetailOutBtn();
     renderBudgetScenarioChart();renderScenarioPnlSummary();
   });
   document.getElementById('scenFcUndo').addEventListener('click',()=>{
@@ -7084,10 +7195,11 @@ function initScenarioPane(){
   // Reset buttons
   document.getElementById('scenBudgetReset').addEventListener('click',()=>{
     initBudgetScenario();budgetChatHistory=[];budgetScenarioDirty=false;budgetUndoStack=[];
+    scenActionHistory=[];scenSelectedActionId=null;
     document.getElementById('scenBudgetApply').style.display='none';
     document.getElementById('scenBudgetUndo').style.display='none';
     document.getElementById('budgetScenStatus').innerHTML='';
-    closeActionPane();
+    closeActionPane();updateDetailOutBtn();
     renderBudgetScenarioChart();renderScenarioPnlSummary();
   });
   document.getElementById('scenFcReset').addEventListener('click',()=>{
@@ -7099,7 +7211,17 @@ function initScenarioPane(){
   });
   // Example command buttons (only buttons with data-cmd, not category tabs)
   document.querySelectorAll('#budgetChatExamples button[data-cmd]').forEach(btn=>{
-    btn.addEventListener('click',()=>{handleBudgetChat(btn.dataset.cmd)});
+    btn.addEventListener('click',()=>{
+      const pane=document.getElementById('budgetActionPane');
+      const isRefining=pane.style.display!=='none'&&pane.dataset.refineActionId;
+      if(isRefining){
+        const parentId=parseInt(pane.dataset.refineActionId);
+        handleBudgetChat(btn.dataset.cmd,true,parentId);
+        closeActionPane();
+      } else {
+        handleBudgetChat(btn.dataset.cmd);
+      }
+    });
   });
   document.querySelectorAll('#fcChatExamples button[data-cmd]').forEach(btn=>{
     btn.addEventListener('click',()=>{handleFcChat(btn.dataset.cmd)});
