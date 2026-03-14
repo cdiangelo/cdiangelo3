@@ -63,14 +63,20 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent)}
 label{font-size:.8rem;color:var(--text-dim);margin-bottom:4px;display:block}
 table{width:100%;border-collapse:collapse}
 th{background:var(--panel-inset);color:var(--accent);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;text-align:left;position:sticky;top:0;white-space:normal;word-break:break-word}
+/* Diagonal headers for large tables */
+#empTable thead{border-bottom:2px solid var(--border)}
+#empTable th.diag{position:sticky;top:0;height:95px;white-space:nowrap;vertical-align:bottom;padding:0 2px 8px 2px;text-align:left;overflow:visible;min-width:75px;border-bottom:2px solid var(--accent)}
+#empTable th.diag .diag-text{display:inline-block;transform:rotate(-45deg);transform-origin:bottom left;white-space:nowrap;font-size:.68rem;letter-spacing:.03em;position:relative;bottom:0;left:6px}
+#empTable th.diag.num-col,#empTable th.diag.num-col-sm,#empTable th.diag.num-col-lg{min-width:85px;text-align:right}
+#empTable th:nth-child(1),#empTable th:nth-child(2){border-bottom:2px solid var(--accent);height:auto;vertical-align:middle}
 .col-divider{border-left:1px solid var(--border-light)!important}
 .split-th{min-width:90px;max-width:140px;text-align:right;white-space:nowrap}
 td{padding:10px 12px;border-bottom:1px solid var(--border-light);font-size:.875rem}
 tr:hover{background:rgba(139,32,32,.03)}
 .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);background:var(--panel)}
-/* Frozen columns for employee roster */
-#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;background:var(--panel);min-width:80px}
-#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:80px;z-index:2;background:var(--panel);min-width:180px;white-space:nowrap}
+/* Frozen columns for employee roster — Actions + Name */
+#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;background:var(--panel);min-width:150px;width:150px;max-width:150px}
+#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:150px;z-index:2;background:var(--panel);min-width:160px;white-space:nowrap}
 #empTable th:nth-child(1),#empTable th:nth-child(2){z-index:3}
 #empTable td:nth-child(2)::after,#empTable th:nth-child(2)::after{content:'';position:absolute;top:0;right:0;bottom:0;width:2px;background:var(--border)}
 #empTable tr:hover td:nth-child(1),#empTable tr:hover td:nth-child(2){background:rgba(139,32,32,.03)}
@@ -966,7 +972,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="table-wrap"><table id="empTable"><thead>
 <tr>
-<th style="min-width:80px">Actions</th><th class="sortable" data-sort="name">Name <span class="sort-arrow"></span></th><th class="sortable" data-sort="country">Country <span class="sort-arrow"></span></th><th class="sortable" data-sort="seniority">Seniority <span class="sort-arrow"></span></th><th class="sortable" data-sort="function">Function <span class="sort-arrow"></span></th><th class="sortable" data-sort="market">Market <span class="sort-arrow"></span></th><th class="sortable" data-sort="businessLine">Business Line <span class="sort-arrow"></span></th><th class="ops-hide sortable" data-sort="businessUnit">Bus Unit <span class="sort-arrow"></span></th><th>Projects</th><th class="num-col sortable" data-sort="salary">Base <span class="sort-arrow"></span></th><th class="num-col-sm">Bonus %</th><th class="num-col">Bonus</th><th class="num-col">Benefits</th><th class="num-col-lg sortable" data-sort="totalComp">Total Comp <span class="sort-arrow"></span></th><th class="num-col-sm sortable" data-sort="capPct">Cap % <span class="sort-arrow"></span></th><th class="num-col">OpEx</th><th class="num-col">CapEx</th><th class="sortable" data-sort="hireDate">Hire Date <span class="sort-arrow"></span></th><th class="sortable" data-sort="termDate">Term Date <span class="sort-arrow"></span></th>
+<th style="min-width:150px">Actions</th><th class="sortable" data-sort="name" style="min-width:160px">Name <span class="sort-arrow"></span></th><th class="diag sortable" data-sort="country"><span class="diag-text">Country <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="seniority"><span class="diag-text">Seniority <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="function"><span class="diag-text">Function <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="market"><span class="diag-text">Market <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="businessLine"><span class="diag-text">Business Line <span class="sort-arrow"></span></span></th><th class="diag ops-hide sortable" data-sort="businessUnit"><span class="diag-text">Bus Unit <span class="sort-arrow"></span></span></th><th class="diag"><span class="diag-text">Projects</span></th><th class="diag num-col sortable" data-sort="salary"><span class="diag-text">Base <span class="sort-arrow"></span></span></th><th class="diag num-col-sm"><span class="diag-text">Bonus %</span></th><th class="diag num-col"><span class="diag-text">Bonus</span></th><th class="diag num-col"><span class="diag-text">Benefits</span></th><th class="diag num-col-lg sortable" data-sort="totalComp"><span class="diag-text">Total Comp <span class="sort-arrow"></span></span></th><th class="diag num-col-sm sortable" data-sort="capPct"><span class="diag-text">Cap % <span class="sort-arrow"></span></span></th><th class="diag num-col"><span class="diag-text">OpEx</span></th><th class="diag num-col"><span class="diag-text">CapEx</span></th><th class="diag sortable" data-sort="hireDate"><span class="diag-text">Hire Date <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="termDate"><span class="diag-text">Term Date <span class="sort-arrow"></span></span></th>
 </tr>
 </thead><tbody></tbody></table></div>
 </div>
