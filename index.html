@@ -6635,16 +6635,17 @@ function renderExecFcSparkline(){
       backgroundColor:hexToRgba(colors[0],0.25),
       borderColor:colors[0],borderWidth:2,
       pointRadius:3,pointBackgroundColor:colors[0],
-      tension:0.3
+      tension:0.3,
+      datalabels:{
+        display:ctx=>yoyLabels[ctx.dataIndex]!=='',
+        align:'top',anchor:'end',
+        font:{size:10,weight:'500'},
+        color:hexToRgba(colors[0],0.65),
+        formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]
+      }
     }]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},
-        datalabels:{
-          align:'top',anchor:'end',
-          font:{size:9,weight:'500'},
-          color:hexToRgba(colors[0],0.6),
-          formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]||''
-        },
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},
+      plugins:{legend:{display:false},datalabels:{},
         tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
       scales:{
         x:{ticks:{font:{size:12,weight:'600'},color:'var(--text-dim)'},grid:{display:false}},
