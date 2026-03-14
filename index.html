@@ -502,6 +502,12 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .presence-dot{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05);font-weight:500}
 .presence-dot::before{content:'';width:7px;height:7px;border-radius:50%;display:inline-block}
 .presence-dot.muted{opacity:.5;font-style:italic}
+/* Session Top Bar - persists across all modules */
+#sessionTopBar{display:none;position:sticky;top:0;z-index:200;padding:5px 20px;background:var(--panel);border-bottom:2px solid var(--accent);font-size:.78rem;align-items:center;justify-content:space-between;gap:12px}
+#sessionTopBar.active{display:flex}
+#sessionTopBar .stb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#sessionTopBar .stb-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+body.session-active header{top:30px}
 /* Auto-save indicator */
 .save-indicator{font-size:.72rem;padding:2px 8px;border-radius:10px;font-weight:500;margin-left:8px}
 .save-indicator.saving{color:var(--warning)}
@@ -604,6 +610,12 @@ Template Mode &mdash; changes saved in this browser only.
 <span class="sn-color-group" id="snHighlightColors" title="Highlight" style="display:inline-flex;gap:2px;align-items:center"><span style="font-size:.65rem;color:var(--text-dim);margin-right:1px">&#9618;</span></span>
 </div>
 <div class="sn-body" id="stickyNoteBody" contenteditable="true"></div>
+</div>
+
+<!-- SESSION TOP BAR - persists across all pages -->
+<div id="sessionTopBar">
+  <div class="stb-left" id="stbSession"></div>
+  <div class="stb-right" id="stbUsers"></div>
 </div>
 
 <!-- LANDING PAGE -->
@@ -2091,9 +2103,8 @@ function showToast(msg){
   clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.opacity='0'},2500);
 }
 function updatePresenceIndicators(users){
-  const bar=document.getElementById('presenceBar');
-  if(!bar||!sessionContext)return;
-  bar.className='presence-bar active';
+  const stbUsers=document.getElementById('stbUsers');
+  if(!stbUsers||!sessionContext)return;
   const usersHtml='<span style="color:var(--text-dim);margin-right:4px">Online:</span>'+
     users.map(u=>{
       const isMe=u.id===sessionContext.userId;
@@ -2102,10 +2113,7 @@ function updatePresenceIndicators(users){
       const suffix=onDiffVersion?` (${u.versionName||'other version'})`:'';
       return `<span class="${cls}" style="--dot-color:${u.color}"><span style="background:${u.color};width:7px;height:7px;border-radius:50%;display:inline-block"></span>${u.name}${isMe?' (you)':''}${suffix}</span>`;
     }).join('');
-  const sessionHtml=`<span style="font-weight:600;color:var(--accent);margin-right:8px">${sessionContext.sessionName||'Session'}</span>`+
-    `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code||''}</span>`+
-    (sessionContext.versionName?`<span style="font-size:.72rem;color:var(--text-dim);margin-left:8px;border-left:1px solid var(--border);padding-left:8px">v: <strong>${sessionContext.versionName}</strong></span>`:'');
-  bar.innerHTML=`<div class="presence-left">${usersHtml}</div><div class="presence-right">${sessionHtml}</div>`;
+  stbUsers.innerHTML=usersHtml;
 }
 
 // Session modal logic
@@ -2305,30 +2313,42 @@ function updateSessionUI(){
   const indicator=document.getElementById('wsIndicator');
   const presenceBar=document.getElementById('presenceBar');
   const landingBox=document.getElementById('landingSessionBox');
+  const topBar=document.getElementById('sessionTopBar');
+  const stbSession=document.getElementById('stbSession');
+  const stbUsers=document.getElementById('stbUsers');
   if(persistenceMode==='session'&&sessionContext){
     banner.style.display='none';
     if(landingBox)landingBox.style.display='none';
-    indicator.innerHTML=`Session: <strong style="color:var(--accent)">${sessionContext.sessionName||'Active'}</strong> | `+
-      `Version: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage versions">${sessionContext.versionName||'Default'}</span>`+
-      ` | <span style="font-size:.75rem;color:var(--text-dim)">${sessionContext.userName}</span>`+
-      ` <span style="cursor:pointer;font-size:.72rem;color:var(--danger);margin-left:4px" onclick="leaveSession()" title="Leave session">Leave</span>`+
-      `<span class="save-indicator" id="saveIndicator" style="display:none"></span>`;
-    // Show presence bar immediately with current user
-    if(!presenceBar.classList.contains('active')){
-      presenceBar.className='presence-bar active';
-      const usersHtml=`<span style="color:var(--text-dim);margin-right:4px">Online:</span>`+
+    // Keep wsIndicator simple - just version management
+    indicator.innerHTML='Version: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage versions">'+
+      (sessionContext.versionName||'Default')+'</span><span class="save-indicator" id="saveIndicator" style="display:none"></span>';
+    // Populate the persistent top bar
+    topBar.className='active';
+    topBar.id='sessionTopBar';
+    stbSession.innerHTML=
+      `<span style="font-weight:600;color:var(--accent)">Session: ${sessionContext.sessionName||'Active'}</span>`+
+      `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel-inset);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code||''}</span>`+
+      (sessionContext.versionName?`<span style="font-size:.72rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">v: <strong>${sessionContext.versionName}</strong></span>`:'')+
+      ` <span style="font-size:.75rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">${sessionContext.userName}</span>`+
+      ` <span style="cursor:pointer;font-size:.72rem;color:var(--danger);margin-left:4px" onclick="leaveSession()" title="Leave session">Leave</span>`;
+    // Show initial user in top bar
+    if(!stbUsers.innerHTML){
+      stbUsers.innerHTML=`<span style="color:var(--text-dim);margin-right:4px">Online:</span>`+
         `<span class="presence-dot"><span style="background:${sessionContext.userColor||'var(--accent)'};width:7px;height:7px;border-radius:50%;display:inline-block"></span>${sessionContext.userName} (you)</span>`;
-      const sessionHtml=`<span style="font-weight:600;color:var(--accent);margin-right:8px">${sessionContext.sessionName||'Session'}</span>`+
-        `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code||''}</span>`+
-        (sessionContext.versionName?`<span style="font-size:.72rem;color:var(--text-dim);margin-left:8px;border-left:1px solid var(--border);padding-left:8px">v: <strong>${sessionContext.versionName}</strong></span>`:'');
-      presenceBar.innerHTML=`<div class="presence-left">${usersHtml}</div><div class="presence-right">${sessionHtml}</div>`;
     }
+    // Hide old presence bar in comp header
+    presenceBar.className='presence-bar';presenceBar.innerHTML='';
+    document.body.classList.add('session-active');
   }else{
     banner.style.display='flex';
     if(landingBox)landingBox.style.display='flex';
     indicator.innerHTML='Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">'+currentWorkspaceName+'</span>'+
       '<span class="save-indicator" id="saveIndicator" style="display:none"></span>';
+    // Hide top bar and old presence bar
+    topBar.className='';topBar.id='sessionTopBar';
+    stbSession.innerHTML='';stbUsers.innerHTML='';
     presenceBar.className='presence-bar';presenceBar.innerHTML='';
+    document.body.classList.remove('session-active');
   }
 }
 
@@ -6240,16 +6260,19 @@ function renderExecView(){
   // ── Period range ──
   const curMonth=currentMonth; // global as-of month override
   const isQuarterly=execPeriod==='quarterly';
-  let periodStart=0,periodEnd=11;
-  if(execPeriod==='mtd'){periodStart=curMonth;periodEnd=curMonth}
-  else if(execPeriod==='qtd'){periodStart=Math.floor(curMonth/3)*3;periodEnd=curMonth}
-  else if(execPeriod==='ytd'){periodStart=0;periodEnd=curMonth}
-  const periodMonths=[];for(let i=periodStart;i<=periodEnd;i++)periodMonths.push(i);
+  // Always show all 12 months (like dashboard) — period only affects cumulative transforms & stat cards
+  const periodMonths=[0,1,2,3,4,5,6,7,8,9,10,11];
   const periodLabels=isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
+  // For stat cards: compute the scoped month range
+  let statStart=0,statEnd=11;
+  if(execPeriod==='mtd'){statStart=curMonth;statEnd=curMonth}
+  else if(execPeriod==='qtd'){statStart=Math.floor(curMonth/3)*3;statEnd=curMonth}
+  else if(execPeriod==='ytd'){statStart=0;statEnd=curMonth}
+  const statMonths=[];for(let i=statStart;i<=statEnd;i++)statMonths.push(i);
 
   // ── Stat cards (scoped to period) ──
   let periodComp=0,periodCapEx=0;
-  emps.forEach(e=>{periodMonths.forEach(mi=>{periodComp+=getMonthlyComp(e,mi);periodCapEx+=getMonthlyCapEx(e,mi)})});
+  emps.forEach(e=>{statMonths.forEach(mi=>{periodComp+=getMonthlyComp(e,mi);periodCapEx+=getMonthlyCapEx(e,mi)})});
   const periodOpEx=periodComp-periodCapEx;
   const periodLabel=execPeriod==='full'||isQuarterly?'Full Year':execPeriod.toUpperCase();
   const svColor=getStatValueColor();
@@ -6298,19 +6321,21 @@ function renderExecView(){
   });
   const monthlyData={};
   groupNames.forEach(g=>{
-    const raw=periodMonths.map(mi=>monthlyDataFull[g][mi]);
+    const raw=monthlyDataFull[g];
     if(isQuarterly){
       // Aggregate 12 months into 4 quarters
-      const full=MONTH_SHORT.map((_,mi)=>monthlyDataFull[g][mi]);
-      monthlyData[g]=[0,1,2,3].map(q=>full[q*3]+full[q*3+1]+full[q*3+2]);
+      monthlyData[g]=[0,1,2,3].map(q=>raw[q*3]+raw[q*3+1]+raw[q*3+2]);
     } else if(execPeriod==='ytd'){
+      // Cumulative from Jan (same as dashboard YTD)
       const cumul=[];raw.forEach((v,i)=>cumul.push((cumul[i-1]||0)+v));
       monthlyData[g]=cumul;
     } else if(execPeriod==='qtd'){
+      // Cumulative with quarterly reset (same as dashboard QTD)
       const cumul=[];raw.forEach((v,i)=>{const qi=i%3;cumul.push(qi===0?v:(cumul[i-1]||0)+v)});
       monthlyData[g]=cumul;
     } else {
-      monthlyData[g]=raw;
+      // 'full' or 'mtd': show each month as-is (same as dashboard MTD)
+      monthlyData[g]=raw.slice();
     }
   });
 
