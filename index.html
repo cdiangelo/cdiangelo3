@@ -1699,8 +1699,9 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th class="sortable num-col-lg" data-vsort="fullYear" style="font-weight:700">Full Year <span class="sort-arrow"></span></th>
 <th style="width:40px"></th>
 </tr></thead>
+<tbody id="vendorTotalRow"></tbody>
 <tbody id="vendorTbody"></tbody>
-<tfoot id="vendorTfoot"></tfoot>
+<tfoot id="vendorTfoot" style="display:none"></tfoot>
 </table>
 </div>
 </div>
@@ -1816,8 +1817,9 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th class="num-col-lg" style="font-weight:700">Full Year</th>
 <th style="width:40px"></th>
 </tr></thead>
+<tbody id="teTotalRow"></tbody>
 <tbody id="teTbody"></tbody>
-<tfoot id="teTfoot"></tfoot>
+<tfoot id="teTfoot" style="display:none"></tfoot>
 </table>
 </div>
 </div>
@@ -3292,45 +3294,86 @@ function drawCrispPattern(ctx,px,py,pw,ph,patIdx,fg){
 }
 const crispPatternPlugin={
   id:'crispPatterns',
-  _needsPatterns(chart){
-    if(chartColorScheme!=='crisp')return false;
-    let barCount=0;
-    chart.data.datasets.forEach((ds,i)=>{const m=chart.getDatasetMeta(i);if(!m.hidden&&m.type!=='line')barCount++});
-    return barCount>3;
+  _patternMode(chart){
+    if(chartColorScheme!=='crisp')return null;
+    let barCount=0,filledLineCount=0;
+    chart.data.datasets.forEach((ds,i)=>{const m=chart.getDatasetMeta(i);if(m.hidden)return;if(m.type!=='line')barCount++;else if(ds.fill!=null&&ds.fill!==false)filledLineCount++});
+    if(barCount>3)return 'bar';
+    if(filledLineCount>1)return 'area';
+    return null;
   },
   afterDatasetsDraw(chart){
-    if(!this._needsPatterns(chart))return;
+    const mode=this._patternMode(chart);
+    if(!mode)return;
     const isDark=document.documentElement.classList.contains('dark');
     const ctx=chart.ctx;
-    const fg=isDark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.12)';
-    chart.data.datasets.forEach((ds,dsi)=>{
-      const meta=chart.getDatasetMeta(dsi);
-      if(meta.hidden||meta.type==='line')return;
-      meta.data.forEach(el=>{
-        const{x,y,width,height,base}=el.getProps(['x','y','width','height','base']);
-        if(width===undefined||base===undefined)return;
-        const bY=Math.min(y,base),bH=Math.abs(base-y),bW=width;
-        if(bH<2||bW<2)return;
-        drawCrispPattern(ctx,x-bW/2,bY,bW,bH,dsi,fg);
+    if(mode==='bar'){
+      const fg=isDark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.12)';
+      chart.data.datasets.forEach((ds,dsi)=>{
+        const meta=chart.getDatasetMeta(dsi);
+        if(meta.hidden||meta.type==='line')return;
+        meta.data.forEach(el=>{
+          const{x,y,width,height,base}=el.getProps(['x','y','width','height','base']);
+          if(width===undefined||base===undefined)return;
+          const bY=Math.min(y,base),bH=Math.abs(base-y),bW=width;
+          if(bH<2||bW<2)return;
+          drawCrispPattern(ctx,x-bW/2,bY,bW,bH,dsi,fg);
+        });
       });
-    });
+    } else if(mode==='area'){
+      const fg=isDark?'rgba(255,255,255,0.10)':'rgba(0,0,0,0.07)';
+      const yScale=chart.scales.y;
+      const baseline=yScale?yScale.getPixelForValue(0):chart.chartArea.bottom;
+      let prevPoints=null;
+      chart.data.datasets.forEach((ds,dsi)=>{
+        const meta=chart.getDatasetMeta(dsi);
+        if(meta.hidden||meta.type!=='line'||ds.fill==null||ds.fill===false){return}
+        const points=meta.data.map(pt=>({x:pt.x,y:pt.y}));
+        if(!points.length){prevPoints=points;return}
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(points[0].x,points[0].y);
+        for(let j=1;j<points.length;j++)ctx.lineTo(points[j].x,points[j].y);
+        if(prevPoints&&prevPoints.length===points.length){
+          for(let j=points.length-1;j>=0;j--)ctx.lineTo(prevPoints[j].x,prevPoints[j].y);
+        } else {
+          ctx.lineTo(points[points.length-1].x,baseline);
+          ctx.lineTo(points[0].x,baseline);
+        }
+        ctx.closePath();
+        ctx.clip();
+        const xs=points.map(p=>p.x);
+        const allY=points.map(p=>p.y).concat(prevPoints?prevPoints.map(p=>p.y):[baseline]);
+        const minX=Math.min(...xs),maxX=Math.max(...xs);
+        const minY=Math.min(...allY),maxY=Math.max(...allY);
+        if(maxX-minX>2&&maxY-minY>2)drawCrispPattern(ctx,minX,minY,maxX-minX,maxY-minY,dsi,fg);
+        ctx.restore();
+        prevPoints=points;
+      });
+    }
   },
   afterDraw(chart){
-    if(!this._needsPatterns(chart))return;
+    const mode=this._patternMode(chart);
+    if(!mode)return;
     const isDark=document.documentElement.classList.contains('dark');
     const fg=isDark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.15)';
     const legend=chart.legend;
     if(!legend||!legend.legendItems)return;
     const ctx=chart.ctx;
+    const chartArea=chart.chartArea;
     legend.legendItems.forEach((item,i)=>{
       if(item.hidden)return;
-      const meta=chart.getDatasetMeta(item.datasetIndex!=null?item.datasetIndex:i);
-      if(meta.type==='line')return;
+      const dsi=item.datasetIndex!=null?item.datasetIndex:i;
+      const meta=chart.getDatasetMeta(dsi);
+      if(mode==='bar'&&meta.type==='line')return;
+      if(mode==='area'&&meta.type!=='line')return;
       const bw=legend.options.labels.boxWidth||40;
       const bh=legend.options.labels.boxHeight||Math.min((item.height||12),12);
-      const bx=item.left!=null?item.left:0;
-      const by=item.top!=null?item.top:0;
-      if(bw>0&&bh>0)drawCrispPattern(ctx,bx,by,bw,bh,item.datasetIndex!=null?item.datasetIndex:i,fg);
+      const bx=item.left;
+      const by=item.top;
+      if(bx==null||by==null)return;
+      if(bx<0||by<0||bx>chart.width||by>chart.height)return;
+      if(bw>0&&bh>0)drawCrispPattern(ctx,bx,by,bw,bh,dsi,fg);
     });
   }
 };
@@ -10031,7 +10074,7 @@ function initVendorModule(){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     const moTotals=MO.map(m=>dataArr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
     const fyTotal=moTotals.reduce((s,v)=>s+v,0);
-    let ft=`<tr style="font-weight:700;background:var(--panel)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL</td>`;
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL</td>`;
     moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(t)}</td>`);
     ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fyTotal)}</td><td></td></tr>`;
     tfootEl.innerHTML=ft;
@@ -10073,12 +10116,12 @@ function initVendorModule(){
       else{th.classList.remove('sort-active');arrow.textContent=''}
     });
     const tbody=document.getElementById('vendorTbody');
-    const tfoot=document.getElementById('vendorTfoot');
+    const totalEl=document.getElementById('vendorTotalRow');
     let h='';
     state.vendorRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'vr','vendor')});
     tbody.innerHTML=h;
-    renderFooter(tfoot,state.vendorRows,10);
-    bindSpendRows(tbody,tfoot,state.vendorRows,'vr',renderVendorGrid);
+    renderFooter(totalEl,state.vendorRows,10);
+    bindSpendRows(tbody,totalEl,state.vendorRows,'vr',renderVendorGrid);
   }
 
   document.getElementById('vendorAddRow').addEventListener('click',()=>{
@@ -10318,12 +10361,12 @@ function initVendorModule(){
   function renderTeGrid(){
     ensureTeRows();
     const tbody=document.getElementById('teTbody');
-    const tfoot=document.getElementById('teTfoot');
+    const totalEl=document.getElementById('teTotalRow');
     let h='';
     state.teRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'te','te')});
     tbody.innerHTML=h;
-    renderFooter(tfoot,state.teRows,9);
-    bindSpendRows(tbody,tfoot,state.teRows,'te',renderTeGrid);
+    renderFooter(totalEl,state.teRows,9);
+    bindSpendRows(tbody,totalEl,state.teRows,'te',renderTeGrid);
   }
 
   document.getElementById('teAddRow').addEventListener('click',()=>{
