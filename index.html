@@ -494,9 +494,11 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 /* Template banner */
 .template-banner{background:var(--flag-bg);border-bottom:1px solid var(--flag-border);color:#856404;padding:8px 20px;text-align:center;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:12px}
 .template-banner .btn{font-size:.78rem;padding:4px 12px}
-/* Presence bar */
-.presence-bar{display:none;padding:4px 20px;background:var(--panel-inset);border-bottom:1px solid var(--border-light);font-size:.78rem;gap:12px;align-items:center}
+/* Presence bar — inside sticky header */
+.presence-bar{display:none;padding:4px 20px;background:var(--panel-inset);border-top:1px solid var(--border-light);font-size:.78rem;align-items:center;justify-content:space-between}
 .presence-bar.active{display:flex}
+.presence-left,.presence-right{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.presence-right{justify-content:flex-end}
 .presence-dot{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05);font-weight:500}
 .presence-dot::before{content:'';width:7px;height:7px;border-radius:50%;display:inline-block}
 .presence-dot.muted{opacity:.5;font-style:italic}
@@ -568,8 +570,6 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="btn" onclick="document.getElementById('templateBanner').style.display='none'" title="Dismiss">&times;</button>
 </div>
 
-<!-- Presence Bar -->
-<div class="presence-bar" id="presenceBar"></div>
 <!-- Universal Sticky Note -->
 <button class="sticky-note-btn" id="stickyNoteBtn" title="Notes">&#9998;</button>
 <div class="sticky-note-panel" id="stickyNotePanel">
@@ -734,6 +734,8 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </div>
+<!-- Presence Bar (inside sticky header) -->
+<div class="presence-bar" id="presenceBar"></div>
 </header>
 <main class="container">
 
@@ -1622,6 +1624,10 @@ Template Mode &mdash; changes saved in this browser only.
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
 <input id="scenHireCount" type="number" min="1" max="100" value="1" oninput="updateHirePreview()" style="width:48px;padding:2px 4px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);text-align:center">
 <select id="scenHireSeniority" onchange="updateHirePreview()" style="padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)"></select>
+<select id="scenHireCompRate" onchange="updateHirePreview()" style="padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="market">Market</option>
+<option value="top">Top of Market</option>
+</select>
 <span style="font-size:.7rem;color:var(--text-dim)">using filters above</span>
 <button class="btn btn-sm" onclick="scenAddHires()" style="padding:2px 10px;font-size:.72rem;background:rgba(58,125,68,.12);border-color:rgba(58,125,68,.3);color:#3a7d44;margin-left:auto">+ Add</button>
 </div>
@@ -2117,9 +2123,7 @@ function updatePresenceIndicators(users){
   const bar=document.getElementById('presenceBar');
   if(!bar||!sessionContext)return;
   bar.className='presence-bar active';
-  const sessionLabel=`<span style="font-weight:600;color:var(--accent);margin-right:8px">${sessionContext.sessionName||'Session'}</span><span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light);margin-right:12px">${sessionContext.code||''}</span>`;
-  const versionLabel=sessionContext.versionName?`<span style="font-size:.72rem;color:var(--text-dim);margin-right:12px;border-left:1px solid var(--border);padding-left:10px">v: <strong>${sessionContext.versionName}</strong></span>`:'';
-  bar.innerHTML=sessionLabel+versionLabel+'<span style="color:var(--text-dim);margin-right:4px">Online:</span>'+
+  const usersHtml='<span style="color:var(--text-dim);margin-right:4px">Online:</span>'+
     users.map(u=>{
       const isMe=u.id===sessionContext.userId;
       const onDiffVersion=u.versionId!==sessionContext.versionId;
@@ -2127,6 +2131,10 @@ function updatePresenceIndicators(users){
       const suffix=onDiffVersion?` (${u.versionName||'other version'})`:'';
       return `<span class="${cls}" style="--dot-color:${u.color}"><span style="background:${u.color};width:7px;height:7px;border-radius:50%;display:inline-block"></span>${u.name}${isMe?' (you)':''}${suffix}</span>`;
     }).join('');
+  const sessionHtml=`<span style="font-weight:600;color:var(--accent);margin-right:8px">${sessionContext.sessionName||'Session'}</span>`+
+    `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code||''}</span>`+
+    (sessionContext.versionName?`<span style="font-size:.72rem;color:var(--text-dim);margin-left:8px;border-left:1px solid var(--border);padding-left:8px">v: <strong>${sessionContext.versionName}</strong></span>`:'');
+  bar.innerHTML=`<div class="presence-left">${usersHtml}</div><div class="presence-right">${sessionHtml}</div>`;
 }
 
 // Session modal logic
@@ -2337,8 +2345,12 @@ function updateSessionUI(){
     // Show presence bar immediately with current user
     if(!presenceBar.classList.contains('active')){
       presenceBar.className='presence-bar active';
-      presenceBar.innerHTML=`<span style="color:var(--text-dim);margin-right:4px">Online:</span>`+
+      const usersHtml=`<span style="color:var(--text-dim);margin-right:4px">Online:</span>`+
         `<span class="presence-dot"><span style="background:${sessionContext.userColor||'var(--accent)'};width:7px;height:7px;border-radius:50%;display:inline-block"></span>${sessionContext.userName} (you)</span>`;
+      const sessionHtml=`<span style="font-weight:600;color:var(--accent);margin-right:8px">${sessionContext.sessionName||'Session'}</span>`+
+        `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code||''}</span>`+
+        (sessionContext.versionName?`<span style="font-size:.72rem;color:var(--text-dim);margin-left:8px;border-left:1px solid var(--border);padding-left:8px">v: <strong>${sessionContext.versionName}</strong></span>`:'');
+      presenceBar.innerHTML=`<div class="presence-left">${usersHtml}</div><div class="presence-right">${sessionHtml}</div>`;
     }
   }else{
     banner.style.display='flex';
@@ -7621,18 +7633,46 @@ function populateActionPanePills(){
   updateHirePreview();
 }
 
-function updateHirePreview(){
-  const el=document.getElementById('scenHirePreview');
-  if(!el)return;
-  const count=parseInt(document.getElementById('scenHireCount').value)||1;
+function getHireCompSalary(sen,func,country,rateType){
+  const bm=benchmark(sen,func,country);
+  if(rateType==='top')return Math.round(bm*1.25);
+  if(rateType==='custom'){
+    const cr=state.customRates.find(r=>r.country===country&&r.seniority===sen&&r.function===func);
+    if(cr)return cr.rate;
+  }
+  return bm;
+}
+function refreshHireCompOptions(){
+  const sel=document.getElementById('scenHireCompRate');
+  if(!sel)return;
   const sen=document.getElementById('scenHireSeniority').value||'Mid-Level';
   const fs=scenFilterState;
   const func=fs.function.size===1?[...fs.function][0]:'Software Engineering';
   const country=fs.country.size===1?[...fs.country][0]:'United States';
-  const salary=benchmark(sen,func,country);
+  const hasCustom=state.customRates.some(r=>r.country===country&&r.seniority===sen&&r.function===func);
+  let customOpt=sel.querySelector('option[value="custom"]');
+  if(hasCustom&&!customOpt){
+    customOpt=document.createElement('option');customOpt.value='custom';customOpt.textContent='Custom';sel.appendChild(customOpt);
+  } else if(!hasCustom&&customOpt){
+    if(sel.value==='custom')sel.value='market';
+    customOpt.remove();
+  }
+}
+function updateHirePreview(){
+  const el=document.getElementById('scenHirePreview');
+  if(!el)return;
+  refreshHireCompOptions();
+  const count=parseInt(document.getElementById('scenHireCount').value)||1;
+  const sen=document.getElementById('scenHireSeniority').value||'Mid-Level';
+  const rateType=document.getElementById('scenHireCompRate').value||'market';
+  const fs=scenFilterState;
+  const func=fs.function.size===1?[...fs.function][0]:'Software Engineering';
+  const country=fs.country.size===1?[...fs.country][0]:'United States';
+  const salary=getHireCompSalary(sen,func,country,rateType);
+  const rateLabel=rateType==='top'?' (Top of Mkt)':rateType==='custom'?' (Custom)':'';
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const moLabel=scenSelectedMonth!==null?MO_SHORT[scenSelectedMonth]:'now';
-  el.textContent=`${count}× ${sen} ${func} in ${country} @ ${fmt(salary)} starting ${moLabel}`;
+  el.textContent=`${count}× ${sen} ${func} in ${country} @ ${fmt(salary)}${rateLabel} starting ${moLabel}`;
 }
 
 function scenAddHires(){
@@ -7642,7 +7682,8 @@ function scenAddHires(){
   const fs=scenFilterState;
   const func=fs.function.size===1?[...fs.function][0]:'Software Engineering';
   const country=fs.country.size===1?[...fs.country][0]:'United States';
-  const salary=benchmark(sen,func,country);
+  const rateType=document.getElementById('scenHireCompRate').value||'market';
+  const salary=getHireCompSalary(sen,func,country,rateType);
   // Determine hire date from selected month
   let hireDate='';
   if(scenSelectedMonth!==null){
@@ -7657,7 +7698,8 @@ function scenAddHires(){
     emps.push({id:uid(),name:`New ${sen} ${i+1}`,country,seniority:sen,function:func,salary,capPct:0,notes:'Scenario hire',hireDate,termDate:'',businessLine:state.bizLines[0]?.code||'',businessUnit:COUNTRY_BU[country]||'',allocations:_gp?[{projId:_gp.id,pct:100,primary:true}]:[]});
   }
   budgetScenarioDirty=true;
-  const entry={id:Date.now(),cmd:`add ${count} ${sen} ${func} in ${country}`,scopedCmd:`add ${count} ${sen} ${func} in ${country}`,msg:`Added ${count} ${sen} ${func} in ${country} at ${fmt(salary)} each.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
+  const rateLabel=rateType==='top'?' (Top of Mkt)':rateType==='custom'?' (Custom)':'';
+  const entry={id:Date.now(),cmd:`add ${count} ${sen} ${func} in ${country}`,scopedCmd:`add ${count} ${sen} ${func} in ${country}`,msg:`Added ${count} ${sen} ${func} in ${country} at ${fmt(salary)}${rateLabel} each.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
   scenActionHistory.push(entry);
   document.getElementById('scenBudgetApply').style.display='inline-block';
   renderScenActionHistory();renderBudgetScenarioChart();filterScenEmpList();renderScenarioPnlSummary();updateDetailOutBtn();
