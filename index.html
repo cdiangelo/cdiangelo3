@@ -452,6 +452,33 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   .vendor-row{flex-wrap:wrap}
   .vendor-adj{width:100%}
   .vendor-adj button{padding:4px 8px;font-size:.72rem}
+  /* Landing page mobile */
+  #landingPage{padding:16px 12px!important}
+  #landingPage h2{font-size:1.15rem}
+  #landingPage .landing-subtitle{font-size:.8rem;margin-bottom:16px}
+  .landing-modules{grid-template-columns:1fr!important;gap:14px;margin-bottom:20px}
+  .landing-module{padding:16px 14px}
+  .landing-module h3{font-size:.95rem}
+  .landing-module p{font-size:.78rem}
+  #landingPnlGrid{grid-template-columns:1fr!important;gap:14px}
+  .landing-charts{grid-template-columns:1fr!important;gap:14px}
+  .landing-chart-card{padding:10px 12px}
+  .landing-chart-card .chart-wrap{height:160px}
+  .pnl-walk{padding:12px 10px;margin-bottom:16px}
+  .pnl-walk h3{font-size:.85rem}
+  .pnl-walk-table th,.pnl-walk-table td{padding:4px 6px;font-size:.72rem}
+  .pnl-walk-table td.label-cell{padding-left:12px;font-size:.74rem}
+  #landingSessionBox{padding:12px 14px;gap:10px;flex-direction:column;align-items:stretch}
+  #landingSessionBox input[type="text"]{width:100%;font-size:1.1rem}
+  /* Landing header: stack title and controls */
+  #landingPage>div:first-child{flex-direction:column!important;gap:8px}
+  #landingPage>div:first-child>div:last-child{margin-top:0!important;flex-wrap:wrap;gap:8px}
+  /* P&L filter row wrap */
+  .pnl-walk>div:first-child{flex-direction:column!important;gap:8px}
+  .pnl-walk>div:first-child>div:last-child{gap:4px!important}
+  .pnl-walk .form-group{min-width:0;flex:1}
+  /* P&L table horizontal scroll */
+  .pnl-walk .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 @media(max-width:480px){
   .stat-cards{grid-template-columns:1fr}
@@ -463,6 +490,14 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   #vendorNav .btn{font-size:.68rem;padding:4px 6px}
   .stat-card canvas.sparkline{height:44px}
   .stat-card .value{font-size:1.1rem}
+  /* Landing page small mobile */
+  #landingPage{padding:12px 8px!important}
+  #landingPage h2{font-size:1rem}
+  .landing-module{padding:12px 10px}
+  .landing-module h3{font-size:.85rem}
+  .landing-module .mod-icon{font-size:1.1rem}
+  .landing-chart-card .chart-wrap{height:140px}
+  .pnl-walk-table th,.pnl-walk-table td{padding:3px 4px;font-size:.68rem}
 }
 /* ── Exec View ── */
 .exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
