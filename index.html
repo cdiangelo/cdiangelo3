@@ -434,6 +434,24 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   #vendorNav{gap:4px}
   #vendorNav .btn{padding:5px 8px;font-size:.72rem;flex:1;min-width:0;text-align:center}
   .vtab-content .card{padding:10px}
+  /* Full-screen slide panels on mobile */
+  .scenario-slide-panel,.data-slide-panel{width:100vw!important;min-width:0!important}
+  body.scenario-open main,body.scenario-open header,body.scenario-open #landingPage{margin-left:0!important}
+  body.data-open main,body.data-open header,body.data-open #landingPage{margin-left:0!important}
+  body.scenario-open .scenario-toggle-btn,body.data-open .data-toggle-btn,body.data-open .scenario-toggle-btn{display:none}
+  .panel-close-btn{display:flex!important}
+  /* Taller sparklines on mobile */
+  .stat-card canvas.sparkline{height:40px}
+  /* Better touch targets for data sheets */
+  .comp-table input,.comp-table select{min-height:32px;font-size:.82rem}
+  /* Scenario pane mobile adjustments */
+  .scenario-chart-container{height:200px}
+  .chatbot-panel{max-height:65vh;overflow-y:auto}
+  .scen-filter-section{grid-template-columns:1fr!important}
+  /* Vendor detail list mobile */
+  .vendor-row{flex-wrap:wrap}
+  .vendor-adj{width:100%}
+  .vendor-adj button{padding:4px 8px;font-size:.72rem}
 }
 @media(max-width:480px){
   .stat-cards{grid-template-columns:1fr}
@@ -443,6 +461,8 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   header h1{font-size:1rem}
   .forecast-grid{grid-template-columns:1fr}
   #vendorNav .btn{font-size:.68rem;padding:4px 6px}
+  .stat-card canvas.sparkline{height:44px}
+  .stat-card .value{font-size:1.1rem}
 }
 /* ── Exec View ── */
 .exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
@@ -475,6 +495,8 @@ body.data-open main,body.data-open header,body.data-open #landingPage{margin-lef
 body.data-open .data-toggle-btn{left:50vw}
 body.data-open .scenario-toggle-btn{left:50vw}
 body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptionsModal{padding-left:50vw;transition:padding-left .3s ease}
+.panel-close-btn{display:none;align-items:center;gap:4px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:10px}
+.panel-close-btn:hover{background:var(--border)}
 #forecastAssumptionsModal .modal{max-width:720px;width:95%;max-height:85vh}
 #forecastAssumptionsModal .modal-body{max-height:60vh;overflow-y:auto}
 #forecastAssumptionsModal .forecast-section{margin-bottom:8px;padding:8px 10px}
@@ -1973,6 +1995,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- Scenario Analysis Slide Panel -->
 <div class="scenario-slide-panel" id="scenarioSlidePanel">
+<button class="panel-close-btn" onclick="document.getElementById('scenarioToggleBtn').click()">&times; Close Scenario</button>
 <h3 style="color:#1a8a3e;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Scenario Analysis</h3>
 <label class="scenario-link-toggle" style="font-size:.78rem;margin-bottom:12px;display:block"><input type="checkbox" id="scenLinkFilters"> Link filters between panels</label>
 
@@ -2153,8 +2176,9 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Country</label><div id="fcFilterCountry" class="scen-pill-group"></div></div>
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Product</label><div id="fcFilterProduct" class="scen-pill-group"></div></div>
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Category</label><div id="fcFilterCategory" class="scen-pill-group"></div></div>
+<div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Account</label><div id="fcFilterAccount" class="scen-pill-group"></div></div>
 </div>
-<div style="margin-top:8px">
+<div id="fcEmpSection" style="margin-top:8px">
 <input id="fcEmpSearch" class="scen-emp-search" placeholder="Search employees..." oninput="filterFcEmpList()">
 <div id="fcEmpList" class="scen-emp-list"></div>
 </div>
@@ -2214,6 +2238,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button data-cmd="cut vendor spend by 10% annually">Vendor -10%/yr</button>
 <button data-cmd="cut vendor spend by 20% annually">Vendor -20%/yr</button>
 <button data-cmd="freeze vendor spend">Freeze vendor</button>
+<div id="fcVendorDetailList" class="vendor-detail-list" style="margin-top:8px;max-height:260px;overflow-y:auto;border-top:1px solid var(--border);padding-top:6px;width:100%"></div>
 </div>
 <div class="cmd-group" data-cat="prod">
 <button data-cmd="reduce all headcount by 10% in 2028">All -10% in 2028</button>
@@ -2252,6 +2277,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- Data Management Slide Panel -->
 <div class="data-slide-panel" id="dataSlidePanel">
+<button class="panel-close-btn" onclick="document.getElementById('dataToggleBtn').click()">&times; Close Data</button>
 <h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Data Management</h3>
 
 <div class="data-section">
@@ -7569,8 +7595,9 @@ let scenActionHistory=[]; // {id, cmd, scopedCmd, msg, delta, isRefinement, pare
 let scenSelectedActionId=null;
 let fcActionHistory=[];
 let fcSelectedActionId=null;
-let fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
+let fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set(),account:new Set()};
 let fcSelectedYear=null;
+let fcVendorAdjMode='dollars';
 
 function initBudgetScenario(){
   budgetScenario={
@@ -7582,9 +7609,13 @@ function initBudgetScenario(){
 function initForecastScenario(){
   // Use budget scenario employees as baseline when budget has been modified
   const baseEmps=budgetScenarioDirty&&budgetScenario?budgetScenario.emps:state.employees;
+  const baseVendor=budgetScenarioDirty&&budgetScenario?budgetScenario.vendorRows:(state.vendorRows||[]);
+  const baseTe=budgetScenarioDirty&&budgetScenario?budgetScenario.teRows:(state.teRows||[]);
   forecastScenario={
     emps:JSON.parse(JSON.stringify(baseEmps)),
-    assumptions:JSON.parse(JSON.stringify(state.forecastAssumptions))
+    assumptions:JSON.parse(JSON.stringify(state.forecastAssumptions)),
+    vendorRows:JSON.parse(JSON.stringify(baseVendor)),
+    teRows:JSON.parse(JSON.stringify(baseTe))
   };
 }
 
@@ -7646,15 +7677,28 @@ function computeBudgetDelta(){
   return html;
 }
 
+function fcVtAnnualTotal(vRows,tRows){
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  return (vRows||[]).concat(tRows||[]).reduce((s,r)=>s+MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+}
+function fcVtProjected(vRows,tRows,assumptions,yearIdx){
+  const base=fcVtAnnualTotal(vRows,tRows);
+  const g=(assumptions.vendorGrowth||0)/100;
+  return Math.round(base*Math.pow(1+g,yearIdx));
+}
 function computeFcDelta(){
   const baseRows=projectForecast(state.employees);
   const scenRows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
   const lastBase=baseRows[baseRows.length-1]||{hc:0,total:0,opex:0};
   const lastScen=scenRows[scenRows.length-1]||{hc:0,total:0,opex:0};
+  const lastYrIdx=FORECAST_YEARS.length;
+  const baseVT=fcVtProjected(state.vendorRows,state.teRows,state.forecastAssumptions,lastYrIdx);
+  const scenVT=fcVtProjected(forecastScenario.vendorRows,forecastScenario.teRows,forecastScenario.assumptions,lastYrIdx);
   let html='<div style="font-size:.72rem;color:var(--text-dim);margin-bottom:2px">By '+getDisplayYears()[4]+':</div>';
   html+=fmtDelta('HC',lastBase.hc,lastScen.hc);
-  html+=fmtDelta('Total Inv',lastBase.total,lastScen.total);
   html+=fmtDelta('OpEx',lastBase.opex,lastScen.opex);
+  html+=fmtDelta('Vendor/T&E',baseVT,scenVT);
+  html+=fmtDelta('Total Inv',lastBase.total+baseVT,lastScen.total+scenVT);
   return html;
 }
 
@@ -8321,9 +8365,16 @@ function renderFcScenarioChart(){
   const labels=rows.map(r=>displayYear(r.year));
   const datasets=[];
   const fsc=getChartColors();
+  // Compute vendor/T&E annual total and projections
+  const MO_KEYS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const fcVtBase=((forecastScenario.vendorRows||[]).concat(forecastScenario.teRows||[])).reduce((s,r)=>s+MO_KEYS.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+  const vtGrowth=(forecastScenario.assumptions.vendorGrowth||0)/100;
+  const fcVtData=[fcVtBase];
+  FORECAST_YEARS.forEach((_,i)=>fcVtData.push(Math.round(fcVtBase*Math.pow(1+vtGrowth,i+1))));
   if(scenFcSplit==='total'){
-    datasets.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:fsc[1]});
-    datasets.push({label:'CapEx',data:rows.map(r=>r.capex),backgroundColor:fsc[0]});
+    datasets.push({label:'C&B OpEx',data:rows.map(r=>r.opex),backgroundColor:fsc[1],stack:'pos'});
+    datasets.push({label:'Vendor/T&E',data:fcVtData,backgroundColor:fsc[2],stack:'pos'});
+    datasets.push({label:'CapEx',data:rows.map(r=>-r.capex),backgroundColor:hexToRgba(fsc[0],0.5),stack:'neg'});
   } else {
     const groups={};
     forecastScenario.emps.forEach(e=>{
@@ -8970,6 +9021,78 @@ function adjVendorSpend(vendorName,delta){
   initForecastScenario();renderFcScenarioChart();
 }
 
+function matchesFcAcctFilter(r){
+  if(!fcFilterState.account||!fcFilterState.account.size)return true;
+  return fcFilterState.account.has(r.acctDesc);
+}
+function adjFcVendorSpendPct(vendorName,pct){
+  if(!forecastScenario)return;
+  fcUndoStack.push(JSON.parse(JSON.stringify(forecastScenario)));
+  document.getElementById('scenFcUndo').style.display='inline-block';
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const factor=pct/100;
+  let count=0;
+  forecastScenario.vendorRows.forEach(r=>{
+    if((r.vendorName||r.parentCo)===vendorName&&matchesFcAcctFilter(r)){MO.forEach(m=>{r[m]=Math.round((parseFloat(r[m])||0)*(1+factor))});count++}
+  });
+  forecastScenario.teRows.forEach(r=>{
+    if((r.vendorName||r.parentCo||r.expenseType||r.description)===vendorName&&matchesFcAcctFilter(r)){MO.forEach(m=>{r[m]=Math.round((parseFloat(r[m])||0)*(1+factor))});count++}
+  });
+  fcScenarioDirty=true;
+  const dir=pct>0?'Increased':'Decreased';
+  const entry={id:Date.now(),cmd:`${dir.toLowerCase()} ${vendorName} fc spend by ${Math.abs(pct)}%`,scopedCmd:`${dir.toLowerCase()} ${vendorName} fc spend by ${Math.abs(pct)}%`,msg:`${dir} ${vendorName} forecast spend by ${Math.abs(pct)}% (${count} rows).`,delta:computeFcDelta(),isRefinement:false,parentId:null};
+  fcActionHistory.push(entry);
+  document.getElementById('scenFcApply').style.display='inline-block';
+  renderFcActionHistory();renderFcScenarioChart();renderScenarioPnlSummary();updateFcDetailOutBtn();
+  renderFcVendorDetailList();
+}
+function adjFcVendorSpend(vendorName,delta){
+  if(!forecastScenario)return;
+  fcUndoStack.push(JSON.parse(JSON.stringify(forecastScenario)));
+  document.getElementById('scenFcUndo').style.display='inline-block';
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const rows=(forecastScenario.vendorRows||[]).concat(forecastScenario.teRows||[]);
+  const matching=rows.filter(r=>((r.vendorName||r.parentCo||r.expenseType||r.description)===vendorName)&&matchesFcAcctFilter(r));
+  if(!matching.length)return;
+  const perMonth=Math.round(delta/12);
+  MO.forEach(mo=>{matching[0][mo]=(parseFloat(matching[0][mo])||0)+perMonth});
+  fcScenarioDirty=true;
+  const dir=delta>0?'Increased':'Decreased';
+  const amt=Math.abs(delta)>=1000000?`$${(Math.abs(delta)/1000000).toFixed(1)}m`:`$${(Math.abs(delta)/1000).toFixed(0)}k`;
+  const entry={id:Date.now(),cmd:`${dir.toLowerCase()} ${vendorName} fc spend by ${amt}`,scopedCmd:`${dir.toLowerCase()} ${vendorName} fc spend by ${amt}`,msg:`${dir} ${vendorName} forecast spend by ${amt}.`,delta:computeFcDelta(),isRefinement:false,parentId:null};
+  fcActionHistory.push(entry);
+  document.getElementById('scenFcApply').style.display='inline-block';
+  renderFcActionHistory();renderFcScenarioChart();renderScenarioPnlSummary();updateFcDetailOutBtn();
+  renderFcVendorDetailList();
+}
+function renderFcVendorDetailList(){
+  const el=document.getElementById('fcVendorDetailList');
+  if(!el||!forecastScenario)return;
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const allRows=(forecastScenario.vendorRows||[]).concat(forecastScenario.teRows||[]);
+  const agg={};
+  allRows.forEach((r,idx)=>{
+    const key=r.vendorName||r.parentCo||r.expenseType||r.description||`Row ${idx+1}`;
+    if(!agg[key])agg[key]={name:key,total:0,indices:[]};
+    agg[key].total+=MO.reduce((s,mo)=>s+(parseFloat(r[mo])||0),0);
+    agg[key].indices.push(idx);
+  });
+  const sorted=Object.values(agg).sort((a,b)=>b.total-a.total);
+  if(!sorted.length){el.innerHTML='<div style="padding:6px;font-size:.72rem;color:var(--text-dim)">No vendor/T&E spend data</div>';return}
+  const isPct=fcVendorAdjMode==='pct';
+  const kBtnStyle='padding:3px 12px;font-size:.74rem;font-weight:700;border-radius:4px;cursor:pointer;';
+  const kActiveStyle=kBtnStyle+'background:var(--accent);color:#fff;border:2px solid var(--accent);';
+  const kInactiveStyle=kBtnStyle+'background:none;color:var(--text-dim);border:2px solid var(--border);';
+  el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;margin-bottom:4px"><span style="font-size:.7rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Forecast Vendor/T&E Detail</span><div style="display:flex;gap:3px"><button style="'+(!isPct?kActiveStyle:kInactiveStyle)+'" onclick="fcVendorAdjMode=\'dollars\';renderFcVendorDetailList()">$K</button><button style="'+(isPct?kActiveStyle:kInactiveStyle)+'" onclick="fcVendorAdjMode=\'pct\';renderFcVendorDetailList()">%</button></div></div>'+sorted.map(v=>{
+    const amtK=v.total>=1000000?`$${(v.total/1000000).toFixed(1)}m`:`$${(v.total/1000).toFixed(0)}k`;
+    const esc=v.name.replace(/'/g,"\\'");
+    if(isPct){
+      return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjFcVendorSpendPct('${esc}',-10)" title="-10%">-10%</button><button class="adj-minus" onclick="adjFcVendorSpendPct('${esc}',-50)" title="-50%">-50%</button><button class="adj-minus" onclick="adjFcVendorSpendPct('${esc}',-100)" title="-100%">-100%</button><button onclick="adjFcVendorSpendPct('${esc}',10)" title="+10%">+10%</button><button onclick="adjFcVendorSpendPct('${esc}',50)" title="+50%">+50%</button><button onclick="adjFcVendorSpendPct('${esc}',100)" title="+100%">+100%</button></span></div>`;
+    }
+    return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjFcVendorSpend('${esc}',-10000)" title="-$10K">-$10K</button><button class="adj-minus" onclick="adjFcVendorSpend('${esc}',-50000)" title="-$50K">-$50K</button><button class="adj-minus" onclick="adjFcVendorSpend('${esc}',-100000)" title="-$100K">-$100K</button><button onclick="adjFcVendorSpend('${esc}',10000)" title="+$10K">+$10K</button><button onclick="adjFcVendorSpend('${esc}',50000)" title="+$50K">+$50K</button><button onclick="adjFcVendorSpend('${esc}',100000)" title="+$100K">+$100K</button></span></div>`;
+  }).join('');
+}
+
 function buildFcScopedCommand(text){
   const fs=fcFilterState;
   const hasFn=fs.function.size>0;
@@ -9082,13 +9205,13 @@ function closeFcActionPane(){
   delete pane.dataset.refineCmd;
   delete pane.dataset.refineActionId;
   document.getElementById('fcDetailOut').classList.remove('active');
-  fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
+  fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set(),account:new Set()};
   fcSelectedYear=null;
   document.getElementById('fcYearBadge').style.display='none';
 }
 
 function clearFcFilters(){
-  fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
+  fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set(),account:new Set()};
   document.getElementById('fcEmpSearch').value='';
   populateFcPills();
 }
@@ -9096,10 +9219,12 @@ function clearFcFilters(){
 function populateFcPills(){
   const products=[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort();
   const categories=[...new Set(state.projects.map(p=>p.category).filter(Boolean))].sort();
+  const accounts=[...new Set([...(forecastScenario?forecastScenario.vendorRows||[]:[]).map(r=>r.acctDesc),...(forecastScenario?forecastScenario.teRows||[]:[]).map(r=>r.acctDesc)].filter(Boolean))].sort();
   renderFcFilterPills('fcFilterProduct',products,'product');
   renderFcFilterPills('fcFilterCategory',categories,'category');
   renderFcFilterPills('fcFilterFunction',FUNCTIONS,'function');
   renderFcFilterPills('fcFilterCountry',COUNTRIES,'country');
+  renderFcFilterPills('fcFilterAccount',accounts,'account');
   filterFcEmpList();
 }
 
@@ -9115,8 +9240,8 @@ function renderFcFilterPills(containerId,items,filterKey){
 function toggleFcFilter(key,value){
   if(fcFilterState[key].has(value))fcFilterState[key].delete(value);
   else fcFilterState[key].add(value);
-  const idMap={product:'fcFilterProduct',function:'fcFilterFunction',country:'fcFilterCountry',category:'fcFilterCategory'};
-  const items=key==='product'?[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort():key==='category'?[...new Set(state.projects.map(p=>p.category).filter(Boolean))].sort():key==='function'?FUNCTIONS:COUNTRIES;
+  const idMap={product:'fcFilterProduct',function:'fcFilterFunction',country:'fcFilterCountry',category:'fcFilterCategory',account:'fcFilterAccount'};
+  const items=key==='product'?[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort():key==='category'?[...new Set(state.projects.map(p=>p.category).filter(Boolean))].sort():key==='function'?FUNCTIONS:key==='account'?[...new Set([...(forecastScenario?forecastScenario.vendorRows||[]:[]).map(r=>r.acctDesc),...(forecastScenario?forecastScenario.teRows||[]:[]).map(r=>r.acctDesc)].filter(Boolean))].sort():COUNTRIES;
   renderFcFilterPills(idMap[key],items,key);
   filterFcEmpList();
 }
@@ -9192,9 +9317,11 @@ function applyBudgetScenario(){
 }
 
 function applyFcScenario(){
-  if(!confirm('Apply forecast scenario changes to your actual data? This will overwrite current employees and forecast assumptions.'))return;
+  if(!confirm('Apply forecast scenario changes to your actual data? This will overwrite current employees, vendor/T&E rows, and forecast assumptions.'))return;
   state.employees=JSON.parse(JSON.stringify(forecastScenario.emps));
   state.forecastAssumptions=JSON.parse(JSON.stringify(forecastScenario.assumptions));
+  if(forecastScenario.vendorRows)state.vendorRows=JSON.parse(JSON.stringify(forecastScenario.vendorRows));
+  if(forecastScenario.teRows)state.teRows=JSON.parse(JSON.stringify(forecastScenario.teRows));
   saveState();
   fcScenarioDirty=false;
   document.getElementById('scenFcApply').style.display='none';
@@ -9233,13 +9360,17 @@ function renderScenarioPnlSummary(){
     ${pnlRow('CapEx',basePnl.annual.capex,scenPnl.annual.capex,true)}
     <tr style="font-weight:700">${pnlRow('Total Investment',bTotInv,sTotInv,true).replace(/<\/?tr>/g,'')}</tr>
     </table></div>`;
+  const fcLastIdx=FORECAST_YEARS.length;
+  const bVT=fcVtProjected(state.vendorRows,state.teRows,state.forecastAssumptions,fcLastIdx);
+  const sVT=fcVtProjected(forecastScenario.vendorRows,forecastScenario.teRows,forecastScenario.assumptions,fcLastIdx);
   if(fEl)fEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
     <strong style="color:var(--accent);font-size:.76rem">Forecast vs Baseline (${getDisplayYears()[4]})</strong>
     <table style="${tblStyle}">${thRow}
     ${pnlRow('HC',bLast.hc||0,sLast.hc||0,false)}
-    ${pnlRow('OpEx',bLast.opex||0,sLast.opex||0,true)}
+    ${pnlRow('C&B OpEx',bLast.opex||0,sLast.opex||0,true)}
+    ${pnlRow('Vendor/T&E',bVT,sVT,true)}
     ${pnlRow('CapEx',bLast.capex||0,sLast.capex||0,true)}
-    ${pnlRow('Total Inv',bLast.total||0,sLast.total||0,true)}
+    ${pnlRow('Total Inv',(bLast.total||0)+bVT,(sLast.total||0)+sVT,true)}
     </table></div>`;
 }
 
@@ -9341,7 +9472,7 @@ function initScenarioPane(){
         container.querySelectorAll('.cmd-group').forEach(g=>g.classList.remove('active'));
         tab.classList.add('active');
         container.querySelector('.cmd-group[data-cat="'+tab.dataset.cat+'"]').classList.add('active');
-        // Render vendor detail list when vendor tab is selected in budget; hide employee sections
+        // Render vendor detail list when vendor tab is selected; hide employee sections
         if(id==='budgetChatExamples'){
           const isVendor=tab.dataset.cat==='vendor';
           const empSearch=document.getElementById('scenEmpSearch');
@@ -9350,6 +9481,12 @@ function initScenarioPane(){
           if(empSearch)empSearch.parentElement.style.display=isVendor?'none':'';
           if(hireSection)hireSection.style.display=isVendor?'none':'';
           if(isVendor)renderVendorDetailList();
+        }
+        if(id==='fcChatExamples'){
+          const isVendor=tab.dataset.cat==='vendor';
+          const fcEmpSection=document.getElementById('fcEmpSection');
+          if(fcEmpSection)fcEmpSection.style.display=isVendor?'none':'';
+          if(isVendor)renderFcVendorDetailList();
         }
       });
     });
@@ -10027,6 +10164,22 @@ function initVendorModule(){
         document.addEventListener('mousemove',onMove);
         document.addEventListener('mouseup',onUp);
       });
+      // Touch support for drag-to-reorder
+      handle.addEventListener('touchstart',te=>{
+        te.preventDefault();
+        const me=new MouseEvent('mousedown',{clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});
+        handle.dispatchEvent(me);
+      },{passive:false});
+      handle.addEventListener('touchmove',te=>{
+        te.preventDefault();
+        const me=new MouseEvent('mousemove',{clientX:te.touches[0].clientX,clientY:te.touches[0].clientY});
+        document.dispatchEvent(me);
+      },{passive:false});
+      handle.addEventListener('touchend',te=>{
+        te.preventDefault();
+        const me=new MouseEvent('mouseup',{});
+        document.dispatchEvent(me);
+      },{passive:false});
     });
     // Color tag click handler — show popup with whiteboard color swatches
     tbodyEl.querySelectorAll('.row-color-tag').forEach(dot=>{
