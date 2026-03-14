@@ -922,33 +922,74 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- EMPLOYEES -->
 <div id="tab-employees" class="tab-content">
-<div class="card" style="margin-bottom:20px">
-<h3 class="section-title" id="formTitle">Add Employee</h3>
-<div class="form-grid">
-<div class="form-group"><label>Name</label><input id="empName" placeholder="Full name"></div>
-<div class="form-group"><label>Country</label><select id="empCountry"><option value="">Select…</option></select></div>
-<div class="form-group"><label>Seniority</label><select id="empSeniority"><option value="">Select…</option></select></div>
-<div class="form-group"><label>Job Function</label><select id="empFunction"><option value="">Select…</option></select></div>
-<div class="form-group"><label>Market Code</label><input id="empMarketCode" readonly placeholder="Global (default)" style="background:var(--panel-inset);cursor:default;font-size:.82rem"></div>
-<div class="form-group"><label>Business Line</label><select id="empBusinessLine"><option value="">Select…</option></select></div>
-<div class="form-group ops-hide"><label>Business Unit</label><input id="empBusinessUnit" readonly placeholder="Auto from country" style="background:var(--panel-inset);cursor:default"></div>
-<div class="form-group"><label>Base Salary (USD)</label><input id="empSalary" type="number" placeholder="0"><div id="benchmarkBadge"></div></div>
-<div class="form-group"><label>Capitalization %</label><input id="empCapPct" type="number" min="0" max="100" value="0" placeholder="0"><p style="color:var(--text-dim);font-size:.72rem;margin-top:2px">% of comp capitalizable as CapEx</p></div>
-<div class="form-group"><label>Hire Date</label><input id="empHireDate" type="date"></div>
-<div class="form-group"><label>Termination Date</label><input id="empTermDate" type="date"></div>
-<div class="form-group"><label>Notes</label><input id="empNotes" placeholder="Optional notes"></div>
-<div class="form-group" id="empCountWrap"><label># of Employees</label><input id="empCount" type="number" min="1" max="100" value="1" placeholder="1"><p style="color:var(--text-dim);font-size:.72rem;margin-top:2px">Create multiple employees at once</p></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+<!-- Left: Add Employee form (tightened) -->
+<div class="card" style="padding:14px">
+<h3 class="section-title" id="formTitle" style="font-size:.9rem;margin-bottom:8px">Add Employee</h3>
+<div class="form-grid" style="gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Name</label><input id="empName" placeholder="Full name" style="padding:4px 6px;font-size:.8rem"></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Country</label><select id="empCountry" style="padding:4px 6px;font-size:.8rem"><option value="">Select…</option></select></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Seniority</label><select id="empSeniority" style="padding:4px 6px;font-size:.8rem"><option value="">Select…</option></select></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Function</label><select id="empFunction" style="padding:4px 6px;font-size:.8rem"><option value="">Select…</option></select></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Market</label><input id="empMarketCode" readonly placeholder="Global" style="background:var(--panel-inset);cursor:default;font-size:.78rem;padding:4px 6px"></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Biz Line</label><select id="empBusinessLine" style="padding:4px 6px;font-size:.8rem"><option value="">Select…</option></select></div>
+<div class="form-group ops-hide" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Bus Unit</label><input id="empBusinessUnit" readonly placeholder="Auto" style="background:var(--panel-inset);cursor:default;padding:4px 6px;font-size:.78rem"></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Base Salary</label><input id="empSalary" type="number" placeholder="0" style="padding:4px 6px;font-size:.8rem"><div id="benchmarkBadge"></div></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Cap %</label><input id="empCapPct" type="number" min="0" max="100" value="0" placeholder="0" style="padding:4px 6px;font-size:.8rem"></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Hire Date</label><input id="empHireDate" type="date" style="padding:4px 6px;font-size:.78rem"></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Term Date</label><input id="empTermDate" type="date" style="padding:4px 6px;font-size:.78rem"></div>
+<div class="form-group" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px">Notes</label><input id="empNotes" placeholder="" style="padding:4px 6px;font-size:.8rem"></div>
+<div class="form-group" id="empCountWrap" style="margin-bottom:0"><label style="font-size:.72rem;margin-bottom:2px"># Employees</label><input id="empCount" type="number" min="1" max="100" value="1" placeholder="1" style="padding:4px 6px;font-size:.8rem"></div>
 </div>
-<hr class="separator">
-<h4 style="color:var(--accent);margin-bottom:12px">Projects</h4>
-<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Assign to one or more projects. The first project is the primary by default — click the star to change. Allocations should total 100%.</p>
+<div style="margin-top:8px">
+<details style="font-size:.8rem">
+<summary style="cursor:pointer;color:var(--accent);font-weight:600;font-size:.78rem">Projects</summary>
+<p style="color:var(--text-dim);font-size:.75rem;margin:4px 0 6px">Assign to projects. First is primary — click star to change.</p>
 <div id="empAllocRows"></div>
-<div style="margin-top:8px"><button class="btn btn-sm" id="btnAddEmpAlloc" type="button">+ Add Project</button></div>
-<div id="empAllocInfo" style="margin-top:8px"></div>
-<div id="empSplitOutsideWrap" style="margin-top:8px;display:none"><label style="font-size:.85rem;color:var(--text);cursor:pointer"><input type="checkbox" id="empSplitOutside"> This employee is split outside of this organization</label></div>
-<div style="margin-top:16px;display:flex;gap:8px">
-<button class="btn btn-primary" id="btnSaveEmp">Add Employee</button>
-<button class="btn" id="btnCancelEmp" style="display:none">Cancel</button>
+<div style="margin-top:4px"><button class="btn btn-sm" id="btnAddEmpAlloc" type="button" style="padding:2px 8px;font-size:.75rem">+ Add Project</button></div>
+<div id="empAllocInfo" style="margin-top:4px"></div>
+<div id="empSplitOutsideWrap" style="margin-top:4px;display:none"><label style="font-size:.78rem;color:var(--text);cursor:pointer"><input type="checkbox" id="empSplitOutside"> Split outside org</label></div>
+</details>
+</div>
+<div style="margin-top:8px;display:flex;gap:6px">
+<button class="btn btn-primary" id="btnSaveEmp" style="padding:4px 14px;font-size:.8rem">Add Employee</button>
+<button class="btn" id="btnCancelEmp" style="display:none;padding:4px 14px;font-size:.8rem">Cancel</button>
+</div>
+</div>
+<!-- Right: Employee Pivot -->
+<div class="card" style="padding:14px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+<h3 class="section-title" style="font-size:.9rem;margin:0">Roster Pivot</h3>
+<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+<label style="font-size:.68rem;color:var(--text-dim)">Rows:</label>
+<select id="empPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="function">Function</option>
+<option value="seniority">Seniority</option>
+<option value="country">Country</option>
+<option value="category">Product Category</option>
+<option value="product">Product</option>
+<option value="bizline">Business Line</option>
+</select>
+<label style="font-size:.68rem;color:var(--text-dim)">Cols:</label>
+<select id="empPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="seniority">Seniority</option>
+<option value="function">Function</option>
+<option value="country">Country</option>
+<option value="category">Product Category</option>
+<option value="product">Product</option>
+<option value="bizline">Business Line</option>
+</select>
+<label style="font-size:.68rem;color:var(--text-dim)">Metric:</label>
+<select id="empPivotMetric" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="hc">Headcount</option>
+<option value="comp">Total Comp</option>
+<option value="opex">OpEx</option>
+<option value="capex">CapEx</option>
+</select>
+</div>
+</div>
+<div style="position:relative;height:180px;margin-bottom:8px"><canvas id="empPivotChart"></canvas></div>
+<div style="overflow:auto;max-height:220px"><table class="pnl-walk-table" id="empPivotTable" style="font-size:.76rem"></table></div>
 </div>
 </div>
 <div class="controls" style="justify-content:flex-end;margin-bottom:8px">
@@ -3818,6 +3859,94 @@ document.querySelectorAll('#empTable th.sortable').forEach(th=>{
     renderEmployees();
   });
 });
+
+// ── EMPLOYEE PIVOT ──
+let empPivotChartInst=null;
+function getEmpDimKey(emp,dim){
+  if(dim==='function')return emp.function||'Unknown';
+  if(dim==='seniority')return emp.seniority||'Unknown';
+  if(dim==='country')return emp.country||'Unknown';
+  if(dim==='category'){const p=getEmpProject(emp);return p?p.category||'Uncategorized':'Uncategorized'}
+  if(dim==='product'){const p=getEmpProject(emp);return p?p.product||'Unassigned':'Unassigned'}
+  if(dim==='bizline'){const bl=state.bizLines.find(b=>b.code===emp.businessLine);return bl?bl.code+' '+bl.name:'Unassigned'}
+  return 'Total';
+}
+function getEmpMetric(emp,metric){
+  let comp=0,capex=0;
+  for(let mi=0;mi<12;mi++){comp+=getMonthlyComp(emp,mi);capex+=getMonthlyCapEx(emp,mi)}
+  if(metric==='hc')return 1;
+  if(metric==='comp')return comp;
+  if(metric==='opex')return comp-capex;
+  if(metric==='capex')return capex;
+  return 1;
+}
+function renderEmpPivot(){
+  const rowDim=document.getElementById('empPivotRowDim').value;
+  const colDim=document.getElementById('empPivotColDim').value;
+  const metric=document.getElementById('empPivotMetric').value;
+  const emps=(state.employees||[]).filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  const isCurrency=metric!=='hc';
+
+  // Build pivot
+  const rowSet=new Set(),colSet=new Set();
+  emps.forEach(e=>{rowSet.add(getEmpDimKey(e,rowDim));colSet.add(getEmpDimKey(e,colDim))});
+  const rowVals=[...rowSet].sort();
+  const colVals=[...colSet].sort();
+  const pivot={};
+  rowVals.forEach(rv=>{pivot[rv]={};colVals.forEach(cv=>{pivot[rv][cv]=0})});
+  emps.forEach(e=>{
+    const rv=getEmpDimKey(e,rowDim);
+    const cv=getEmpDimKey(e,colDim);
+    pivot[rv][cv]+=getEmpMetric(e,metric);
+  });
+  // Row totals for sorting
+  const rowTotals={};rowVals.forEach(rv=>{rowTotals[rv]=colVals.reduce((s,cv)=>s+pivot[rv][cv],0)});
+  const sortedRows=[...rowVals].sort((a,b)=>rowTotals[b]-rowTotals[a]);
+
+  // Stacked bar chart: x = columns, stacks = rows
+  if(typeof Chart!=='undefined'){
+    const canvas=document.getElementById('empPivotChart');
+    if(empPivotChartInst)empPivotChartInst.destroy();
+    const COLORS=['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#65a30d','#ea580c','#4f46e5','#0d9488','#b91c1c'];
+    const datasets=sortedRows.map((rv,ri)=>({
+      label:rv.length>20?rv.slice(0,18)+'…':rv,
+      data:colVals.map(cv=>pivot[rv][cv]),
+      backgroundColor:COLORS[ri%COLORS.length],
+      stack:'s0'
+    }));
+    empPivotChartInst=new Chart(canvas,{
+      type:'bar',data:{labels:colVals.map(v=>v.length>14?v.slice(0,12)+'…':v),datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{boxWidth:8,font:{size:8}}},datalabels:{display:false}},
+        scales:{x:{stacked:true,ticks:{font:{size:8}}},y:{stacked:true,ticks:{font:{size:8},callback:function(v){return isCurrency?(v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v):v}}}}
+      }
+    });
+  }
+
+  // Matrix table
+  const tbl=document.getElementById('empPivotTable');
+  const colTotals={};colVals.forEach(cv=>{colTotals[cv]=sortedRows.reduce((s,rv)=>s+pivot[rv][cv],0)});
+  const grandTotal=Object.values(colTotals).reduce((s,v)=>s+v,0);
+  let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);font-size:.7rem"></th>';
+  colVals.forEach(cv=>h+=`<th style="text-align:right;font-size:.7rem;white-space:nowrap">${cv}</th>`);
+  h+='<th style="text-align:right;font-size:.7rem;font-weight:700">Total</th></tr></thead><tbody>';
+  sortedRows.forEach(rv=>{
+    h+=`<tr><td style="font-weight:600;font-size:.74rem;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1">${rv}</td>`;
+    colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;${v===0?'color:var(--text-dim)':''}">${v===0?'—':isCurrency?fmt(v):v}</td>`});
+    h+=`<td class="num" style="font-size:.74rem;font-weight:700">${isCurrency?fmt(rowTotals[rv]):rowTotals[rv]}</td></tr>`;
+  });
+  h+=`<tr style="font-weight:700;border-top:2px solid var(--accent)"><td style="position:sticky;left:0;background:var(--panel);z-index:1;font-size:.74rem">Total</td>`;
+  colVals.forEach(cv=>h+=`<td class="num" style="font-size:.74rem">${isCurrency?fmt(colTotals[cv]):colTotals[cv]}</td>`);
+  h+=`<td class="num" style="font-size:.74rem;font-weight:800">${isCurrency?fmt(grandTotal):grandTotal}</td></tr></tbody>`;
+  tbl.innerHTML=h;
+}
+document.getElementById('empPivotRowDim').addEventListener('change',renderEmpPivot);
+document.getElementById('empPivotColDim').addEventListener('change',renderEmpPivot);
+document.getElementById('empPivotMetric').addEventListener('change',renderEmpPivot);
+
+// Hook into renderEmployees to also update the pivot
+const _origRenderEmployees=renderEmployees;
+renderEmployees=function(){_origRenderEmployees();renderEmpPivot()};
 
 // ── PROJECTS ──
 document.getElementById('btnAddProject').addEventListener('click',()=>{
