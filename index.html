@@ -219,6 +219,22 @@ html.dark body.cs-mono h3,html.dark body.cs-mono .exec-pane h3,html.dark body.cs
 html.dark body.cs-mono .stat-card .label{color:#888}
 body.cs-neon .stat-card .value{color:#3a86ff!important}
 html.dark body.cs-neon .stat-card .value{color:#00f5d4!important}
+/* Crisp scheme — sharp white/black, minimal, editorial */
+body.cs-crisp .stat-card .value{color:#111!important;font-weight:700}
+body.cs-crisp h3,body.cs-crisp .exec-pane h3,body.cs-crisp .landing-chart-title{color:#111;font-weight:700}
+body.cs-crisp .stat-card .label{color:#666}
+body.cs-crisp .stat-card{border:1px solid #d0d0d0;background:#fafafa}
+body.cs-crisp .panel,body.cs-crisp .card{background:#fff;border:1px solid #ddd}
+body.cs-crisp table th{background:#f5f5f5;border-bottom:2px solid #222}
+body.cs-crisp table td{border-bottom:1px solid #eee}
+body.cs-crisp tr:nth-child(even) td{background:#fafafa}
+html.dark body.cs-crisp .stat-card .value{color:#f0f0f0!important;font-weight:700}
+html.dark body.cs-crisp h3,html.dark body.cs-crisp .exec-pane h3,html.dark body.cs-crisp .landing-chart-title{color:#f0f0f0;font-weight:700}
+html.dark body.cs-crisp .stat-card .label{color:#aaa}
+html.dark body.cs-crisp .stat-card{border:1px solid #444;background:#1e1e22}
+html.dark body.cs-crisp table th{background:#252529;border-bottom:2px solid #ddd}
+html.dark body.cs-crisp table td{border-bottom:1px solid #333}
+html.dark body.cs-crisp tr:nth-child(even) td{background:#222226}
 /* ── Mobile Responsive ── */
 @media(max-width:768px){
   .stat-cards{grid-template-columns:1fr 1fr}
@@ -660,8 +676,8 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="btn" data-lcview="total" style="padding:2px 10px;font-size:.72rem">Total Inv</button>
 </div>
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
-<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon">
-<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="landingColorSchemeSlider">
+<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon / Crisp">
+<input type="range" min="0" max="3" step="1" value="0" class="color-scheme-slider" id="landingColorSchemeSlider">
 <span class="color-scheme-label" id="landingColorSchemeLabel">Muted</span>
 </div>
 </div>
@@ -755,8 +771,8 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="header-toggles">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
 <label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
-<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon">
-<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="colorSchemeSlider">
+<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon / Crisp">
+<input type="range" min="0" max="3" step="1" value="0" class="color-scheme-slider" id="colorSchemeSlider">
 <span class="color-scheme-label" id="colorSchemeLabel">Muted</span>
 </div>
 </div>
@@ -1368,8 +1384,8 @@ Long Term Forecast
 <button class="btn btn-sm" id="vendorBackBtn">Back to Overview</button>
 <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="vendorToggleDark"><span class="toggle-track"></span>Dark</label>
-<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon">
-<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="vendorColorSchemeSlider">
+<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon / Crisp">
+<input type="range" min="0" max="3" step="1" value="0" class="color-scheme-slider" id="vendorColorSchemeSlider">
 <span class="color-scheme-label" id="vendorColorSchemeLabel">Muted</span>
 </div>
 </div>
@@ -3034,6 +3050,8 @@ const CHART_COLORS_MUTED_DARK=['#c4a0a0','#a0b8c8','#c8b8a0','#b0a0c0','#a0c0a0'
 const CHART_COLORS_MONO=['#7a6e6e','#6e7a7a','#8a7e6e','#6e6e7a','#6e7a6e','#7a6e7a','#5a6a7a','#7a7a6e','#6a7a72','#74786a'];
 const CHART_COLORS_MONO_DARK=['#c4b8b8','#b8c4c4','#c8c0b0','#b8b8c4','#b8c4b8','#c4b8c4','#a8b8c8','#c4c4b8','#b0c0b8','#bcc0b0'];
 const CHART_COLORS_NEON=['#ff006e','#00f5d4','#e6b800','#8338ec','#3a86ff','#fb5607','#06d6a0','#f72585','#4cc9f0','#e07000'];
+const CHART_COLORS_CRISP=['#222222','#888888','#bbbbbb','#555555','#999999','#333333','#aaaaaa','#666666','#cccccc','#444444'];
+const CHART_COLORS_CRISP_DARK=['#e8e8e8','#aaaaaa','#777777','#cccccc','#999999','#dddddd','#888888','#bbbbbb','#666666','#d0d0d0'];
 let chartColorScheme='muted';
 // Shared pattern draw helper for mono mode
 function drawMonoPattern(ctx,px,py,pw,ph,patIdx,fg){
@@ -3097,17 +3115,77 @@ const monoPatternPlugin={
 };
 // Register globally so all charts get it
 if(typeof Chart!=='undefined')Chart.register(monoPatternPlugin);
+// Crisp pattern helpers — clean digital lines and simple dots
+function drawCrispPattern(ctx,px,py,pw,ph,patIdx,fg){
+  ctx.save();ctx.beginPath();ctx.rect(px,py,pw,ph);ctx.clip();
+  ctx.strokeStyle=fg;ctx.fillStyle=fg;ctx.lineWidth=0.8;
+  const pt=patIdx%6;
+  if(pt===0){/* thin horizontal lines */for(let y2=py+4;y2<py+ph;y2+=8){ctx.beginPath();ctx.moveTo(px,y2);ctx.lineTo(px+pw,y2);ctx.stroke()}}
+  else if(pt===1){/* small dots grid */for(let y2=py+5;y2<py+ph;y2+=8)for(let x2=px+5;x2<px+pw;x2+=8){ctx.beginPath();ctx.arc(x2,y2,0.9,0,Math.PI*2);ctx.fill()}}
+  else if(pt===2){/* thin vertical lines */for(let x2=px+4;x2<px+pw;x2+=8){ctx.beginPath();ctx.moveTo(x2,py);ctx.lineTo(x2,py+ph);ctx.stroke()}}
+  else if(pt===3){/* diagonal lines — single direction, widely spaced */for(let i=-ph;i<pw+ph;i+=10){ctx.beginPath();ctx.moveTo(px+i,py+ph);ctx.lineTo(px+i+ph,py);ctx.stroke()}}
+  else if(pt===4){/* sparse dots */for(let y2=py+6;y2<py+ph;y2+=10)for(let x2=px+6;x2<px+pw;x2+=10){ctx.beginPath();ctx.arc(x2,y2,0.7,0,Math.PI*2);ctx.fill()}}
+  else{/* dashed horizontal */ctx.setLineDash([3,4]);for(let y2=py+4;y2<py+ph;y2+=8){ctx.beginPath();ctx.moveTo(px,y2);ctx.lineTo(px+pw,y2);ctx.stroke()}ctx.setLineDash([])}
+  ctx.restore();
+}
+const crispPatternPlugin={
+  id:'crispPatterns',
+  _needsPatterns(chart){
+    if(chartColorScheme!=='crisp')return false;
+    let barCount=0;
+    chart.data.datasets.forEach((ds,i)=>{const m=chart.getDatasetMeta(i);if(!m.hidden&&m.type!=='line')barCount++});
+    return barCount>3;
+  },
+  afterDatasetsDraw(chart){
+    if(!this._needsPatterns(chart))return;
+    const isDark=document.documentElement.classList.contains('dark');
+    const ctx=chart.ctx;
+    const fg=isDark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.12)';
+    chart.data.datasets.forEach((ds,dsi)=>{
+      const meta=chart.getDatasetMeta(dsi);
+      if(meta.hidden||meta.type==='line')return;
+      meta.data.forEach(el=>{
+        const{x,y,width,height,base}=el.getProps(['x','y','width','height','base']);
+        if(width===undefined||base===undefined)return;
+        const bY=Math.min(y,base),bH=Math.abs(base-y),bW=width;
+        if(bH<2||bW<2)return;
+        drawCrispPattern(ctx,x-bW/2,bY,bW,bH,dsi,fg);
+      });
+    });
+  },
+  afterDraw(chart){
+    if(!this._needsPatterns(chart))return;
+    const isDark=document.documentElement.classList.contains('dark');
+    const fg=isDark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.15)';
+    const legend=chart.legend;
+    if(!legend||!legend.legendItems)return;
+    const ctx=chart.ctx;
+    legend.legendItems.forEach((item,i)=>{
+      if(item.hidden)return;
+      const meta=chart.getDatasetMeta(item.datasetIndex!=null?item.datasetIndex:i);
+      if(meta.type==='line')return;
+      const bw=legend.options.labels.boxWidth||40;
+      const bh=legend.options.labels.boxHeight||Math.min((item.height||12),12);
+      const bx=item.left!=null?item.left:0;
+      const by=item.top!=null?item.top:0;
+      if(bw>0&&bh>0)drawCrispPattern(ctx,bx,by,bw,bh,item.datasetIndex!=null?item.datasetIndex:i,fg);
+    });
+  }
+};
+if(typeof Chart!=='undefined')Chart.register(crispPatternPlugin);
 // Soft-bar plugin: apply gentle opacity to all bar dataset backgrounds
 const softBarPlugin={id:'softBar',beforeUpdate(chart){
   if(chart.config.type!=='bar')return;
   const isNeon=(typeof chartColorScheme!=='undefined'&&chartColorScheme==='neon');
-  const alpha=isNeon?0.55:0.72;
+  const isCrisp=(typeof chartColorScheme!=='undefined'&&chartColorScheme==='crisp');
+  const alpha=isCrisp?0.82:isNeon?0.55:0.72;
   chart.data.datasets.forEach(ds=>{
     if(ds._softBarApplied)return;
     const bg=ds.backgroundColor;
     if(typeof bg==='string'&&bg.charAt(0)==='#'){
       ds.backgroundColor=hexToRgba(bg,alpha);
-      ds.borderColor=bg;ds.borderWidth=ds.borderWidth||1;
+      ds.borderColor=isCrisp?(document.documentElement.classList.contains('dark')?'#555':'#ccc'):bg;
+      ds.borderWidth=isCrisp?1:(ds.borderWidth||1);
     } else if(typeof bg==='string'&&bg.startsWith('rgba')){
       // Already rgba — reduce further if needed
       const m=bg.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
@@ -3121,6 +3199,7 @@ function getChartColors(){
   const isDark=document.documentElement.classList.contains('dark');
   if(chartColorScheme==='mono')return isDark?CHART_COLORS_MONO_DARK:CHART_COLORS_MONO;
   if(chartColorScheme==='neon')return CHART_COLORS_NEON;
+  if(chartColorScheme==='crisp')return isDark?CHART_COLORS_CRISP_DARK:CHART_COLORS_CRISP;
   return isDark?CHART_COLORS_MUTED_DARK:CHART_COLORS;
 }
 function getSparkColor(type){
@@ -3128,6 +3207,7 @@ function getSparkColor(type){
   const isDark=document.documentElement.classList.contains('dark');
   if(chartColorScheme==='mono')return isDark?'#bbbbbb':'#555555';
   if(chartColorScheme==='neon')return type==='danger'?'#ff006e':'#00f5d4';
+  if(chartColorScheme==='crisp')return isDark?'#e0e0e0':'#222222';
   // muted
   if(isDark)return type==='danger'?'#e0a8a8':'#a0c8b0';
   return type==='danger'?'#8b2020':'#3a7d44';
@@ -3136,6 +3216,7 @@ function getStatValueColor(){
   const isDark=document.documentElement.classList.contains('dark');
   if(chartColorScheme==='mono')return isDark?'#bbbbbb':'#444444';
   if(chartColorScheme==='neon')return isDark?'#00f5d4':'var(--accent)';
+  if(chartColorScheme==='crisp')return isDark?'#f0f0f0':'#111111';
   return isDark?'#c8b0b0':'var(--accent)';
 }
 function hexToRgba(hex,alpha){
@@ -5976,10 +6057,10 @@ const colorSchemeSlider=document.getElementById('colorSchemeSlider');
 const colorSchemeLabel=document.getElementById('colorSchemeLabel');
 const landingColorSchemeSlider=document.getElementById('landingColorSchemeSlider');
 const landingColorSchemeLabel=document.getElementById('landingColorSchemeLabel');
-const COLOR_SCHEME_NAMES=['Muted','Mono','Neon'];
-const COLOR_SCHEME_KEYS=['muted','mono','neon'];
+const COLOR_SCHEME_NAMES=['Muted','Mono','Neon','Crisp'];
+const COLOR_SCHEME_KEYS=['muted','mono','neon','crisp'];
 function applyColorSchemeClass(){
-  document.body.classList.remove('cs-muted','cs-mono','cs-neon');
+  document.body.classList.remove('cs-muted','cs-mono','cs-neon','cs-crisp');
   document.body.classList.add('cs-'+chartColorScheme);
 }
 const vendorColorSchemeSlider=document.getElementById('vendorColorSchemeSlider');
