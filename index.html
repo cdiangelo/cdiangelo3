@@ -7449,7 +7449,7 @@ function renderExecView(){
   }
   const svColor=getStatValueColor();
   document.getElementById('execStatCards').innerHTML=
-    `<div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svColor}">${emps.length}</div><canvas class="sparkline" id="sparkHC"></canvas></div>`+
+    `<div class="stat-card"><div class="label">${execSelectedMonths.size>0&&execSelectedMonths.size<12?periodLabel+' ':''}Headcount</div><div class="value" style="color:${svColor}">${execSelectedMonths.size>0?Math.round(statMonths.reduce((s,mi)=>s+emps.filter(e=>getMonthFactor(e,mi)>0).length,0)/statMonths.length):emps.length}</div><canvas class="sparkline" id="sparkHC"></canvas></div>`+
     `<div class="stat-card"><div class="label">${periodLabel} Comp</div><div class="value" style="color:${svColor}">${fmt(periodComp)}</div><canvas class="sparkline" id="sparkComp"></canvas></div>`+
     `<div class="stat-card"><div class="label">${periodLabel} CapEx</div><div class="value" style="color:${svColor}">${fmt(periodCapEx)}</div><canvas class="sparkline" id="sparkCapEx"></canvas></div>`+
     `<div class="stat-card"><div class="label">${periodLabel} OpEx</div><div class="value" style="color:var(--success)">${fmt(periodOpEx)}</div><canvas class="sparkline" id="sparkOpEx"></canvas></div>`;
@@ -11544,7 +11544,7 @@ function initVendorModule(){
         document.getElementById('vendorQaUndo').style.display='';
         const g=grouped[vName];
         if(!g)return;
-        const targetMos=mo==='all'?QA_MO:[mo];
+        const targetMos=mo==='all'?(vendorSelectedMonths.size>0?QA_MO.filter((_,i)=>vendorSelectedMonths.has(i)):QA_MO):[mo];
         // Distribute evenly across matching rows
         const perRow=Math.round((step*dir)/g.indices.length);
         g.indices.forEach(idx=>{
@@ -11552,7 +11552,7 @@ function initVendorModule(){
             state.vendorRows[idx][m]=Math.round((parseFloat(state.vendorRows[idx][m])||0)+perRow);
           });
         });
-        const moLabel=mo==='all'?'all months':QA_MO_LABELS[QA_MO.indexOf(mo)];
+        const moLabel=mo==='all'?(vendorSelectedMonths.size>0?targetMos.map(m=>QA_MO_LABELS[QA_MO.indexOf(m)]).join(', '):'all months'):QA_MO_LABELS[QA_MO.indexOf(mo)];
         vendorQaHistory.unshift(`${dir>0?'+':''}${qaFmt(step*dir)} → ${vName} (${moLabel})`);
         if(vendorQaHistory.length>20)vendorQaHistory.pop();
         saveState();renderVendorQaList();renderVendorGrid();refreshVendorPivot();renderPnlWalk();renderLandingCharts();
@@ -11644,14 +11644,14 @@ function initVendorModule(){
         document.getElementById('teQaUndo').style.display='';
         const g=grouped[vName];
         if(!g)return;
-        const targetMos=mo==='all'?QA_MO:[mo];
+        const targetMos=mo==='all'?(teSelectedMonths.size>0?QA_MO.filter((_,i)=>teSelectedMonths.has(i)):QA_MO):[mo];
         const perRow=Math.round((step*dir)/g.indices.length);
         g.indices.forEach(idx=>{
           targetMos.forEach(m=>{
             state.teRows[idx][m]=Math.round((parseFloat(state.teRows[idx][m])||0)+perRow);
           });
         });
-        const moLabel=mo==='all'?'all months':QA_MO_LABELS[QA_MO.indexOf(mo)];
+        const moLabel=mo==='all'?(teSelectedMonths.size>0?targetMos.map(m=>QA_MO_LABELS[QA_MO.indexOf(m)]).join(', '):'all months'):QA_MO_LABELS[QA_MO.indexOf(mo)];
         teQaHistory.unshift(`${dir>0?'+':''}${qaFmt(step*dir)} → ${vName} (${moLabel})`);
         if(teQaHistory.length>20)teQaHistory.pop();
         saveState();renderTeQaList();renderTeGrid();refreshTePivot();renderPnlWalk();renderLandingCharts();
