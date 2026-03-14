@@ -8805,7 +8805,7 @@ function initVendorModule(){
     return a?a.code:'';
   }
 
-  const BLANK_BG='background:#e8e8e8;color:#888';
+  function getBlankBg(){return document.documentElement.classList.contains('dark')?'background:#2a2a2a;color:#666':'background:#e8e8e8;color:#888'}
   let vendorAmtScale=1;
   function getScaleLabel(){return vendorAmtScale===1000?'K':vendorAmtScale===1000000?'M':'$'}
   function scaleVal(v){return vendorAmtScale===1?v:Math.round((v/vendorAmtScale)*100)/100}
@@ -8827,7 +8827,7 @@ function initVendorModule(){
     const acctGroup=fields==='vendor'?'vendor':'te';
     const acctOpts=state.accounts.filter(a=>(a.group||'vendor')===acctGroup).map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
     const fy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
-    const blk=v=>!v?BLANK_BG:'';
+    const BLANK_BG=getBlankBg();const blk=v=>!v?BLANK_BG:'';
     let h=`<tr data-vi="${i}" draggable="false"><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem">${i+1}</td>`;
     // Custom first columns per type
     if(fields==='vendor'){
