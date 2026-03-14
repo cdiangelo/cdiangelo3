@@ -3298,18 +3298,7 @@ function getChartColors(){
 function getCrispDatalabelColor(section){
   if(chartColorScheme!=='crisp')return null;
   const dk=document.documentElement.classList.contains('dark');
-  const map={
-    budget:    dk?'#60a5fa':'#2563eb',
-    fte:       dk?'#5eead4':'#0d9488',
-    breakdown: dk?'#93b5d4':'#4f6d8f',
-    forecast:  dk?'#f87171':'#dc4a2a',
-    forecastFte:dk?'#fbbf24':'#d97706',
-    exec:      dk?'#60a5fa':'#2563eb',
-    execFc:    dk?'#f87171':'#dc4a2a',
-    sparkline: dk?'#4ade80':'#16a34a',
-    landing:   dk?'#93b5d4':'#4f6d8f'
-  };
-  return map[section]||null;
+  return dk?'#ffffff':'#111111';
 }
 function getSparkColor(type){
   // type: 'primary' (HC, Comp, OpEx), 'danger' (CapEx)
@@ -3348,7 +3337,8 @@ const FTE_TOOLTIP={
 };
 function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return '$'+n}
 function stackedBarDatalabels(datasets,tickColor,fontSize,crispSection){
-  const fs=fontSize||11;
+  const isCrispDl=chartColorScheme==='crisp';
+  const fs=fontSize||(isCrispDl?13:11);
   const dlColor=getCrispDatalabelColor(crispSection)||tickColor;
   // Show total label on topmost positive bar and bottommost negative bar per x-index
   const posStacks=datasets.filter(d=>!d.stack||d.stack==='pos');
@@ -3576,7 +3566,7 @@ function renderDashboard(){
     // Add total data label on topmost FTE dataset
     fteDatasets.forEach((ds,i)=>{
       if(i===fteDatasets.length-1){
-        ds.datalabels={display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('fte')||tickColor,font:{size:11,weight:'bold'},
+        ds.datalabels={display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('fte')||tickColor,font:{size:chartColorScheme==='crisp'?13:11,weight:'bold'},
           formatter:(_,ctx)=>{
             let sum=0;fteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
             return sum?Math.round(sum*10)/10:'';
@@ -3607,7 +3597,7 @@ function renderDashBreakdownCharts(labels,groups,isMonth,baseVal,bonusVal,benVal
   const cc=getChartColors();
   const shortLabels=labels.map(l=>l.length>10?l.slice(0,8)+'…':l);
   const chartOpts=(title)=>({responsive:true,maintainAspectRatio:false,layout:{padding:{top:14}},
-    plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('breakdown')||tickColor,font:{size:10,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}},
+    plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('breakdown')||tickColor,font:{size:chartColorScheme==='crisp'?12:10,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}},
     scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},y:{beginAtZero:true,ticks:{color:tickColor,font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}}
   });
   function makeData(valFn){
@@ -5686,7 +5676,7 @@ function renderForecastProjection(){
     // Add total data label on topmost forecast FTE dataset
     fcFteDatasets.forEach((ds,i)=>{
       if(i===fcFteDatasets.length-1){
-        ds.datalabels={display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('forecastFte')||tickColor2,font:{size:11,weight:'bold'},
+        ds.datalabels={display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('forecastFte')||tickColor2,font:{size:chartColorScheme==='crisp'?13:11,weight:'bold'},
           formatter:(_,ctx)=>{
             let sum=0;fcFteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
             return sum||'';
@@ -6841,7 +6831,7 @@ function renderExecFcSparkline(){
       datalabels:{
         display:ctx=>yoyLabels[ctx.dataIndex]!=='',
         align:'top',anchor:'end',z:10,
-        font:{size:12,weight:'bold'},
+        font:{size:chartColorScheme==='crisp'?14:12,weight:'bold'},
         color:getCrispDatalabelColor('sparkline')||hexToRgba(colors[0],0.85),
         formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]
       }
@@ -7043,7 +7033,7 @@ function renderExecView(){
       return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y',order:2};
     });
     if(execSplit!=='none'){stackedBarDatalabels(datasets,tickColor,null,'exec')}
-    else{const _execDlC=getCrispDatalabelColor('exec')||tickColor;datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_execDlC,font:{size:11,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}})}
+    else{const _execDlC=getCrispDatalabelColor('exec')||tickColor;datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_execDlC,font:{size:chartColorScheme==='crisp'?13:11,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}})}
     // FTE count line
     const ecc=getChartColors();
     datasets.push({label:'Allocated FTE',data:monthlyFte,type:'line',borderColor:ecc[1],backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:ecc[1],yAxisID:'y1',tension:0.3,datalabels:{display:false},order:0});
@@ -10782,7 +10772,7 @@ function renderLandingCharts(){
     }
   }
   // Data labels for top of each stacked bar
-  const budgetDL=useSplit||isPnl?{}:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('landing')||tickColor,font:{size:8,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':v>0?'$'+Math.round(v):''};
+  const budgetDL=useSplit||isPnl?{}:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('landing')||tickColor,font:{size:chartColorScheme==='crisp'?10:8,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':v>0?'$'+Math.round(v):''};
   if(useSplit||isPnl){stackedBarDatalabels(budgetDS,tickColor,8,'landing');budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
@@ -10822,7 +10812,7 @@ function renderLandingCharts(){
   }
   }catch(e){console.warn('Landing forecast chart error:',e)}
   if(useSplit||isPnl){stackedBarDatalabels(fcDS,tickColor,8,'landing');fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
-  else{const _ldlC=getCrispDatalabelColor('landing')||tickColor;fcDS.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_ldlC,font:{size:8,weight:'bold'},formatter:v=>{const a=Math.abs(v);return a>=1e6?'$'+(v/1e6).toFixed(1)+'M':a>=1000?(v<0?'-':'')+'$'+(a/1000).toFixed(0)+'K':''}}})};
+  else{const _ldlC=getCrispDatalabelColor('landing')||tickColor;fcDS.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_ldlC,font:{size:chartColorScheme==='crisp'?10:8,weight:'bold'},formatter:v=>{const a=Math.abs(v);return a>=1e6?'$'+(v/1e6).toFixed(1)+'M':a>=1000?(v<0?'-':'')+'$'+(a/1000).toFixed(0)+'K':''}}})};
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
