@@ -453,7 +453,7 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   .vendor-adj{width:100%}
   .vendor-adj button{padding:4px 8px;font-size:.72rem}
   /* Landing page mobile */
-  #landingPage{padding:16px 12px!important}
+  #landingPage{padding:16px 12px!important;overflow-x:hidden;max-width:100vw;box-sizing:border-box}
   #landingPage h2{font-size:1.15rem}
   #landingPage .landing-subtitle{font-size:.8rem;margin-bottom:16px}
   .landing-modules{grid-template-columns:1fr!important;gap:14px;margin-bottom:20px}
@@ -464,21 +464,42 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   .landing-charts{grid-template-columns:1fr!important;gap:14px}
   .landing-chart-card{padding:10px 12px}
   .landing-chart-card .chart-wrap{height:160px}
-  .pnl-walk{padding:12px 10px;margin-bottom:16px}
+  .pnl-walk{padding:12px 10px;margin-bottom:16px;overflow:hidden;max-width:100%;box-sizing:border-box}
   .pnl-walk h3{font-size:.85rem}
   .pnl-walk-table th,.pnl-walk-table td{padding:4px 6px;font-size:.72rem}
   .pnl-walk-table td.label-cell{padding-left:12px;font-size:.74rem}
+  .pnl-walk-table th:first-child{position:sticky;left:0;z-index:2;background:var(--panel-inset);min-width:80px;max-width:120px;font-size:.68rem;word-break:break-word;white-space:normal}
+  .pnl-walk-table td:first-child{position:sticky;left:0;z-index:1;background:var(--panel);min-width:80px;max-width:120px;font-size:.68rem;word-break:break-word;white-space:normal}
+  .pnl-walk-table .num{font-size:.66rem;white-space:nowrap}
   #landingSessionBox{padding:12px 14px;gap:10px;flex-direction:column;align-items:stretch}
-  #landingSessionBox input[type="text"]{width:100%;font-size:1.1rem}
+  #landingSessionBox>div:first-child{min-width:0!important}
+  #landingSessionBox input[type="text"]{width:100%;font-size:1.1rem;letter-spacing:3px;box-sizing:border-box}
   /* Landing header: stack title and controls */
   #landingPage>div:first-child{flex-direction:column!important;gap:8px}
   #landingPage>div:first-child>div:last-child{margin-top:0!important;flex-wrap:wrap;gap:8px}
   /* P&L filter row wrap */
-  .pnl-walk>div:first-child{flex-direction:column!important;gap:8px}
-  .pnl-walk>div:first-child>div:last-child{gap:4px!important}
-  .pnl-walk .form-group{min-width:0;flex:1}
-  /* P&L table horizontal scroll */
-  .pnl-walk .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .pnl-walk>div:first-child{flex-direction:column!important;gap:6px}
+  .pnl-walk>div:first-child>div:last-child{display:grid!important;grid-template-columns:1fr 1fr;gap:4px!important}
+  .pnl-walk .form-group{min-width:0;width:100%}
+  .pnl-walk .form-group select{width:100%;font-size:.7rem;box-sizing:border-box}
+  /* P&L table horizontal scroll contained within card */
+  .pnl-walk .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+  /* Slide panels: contain overflow */
+  .scenario-slide-panel,.data-slide-panel{overflow-x:hidden!important;box-sizing:border-box;padding:12px!important}
+  .chatbot-header{flex-wrap:wrap;gap:4px;padding:6px 8px;font-size:.78rem}
+  .chatbot-header>div{flex-wrap:wrap;gap:3px}
+  .chatbot-header .btn,.chatbot-header .btn-sm{font-size:.68rem!important;padding:2px 6px!important}
+  .month-cell{font-size:.55rem;padding:2px 0}
+  .scen-emp-search{width:100%;box-sizing:border-box}
+  .scen-action-pane{overflow-x:hidden}
+  /* P&L summary tables in scenario panels */
+  #scenBudgetPnl,#scenFcPnl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #scenBudgetPnl table,#scenFcPnl table{font-size:.7rem}
+  #scenBudgetPnl th,#scenBudgetPnl td,#scenFcPnl th,#scenFcPnl td{padding:3px 5px;font-size:.68rem;white-space:nowrap}
+  /* Vendor detail list contained */
+  .vendor-detail-list{overflow-x:hidden;max-width:100%}
+  /* Prevent any child from forcing page-level horizontal scroll */
+  body{overflow-x:hidden}
 }
 @media(max-width:480px){
   .stat-cards{grid-template-columns:1fr}
@@ -491,13 +512,28 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   .stat-card canvas.sparkline{height:44px}
   .stat-card .value{font-size:1.1rem}
   /* Landing page small mobile */
-  #landingPage{padding:12px 8px!important}
-  #landingPage h2{font-size:1rem}
-  .landing-module{padding:12px 10px}
-  .landing-module h3{font-size:.85rem}
+  #landingPage{padding:10px 6px!important}
+  #landingPage h2{font-size:.95rem}
+  #landingPage .landing-subtitle{font-size:.74rem;margin-bottom:10px}
+  .landing-modules{gap:10px;margin-bottom:14px}
+  .landing-module{padding:10px 10px}
+  .landing-module h3{font-size:.82rem}
+  .landing-module p{font-size:.72rem}
   .landing-module .mod-icon{font-size:1.1rem}
-  .landing-chart-card .chart-wrap{height:140px}
-  .pnl-walk-table th,.pnl-walk-table td{padding:3px 4px;font-size:.68rem}
+  .landing-module .mod-badge{font-size:.6rem;padding:2px 6px}
+  .landing-chart-card .chart-wrap{height:130px}
+  .landing-chart-card{padding:8px 10px}
+  .pnl-walk{padding:8px 6px}
+  .pnl-walk h3{font-size:.78rem}
+  .pnl-walk-table th,.pnl-walk-table td{padding:3px 3px;font-size:.62rem}
+  .pnl-walk-table .num{font-size:.6rem}
+  .pnl-walk-table th:first-child,.pnl-walk-table td:first-child{min-width:60px;max-width:90px;font-size:.6rem}
+  .pnl-walk>div:first-child>div:last-child{grid-template-columns:1fr 1fr!important}
+  .pnl-walk .form-group label{font-size:.6rem}
+  .pnl-walk .form-group select{font-size:.64rem;padding:2px 3px}
+  #landingSessionBox{padding:10px;gap:8px}
+  #landingSessionBox input[type="text"]{font-size:.95rem;letter-spacing:2px;padding:6px 8px}
+  #landingSessionBox .btn{font-size:.8rem;padding:6px 14px}
 }
 /* ── Exec View ── */
 .exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
