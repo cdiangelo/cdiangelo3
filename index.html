@@ -2674,17 +2674,31 @@ function renderStats(emps){
 }
 const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a','#5e7a8b','#8b7a5e','#6b8b7a','#7a8b5e'];
 const CHART_COLORS_MUTED_DARK=['#c4a0a0','#a0b8c8','#c8b8a0','#b0a0c0','#a0c0a0','#c0a0b0','#a0b0c0','#c0b0a0','#a0c0b0','#b0c0a0'];
-const CHART_COLORS_MONO=['#555','#888','#bbb','#444','#999','#666','#aaa','#777','#ccc','#333'];
-const CHART_COLORS_MONO_DARK=['#ccc','#999','#666','#ddd','#aaa','#bbb','#888','#eee','#777','#555'];
+const CHART_COLORS_MONO=['#7a6e6e','#6e7a7a','#8a7e6e','#6e6e7a','#6e7a6e','#7a6e7a','#5a6a7a','#7a7a6e','#6a7a72','#74786a'];
+const CHART_COLORS_MONO_DARK=['#c4b8b8','#b8c4c4','#c8c0b0','#b8b8c4','#b8c4b8','#c4b8c4','#a8b8c8','#c4c4b8','#b0c0b8','#bcc0b0'];
 const CHART_COLORS_NEON=['#ff006e','#00f5d4','#fee440','#8338ec','#3a86ff','#fb5607','#06d6a0','#f72585','#4cc9f0','#ff9e00'];
 let chartColorScheme='muted';
-// Mono pattern overlay plugin for Chart.js — draws hatch/dot patterns over grey bars
+// Shared pattern draw helper for mono mode
+function drawMonoPattern(ctx,px,py,pw,ph,patIdx,fg){
+  ctx.save();ctx.beginPath();ctx.rect(px,py,pw,ph);ctx.clip();
+  ctx.strokeStyle=fg;ctx.fillStyle=fg;ctx.lineWidth=1;
+  const pt=patIdx%6;
+  if(pt===0){for(let i=-ph;i<pw+ph;i+=6){ctx.beginPath();ctx.moveTo(px+i,py+ph);ctx.lineTo(px+i+ph,py);ctx.stroke()}}
+  else if(pt===1){for(let y2=py+4;y2<py+ph;y2+=7)for(let x2=px+4;x2<px+pw;x2+=7){ctx.beginPath();ctx.arc(x2,y2,1.5,0,Math.PI*2);ctx.fill()}}
+  else if(pt===2){for(let i=-ph;i<pw+ph;i+=6){ctx.beginPath();ctx.moveTo(px+i,py+ph);ctx.lineTo(px+i+ph,py);ctx.stroke();ctx.beginPath();ctx.moveTo(px+i,py);ctx.lineTo(px+i+ph,py+ph);ctx.stroke()}}
+  else if(pt===3){for(let y2=py+3;y2<py+ph;y2+=6){ctx.beginPath();ctx.moveTo(px,y2);ctx.lineTo(px+pw,y2);ctx.stroke()}}
+  else if(pt===4){for(let x2=px+3;x2<px+pw;x2+=6){ctx.beginPath();ctx.moveTo(x2,py);ctx.lineTo(x2,py+ph);ctx.stroke()}}
+  else{for(let y2=py+3;y2<py+ph;y2+=5)for(let x2=px+3;x2<px+pw;x2+=5){ctx.beginPath();ctx.arc(x2,y2,1,0,Math.PI*2);ctx.fill()}}
+  ctx.restore();
+}
+// Mono pattern overlay plugin for Chart.js — draws hatch/dot patterns over grey bars + legend swatches
 const monoPatternPlugin={
   id:'monoPatterns',
   afterDatasetsDraw(chart){
     if(chartColorScheme!=='mono')return;
     const isDark=document.documentElement.classList.contains('dark');
     const ctx=chart.ctx;
+    const fg=isDark?'rgba(255,255,255,0.22)':'rgba(0,0,0,0.15)';
     chart.data.datasets.forEach((ds,dsi)=>{
       const meta=chart.getDatasetMeta(dsi);
       if(meta.hidden||meta.type==='line')return;
@@ -2693,18 +2707,28 @@ const monoPatternPlugin={
         if(width===undefined||base===undefined)return;
         const bY=Math.min(y,base),bH=Math.abs(base-y),bW=width;
         if(bH<2||bW<2)return;
-        ctx.save();ctx.beginPath();ctx.rect(x-bW/2,bY,bW,bH);ctx.clip();
-        const fg=isDark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.12)';
-        ctx.strokeStyle=fg;ctx.fillStyle=fg;ctx.lineWidth=1;
-        const pt=dsi%6;
-        if(pt===0){for(let i=-bH;i<bW+bH;i+=6){ctx.beginPath();ctx.moveTo(x-bW/2+i,bY+bH);ctx.lineTo(x-bW/2+i+bH,bY);ctx.stroke()}}
-        else if(pt===1){for(let py=bY+4;py<bY+bH;py+=7)for(let px=x-bW/2+4;px<x+bW/2;px+=7){ctx.beginPath();ctx.arc(px,py,1.5,0,Math.PI*2);ctx.fill()}}
-        else if(pt===2){for(let i=-bH;i<bW+bH;i+=6){ctx.beginPath();ctx.moveTo(x-bW/2+i,bY+bH);ctx.lineTo(x-bW/2+i+bH,bY);ctx.stroke();ctx.beginPath();ctx.moveTo(x-bW/2+i,bY);ctx.lineTo(x-bW/2+i+bH,bY+bH);ctx.stroke()}}
-        else if(pt===3){for(let py=bY+3;py<bY+bH;py+=6){ctx.beginPath();ctx.moveTo(x-bW/2,py);ctx.lineTo(x+bW/2,py);ctx.stroke()}}
-        else if(pt===4){for(let px=x-bW/2+3;px<x+bW/2;px+=6){ctx.beginPath();ctx.moveTo(px,bY);ctx.lineTo(px,bY+bH);ctx.stroke()}}
-        else{for(let py=bY+3;py<bY+bH;py+=5)for(let px=x-bW/2+3;px<x+bW/2;px+=5){ctx.beginPath();ctx.arc(px,py,1,0,Math.PI*2);ctx.fill()}}
-        ctx.restore();
+        drawMonoPattern(ctx,x-bW/2,bY,bW,bH,dsi,fg);
       });
+    });
+  },
+  afterDraw(chart){
+    if(chartColorScheme!=='mono')return;
+    const isDark=document.documentElement.classList.contains('dark');
+    const fg=isDark?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.2)';
+    const legend=chart.legend;
+    if(!legend||!legend.legendItems)return;
+    const ctx=chart.ctx;
+    legend.legendItems.forEach((item,i)=>{
+      if(item.hidden)return;
+      const meta=chart.getDatasetMeta(item.datasetIndex!=null?item.datasetIndex:i);
+      if(meta.type==='line')return;
+      const{left,top,width,height}=item;
+      // Legend box is drawn at item position; Chart.js uses boxWidth from options
+      const bw=legend.options.labels.boxWidth||40;
+      const bh=legend.options.labels.boxHeight||Math.min(height||12,12);
+      const bx=item.left!=null?item.left:0;
+      const by=item.top!=null?item.top:0;
+      if(bw>0&&bh>0)drawMonoPattern(ctx,bx,by,bw,bh,item.datasetIndex!=null?item.datasetIndex:i,fg);
     });
   }
 };
