@@ -7919,7 +7919,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
 
 // ── Fun Mode — Scenic Video PiP ──
 (function(){try{
-  const FUN_VIDEOS=[
+  const DEFAULT_VIDEOS=[
     {id:'wnhvanMdx4s',label:'Earth from Space'},
     {id:'aGK82Tluxq8',label:'Scenic Views'},
     {id:'YEVmlxEExbk',label:'Nature'},
@@ -7930,6 +7930,8 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
     {id:'ptVUsBllmsE',label:'Scene 8'},
     {id:'pWH0DejTaqg',label:'Scene 9'}
   ];
+  let FUN_VIDEOS=JSON.parse(localStorage.getItem('funVideos')||'null')||JSON.parse(JSON.stringify(DEFAULT_VIDEOS));
+  function saveFunVideos(){localStorage.setItem('funVideos',JSON.stringify(FUN_VIDEOS))}
 
   const AD_WAIT_MS=5000; // ms to show thumbnail overlay before allowing skip
   let funState=-1; // -1=off, 0..N-1=video index
@@ -7951,6 +7953,163 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
   btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.color=dimC()});
   new MutationObserver(()=>{btn.style.background=bgC();if(funState<0)btn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
   document.body.appendChild(btn);
+
+  // Editor button (gear icon above fun button)
+  const editBtn=document.createElement('button');
+  editBtn.innerHTML='&#9881;';
+  editBtn.style.cssText=`position:fixed;bottom:28px;right:8px;z-index:9999;background:${bgC()};border:none;color:${dimC()};font-size:.65rem;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:color .3s;-webkit-tap-highlight-color:transparent;width:36px;text-align:center`;
+  editBtn.addEventListener('mouseenter',()=>editBtn.style.color=hovC());
+  editBtn.addEventListener('mouseleave',()=>editBtn.style.color=dimC());
+  new MutationObserver(()=>{editBtn.style.background=bgC();editBtn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  document.body.appendChild(editBtn);
+
+  let editorPanel=null;
+
+  function parseYoutubeId(input){
+    input=input.trim();
+    // Plain 11-char ID
+    if(/^[A-Za-z0-9_-]{11}$/.test(input))return input;
+    // URL patterns
+    const m=input.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|v\/|shorts\/))([A-Za-z0-9_-]{11})/);
+    return m?m[1]:null;
+  }
+
+  function renderEditor(){
+    if(editorPanel){editorPanel.remove();editorPanel=null;return;}
+    editorPanel=document.createElement('div');
+    editorPanel.style.cssText=`position:fixed;bottom:48px;right:8px;z-index:10000;background:${isDark()?'#1e1e2e':'#fff'};border:1px solid ${isDark()?'rgba(255,255,255,.12)':'rgba(0,0,0,.12)'};border-radius:8px;padding:10px;width:260px;max-height:420px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.25);font-size:.75rem;font-family:inherit`;
+
+    // Title bar
+    const titleBar=document.createElement('div');
+    titleBar.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
+    const title=document.createElement('span');
+    title.textContent='Videos';
+    title.style.cssText=`font-weight:600;color:${isDark()?'#cdd6f4':'#333'};font-size:.8rem`;
+    const closeBtn=document.createElement('button');
+    closeBtn.textContent='\u00d7';
+    closeBtn.style.cssText=`background:none;border:none;color:${isDark()?'#cdd6f4':'#666'};font-size:1rem;cursor:pointer;padding:0 4px`;
+    closeBtn.addEventListener('click',()=>{editorPanel.remove();editorPanel=null;});
+    titleBar.appendChild(title);titleBar.appendChild(closeBtn);
+    editorPanel.appendChild(titleBar);
+
+    // Video list
+    const list=document.createElement('div');
+    list.style.cssText='display:flex;flex-direction:column;gap:4px;margin-bottom:8px';
+
+    function buildRows(){
+      list.innerHTML='';
+      FUN_VIDEOS.forEach((v,i)=>{
+        const row=document.createElement('div');
+        row.dataset.idx=i;
+        row.style.cssText=`display:flex;align-items:center;gap:6px;padding:4px;border-radius:4px;background:${isDark()?'rgba(255,255,255,.04)':'rgba(0,0,0,.03)'};cursor:grab`;
+        // Drag handle
+        const handle=document.createElement('span');
+        handle.textContent='\u2630';
+        handle.style.cssText=`cursor:grab;color:${isDark()?'rgba(255,255,255,.3)':'rgba(0,0,0,.3)'};font-size:.7rem;flex-shrink:0`;
+        // Thumbnail
+        const thumb=document.createElement('img');
+        thumb.src=`https://img.youtube.com/vi/${v.id}/default.jpg`;
+        thumb.style.cssText='width:48px;height:36px;object-fit:cover;border-radius:3px;flex-shrink:0';
+        // Label
+        const lbl=document.createElement('span');
+        lbl.textContent=v.label||v.id;
+        lbl.style.cssText=`flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${isDark()?'#cdd6f4':'#333'};font-size:.7rem`;
+        // Delete button
+        const del=document.createElement('button');
+        del.textContent='\u00d7';
+        del.style.cssText=`background:none;border:none;color:${isDark()?'rgba(255,255,255,.4)':'rgba(0,0,0,.35)'};font-size:.85rem;cursor:pointer;padding:0 2px;flex-shrink:0`;
+        del.addEventListener('click',()=>{
+          FUN_VIDEOS.splice(i,1);saveFunVideos();
+          if(funState>=FUN_VIDEOS.length)funState=FUN_VIDEOS.length-1;
+          buildRows();
+        });
+
+        row.appendChild(handle);row.appendChild(thumb);row.appendChild(lbl);row.appendChild(del);
+
+        // Drag-to-reorder
+        let dragIdx=i;
+        handle.addEventListener('mousedown',e=>{
+          e.preventDefault();
+          row.style.opacity='.5';
+          document.body.style.cursor='grabbing';
+          function onMove(ev){
+            ev.preventDefault();
+            const rows=Array.from(list.children);
+            const curRow=rows[dragIdx];
+            if(!curRow)return;
+            const mouseY=ev.clientY;
+            if(dragIdx>0){
+              const prev=rows[dragIdx-1];
+              const pr=prev.getBoundingClientRect();
+              if(mouseY<pr.top+pr.height/2){
+                [FUN_VIDEOS[dragIdx-1],FUN_VIDEOS[dragIdx]]=[FUN_VIDEOS[dragIdx],FUN_VIDEOS[dragIdx-1]];
+                list.insertBefore(curRow,prev);
+                curRow.dataset.idx=dragIdx-1;prev.dataset.idx=dragIdx;
+                dragIdx--;saveFunVideos();return;
+              }
+            }
+            if(dragIdx<rows.length-1){
+              const next=rows[dragIdx+1];
+              const nr=next.getBoundingClientRect();
+              if(mouseY>nr.top+nr.height/2){
+                [FUN_VIDEOS[dragIdx],FUN_VIDEOS[dragIdx+1]]=[FUN_VIDEOS[dragIdx+1],FUN_VIDEOS[dragIdx]];
+                list.insertBefore(next,curRow);
+                curRow.dataset.idx=dragIdx+1;next.dataset.idx=dragIdx;
+                dragIdx++;saveFunVideos();return;
+              }
+            }
+          }
+          function onUp(){
+            document.removeEventListener('mousemove',onMove);
+            document.removeEventListener('mouseup',onUp);
+            document.body.style.cursor='';
+            row.style.opacity='1';
+            buildRows();
+          }
+          document.addEventListener('mousemove',onMove);
+          document.addEventListener('mouseup',onUp);
+        });
+
+        list.appendChild(row);
+      });
+    }
+    buildRows();
+    editorPanel.appendChild(list);
+
+    // Add input
+    const addRow=document.createElement('div');
+    addRow.style.cssText='display:flex;gap:4px';
+    const inp=document.createElement('input');
+    inp.placeholder='YouTube URL or ID';
+    inp.style.cssText=`flex:1;padding:4px 6px;border:1px solid ${isDark()?'rgba(255,255,255,.15)':'rgba(0,0,0,.15)'};border-radius:4px;background:${isDark()?'rgba(255,255,255,.06)':'#fff'};color:${isDark()?'#cdd6f4':'#333'};font-size:.7rem;font-family:inherit`;
+    const addBtn=document.createElement('button');
+    addBtn.textContent='+';
+    addBtn.style.cssText=`padding:4px 8px;border:none;border-radius:4px;background:rgba(59,130,246,.6);color:#fff;cursor:pointer;font-size:.75rem;font-weight:600`;
+    addBtn.addEventListener('click',()=>{
+      const vid=parseYoutubeId(inp.value);
+      if(!vid){inp.style.borderColor='red';return;}
+      FUN_VIDEOS.push({id:vid,label:'Video '+(FUN_VIDEOS.length+1)});
+      saveFunVideos();inp.value='';inp.style.borderColor='';
+      buildRows();
+    });
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')addBtn.click()});
+    addRow.appendChild(inp);addRow.appendChild(addBtn);
+    editorPanel.appendChild(addRow);
+
+    // Reset button
+    const resetBtn=document.createElement('button');
+    resetBtn.textContent='Reset to defaults';
+    resetBtn.style.cssText=`margin-top:8px;width:100%;padding:4px;border:1px solid ${isDark()?'rgba(255,255,255,.12)':'rgba(0,0,0,.1)'};border-radius:4px;background:none;color:${isDark()?'rgba(255,255,255,.4)':'rgba(0,0,0,.35)'};cursor:pointer;font-size:.65rem;font-family:inherit`;
+    resetBtn.addEventListener('click',()=>{
+      FUN_VIDEOS.length=0;DEFAULT_VIDEOS.forEach(v=>FUN_VIDEOS.push(JSON.parse(JSON.stringify(v))));
+      saveFunVideos();funState=-1;buildRows();
+    });
+    editorPanel.appendChild(resetBtn);
+
+    document.body.appendChild(editorPanel);
+  }
+
+  editBtn.addEventListener('click',renderEditor);
 
   function buildIframeSrc(v){
     const s=v.start||0;
