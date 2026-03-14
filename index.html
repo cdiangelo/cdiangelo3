@@ -174,7 +174,7 @@ body.ops-mode .ops-hide{display:none!important}
 .header-toggle input:checked+.toggle-track::after{transform:translateX(16px)}
 /* 3-tier color scheme slider */
 .color-scheme-wrap{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text-dim)}
-.color-scheme-slider{-webkit-appearance:none;appearance:none;width:40px;height:14px;background:var(--border);border-radius:7px;outline:none;cursor:pointer}
+.color-scheme-slider{-webkit-appearance:none;appearance:none;width:64px;height:14px;background:var(--border);border-radius:7px;outline:none;cursor:pointer}
 .color-scheme-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer}
 .color-scheme-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
 .color-scheme-label{min-width:32px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
@@ -676,7 +676,7 @@ Template Mode &mdash; changes saved in this browser only.
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
 <label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
 <div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon">
-<input type="range" min="0" max="2" value="0" class="color-scheme-slider" id="colorSchemeSlider">
+<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="colorSchemeSlider">
 <span class="color-scheme-label" id="colorSchemeLabel">Muted</span>
 </div>
 </div>
