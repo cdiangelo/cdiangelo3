@@ -2745,30 +2745,35 @@ function initSessionModal(){
 async function enterSession(){
   persistenceMode='session';
   // Load version list
-  const resp=await fetch(`/api/sessions/${sessionContext.code}/versions`);
-  const versions=await resp.json();
-  if(versions.length>0){
-    // Load most recent version
-    const v=versions[0];
-    const vResp=await fetch(`/api/sessions/${sessionContext.code}/versions/${v.id}`);
-    const vData=await vResp.json();
-    sessionContext.versionId=v.id;sessionContext.versionName=v.name;
-    state=JSON.parse(vData.state_data);ensureStateFields();
-  }else{
-    // Create default version with current state
-    const resp2=await fetch(`/api/sessions/${sessionContext.code}/versions`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name:'Default',stateData:JSON.stringify(state),userId:sessionContext.userId})
-    });
-    const v=await resp2.json();
-    sessionContext.versionId=v.id;sessionContext.versionName='Default';
-  }
+  try{
+    const resp=await fetch(`/api/sessions/${sessionContext.code}/versions`);
+    if(resp.ok){
+      const versions=await resp.json();
+      if(versions.length>0){
+        // Load most recent version
+        const v=versions[0];
+        const vResp=await fetch(`/api/sessions/${sessionContext.code}/versions/${v.id}`);
+        if(vResp.ok){
+          const vData=await vResp.json();
+          sessionContext.versionId=v.id;sessionContext.versionName=v.name;
+          state=JSON.parse(vData.state_data);ensureStateFields();
+        }
+      }else{
+        // Create default version with current state
+        const resp2=await fetch(`/api/sessions/${sessionContext.code}/versions`,{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({name:'Default',stateData:JSON.stringify(state),userId:sessionContext.userId})
+        });
+        if(resp2.ok){const v=await resp2.json();sessionContext.versionId=v.id;sessionContext.versionName='Default'}
+      }
+    }
+  }catch(e){console.error('Version load error:',e)}
   // Save to sessionStorage for refresh persistence
   localStorage.setItem('compPlanSession',JSON.stringify(sessionContext));
-  // Update UI
+  // Update UI — always re-render even if version load had issues
   updateSessionUI();
   initDropdowns();renderAll();
-  connectWebSocket();
+  try{connectWebSocket()}catch(e){console.error('WebSocket error:',e)}
 }
 
 // Leave session
@@ -11107,7 +11112,12 @@ document.querySelectorAll('#landingChartViewToggle .btn').forEach(b=>b.addEventL
 function renderLandingCharts(){
   if(typeof Chart==='undefined'||!state||!state.employees)return;
   const emps=getPnlFilteredEmps();
-  if(!emps.length)return;
+  if(!emps.length){
+    // Destroy existing charts so stale template data doesn't linger
+    if(landingBudgetChartInst){landingBudgetChartInst.destroy();landingBudgetChartInst=null}
+    if(landingForecastChartInst){landingForecastChartInst.destroy();landingForecastChartInst=null}
+    return;
+  }
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
