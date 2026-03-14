@@ -432,6 +432,14 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .scen-emp-list .emp-act{background:none;border:none;cursor:pointer;font-size:.68rem;padding:1px 3px;border-radius:3px;line-height:1;color:var(--text-dim);opacity:.55;transition:opacity .15s,color .15s}
 .scen-emp-list .emp-act:hover{opacity:1}
 .scen-emp-list .emp-act.act-x:hover{color:var(--danger)}
+.vendor-detail-list .vendor-row{display:flex;align-items:center;padding:3px 8px;border-bottom:1px solid var(--border-light);gap:6px;font-size:.72rem}
+.vendor-detail-list .vendor-row:hover{background:rgba(142,107,192,.06)}
+.vendor-detail-list .vendor-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.vendor-detail-list .vendor-amt{font-weight:600;min-width:60px;text-align:right;color:var(--text);font-size:.7rem}
+.vendor-detail-list .vendor-adj{display:flex;gap:2px;margin-left:4px;flex-shrink:0}
+.vendor-detail-list .vendor-adj button{background:none;border:1px solid var(--border);cursor:pointer;font-size:.64rem;padding:1px 5px;border-radius:3px;line-height:1.2;color:var(--text-dim);font-weight:600}
+.vendor-detail-list .vendor-adj button:hover{border-color:var(--accent);color:var(--accent)}
+.vendor-detail-list .vendor-adj button.adj-minus:hover{color:var(--danger);border-color:var(--danger)}
 .scen-emp-list .emp-act.act-arrow:hover{color:var(--accent)}
 .scen-emp-list .emp-act.act-up:hover,.scen-emp-list .emp-act.act-down:hover{color:var(--success)}
 .scen-emp-list .emp-row:last-child{border-bottom:none}
@@ -1591,7 +1599,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
 <div class="chatbot-panel" id="budgetScenPanel">
-<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm" id="scenDetailOut" style="padding:2px 10px;font-size:.72rem;opacity:.5" onclick="toggleDetailOut()" disabled>Detail Out</button><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
+<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm" id="scenDetailOut" style="padding:2px 10px;font-size:.72rem" onclick="toggleDetailOut()">Detail Out</button><button class="btn btn-sm" id="scenApplyRefinement" style="padding:2px 10px;font-size:.72rem;opacity:.5;display:none" onclick="applyRefinementMode()" disabled>Apply Refinement</button><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div id="budgetScenStatus" class="scen-status"></div>
 <div id="budgetActionPane" class="scen-action-pane" style="display:none">
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
@@ -1616,6 +1624,7 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="cmd-cat" data-cat="talent">Talent Shifts</button>
 <button class="cmd-cat" data-cat="vendor">Vendor &amp; T&amp;E</button>
 <button class="cmd-cat" data-cat="comp">Compensation</button>
+<button class="cmd-cat" data-cat="capex">CapEx / OpEx</button>
 <button class="cmd-cat" data-cat="growth">Growth &amp; Hiring</button>
 <button class="cmd-cat" data-cat="structure">Structure</button>
 </div>
@@ -1648,6 +1657,7 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="cut hotel t&e by 25%">Hotel T&amp;E -25%</button>
 <button data-cmd="cut event t&e by 50%">Events -50%</button>
 <button data-cmd="cut food t&e by 40%">Food/Events -40%</button>
+<div id="vendorDetailList" class="vendor-detail-list" style="margin-top:8px;max-height:260px;overflow-y:auto;border-top:1px solid var(--border);padding-top:6px"></div>
 </div>
 <div class="cmd-group" data-cat="comp">
 <button data-cmd="increase all salary by 5%">All salary +5%</button>
@@ -1656,6 +1666,8 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="set all bonus to 12%">Set bonus 12%</button>
 <button data-cmd="set senior bonus to 15%">Sr bonus 15%</button>
 <button data-cmd="set all benefits to 20%">Set benefits 20%</button>
+</div>
+<div class="cmd-group" data-cat="capex">
 <button data-cmd="set cap% to 40">Set cap% 40</button>
 <button data-cmd="set cap% to 50">Set cap% 50</button>
 <button data-cmd="increase all cap% by 10">All cap% +10pp</button>
@@ -1665,6 +1677,10 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="decrease capitalization by 10%">Cap -10%</button>
 <button data-cmd="increase capitalization by 25%">Cap +25%</button>
 <button data-cmd="decrease capitalization by 25%">Cap -25%</button>
+<button data-cmd="set devops cap% to 70">DevOps cap% 70</button>
+<button data-cmd="set data engineering cap% to 55">Data Eng cap% 55</button>
+<button data-cmd="convert 20% of it operations to devops">20% IT→DevOps (↑cap)</button>
+<button data-cmd="convert 15% of qa to software engineering">15% QA→SWE (↑cap)</button>
 </div>
 <div class="cmd-group" data-cat="growth">
 <button data-cmd="add 5 senior software engineering in us">+5 Sr SWE (US)</button>
@@ -1712,6 +1728,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Function</label><div id="fcFilterFunction" class="scen-pill-group"></div></div>
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Country</label><div id="fcFilterCountry" class="scen-pill-group"></div></div>
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Product</label><div id="fcFilterProduct" class="scen-pill-group"></div></div>
+<div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Category</label><div id="fcFilterCategory" class="scen-pill-group"></div></div>
 </div>
 <div style="margin-top:8px">
 <input id="fcEmpSearch" class="scen-emp-search" placeholder="Search employees..." oninput="filterFcEmpList()">
@@ -1723,6 +1740,7 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="cmd-cat active" data-cat="reduce">Reductions</button>
 <button class="cmd-cat" data-cat="talent">Talent Shifts</button>
 <button class="cmd-cat" data-cat="comp">Compensation</button>
+<button class="cmd-cat" data-cat="capex">CapEx / OpEx</button>
 <button class="cmd-cat" data-cat="growth">Growth &amp; Hiring</button>
 <button class="cmd-cat" data-cat="vendor">Vendor &amp; T&amp;E</button>
 <button class="cmd-cat" data-cat="prod">Productivity &amp; Attrition</button>
@@ -1745,6 +1763,8 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="set merit to 4%">Set merit 4%</button>
 <button data-cmd="set merit to 2%">Set merit 2%</button>
 <button data-cmd="increase merit by 1%">Merit +1%</button>
+</div>
+<div class="cmd-group" data-cat="capex">
 <button data-cmd="set cap% to 35">Set cap% 35</button>
 <button data-cmd="set cap% to 50">Set cap% 50</button>
 <button data-cmd="increase all cap% by 10">All cap% +10pp</button>
@@ -1753,6 +1773,8 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="decrease capitalization by 10%">Cap -10%</button>
 <button data-cmd="increase capitalization by 25%">Cap +25%</button>
 <button data-cmd="decrease capitalization by 25%">Cap -25%</button>
+<button data-cmd="set software engineering cap% to 60">SWE cap% 60</button>
+<button data-cmd="set devops cap% to 70">DevOps cap% 70</button>
 </div>
 <div class="cmd-group" data-cat="growth">
 <button data-cmd="set hires to 1 per month">1 hire/mo</button>
@@ -6627,7 +6649,7 @@ let scenActionHistory=[]; // {id, cmd, scopedCmd, msg, delta, isRefinement, pare
 let scenSelectedActionId=null;
 let fcActionHistory=[];
 let fcSelectedActionId=null;
-let fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+let fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
 let fcSelectedYear=null;
 
 function initBudgetScenario(){
@@ -6862,6 +6884,15 @@ function parseBudgetCommand(text){
     const filter=resolveGroup(m[1],emps);const pct=parseFloat(m[2]);
     if(!filter)return {msg:groupErr(m[1]),ok:false};
     const matching=emps.filter(filter);const toRemove=Math.round(matching.length*pct/100);
+    // If a month is selected in the refinement panel, set term date instead of removing
+    if(scenSelectedMonth!==null&&scenSelectedMonth!==undefined){
+      const mo=String(scenSelectedMonth+1).padStart(2,'0');
+      const lastDay=new Date(CURRENT_YEAR,scenSelectedMonth+1,0).getDate();
+      const termDate=`${CURRENT_YEAR}-${mo}-${String(lastDay).padStart(2,'0')}`;
+      const shuffled=[...matching].sort(()=>Math.random()-0.5).slice(0,toRemove);
+      shuffled.forEach(e=>{e.termDate=termDate});
+      return {msg:`Set termination date ${termDate} for ${toRemove} of ${matching.length} matching employees (${pct}% of ${m[1]}).`,ok:true};
+    }
     for(let i=0;i<toRemove;i++){const idx=emps.findIndex(filter);if(idx>=0)emps.splice(idx,1)}
     return {msg:`Removed ${toRemove} of ${matching.length} matching employees (${pct}% of ${m[1]}).`,ok:true};
   }
@@ -7448,7 +7479,7 @@ function openFcYearPane(barIdx){
   const yearLabels=['Current',...FORECAST_YEARS.map(String)];
   const label=yearLabels[barIdx];
   fcSelectedYear=barIdx===0?null:FORECAST_YEARS[barIdx-1];
-  fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+  fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
   const badge=document.getElementById('fcYearBadge');
   badge.textContent=label;badge.style.display='inline-block';
   const pane=document.getElementById('fcActionPane');
@@ -7551,10 +7582,15 @@ function selectScenAction(id){
 }
 
 function updateDetailOutBtn(){
+  // Detail Out is always enabled now
   const btn=document.getElementById('scenDetailOut');
+  btn.disabled=false;btn.style.opacity='1';
+  // Apply Refinement only enabled when an action is selected
+  const refBtn=document.getElementById('scenApplyRefinement');
   const hasSelection=scenSelectedActionId!=null;
-  btn.disabled=!hasSelection;
-  btn.style.opacity=hasSelection?'1':'.5';
+  refBtn.style.display=scenActionHistory.length?'inline-block':'none';
+  refBtn.disabled=!hasSelection;
+  refBtn.style.opacity=hasSelection?'1':'.5';
 }
 
 // ── Action Pane Functions ──
@@ -7580,14 +7616,31 @@ function openActionPane(monthIdx){
 }
 
 function toggleDetailOut(){
-  if(scenSelectedActionId==null)return;
   const pane=document.getElementById('budgetActionPane');
   const btn=document.getElementById('scenDetailOut');
   if(pane.style.display!=='none'){
     closeActionPane();
     return;
   }
-  // Find the selected action
+  // Open detail pane for browsing/filtering (no refinement context)
+  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+  scenSelectedMonth=null;
+  document.getElementById('scenMonthBadge').style.display='none';
+  document.getElementById('scenMonthSelect').value='';
+  document.getElementById('scenEmpSearch').value='';
+  // Remove any existing refinement prompt
+  const prompt=pane.querySelector('.scen-detail-prompt');
+  if(prompt)prompt.remove();
+  delete pane.dataset.refineCmd;
+  delete pane.dataset.refineActionId;
+  pane.style.display='block';
+  btn.classList.add('active');
+  populateActionPanePills();
+}
+
+function applyRefinementMode(){
+  if(scenSelectedActionId==null)return;
+  const pane=document.getElementById('budgetActionPane');
   const action=scenActionHistory.find(a=>a.id===scenSelectedActionId);
   if(!action)return;
   scenFilterState={product:new Set(),function:new Set(),country:new Set()};
@@ -7595,19 +7648,20 @@ function toggleDetailOut(){
   document.getElementById('scenMonthBadge').style.display='none';
   document.getElementById('scenMonthSelect').value='';
   document.getElementById('scenEmpSearch').value='';
-  pane.style.display='block';
-  btn.classList.add('active');
-  // Show prompt with the action being refined
-  const prompt=pane.querySelector('.scen-detail-prompt');
-  if(prompt)prompt.remove();
+  // Remove any existing prompt
+  const oldPrompt=pane.querySelector('.scen-detail-prompt');
+  if(oldPrompt)oldPrompt.remove();
+  // Show refinement prompt
   const promptDiv=document.createElement('div');
   promptDiv.className='scen-detail-prompt';
   promptDiv.style.cssText='padding:6px 10px;margin-bottom:8px;background:rgba(142,107,192,.1);border:1px solid rgba(142,107,192,.3);border-radius:6px;font-size:.75rem;color:var(--text)';
   promptDiv.innerHTML=`<strong style="color:#8e6bc0">Refining:</strong> "${action.msg}" — Select product, function, and/or country filters below, then click a preset action to apply a scoped refinement.`;
   pane.insertBefore(promptDiv,pane.firstChild);
-  // Store the command being refined for re-execution
+  // Store the command being refined
   pane.dataset.refineCmd=action.cmd;
   pane.dataset.refineActionId=action.id;
+  pane.style.display='block';
+  document.getElementById('scenDetailOut').classList.add('active');
   populateActionPanePills();
 }
 
@@ -7663,6 +7717,10 @@ function getEmpProducts(emp){
   if(!emp.allocations||!emp.allocations.length)return [];
   return emp.allocations.map(a=>{const p=state.projects.find(pr=>pr.id===a.projId);return p?p.product:null}).filter(Boolean);
 }
+function getEmpCategories(emp){
+  if(!emp.allocations||!emp.allocations.length)return [];
+  return emp.allocations.map(a=>{const p=state.projects.find(pr=>pr.id===a.projId);return p?p.category:null}).filter(Boolean);
+}
 
 function filterScenEmpList(){
   if(!budgetScenario)return;
@@ -7674,9 +7732,22 @@ function filterScenEmpList(){
   if(fs.country.size>0)emps=emps.filter(e=>fs.country.has(e.country));
   if(search)emps=emps.filter(e=>(e.name||'').toLowerCase().includes(search)||(e.function||'').toLowerCase().includes(search)||(e.country||'').toLowerCase().includes(search));
   const el=document.getElementById('scenEmpList');
+  // Build filter tags showing active filters
+  let tagsHtml='';
+  const activeTags=[];
+  if(fs.function.size>0)[...fs.function].forEach(f=>activeTags.push({label:f,key:'function',value:f}));
+  if(fs.country.size>0)[...fs.country].forEach(c=>activeTags.push({label:c,key:'country',value:c}));
+  if(fs.product.size>0)[...fs.product].forEach(p=>activeTags.push({label:p,key:'product',value:p}));
+  if(scenSelectedMonth!==null){const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];activeTags.push({label:MO_SHORT[scenSelectedMonth],key:'month',value:scenSelectedMonth})}
+  if(activeTags.length){
+    tagsHtml='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px">'+activeTags.map(t=>{
+      const esc=String(t.value).replace(/'/g,"\\'");
+      return `<span style="display:inline-flex;align-items:center;gap:2px;padding:1px 7px;font-size:.66rem;border-radius:8px;background:rgba(142,107,192,.15);color:#8e6bc0;border:1px solid rgba(142,107,192,.3)">${t.label}<button onclick="removeScenFilterTag('${t.key}','${esc}')" style="background:none;border:none;cursor:pointer;font-size:.62rem;color:#8e6bc0;padding:0 1px;line-height:1">&times;</button></span>`;
+    }).join('')+'</div>';
+  }
   const show=emps.slice(0,50);
-  if(!show.length){el.innerHTML='<div class="emp-count">No matching employees</div>';return}
-  let html=show.map(e=>{
+  if(!show.length){el.innerHTML=tagsHtml+'<div class="emp-count">No matching employees</div>';return}
+  let html=tagsHtml+show.map(e=>{
     const esc=e.name.replace(/'/g,"\\'");
     return `<div class="emp-row"><span class="emp-name">${e.name}</span><span class="emp-meta">${e.function} · ${e.country} · ${fmt(e.salary)} · cap ${e.capPct||0}%</span><span class="emp-actions"><button class="emp-act act-up" title="Increase cap% by 10pp" onclick="scenEmpCapAdj('${esc}',10)">&#9650;</button><button class="emp-act act-down" title="Decrease cap% by 10pp" onclick="scenEmpCapAdj('${esc}',-10)">&#9660;</button><button class="emp-act act-arrow" title="Transfer out" onclick="scenEmpTransfer('${esc}')">&#8594;</button><button class="emp-act act-x" title="Terminate" onclick="scenEmpTerminate('${esc}')">&#10005;</button></span></div>`;
   }).join('');
@@ -7685,13 +7756,26 @@ function filterScenEmpList(){
   el.innerHTML=html;
 }
 
+function removeScenFilterTag(key,value){
+  if(key==='month'){scenSelectedMonth=null;document.getElementById('scenMonthSelect').value='';document.getElementById('scenMonthBadge').style.display='none'}
+  else if(scenFilterState[key]){scenFilterState[key].delete(value);const idMap={product:'scenFilterProduct',function:'scenFilterFunction',country:'scenFilterCountry'};const items=key==='product'?[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort():key==='function'?FUNCTIONS:COUNTRIES;renderScenFilterPills(idMap[key],items,key)}
+  filterScenEmpList();
+}
+
 function scenEmpTerminate(name){
   if(!budgetScenario)return;
   const emp=budgetScenario.emps.find(e=>e.name===name);
   if(!emp)return;
   budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
   document.getElementById('scenBudgetUndo').style.display='inline-block';
-  emp.termDate=new Date().toISOString().slice(0,10);
+  // Use selected refinement month if set, otherwise use today's date
+  if(scenSelectedMonth!==null&&scenSelectedMonth!==undefined){
+    const mo=String(scenSelectedMonth+1).padStart(2,'0');
+    const lastDay=new Date(CURRENT_YEAR,scenSelectedMonth+1,0).getDate();
+    emp.termDate=`${CURRENT_YEAR}-${mo}-${String(lastDay).padStart(2,'0')}`;
+  } else {
+    emp.termDate=new Date().toISOString().slice(0,10);
+  }
   budgetScenarioDirty=true;
   const entry={id:Date.now(),cmd:`terminate ${name}`,scopedCmd:`terminate ${name}`,msg:`Terminated ${name} effective ${emp.termDate}.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
   scenActionHistory.push(entry);
@@ -7727,6 +7811,50 @@ function scenEmpCapAdj(name,delta){
   scenActionHistory.push(entry);
   document.getElementById('scenBudgetApply').style.display='inline-block';
   renderScenActionHistory();renderBudgetScenarioChart();filterScenEmpList();renderScenarioPnlSummary();updateDetailOutBtn();
+  initForecastScenario();renderFcScenarioChart();
+}
+
+function renderVendorDetailList(){
+  const el=document.getElementById('vendorDetailList');
+  if(!el||!budgetScenario)return;
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  // Aggregate vendor rows by vendorName (or parentCo+vendorName)
+  const rows=budgetScenario.vendorRows||[];
+  const agg={};
+  rows.forEach((r,idx)=>{
+    const key=r.vendorName||r.parentCo||`Vendor ${idx+1}`;
+    if(!agg[key])agg[key]={name:key,total:0,indices:[]};
+    agg[key].total+=MO.reduce((s,mo)=>s+(parseFloat(r[mo])||0),0);
+    agg[key].indices.push(idx);
+  });
+  const sorted=Object.values(agg).sort((a,b)=>b.total-a.total);
+  if(!sorted.length){el.innerHTML='<div style="padding:6px;font-size:.72rem;color:var(--text-dim)">No vendor spend data</div>';return}
+  el.innerHTML='<div style="font-size:.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim);padding:2px 8px;margin-bottom:2px">Vendor Spend Detail</div>'+sorted.map(v=>{
+    const amtK=v.total>=1000000?`$${(v.total/1000000).toFixed(1)}m`:`$${(v.total/1000).toFixed(0)}k`;
+    const esc=v.name.replace(/'/g,"\\'");
+    return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjVendorSpend('${esc}',-100000)" title="-$0.1m">-</button><button onclick="adjVendorSpend('${esc}',100000)" title="+$0.1m">+</button></span></div>`;
+  }).join('');
+}
+
+function adjVendorSpend(vendorName,delta){
+  if(!budgetScenario)return;
+  budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
+  document.getElementById('scenBudgetUndo').style.display='inline-block';
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const rows=budgetScenario.vendorRows||[];
+  const matching=rows.filter(r=>(r.vendorName||r.parentCo)===vendorName);
+  if(!matching.length)return;
+  // Distribute delta evenly across months on the first matching row
+  const perMonth=Math.round(delta/12);
+  MO.forEach(mo=>{matching[0][mo]=(parseFloat(matching[0][mo])||0)+perMonth});
+  budgetScenarioDirty=true;
+  const dir=delta>0?'Increased':'Decreased';
+  const amt=Math.abs(delta)>=1000000?`$${(Math.abs(delta)/1000000).toFixed(1)}m`:`$${(Math.abs(delta)/1000).toFixed(0)}k`;
+  const entry={id:Date.now(),cmd:`${dir.toLowerCase()} ${vendorName} spend by ${amt}`,scopedCmd:`${dir.toLowerCase()} ${vendorName} spend by ${amt}`,msg:`${dir} ${vendorName} spend by ${amt}.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
+  scenActionHistory.push(entry);
+  document.getElementById('scenBudgetApply').style.display='inline-block';
+  renderScenActionHistory();renderBudgetScenarioChart();renderScenarioPnlSummary();updateDetailOutBtn();
+  renderVendorDetailList();
   initForecastScenario();renderFcScenarioChart();
 }
 
@@ -7817,7 +7945,7 @@ function toggleFcDetailOut(){
   if(pane.style.display!=='none'){closeFcActionPane();return}
   const action=fcActionHistory.find(a=>a.id===fcSelectedActionId);
   if(!action)return;
-  fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+  fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
   fcSelectedYear=null;
   document.getElementById('fcYearBadge').style.display='none';
   pane.style.display='block';
@@ -7842,20 +7970,22 @@ function closeFcActionPane(){
   delete pane.dataset.refineCmd;
   delete pane.dataset.refineActionId;
   document.getElementById('fcDetailOut').classList.remove('active');
-  fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+  fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
   fcSelectedYear=null;
   document.getElementById('fcYearBadge').style.display='none';
 }
 
 function clearFcFilters(){
-  fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+  fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
   document.getElementById('fcEmpSearch').value='';
   populateFcPills();
 }
 
 function populateFcPills(){
   const products=[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort();
+  const categories=[...new Set(state.projects.map(p=>p.category).filter(Boolean))].sort();
   renderFcFilterPills('fcFilterProduct',products,'product');
+  renderFcFilterPills('fcFilterCategory',categories,'category');
   renderFcFilterPills('fcFilterFunction',FUNCTIONS,'function');
   renderFcFilterPills('fcFilterCountry',COUNTRIES,'country');
   filterFcEmpList();
@@ -7873,8 +8003,8 @@ function renderFcFilterPills(containerId,items,filterKey){
 function toggleFcFilter(key,value){
   if(fcFilterState[key].has(value))fcFilterState[key].delete(value);
   else fcFilterState[key].add(value);
-  const idMap={product:'fcFilterProduct',function:'fcFilterFunction',country:'fcFilterCountry'};
-  const items=key==='product'?[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort():key==='function'?FUNCTIONS:COUNTRIES;
+  const idMap={product:'fcFilterProduct',function:'fcFilterFunction',country:'fcFilterCountry',category:'fcFilterCategory'};
+  const items=key==='product'?[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort():key==='category'?[...new Set(state.projects.map(p=>p.category).filter(Boolean))].sort():key==='function'?FUNCTIONS:COUNTRIES;
   renderFcFilterPills(idMap[key],items,key);
   filterFcEmpList();
 }
@@ -7885,6 +8015,7 @@ function filterFcEmpList(){
   const fs=fcFilterState;
   let emps=forecastScenario.emps;
   if(fs.product.size>0)emps=emps.filter(e=>getEmpProducts(e).some(p=>fs.product.has(p)));
+  if(fs.category&&fs.category.size>0)emps=emps.filter(e=>getEmpCategories(e).some(c=>fs.category.has(c)));
   if(fs.function.size>0)emps=emps.filter(e=>fs.function.has(e.function));
   if(fs.country.size>0)emps=emps.filter(e=>fs.country.has(e.country));
   if(search)emps=emps.filter(e=>(e.name||'').toLowerCase().includes(search)||(e.function||'').toLowerCase().includes(search));
@@ -8097,6 +8228,8 @@ function initScenarioPane(){
         container.querySelectorAll('.cmd-group').forEach(g=>g.classList.remove('active'));
         tab.classList.add('active');
         container.querySelector('.cmd-group[data-cat="'+tab.dataset.cat+'"]').classList.add('active');
+        // Render vendor detail list when vendor tab is selected in budget
+        if(id==='budgetChatExamples'&&tab.dataset.cat==='vendor'){renderVendorDetailList()}
       });
     });
   });
@@ -8572,7 +8705,7 @@ function initVendorModule(){
     return a?a.code:'';
   }
 
-  const BLANK_BG='background:#fffde7';
+  const BLANK_BG='background:#e8e8e8;color:#888';
   let vendorAmtScale=1;
   function getScaleLabel(){return vendorAmtScale===1000?'K':vendorAmtScale===1000000?'M':'$'}
   function scaleVal(v){return vendorAmtScale===1?v:Math.round((v/vendorAmtScale)*100)/100}
