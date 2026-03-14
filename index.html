@@ -1748,6 +1748,16 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
+<div style="margin-bottom:8px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:2px;display:block">Month Range</label>
+<div id="vendorQaMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div>
+<div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div>
+<div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div>
+<div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<div id="vendorQaMonthRangeLabel" style="font-size:.65rem;color:var(--text-dim);margin-top:2px">All months (click or drag to select range)</div>
+</div>
 <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
 <div><label class="qa-step-label">Month</label>
 <select id="vendorQaMo" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
@@ -1919,6 +1929,16 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
+<div style="margin-bottom:8px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:2px;display:block">Month Range</label>
+<div id="teQaMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div>
+<div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div>
+<div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div>
+<div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<div id="teQaMonthRangeLabel" style="font-size:.65rem;color:var(--text-dim);margin-top:2px">All months (click or drag to select range)</div>
+</div>
 <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
 <div><label class="qa-step-label">Month</label>
 <select id="teQaMo" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
@@ -12336,18 +12356,28 @@ function initVendorModule(){
   document.getElementById('contractorQaMo').addEventListener('change',renderContractorQaList);
 
   // ── Vendor, T&E & Contractor Month Range Bars ──
+  // Top-level bars (above tables)
   const vendorMonthBar=createSpendMonthRangeBar('vendorMonthRangeBar','vendorMonthRangeLabel',vendorSelectedMonths,function(){
-    renderVendorGrid();refreshVendorPivot();renderVendorQaList();
+    vendorQaMonthBar.render();renderVendorGrid();refreshVendorPivot();renderVendorQaList();
   });
   const teMonthBar=createSpendMonthRangeBar('teMonthRangeBar','teMonthRangeLabel',teSelectedMonths,function(){
-    renderTeGrid();refreshTePivot();renderTeQaList();
+    teQaMonthBar.render();renderTeGrid();refreshTePivot();renderTeQaList();
   });
   const contractorMonthBar=createSpendMonthRangeBar('contractorMonthRangeBar','contractorMonthRangeLabel',contractorSelectedMonths,function(){
     renderContractorGrid();renderContractorQaList();
   });
+  // QA-embedded bars (inside quick-adjust panels) — share the same selectedMonths sets
+  const vendorQaMonthBar=createSpendMonthRangeBar('vendorQaMonthRangeBar','vendorQaMonthRangeLabel',vendorSelectedMonths,function(){
+    vendorMonthBar.render();renderVendorGrid();refreshVendorPivot();renderVendorQaList();
+  });
+  const teQaMonthBar=createSpendMonthRangeBar('teQaMonthRangeBar','teQaMonthRangeLabel',teSelectedMonths,function(){
+    teMonthBar.render();renderTeGrid();refreshTePivot();renderTeQaList();
+  });
   vendorMonthBar.init();
   teMonthBar.init();
   contractorMonthBar.init();
+  vendorQaMonthBar.init();
+  teQaMonthBar.init();
 
   // Initial render
   renderVendorGrid();
