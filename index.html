@@ -7930,10 +7930,12 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
     {id:'ptVUsBllmsE',label:'Scene 8'}
   ];
 
+  const AD_WAIT_MS=35000; // ms to show thumbnail overlay (hides pre-roll ads)
   let funState=-1; // -1=off, 0..N-1=video index
   let funWrap=null;
   let isFullscreen=false;
   let savedOpacity=parseFloat(localStorage.getItem('funOpacity'))||1;
+  let adTimer=null;
 
   const isDark=()=>document.documentElement.classList.contains('dark');
   const dimC=()=>isDark()?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)';
@@ -7957,6 +7959,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
   function showVideo(idx){
     const v=FUN_VIDEOS[idx];
     // Remove old
+    if(adTimer){clearTimeout(adTimer);adTimer=null;}
     if(funWrap){funWrap.remove();funWrap=null;}
     isFullscreen=false;
 
@@ -8005,6 +8008,25 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
     lbl.textContent=v.label;
     lbl.style.cssText='position:absolute;bottom:6px;left:8px;font-size:.6rem;color:rgba(255,255,255,.7);text-shadow:0 1px 3px rgba(0,0,0,.6);pointer-events:none;z-index:2;letter-spacing:.3px';
     funWrap.appendChild(lbl);
+
+    // Thumbnail overlay to hide pre-roll ads
+    const overlay=document.createElement('img');
+    overlay.src=`https://img.youtube.com/vi/${v.id}/maxresdefault.jpg`;
+    overlay.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;transition:opacity 1.5s ease;cursor:pointer;border-radius:12px;pointer-events:auto';
+    const skipHint=document.createElement('div');
+    skipHint.textContent='click to skip';
+    skipHint.style.cssText='position:absolute;bottom:8px;right:8px;font-size:.55rem;color:rgba(255,255,255,.6);text-shadow:0 1px 3px rgba(0,0,0,.5);z-index:2;pointer-events:none;letter-spacing:.3px;transition:opacity 1.5s ease';
+    funWrap.appendChild(overlay);
+    funWrap.appendChild(skipHint);
+
+    function dismissOverlay(){
+      if(adTimer){clearTimeout(adTimer);adTimer=null;}
+      overlay.style.opacity='0';
+      skipHint.style.opacity='0';
+      setTimeout(()=>{overlay.remove();skipHint.remove();},1500);
+    }
+    overlay.addEventListener('click',dismissOverlay);
+    adTimer=setTimeout(dismissOverlay,AD_WAIT_MS);
 
     document.body.appendChild(funWrap);
   }
