@@ -453,6 +453,8 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .sticky-note-panel .sn-toolbar button:hover{background:rgba(139,32,32,.1)}
 .sticky-note-panel .sn-toolbar select{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:2px 4px;border-radius:4px;font-size:.72rem}
 .sticky-note-panel .sn-body{flex:1;overflow-y:auto;padding:12px 14px;min-height:200px;max-height:50vh;outline:none;font-size:.88rem;line-height:1.6;color:var(--text)}
+.sn-color-swatch{width:16px;height:16px;border-radius:3px;border:1px solid rgba(0,0,0,.15);cursor:pointer;transition:transform .15s}
+.sn-color-swatch:hover{transform:scale(1.2);border-color:rgba(0,0,0,.3)}
 .sticky-note-panel .sn-body:empty::before{content:'';display:inline-block;width:2px;height:1.1em;background:var(--accent);vertical-align:text-bottom;animation:snCursorBounce 1s ease-in-out infinite}
 @keyframes snCursorBounce{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.3;transform:translateY(-3px)}}
 /* Session modal */
@@ -583,6 +585,9 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="justifyLeft" title="Left">&#8676;</button>
 <button data-cmd="justifyCenter" title="Center">&#8596;</button>
 <button data-cmd="removeFormat" title="Clear formatting">&#10006;</button>
+<span style="width:1px;background:var(--border);margin:0 4px"></span>
+<span class="sn-color-group" id="snTextColors" title="Text color" style="display:inline-flex;gap:2px;align-items:center"><span style="font-size:.65rem;color:var(--text-dim);margin-right:1px">A</span></span>
+<span class="sn-color-group" id="snHighlightColors" title="Highlight" style="display:inline-flex;gap:2px;align-items:center"><span style="font-size:.65rem;color:var(--text-dim);margin-right:1px">&#9618;</span></span>
 </div>
 <div class="sn-body" id="stickyNoteBody" contenteditable="true"></div>
 </div>
@@ -5551,6 +5556,7 @@ function setDarkMode(on){
   toggleDark.checked=on;
   landingToggleDark.checked=on;
   renderForecast();renderExecView();renderDashboard();renderLandingCharts();
+  colorSchemeCallbacks.forEach(fn=>fn());
 }
 toggleDark.addEventListener('change',()=>setDarkMode(toggleDark.checked));
 landingToggleDark.addEventListener('change',()=>setDarkMode(landingToggleDark.checked));
@@ -5577,12 +5583,14 @@ function syncColorSchemeSliders(idx){
   colorSchemeSlider.value=idx;colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
   landingColorSchemeSlider.value=idx;landingColorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
 }
+const colorSchemeCallbacks=[];
 function onColorSchemeChange(v){
   chartColorScheme=COLOR_SCHEME_KEYS[v];
   syncColorSchemeSliders(v);
   localStorage.setItem('compPlanColorScheme',chartColorScheme);
   applyColorSchemeClass();
   renderAll();renderLandingCharts();
+  colorSchemeCallbacks.forEach(fn=>fn());
 }
 colorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(colorSchemeSlider.value)));
 landingColorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(landingColorSchemeSlider.value)));
@@ -9360,6 +9368,57 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
       body.focus();saveNote();
     });
   });
+
+  // Color swatches — adapt to color scheme
+  function getSnColors(){
+    const cc=getChartColors();
+    // Take first 5 chart colors + a neutral reset
+    return cc.slice(0,5);
+  }
+  function getSnHighlights(){
+    const cc=getChartColors();
+    return cc.slice(0,5).map(c=>hexToRgba(c,0.22));
+  }
+  function renderSnColorSwatches(){
+    const textGroup=document.getElementById('snTextColors');
+    const hlGroup=document.getElementById('snHighlightColors');
+    // Keep the label spans
+    const tLabel=textGroup.querySelector('span');
+    const hLabel=hlGroup.querySelector('span');
+    textGroup.innerHTML='';hlGroup.innerHTML='';
+    textGroup.appendChild(tLabel);hlGroup.appendChild(hLabel);
+    // Text colors: reset (black/white) + scheme colors
+    const isDark=document.documentElement.classList.contains('dark');
+    const resetColor=isDark?'#ffffff':'#333333';
+    const resetSwatch=document.createElement('span');
+    resetSwatch.className='sn-color-swatch';
+    resetSwatch.style.background=resetColor;
+    resetSwatch.title='Default';
+    resetSwatch.addEventListener('click',()=>{document.execCommand('foreColor',false,resetColor);body.focus();saveNote()});
+    textGroup.appendChild(resetSwatch);
+    getSnColors().forEach(c=>{
+      const s=document.createElement('span');
+      s.className='sn-color-swatch';s.style.background=c;s.title=c;
+      s.addEventListener('click',()=>{document.execCommand('foreColor',false,c);body.focus();saveNote()});
+      textGroup.appendChild(s);
+    });
+    // Highlight colors: clear + scheme tints
+    const clearSwatch=document.createElement('span');
+    clearSwatch.className='sn-color-swatch';
+    clearSwatch.style.background='transparent';clearSwatch.style.border='1px dashed var(--border)';
+    clearSwatch.title='Clear highlight';
+    clearSwatch.addEventListener('click',()=>{document.execCommand('hiliteColor',false,'transparent');body.focus();saveNote()});
+    hlGroup.appendChild(clearSwatch);
+    getSnHighlights().forEach((c,i)=>{
+      const s=document.createElement('span');
+      s.className='sn-color-swatch';s.style.background=c;s.title='Highlight';
+      s.addEventListener('click',()=>{document.execCommand('hiliteColor',false,c);body.focus();saveNote()});
+      hlGroup.appendChild(s);
+    });
+  }
+  renderSnColorSwatches();
+  // Re-render swatches when color scheme changes
+  if(typeof colorSchemeCallbacks!=='undefined')colorSchemeCallbacks.push(renderSnColorSwatches);
 
   body.addEventListener('input',saveNote);
   body.addEventListener('blur',saveNote);
