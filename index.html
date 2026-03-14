@@ -585,6 +585,12 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+<div class="toggle-group" id="landingChartViewToggle" style="font-size:.72rem">
+<button class="btn active" data-lcview="pnl" style="padding:2px 10px;font-size:.72rem">P&amp;L</button>
+<button class="btn" data-lcview="total" style="padding:2px 10px;font-size:.72rem">Total Inv</button>
+</div>
+</div>
 <div class="landing-charts">
 <div class="landing-chart-card">
 <div class="landing-chart-title">Monthly Budget</div>
@@ -8475,7 +8481,12 @@ function renderPnlWalk(){
   }
 }
 
-let landingBudgetChartInst=null,landingForecastChartInst=null;
+let landingBudgetChartInst=null,landingForecastChartInst=null,landingChartView='pnl';
+
+document.querySelectorAll('#landingChartViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#landingChartViewToggle .btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');landingChartView=b.dataset.lcview;renderLandingCharts();
+}));
 
 function renderLandingCharts(){
   if(typeof Chart==='undefined')return;
@@ -8486,6 +8497,8 @@ function renderLandingCharts(){
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const split=pnlSplit;
   const useSplit=split!=='total'&&split!=='month'&&split!=='quarter';
+  const isPnl=landingChartView==='pnl';
+  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+'$'+(a>=1e6?(a/1e6).toFixed(1)+'M':(a/1000).toFixed(0)+'K')};
 
   // ── Monthly Budget Chart ──
   if(landingBudgetChartInst)landingBudgetChartInst.destroy();
@@ -8494,17 +8507,31 @@ function renderLandingCharts(){
     const groups={};
     emps.forEach(e=>{const key=getPnlSplitKey(e,split);if(!groups[key])groups[key]=[];groups[key].push(e)});
     Object.keys(groups).sort().forEach((g,gi)=>{
-      const data=MO_SHORT.map((_,mi)=>groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0));
-      budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data,backgroundColor:CHART_COLORS[gi%CHART_COLORS.length]});
+      if(isPnl){
+        const opex=MO_SHORT.map((_,mi)=>{const c=groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=groups[g].reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
+        const capex=MO_SHORT.map((_,mi)=>-groups[g].reduce((s,e)=>s+getMonthlyCapEx(e,mi),0));
+        budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:opex,backgroundColor:CHART_COLORS[gi%CHART_COLORS.length],stack:'pos'});
+        if(capex.some(v=>v<0))budgetDS.push({label:g+' (CapEx)',data:capex,backgroundColor:hexToRgba(CHART_COLORS[gi%CHART_COLORS.length],0.35),stack:'neg'});
+      } else {
+        const data=MO_SHORT.map((_,mi)=>groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0));
+        budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data,backgroundColor:CHART_COLORS[gi%CHART_COLORS.length]});
+      }
     });
   } else {
-    const data=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
-    budgetDS.push({label:'Total Comp',data,backgroundColor:isDark?'#d4524d':'#8b2020'});
+    if(isPnl){
+      const opex=MO_SHORT.map((_,mi)=>{const c=emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
+      const capex=MO_SHORT.map((_,mi)=>-emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0));
+      budgetDS.push({label:'OpEx',data:opex,backgroundColor:isDark?'#4a9d54':'#3a7d44',stack:'pos'});
+      budgetDS.push({label:'CapEx',data:capex,backgroundColor:isDark?'#d4524d':'#8b2020',stack:'neg'});
+    } else {
+      const data=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
+      budgetDS.push({label:'Total Comp',data,backgroundColor:isDark?'#d4524d':'#8b2020'});
+    }
   }
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9}}},datalabels:{display:false}},
-      scales:{x:{stacked:useSplit,ticks:{color:tickColor,font:{size:9}},grid:{display:false}},y:{stacked:useSplit,beginAtZero:true,ticks:{color:tickColor,font:{size:9},callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')||!useSplit}},datalabels:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
   // ── Long-Term Forecast Chart ──
@@ -8517,17 +8544,26 @@ function renderLandingCharts(){
     const gNames=Object.keys(groups).sort();
     gNames.forEach((g,gi)=>{
       const rows=projectForecast(groups[g],g);
-      fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.total),backgroundColor:CHART_COLORS[gi%CHART_COLORS.length]});
+      if(isPnl){
+        fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.opex),backgroundColor:CHART_COLORS[gi%CHART_COLORS.length],stack:'pos'});
+        if(rows.some(r=>r.capex>0))fcDS.push({label:g+' (CapEx)',data:rows.map(r=>-r.capex),backgroundColor:hexToRgba(CHART_COLORS[gi%CHART_COLORS.length],0.35),stack:'neg'});
+      } else {
+        fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.total),backgroundColor:CHART_COLORS[gi%CHART_COLORS.length]});
+      }
     });
   } else {
     const rows=projectForecast(emps);
-    fcDS.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:isDark?'#4a9d54':'#3a7d44'});
-    fcDS.push({label:'CapEx',data:rows.map(r=>r.capex),backgroundColor:isDark?'#d4524d':'#8b2020'});
+    if(isPnl){
+      fcDS.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:isDark?'#4a9d54':'#3a7d44',stack:'pos'});
+      fcDS.push({label:'CapEx',data:rows.map(r=>-r.capex),backgroundColor:isDark?'#d4524d':'#8b2020',stack:'neg'});
+    } else {
+      fcDS.push({label:'Total Investment',data:rows.map(r=>r.total),backgroundColor:isDark?'#d4524d':'#8b2020'});
+    }
   }
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9}}},datalabels:{display:false}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{display:false}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:9},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')||!useSplit}},datalabels:{display:false}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9},callback:fmtTick},grid:{color:gridColor}}}}
   });
 }
 
