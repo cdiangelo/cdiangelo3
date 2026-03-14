@@ -8144,8 +8144,8 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
 
     // Opacity slider
     const slider=document.createElement('input');
-    slider.type='range';slider.min='0.15';slider.max='1';slider.step='0.05';slider.value=savedOpacity;
-    slider.style.cssText='width:50px;height:3px;cursor:pointer;accent-color:#fff';
+    slider.type='range';slider.min='0.05';slider.max='1';slider.step='0.01';slider.value=savedOpacity;
+    slider.style.cssText='width:80px;height:3px;cursor:pointer;accent-color:#fff';
     slider.addEventListener('input',()=>{
       savedOpacity=parseFloat(slider.value);
       iframe.style.opacity=savedOpacity;
