@@ -995,7 +995,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="form-group"><label>Product</label><select id="dashProduct"><option value="">All Products</option></select></div>
 <div class="form-group"><label>Project Code</label><select id="dashProject"><option value="">All Projects</option></select></div>
 </div>
-<div class="card"><div class="chart-container"><canvas id="dashChart"></canvas></div>
+<div class="card"><div class="chart-container" style="height:280px;margin-bottom:8px"><canvas id="dashChart"></canvas></div>
 <button class="btn btn-sm" id="dashCompBreakdownToggle" style="margin:8px 0 0 8px;font-size:.76rem">&#9654; Base / Bonus / Benefits</button>
 <div id="dashCompBreakdown" style="display:none;padding:0 8px 8px">
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
@@ -1005,7 +1005,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </div>
-<div class="card" style="margin-top:12px"><div style="height:120px;position:relative"><canvas id="fteChart"></canvas></div></div>
+<div class="card" style="margin-top:8px"><div style="height:160px;position:relative"><canvas id="fteChart"></canvas></div></div>
 </div>
 
 <!-- EXEC VIEW -->
@@ -2243,7 +2243,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div style="display:flex;gap:4px;margin-bottom:8px">
 <input id="dataPanelWsSaveName" placeholder="Workspace name..." style="flex:1;padding:4px 8px;font-size:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--text)">
 <button class="btn btn-primary" id="dataPanelWsSave">Save As</button>
-<button class="btn btn-success" id="dataPanelWsQuickSave">Quick Save</button>
 </div>
 <div id="dataPanelWsList" class="card-inset" style="max-height:200px;overflow-y:auto"></div>
 </div>
@@ -9372,10 +9371,7 @@ function initDataPanel(){
     renderDataPanelWsList();renderWorkspaceList();
   });
   // Workspace: Quick Save
-  document.getElementById('dataPanelWsQuickSave').addEventListener('click',()=>{
-    saveWorkspaceAs(currentWorkspaceName);
-    renderDataPanelWsList();renderWorkspaceList();
-  });
+
 
   // Employee Roster: Download Template (reuse existing handler logic)
   document.getElementById('dataPanelDlRoster').addEventListener('click',()=>{
