@@ -1335,6 +1335,77 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- Vendor Spend Grid Tab -->
 <div id="vtab-vendor-grid" class="vtab-content" style="display:block">
+<!-- Vendor Spend Analysis — pivot + chart -->
+<div class="card" id="vendorTopSpendCard" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+<h3 class="section-title" style="margin:0">Vendor Spend Analysis</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<label style="font-size:.75rem;color:var(--text-dim)">Rows:</label>
+<select id="vPivotRowDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
+<option value="vendorType">Vendor Type</option>
+<option value="parentCo">Parent Co</option>
+<option value="businessUnit">Business Unit</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+<option value="vendorName">Vendor Name</option>
+</select>
+<label style="font-size:.75rem;color:var(--text-dim)">Columns:</label>
+<select id="vPivotColDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
+<option value="businessUnit">Business Unit</option>
+<option value="vendorType">Vendor Type</option>
+<option value="parentCo">Parent Co</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+<option value="vendorName">Vendor Name</option>
+</select>
+<button class="btn btn-primary" id="vPivotRefresh" style="padding:4px 12px;font-size:.78rem">Refresh</button>
+</div>
+</div>
+<!-- Filter bar: dollar band, vendor multi-select, notes search -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px;padding:8px 10px;background:var(--panel-inset);border-radius:6px">
+<div style="flex:0 0 auto">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Spend Range (Full Year)</label>
+<div style="display:flex;gap:3px;flex-wrap:wrap" id="vBandGroup">
+<button class="scen-pill active" data-band="all" onclick="toggleVBand(this)">All</button>
+<button class="scen-pill" data-band="0-50000" onclick="toggleVBand(this)">$0 – $50K</button>
+<button class="scen-pill" data-band="50000-100000" onclick="toggleVBand(this)">$50K – $100K</button>
+<button class="scen-pill" data-band="100000-500000" onclick="toggleVBand(this)">$100K – $500K</button>
+<button class="scen-pill" data-band="500000-1000000" onclick="toggleVBand(this)">$500K – $1M</button>
+<button class="scen-pill" data-band="1000000-" onclick="toggleVBand(this)">$1M+</button>
+</div>
+</div>
+<div style="flex:1;min-width:180px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Vendors</label>
+<input id="vPivotVendorSearch" type="text" placeholder="Search vendors..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;margin-bottom:3px;box-sizing:border-box">
+<div id="vPivotVendorPills" class="scen-pill-group" style="max-height:60px;overflow-y:auto"></div>
+</div>
+<div style="flex:0 0 160px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Notes Search</label>
+<input id="vPivotNotesSearch" type="text" placeholder="Filter by notes..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;box-sizing:border-box">
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div style="overflow:auto;max-height:500px;position:relative" id="vPivotWrap">
+<table class="comp-table" id="vPivotTable" style="font-size:.78rem">
+<thead id="vPivotThead"></thead>
+<tbody id="vPivotTbody"></tbody>
+</table>
+</div>
+<div style="position:relative;min-height:320px">
+<canvas id="vPivotChart"></canvas>
+</div>
+</div>
+<div id="vPivotAdjBar" class="pivot-adj-bar" style="display:none">
+<span style="font-weight:600">Adjust selected:</span>
+<label>Cut by</label><input type="number" id="vPivotAdjPct" value="10" min="1" max="100" style="width:60px">%
+<button class="btn btn-primary" id="vPivotAdjApply" style="padding:3px 12px;font-size:.78rem">Apply</button>
+<button class="btn" id="vPivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
+</div>
+<div id="vPivotImpact" style="display:none"></div>
+</div>
+<!-- Vendor Spend Detail grid -->
 <div class="card" style="margin-bottom:12px">
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
 <h3 class="section-title" style="margin:0">Vendor Spend Detail</h3>
@@ -1377,63 +1448,79 @@ Template Mode &mdash; changes saved in this browser only.
 </table>
 </div>
 </div>
-<!-- Top Spend Analysis — Vendor -->
-<div class="card" id="vendorTopSpendCard" style="margin-bottom:12px">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-<h3 class="section-title" style="margin:0">Top Vendor Spend Analysis</h3>
-<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<label style="font-size:.75rem;color:var(--text-dim)">Rows:</label>
-<select id="vPivotRowDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
-<option value="vendorType">Vendor Type</option>
-<option value="parentCo">Parent Co</option>
-<option value="businessUnit">Business Unit</option>
-<option value="bizLine">Bus. Line</option>
-<option value="market">Market</option>
-<option value="acctDesc">Account</option>
-<option value="vendorName">Vendor Name</option>
-</select>
-<label style="font-size:.75rem;color:var(--text-dim)">Columns:</label>
-<select id="vPivotColDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
-<option value="businessUnit">Business Unit</option>
-<option value="vendorType">Vendor Type</option>
-<option value="parentCo">Parent Co</option>
-<option value="bizLine">Bus. Line</option>
-<option value="market">Market</option>
-<option value="acctDesc">Account</option>
-<option value="vendorName">Vendor Name</option>
-</select>
-<label style="font-size:.75rem;color:var(--text-dim)">Top %:</label>
-<select id="vPivotPct" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
-<option value="20">20%</option>
-<option value="25" selected>25%</option>
-<option value="30">30%</option>
-</select>
-<button class="btn btn-primary" id="vPivotRefresh" style="padding:4px 12px;font-size:.78rem">Refresh</button>
-</div>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-<div style="overflow:auto;max-height:500px;position:relative" id="vPivotWrap">
-<table class="comp-table" id="vPivotTable" style="font-size:.78rem">
-<thead id="vPivotThead"></thead>
-<tbody id="vPivotTbody"></tbody>
-</table>
-</div>
-<div style="position:relative;min-height:320px">
-<canvas id="vPivotChart"></canvas>
-</div>
-</div>
-<div id="vPivotAdjBar" class="pivot-adj-bar" style="display:none">
-<span style="font-weight:600">Adjust selected:</span>
-<label>Cut by</label><input type="number" id="vPivotAdjPct" value="10" min="1" max="100" style="width:60px">%
-<button class="btn btn-primary" id="vPivotAdjApply" style="padding:3px 12px;font-size:.78rem">Apply</button>
-<button class="btn" id="vPivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
-</div>
-<div id="vPivotImpact" style="display:none"></div>
-</div>
 </div>
 
 <!-- T&E Tab -->
 <div id="vtab-vendor-te" class="vtab-content" style="display:none">
+<!-- T&E Spend Analysis — pivot + chart -->
+<div class="card" id="teTopSpendCard" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+<h3 class="section-title" style="margin:0">T&amp;E Spend Analysis</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<label style="font-size:.75rem;color:var(--text-dim)">Rows:</label>
+<select id="tePivotRowDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
+<option value="expenseType">Expense Type</option>
+<option value="businessUnit">Business Unit</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+<option value="description">Description</option>
+</select>
+<label style="font-size:.75rem;color:var(--text-dim)">Columns:</label>
+<select id="tePivotColDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
+<option value="businessUnit">Business Unit</option>
+<option value="expenseType">Expense Type</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+<option value="description">Description</option>
+</select>
+<button class="btn btn-primary" id="tePivotRefresh" style="padding:4px 12px;font-size:.78rem">Refresh</button>
+</div>
+</div>
+<!-- Filter bar: dollar band, description multi-select, notes search -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px;padding:8px 10px;background:var(--panel-inset);border-radius:6px">
+<div style="flex:0 0 auto">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Spend Range (Full Year)</label>
+<div style="display:flex;gap:3px;flex-wrap:wrap" id="teBandGroup">
+<button class="scen-pill active" data-band="all" onclick="toggleTeBand(this)">All</button>
+<button class="scen-pill" data-band="0-10000" onclick="toggleTeBand(this)">$0 – $10K</button>
+<button class="scen-pill" data-band="10000-50000" onclick="toggleTeBand(this)">$10K – $50K</button>
+<button class="scen-pill" data-band="50000-100000" onclick="toggleTeBand(this)">$50K – $100K</button>
+<button class="scen-pill" data-band="100000-500000" onclick="toggleTeBand(this)">$100K – $500K</button>
+<button class="scen-pill" data-band="500000-" onclick="toggleTeBand(this)">$500K+</button>
+</div>
+</div>
+<div style="flex:1;min-width:180px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Descriptions</label>
+<input id="tePivotDescSearch" type="text" placeholder="Search descriptions..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;margin-bottom:3px;box-sizing:border-box">
+<div id="tePivotDescPills" class="scen-pill-group" style="max-height:60px;overflow-y:auto"></div>
+</div>
+<div style="flex:0 0 160px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Notes Search</label>
+<input id="tePivotNotesSearch" type="text" placeholder="Filter by notes..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;box-sizing:border-box">
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div style="overflow:auto;max-height:500px;position:relative" id="tePivotWrap">
+<table class="comp-table" id="tePivotTable" style="font-size:.78rem">
+<thead id="tePivotThead"></thead>
+<tbody id="tePivotTbody"></tbody>
+</table>
+</div>
+<div style="position:relative;min-height:320px">
+<canvas id="tePivotChart"></canvas>
+</div>
+</div>
+<div id="tePivotAdjBar" class="pivot-adj-bar" style="display:none">
+<span style="font-weight:600">Adjust selected:</span>
+<label>Cut by</label><input type="number" id="tePivotAdjPct" value="10" min="1" max="100" style="width:60px">%
+<button class="btn btn-primary" id="tePivotAdjApply" style="padding:3px 12px;font-size:.78rem">Apply</button>
+<button class="btn" id="tePivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
+</div>
+<div id="tePivotImpact" style="display:none"></div>
+</div>
+<!-- T&E Detail grid -->
 <div class="card" style="margin-bottom:12px">
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
 <h3 class="section-title" style="margin:0">Travel &amp; Entertainment</h3>
@@ -1472,57 +1559,6 @@ Template Mode &mdash; changes saved in this browser only.
 <tfoot id="teTfoot"></tfoot>
 </table>
 </div>
-</div>
-<!-- Top Spend Analysis — T&E -->
-<div class="card" id="teTopSpendCard" style="margin-bottom:12px">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-<h3 class="section-title" style="margin:0">Top T&amp;E Spend Analysis</h3>
-<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<label style="font-size:.75rem;color:var(--text-dim)">Rows:</label>
-<select id="tePivotRowDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
-<option value="expenseType">Expense Type</option>
-<option value="businessUnit">Business Unit</option>
-<option value="bizLine">Bus. Line</option>
-<option value="market">Market</option>
-<option value="acctDesc">Account</option>
-<option value="description">Description</option>
-</select>
-<label style="font-size:.75rem;color:var(--text-dim)">Columns:</label>
-<select id="tePivotColDim" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
-<option value="businessUnit">Business Unit</option>
-<option value="expenseType">Expense Type</option>
-<option value="bizLine">Bus. Line</option>
-<option value="market">Market</option>
-<option value="acctDesc">Account</option>
-<option value="description">Description</option>
-</select>
-<label style="font-size:.75rem;color:var(--text-dim)">Top %:</label>
-<select id="tePivotPct" style="padding:3px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px">
-<option value="20">20%</option>
-<option value="25" selected>25%</option>
-<option value="30">30%</option>
-</select>
-<button class="btn btn-primary" id="tePivotRefresh" style="padding:4px 12px;font-size:.78rem">Refresh</button>
-</div>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-<div style="overflow:auto;max-height:500px;position:relative" id="tePivotWrap">
-<table class="comp-table" id="tePivotTable" style="font-size:.78rem">
-<thead id="tePivotThead"></thead>
-<tbody id="tePivotTbody"></tbody>
-</table>
-</div>
-<div style="position:relative;min-height:320px">
-<canvas id="tePivotChart"></canvas>
-</div>
-</div>
-<div id="tePivotAdjBar" class="pivot-adj-bar" style="display:none">
-<span style="font-weight:600">Adjust selected:</span>
-<label>Cut by</label><input type="number" id="tePivotAdjPct" value="10" min="1" max="100" style="width:60px">%
-<button class="btn btn-primary" id="tePivotAdjApply" style="padding:3px 12px;font-size:.78rem">Apply</button>
-<button class="btn" id="tePivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
-</div>
-<div id="tePivotImpact" style="display:none"></div>
 </div>
 </div>
 
@@ -3080,12 +3116,17 @@ function renderDashboard(){
   const totalComp=emps.reduce((a,e)=>a+getProratedComp(e),0);
   const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
   const svc=getStatValueColor();
+  const vendorTETotal2=typeof getVendorOaoTotal==='function'?getVendorOaoTotal():0;
+  const compOpEx=totalComp-totalCapEx;
+  const totalAllOpEx2=compOpEx+vendorTETotal2;
   document.getElementById('dashStatCards').innerHTML=
     `<div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svc}">${emps.length}</div></div>`+
-    `<div class="stat-card"><div class="label">Avg Base Salary</div><div class="value" style="color:${svc}">${fmt(avgBase)}</div></div>`+
-    `<div class="stat-card"><div class="label">${CURRENT_YEAR} Total Comp</div><div class="value" style="color:${svc}">${fmt(totalComp)}</div></div>`+
-    `<div class="stat-card"><div class="label">${CURRENT_YEAR} Total CapEx</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>`+
-    `<div class="stat-card"><div class="label">Avg CapEx %</div><div class="value" style="color:${svc}">${avgCapPct}%</div></div>`;
+    `<div class="stat-card"><div class="label">Avg Base</div><div class="value" style="color:${svc}">${fmt(avgBase)}</div></div>`+
+    `<div class="stat-card"><div class="label">Total Comp</div><div class="value" style="color:${svc}">${fmt(totalComp)}</div></div>`+
+    `<div class="stat-card"><div class="label">Total CapEx</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>`+
+    `<div class="stat-card"><div class="label">Avg Cap %</div><div class="value" style="color:${svc}">${avgCapPct}%</div></div>`+
+    `<div class="stat-card"><div class="label">Vendor/T&E</div><div class="value" style="color:${svc}">${fmt(vendorTETotal2)}</div></div>`+
+    `<div class="stat-card"><div class="label">Total OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmt(totalAllOpEx2)}</div></div>`;
   const showPeriod=(groupBy==='month'||groupBy==='quarter');
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
@@ -9496,15 +9537,36 @@ function initVendorModule(){
   const MO_LABELS_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const PIVOT_COLORS=['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#65a30d','#ea580c','#4f46e5','#0d9488','#b91c1c','#7e22ce','#0284c7','#c2410c','#15803d'];
 
-  function buildPivot(rows, rowDim, colDim, topPct){
+  // ── Pivot filter state ──
+  let vPivotBand='all', tePivotBand='all';
+  let vPivotSelectedVendors=new Set(), tePivotSelectedDescs=new Set();
+
+  function parseBand(band){
+    if(!band||band==='all')return null;
+    const parts=band.split('-');
+    const lo=parseFloat(parts[0])||0;
+    const hi=parts[1]?parseFloat(parts[1]):Infinity;
+    return {lo,hi};
+  }
+
+  function buildPivot(rows, rowDim, colDim, filters){
+    const {band, selectedNames, nameField, notesSearch}=filters||{};
     // Compute full-year per row
-    const withFY=rows.map(r=>({...r, _fy:MO_KEYS.reduce((s,m)=>s+(parseFloat(r[m])||0),0)})).filter(r=>r._fy>0);
+    let withFY=rows.map(r=>({...r, _fy:MO_KEYS.reduce((s,m)=>s+(parseFloat(r[m])||0),0)})).filter(r=>r._fy>0);
+    // Apply dollar band filter
+    const bandRange=parseBand(band);
+    if(bandRange)withFY=withFY.filter(r=>r._fy>=bandRange.lo&&r._fy<bandRange.hi);
+    // Apply name multi-select filter (vendor name or description)
+    if(selectedNames&&selectedNames.size>0&&nameField){
+      withFY=withFY.filter(r=>selectedNames.has(r[nameField]||''));
+    }
+    // Apply notes text search
+    if(notesSearch){
+      const q=notesSearch.toLowerCase();
+      withFY=withFY.filter(r=>(r.notes||'').toLowerCase().includes(q));
+    }
     withFY.sort((a,b)=>b._fy-a._fy);
-    const totalSpend=withFY.reduce((s,r)=>s+r._fy,0);
-    const cutoff=totalSpend*(topPct/100);
-    let cumulative=0;
-    const topRows=[];
-    for(const r of withFY){cumulative+=r._fy;topRows.push(r);if(cumulative>=cutoff)break}
+    const topRows=withFY;
 
     // Build pivot data: rowDim values as rows, colDim values as columns
     const rowVals=[...new Set(topRows.map(r=>r[rowDim]||'(blank)'))];
@@ -9519,8 +9581,61 @@ function initVendorModule(){
       MO_KEYS.forEach((m,mi)=>{const v=parseFloat(r[m])||0;pivot[rv][cv].months[mi]+=v;pivot[rv][cv].total+=v});
     });
 
-    return {rowVals,colVals,pivot,topRows,totalSpend,topCount:topRows.length,allCount:withFY.length};
+    const totalSpend=topRows.reduce((s,r)=>s+r._fy,0);
+    return {rowVals,colVals,pivot,topRows,totalSpend,topCount:topRows.length,allCount:rows.length};
   }
+
+  // ── Vendor name pills ──
+  function renderVendorPills(){
+    const search=(document.getElementById('vPivotVendorSearch').value||'').toLowerCase();
+    const names=[...new Set((state.vendorRows||[]).map(r=>r.vendorName||'').filter(Boolean))].sort();
+    const filtered=search?names.filter(n=>n.toLowerCase().includes(search)):names;
+    const el=document.getElementById('vPivotVendorPills');
+    el.innerHTML=filtered.map(n=>{
+      const active=vPivotSelectedVendors.has(n)?'active':'';
+      return `<button class="scen-pill ${active}" data-vname="${esc(n)}">${esc(n)}</button>`;
+    }).join('')||'<span style="font-size:.7rem;color:var(--text-dim)">No vendors</span>';
+    el.querySelectorAll('.scen-pill').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const name=btn.dataset.vname;
+        if(vPivotSelectedVendors.has(name))vPivotSelectedVendors.delete(name);else vPivotSelectedVendors.add(name);
+        btn.classList.toggle('active',vPivotSelectedVendors.has(name));
+        refreshVendorPivot();
+      });
+    });
+  }
+
+  // ── T&E description pills ──
+  function renderTeDescPills(){
+    const search=(document.getElementById('tePivotDescSearch').value||'').toLowerCase();
+    const descs=[...new Set((state.teRows||[]).map(r=>r.description||'').filter(Boolean))].sort();
+    const filtered=search?descs.filter(d=>d.toLowerCase().includes(search)):descs;
+    const el=document.getElementById('tePivotDescPills');
+    el.innerHTML=filtered.map(d=>{
+      const active=tePivotSelectedDescs.has(d)?'active':'';
+      return `<button class="scen-pill ${active}" data-dname="${esc(d)}">${esc(d)}</button>`;
+    }).join('')||'<span style="font-size:.7rem;color:var(--text-dim)">No descriptions</span>';
+    el.querySelectorAll('.scen-pill').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const name=btn.dataset.dname;
+        if(tePivotSelectedDescs.has(name))tePivotSelectedDescs.delete(name);else tePivotSelectedDescs.add(name);
+        btn.classList.toggle('active',tePivotSelectedDescs.has(name));
+        refreshTePivot();
+      });
+    });
+  }
+
+  // ── Band toggle handlers (called from onclick in HTML) ──
+  window.toggleVBand=function(btn){
+    vPivotBand=btn.dataset.band;
+    document.querySelectorAll('#vBandGroup .scen-pill').forEach(b=>b.classList.toggle('active',b.dataset.band===vPivotBand));
+    refreshVendorPivot();
+  };
+  window.toggleTeBand=function(btn){
+    tePivotBand=btn.dataset.band;
+    document.querySelectorAll('#teBandGroup .scen-pill').forEach(b=>b.classList.toggle('active',b.dataset.band===tePivotBand));
+    refreshTePivot();
+  };
 
   function renderPivotTable(theadEl, tbodyEl, wrapEl, data, scaleFn){
     const {rowVals,colVals,pivot}=data;
@@ -9595,11 +9710,13 @@ function initVendorModule(){
   function refreshVendorPivot(){
     const rowDim=document.getElementById('vPivotRowDim').value;
     const colDim=document.getElementById('vPivotColDim').value;
-    const topPct=parseInt(document.getElementById('vPivotPct').value);
-    const data=buildPivot(state.vendorRows||[],rowDim,colDim,topPct);
+    const notesSearch=document.getElementById('vPivotNotesSearch').value.trim();
+    const filters={band:vPivotBand,selectedNames:vPivotSelectedVendors,nameField:'vendorName',notesSearch};
+    const data=buildPivot(state.vendorRows||[],rowDim,colDim,filters);
+    renderVendorPills();
     if(!data.topRows.length){
       document.getElementById('vPivotThead').innerHTML='';
-      document.getElementById('vPivotTbody').innerHTML='<tr><td style="padding:12px;color:var(--text-dim)">No vendor spend data</td></tr>';
+      document.getElementById('vPivotTbody').innerHTML='<tr><td style="padding:12px;color:var(--text-dim)">No vendor spend data matching filters</td></tr>';
       return;
     }
     renderPivotTable(document.getElementById('vPivotThead'),document.getElementById('vPivotTbody'),document.getElementById('vPivotWrap'),data,fmtScaled);
@@ -9609,11 +9726,13 @@ function initVendorModule(){
   function refreshTePivot(){
     const rowDim=document.getElementById('tePivotRowDim').value;
     const colDim=document.getElementById('tePivotColDim').value;
-    const topPct=parseInt(document.getElementById('tePivotPct').value);
-    const data=buildPivot(state.teRows||[],rowDim,colDim,topPct);
+    const notesSearch=document.getElementById('tePivotNotesSearch').value.trim();
+    const filters={band:tePivotBand,selectedNames:tePivotSelectedDescs,nameField:'description',notesSearch};
+    const data=buildPivot(state.teRows||[],rowDim,colDim,filters);
+    renderTeDescPills();
     if(!data.topRows.length){
       document.getElementById('tePivotThead').innerHTML='';
-      document.getElementById('tePivotTbody').innerHTML='<tr><td style="padding:12px;color:var(--text-dim)">No T&amp;E spend data</td></tr>';
+      document.getElementById('tePivotTbody').innerHTML='<tr><td style="padding:12px;color:var(--text-dim)">No T&amp;E spend data matching filters</td></tr>';
       return;
     }
     renderPivotTable(document.getElementById('tePivotThead'),document.getElementById('tePivotTbody'),document.getElementById('tePivotWrap'),data,fmtScaled);
@@ -9821,12 +9940,14 @@ function initVendorModule(){
   document.getElementById('vPivotRefresh').addEventListener('click',refreshVendorPivot);
   document.getElementById('vPivotRowDim').addEventListener('change',refreshVendorPivot);
   document.getElementById('vPivotColDim').addEventListener('change',refreshVendorPivot);
-  document.getElementById('vPivotPct').addEventListener('change',refreshVendorPivot);
+  document.getElementById('vPivotVendorSearch').addEventListener('input',renderVendorPills);
+  document.getElementById('vPivotNotesSearch').addEventListener('input',refreshVendorPivot);
 
   document.getElementById('tePivotRefresh').addEventListener('click',refreshTePivot);
   document.getElementById('tePivotRowDim').addEventListener('change',refreshTePivot);
   document.getElementById('tePivotColDim').addEventListener('change',refreshTePivot);
-  document.getElementById('tePivotPct').addEventListener('change',refreshTePivot);
+  document.getElementById('tePivotDescSearch').addEventListener('input',renderTeDescPills);
+  document.getElementById('tePivotNotesSearch').addEventListener('input',refreshTePivot);
 
   // Initial render
   renderVendorGrid();
