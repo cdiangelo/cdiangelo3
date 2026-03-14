@@ -358,11 +358,12 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .scen-status{padding:0;font-size:.78rem;color:var(--text);border-bottom:1px solid var(--border);max-height:140px;overflow-y:auto}
 .scen-status:empty{display:none}
 .scen-status .chat-delta{margin:0;padding:4px 8px;background:var(--panel-inset);border-radius:6px;font-size:.74rem;font-family:monospace;display:inline-block}
-.scen-history-entry{display:flex;align-items:flex-start;gap:8px;padding:5px 12px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s}
+.scen-history-entry{display:flex;align-items:center;gap:0;padding:4px 10px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s;border-left:2px solid transparent}
 .scen-history-entry:last-child{border-bottom:none}
 .scen-history-entry:hover{background:var(--panel-inset)}
-.scen-history-entry.selected{background:rgba(var(--accent-rgb,58,125,68),.08);border-left:2px solid var(--accent)}
-.scen-history-entry input[type=radio]{margin-top:3px;accent-color:var(--accent);cursor:pointer}
+.scen-history-entry.selected{border-left-color:var(--accent);background:rgba(var(--accent-rgb,58,125,68),.06)}
+.scen-history-entry .sel-dot{width:6px;height:6px;border-radius:50%;border:1px solid var(--border);margin-right:6px;flex-shrink:0;transition:all .15s}
+.scen-history-entry.selected .sel-dot{background:var(--accent);border-color:var(--accent)}
 .scen-history-entry .entry-content{flex:1;min-width:0}
 .scen-history-entry .entry-msg{font-size:.76rem;color:var(--text)}
 .scen-history-entry .entry-label{font-size:.65rem;font-weight:600;text-transform:uppercase;color:var(--accent);margin-right:4px}
@@ -6908,11 +6909,10 @@ function renderScenActionHistory(){
   const el=document.getElementById('budgetScenStatus');
   if(!scenActionHistory.length){el.innerHTML='';return}
   el.innerHTML=scenActionHistory.map(e=>{
-    const checked=scenSelectedActionId===e.id?'checked':'';
     const selCls=scenSelectedActionId===e.id?' selected':'';
     const label=e.isRefinement?'<span class="entry-label entry-refinement">Refinement Adj</span>':'';
     return `<div class="scen-history-entry${selCls}" onclick="selectScenAction(${e.id})">
-      <input type="radio" name="scenAction" ${checked} onclick="event.stopPropagation();selectScenAction(${e.id})">
+      <div class="sel-dot"></div>
       <div class="entry-content">
         <div class="entry-msg">${label}<span style="color:var(--success)">&#10003;</span> ${e.msg}</div>
         <div class="chat-delta">${e.delta}</div>
