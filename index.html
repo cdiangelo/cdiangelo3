@@ -1000,7 +1000,11 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="exec-pane" id="execFcPane">
 <h3 style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none" id="execFcHeader">
 <span id="execFcArrow" style="font-size:.7rem;display:inline-block;width:12px;color:var(--text-dim)">▶</span>
-Long Term Forecast
+Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--text-dim)"> — Total Investment</span>
+<span id="execFcMiniToggle" style="margin-left:auto;display:inline-flex;gap:2px;font-size:.68rem;font-weight:500">
+<button class="btn btn-sm active" data-efview-mini="total" style="padding:1px 7px;font-size:.68rem;border-radius:3px;line-height:1.4">Total</button>
+<button class="btn btn-sm" data-efview-mini="opex" style="padding:1px 7px;font-size:.68rem;border-radius:3px;line-height:1.4">OpEx</button>
+</span>
 </h3>
 <div id="execFcSparkWrap" style="height:72px;margin-bottom:8px;position:relative;z-index:1;overflow:visible"><canvas id="execFcSparkline"></canvas></div>
 <div id="execFcBody" style="display:none">
@@ -6791,7 +6795,23 @@ document.querySelectorAll('#execFcSplitToggle .btn').forEach(b=>b.addEventListen
   document.querySelectorAll('#execFcSplitToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcSplit=b.dataset.efsplit;renderExecView();
 }));
 document.querySelectorAll('#execFcViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('#execFcViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcView=b.dataset.efview;renderExecView();
+  document.querySelectorAll('#execFcViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcView=b.dataset.efview;syncExecFcViewState();renderExecView();
+}));
+function syncExecFcViewState(){
+  const label=execFcView==='opex'?' — C&B OpEx':' — Total Investment';
+  document.getElementById('execFcViewLabel').textContent=label;
+  // Sync mini toggle active state
+  document.querySelectorAll('#execFcMiniToggle .btn').forEach(x=>{x.classList.toggle('active',x.dataset.efviewMini===execFcView)});
+  // Sync full toggle active state
+  document.querySelectorAll('#execFcViewToggle .btn').forEach(x=>{x.classList.toggle('active',x.dataset.efview===execFcView)});
+}
+// Mini toggle in collapsed header
+document.querySelectorAll('#execFcMiniToggle .btn').forEach(b=>b.addEventListener('click',(e)=>{
+  e.stopPropagation();
+  execFcView=b.dataset.efviewMini;
+  syncExecFcViewState();
+  if(execFcCollapsed)renderExecFcSparkline();
+  else renderExecView();
 }));
 // Collapse/expand long term forecast
 document.getElementById('execFcHeader').addEventListener('click',()=>{
@@ -6799,6 +6819,7 @@ document.getElementById('execFcHeader').addEventListener('click',()=>{
   document.getElementById('execFcBody').style.display=execFcCollapsed?'none':'';
   document.getElementById('execFcSparkWrap').style.display=execFcCollapsed?'':'none';
   document.getElementById('execFcArrow').textContent=execFcCollapsed?'▶':'▼';
+  document.getElementById('execFcMiniToggle').style.display=execFcCollapsed?'inline-flex':'none';
   if(execFcCollapsed)renderExecFcSparkline();
   else renderExecView();
 });
