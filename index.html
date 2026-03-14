@@ -502,6 +502,15 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   .vendor-detail-list{overflow-x:hidden;max-width:100%}
   /* Hide sticky notepad on mobile */
   .sticky-note-btn,.sticky-note-panel{display:none!important}
+  /* Quick-Adjust panels mobile */
+  .qa-panel-header{padding:8px 10px}
+  .qa-panel-header h4{font-size:.82rem}
+  .qa-panel-body{padding:10px}
+  .qa-row-item{padding:5px 6px;gap:6px}
+  .qa-row-item .qa-row-name{min-width:80px;font-size:.76rem}
+  .qa-add-form{flex-direction:column;gap:8px}
+  .qa-add-form>div{width:100%}
+  .qa-add-form input,.qa-add-form select{width:100%!important;box-sizing:border-box}
   /* Prevent page-level horizontal scroll — applied to html to avoid clipping fixed elements */
   html{overflow-x:hidden}
 }
@@ -572,6 +581,37 @@ body.data-open .scenario-toggle-btn{left:50vw}
 body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptionsModal{padding-left:50vw;transition:padding-left .3s ease}
 .panel-close-btn{display:none;align-items:center;gap:4px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:10px}
 .panel-close-btn:hover{background:var(--border)}
+/* Quick-Adjust Panels (Vendor & T&E) */
+.qa-panel{background:var(--panel);border:1px solid var(--border-light);border-radius:10px;margin-bottom:12px;overflow:hidden;transition:max-height .3s ease}
+.qa-panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;background:var(--panel-inset);border-bottom:1px solid transparent}
+.qa-panel-header:hover{background:var(--border-light)}
+.qa-panel.open .qa-panel-header{border-bottom-color:var(--border)}
+.qa-panel-header h4{margin:0;font-size:.88rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.qa-panel-header .qa-arrow{font-size:.7rem;transition:transform .2s;color:var(--text-dim)}
+.qa-panel.open .qa-panel-header .qa-arrow{transform:rotate(90deg)}
+.qa-panel-body{display:none;padding:12px 14px}
+.qa-panel.open .qa-panel-body{display:block}
+.qa-row-list{max-height:340px;overflow-y:auto;margin-bottom:10px}
+.qa-row-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid var(--border-light);font-size:.8rem;flex-wrap:wrap}
+.qa-row-item:last-child{border-bottom:none}
+.qa-row-item .qa-row-name{flex:1;min-width:120px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qa-row-item .qa-row-fy{font-size:.78rem;color:var(--text-dim);min-width:80px;text-align:right;white-space:nowrap}
+.qa-mo-adj{display:flex;align-items:center;gap:3px}
+.qa-mo-adj select{padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)}
+.qa-mo-adj .qa-amt{width:80px;padding:3px 6px;font-size:.78rem;text-align:right;border:1px solid var(--border);border-radius:4px;background:var(--panel-inset);color:var(--text)}
+.qa-inc-btn,.qa-dec-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.qa-inc-btn{background:rgba(58,125,68,.1);color:#3a7d44;border-color:rgba(58,125,68,.3)}
+.qa-inc-btn:hover{background:rgba(58,125,68,.25)}
+.qa-dec-btn{background:rgba(220,38,38,.08);color:#dc2626;border-color:rgba(220,38,38,.25)}
+.qa-dec-btn:hover{background:rgba(220,38,38,.2)}
+.qa-add-form{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;padding:10px;background:var(--panel-inset);border-radius:8px;margin-top:8px}
+.qa-add-form input,.qa-add-form select{padding:4px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)}
+.qa-add-form label{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;display:block;margin-bottom:2px}
+.qa-history{margin-top:8px;max-height:120px;overflow-y:auto;font-size:.72rem}
+.qa-history-item{padding:3px 8px;color:var(--text-dim);border-left:2px solid var(--accent);margin-bottom:3px;background:var(--panel-inset);border-radius:0 4px 4px 0}
+.qa-step-label{font-size:.68rem;color:var(--text-dim);white-space:nowrap}
+.qa-total-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--panel-inset);border-radius:6px;margin-top:8px;font-size:.82rem;font-weight:600}
+.qa-total-bar .qa-total-amt{font-size:.92rem;color:var(--accent)}
 #forecastAssumptionsModal .modal{max-width:720px;width:95%;max-height:85vh}
 #forecastAssumptionsModal .modal-body{max-height:60vh;overflow-y:auto}
 #forecastAssumptionsModal .forecast-section{margin-bottom:8px;padding:8px 10px}
@@ -1683,6 +1723,45 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- Vendor Spend Grid Tab -->
 <div id="vtab-vendor-grid" class="vtab-content" style="display:block">
+
+<!-- Vendor Quick-Adjust Panel -->
+<div class="qa-panel" id="vendorQaPanel">
+<div class="qa-panel-header" id="vendorQaToggle">
+<h4><span style="color:#3a7d44">&#9654;</span> Quick Adjust — Vendor Spend <span class="qa-arrow">&#9654;</span></h4>
+<span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
+</div>
+<div class="qa-panel-body">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+<div><label class="qa-step-label">Month</label>
+<select id="vendorQaMo" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="all">All Months</option>
+<option value="jan">Jan</option><option value="feb">Feb</option><option value="mar">Mar</option>
+<option value="apr">Apr</option><option value="may">May</option><option value="jun">Jun</option>
+<option value="jul">Jul</option><option value="aug">Aug</option><option value="sep">Sep</option>
+<option value="oct">Oct</option><option value="nov">Nov</option><option value="dec">Dec</option>
+</select></div>
+<div><label class="qa-step-label">Increment</label>
+<select id="vendorQaStep" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="5000">$5K</option><option value="10000">$10K</option><option value="25000">$25K</option><option value="50000">$50K</option><option value="100000">$100K</option>
+</select></div>
+<div><label class="qa-step-label">Filter</label>
+<input id="vendorQaSearch" type="text" placeholder="Search vendors..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
+<button class="btn btn-sm" id="vendorQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+</div>
+<div class="qa-row-list" id="vendorQaList"></div>
+<div class="qa-total-bar"><span>Total Vendor Spend</span><span class="qa-total-amt" id="vendorQaTotal">$0</span></div>
+<!-- Add new vendor inline -->
+<div class="qa-add-form" id="vendorQaAddForm">
+<div><label>Vendor Name</label><input id="vendorQaNewName" placeholder="Vendor name..." style="width:140px"></div>
+<div><label>Type</label><select id="vendorQaNewType" style="width:130px"><option value="">—</option></select></div>
+<div><label>Business Unit</label><select id="vendorQaNewBU" style="width:110px"><option value="">—</option></select></div>
+<div><label>Account</label><select id="vendorQaNewAcct" style="width:140px"><option value="">—</option></select></div>
+<button class="btn btn-sm" style="background:rgba(58,125,68,.12);border-color:rgba(58,125,68,.3);color:#3a7d44;padding:4px 12px;font-size:.78rem" id="vendorQaAddBtn">+ Add Vendor</button>
+</div>
+<div class="qa-history" id="vendorQaHistory"></div>
+</div>
+</div>
+
 <!-- Vendor Spend Analysis — pivot + chart -->
 <div class="card" id="vendorTopSpendCard" style="margin-bottom:12px">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
@@ -1806,6 +1885,45 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- T&E Tab -->
 <div id="vtab-vendor-te" class="vtab-content" style="display:none">
+
+<!-- T&E Quick-Adjust Panel -->
+<div class="qa-panel" id="teQaPanel">
+<div class="qa-panel-header" id="teQaToggle">
+<h4><span style="color:#ea580c">&#9654;</span> Quick Adjust — T&amp;E Spend <span class="qa-arrow">&#9654;</span></h4>
+<span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
+</div>
+<div class="qa-panel-body">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+<div><label class="qa-step-label">Month</label>
+<select id="teQaMo" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="all">All Months</option>
+<option value="jan">Jan</option><option value="feb">Feb</option><option value="mar">Mar</option>
+<option value="apr">Apr</option><option value="may">May</option><option value="jun">Jun</option>
+<option value="jul">Jul</option><option value="aug">Aug</option><option value="sep">Sep</option>
+<option value="oct">Oct</option><option value="nov">Nov</option><option value="dec">Dec</option>
+</select></div>
+<div><label class="qa-step-label">Increment</label>
+<select id="teQaStep" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="5000">$5K</option><option value="10000">$10K</option><option value="25000">$25K</option><option value="50000">$50K</option><option value="100000">$100K</option>
+</select></div>
+<div><label class="qa-step-label">Filter</label>
+<input id="teQaSearch" type="text" placeholder="Search T&amp;E..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
+<button class="btn btn-sm" id="teQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+</div>
+<div class="qa-row-list" id="teQaList"></div>
+<div class="qa-total-bar"><span>Total T&amp;E Spend</span><span class="qa-total-amt" id="teQaTotal">$0</span></div>
+<!-- Add new T&E entry inline -->
+<div class="qa-add-form" id="teQaAddForm">
+<div><label>Expense Type</label><select id="teQaNewType" style="width:130px"><option value="">—</option></select></div>
+<div><label>Description</label><input id="teQaNewDesc" placeholder="Description..." style="width:140px"></div>
+<div><label>Business Unit</label><select id="teQaNewBU" style="width:110px"><option value="">—</option></select></div>
+<div><label>Account</label><select id="teQaNewAcct" style="width:140px"><option value="">—</option></select></div>
+<button class="btn btn-sm" style="background:rgba(234,88,12,.1);border-color:rgba(234,88,12,.3);color:#ea580c;padding:4px 12px;font-size:.78rem" id="teQaAddBtn">+ Add T&amp;E</button>
+</div>
+<div class="qa-history" id="teQaHistory"></div>
+</div>
+</div>
+
 <!-- T&E Spend Analysis — pivot + chart -->
 <div class="card" id="teTopSpendCard" style="margin-bottom:12px">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
@@ -11160,6 +11278,245 @@ function initVendorModule(){
   document.getElementById('tePivotColDim').addEventListener('change',refreshTePivot);
   document.getElementById('tePivotDescSearch').addEventListener('input',renderTeDescPills);
   document.getElementById('tePivotNotesSearch').addEventListener('input',refreshTePivot);
+
+  // ── Quick-Adjust Panels (Vendor & T&E) ──
+  const QA_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const QA_MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let vendorQaUndoStack=[], teQaUndoStack=[];
+  let vendorQaHistory=[], teQaHistory=[];
+
+  function qaFmt(v){
+    const abs=Math.abs(v);
+    if(abs>=1e6)return (v<0?'-':'')+'$'+((abs/1e6).toFixed(abs%1e6===0?0:1))+'M';
+    if(abs>=1e3)return (v<0?'-':'')+'$'+((abs/1e3).toFixed(abs%1e3===0?0:1))+'K';
+    return '$'+v.toLocaleString();
+  }
+
+  // Vendor QA: toggle panel open/close
+  document.getElementById('vendorQaToggle').addEventListener('click',()=>{
+    document.getElementById('vendorQaPanel').classList.toggle('open');
+    if(document.getElementById('vendorQaPanel').classList.contains('open'))renderVendorQaList();
+  });
+  // T&E QA: toggle panel
+  document.getElementById('teQaToggle').addEventListener('click',()=>{
+    document.getElementById('teQaPanel').classList.toggle('open');
+    if(document.getElementById('teQaPanel').classList.contains('open'))renderTeQaList();
+  });
+
+  // Populate add-form dropdowns
+  function populateVendorQaDropdowns(){
+    const vtSel=document.getElementById('vendorQaNewType');
+    vtSel.innerHTML='<option value="">—</option>'+VENDOR_TYPES.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    const buOpts=Object.values(COUNTRY_BU).filter((v,i,a)=>a.indexOf(v)===i);
+    const buSel=document.getElementById('vendorQaNewBU');
+    buSel.innerHTML='<option value="">—</option>'+buOpts.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    const acctSel=document.getElementById('vendorQaNewAcct');
+    acctSel.innerHTML='<option value="">—</option>'+state.accounts.filter(a=>(a.group||'vendor')==='vendor').map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
+  }
+  function populateTeQaDropdowns(){
+    const etSel=document.getElementById('teQaNewType');
+    etSel.innerHTML='<option value="">—</option>'+EXPENSE_TYPES.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    const buOpts=Object.values(COUNTRY_BU).filter((v,i,a)=>a.indexOf(v)===i);
+    const buSel=document.getElementById('teQaNewBU');
+    buSel.innerHTML='<option value="">—</option>'+buOpts.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    const acctSel=document.getElementById('teQaNewAcct');
+    acctSel.innerHTML='<option value="">—</option>'+state.accounts.filter(a=>(a.group||'vendor')==='te').map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
+  }
+
+  // Render vendor quick-adjust list
+  function renderVendorQaList(){
+    populateVendorQaDropdowns();
+    const search=(document.getElementById('vendorQaSearch').value||'').toLowerCase();
+    const moSel=document.getElementById('vendorQaMo').value;
+    const rows=state.vendorRows||[];
+    // Group by vendorName (aggregate rows with same name)
+    const grouped={};
+    rows.forEach((r,idx)=>{
+      const name=r.vendorName||'(unnamed)';
+      if(search&&!name.toLowerCase().includes(search)&&!(r.parentCo||'').toLowerCase().includes(search)&&!(r.vendorType||'').toLowerCase().includes(search))return;
+      if(!grouped[name])grouped[name]={indices:[],fy:0,moAmts:{}};
+      grouped[name].indices.push(idx);
+      QA_MO.forEach(m=>{
+        grouped[name].moAmts[m]=(grouped[name].moAmts[m]||0)+(parseFloat(r[m])||0);
+      });
+      grouped[name].fy+=QA_MO.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
+    });
+    const list=document.getElementById('vendorQaList');
+    const entries=Object.entries(grouped).sort((a,b)=>b[1].fy-a[1].fy);
+    if(!entries.length){list.innerHTML='<div style="padding:12px;color:var(--text-dim);font-size:.8rem;text-align:center">No vendors found</div>';updateVendorQaTotal();return}
+    let h='';
+    entries.forEach(([name,g])=>{
+      const displayAmt=moSel==='all'?g.fy:(g.moAmts[moSel]||0);
+      const moLabel=moSel==='all'?'FY':QA_MO_LABELS[QA_MO.indexOf(moSel)];
+      h+=`<div class="qa-row-item" data-qa-name="${esc(name)}">
+        <span class="qa-row-name" title="${esc(name)}">${esc(name)}</span>
+        <span class="qa-row-fy">${moLabel}: ${qaFmt(displayAmt)}</span>
+        <div class="qa-mo-adj">
+          <button class="qa-dec-btn" data-qa-name="${esc(name)}" data-dir="-1" title="Decrease">−</button>
+          <button class="qa-inc-btn" data-qa-name="${esc(name)}" data-dir="1" title="Increase">+</button>
+        </div>
+      </div>`;
+    });
+    list.innerHTML=h;
+    // Bind +/- buttons
+    list.querySelectorAll('.qa-inc-btn,.qa-dec-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const vName=btn.dataset.qaName;
+        const dir=parseInt(btn.dataset.dir);
+        const step=parseInt(document.getElementById('vendorQaStep').value)||5000;
+        if(step%5000!==0)return;
+        const mo=document.getElementById('vendorQaMo').value;
+        // Save undo
+        vendorQaUndoStack.push(JSON.parse(JSON.stringify(state.vendorRows)));
+        document.getElementById('vendorQaUndo').style.display='';
+        const g=grouped[vName];
+        if(!g)return;
+        const targetMos=mo==='all'?QA_MO:[mo];
+        // Distribute evenly across matching rows
+        const perRow=Math.round((step*dir)/g.indices.length);
+        g.indices.forEach(idx=>{
+          targetMos.forEach(m=>{
+            state.vendorRows[idx][m]=Math.round((parseFloat(state.vendorRows[idx][m])||0)+perRow);
+          });
+        });
+        const moLabel=mo==='all'?'all months':QA_MO_LABELS[QA_MO.indexOf(mo)];
+        vendorQaHistory.unshift(`${dir>0?'+':''}${qaFmt(step*dir)} → ${vName} (${moLabel})`);
+        if(vendorQaHistory.length>20)vendorQaHistory.pop();
+        saveState();renderVendorQaList();renderVendorGrid();refreshVendorPivot();renderPnlWalk();renderLandingCharts();
+      });
+    });
+    updateVendorQaTotal();
+    renderVendorQaHistoryList();
+  }
+  function updateVendorQaTotal(){
+    const total=(state.vendorRows||[]).reduce((s,r)=>s+QA_MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+    document.getElementById('vendorQaTotal').textContent=qaFmt(total);
+  }
+  function renderVendorQaHistoryList(){
+    const el=document.getElementById('vendorQaHistory');
+    el.innerHTML=vendorQaHistory.map(h=>`<div class="qa-history-item">${esc(h)}</div>`).join('');
+  }
+
+  // Vendor QA: undo
+  document.getElementById('vendorQaUndo').addEventListener('click',()=>{
+    if(!vendorQaUndoStack.length)return;
+    state.vendorRows=vendorQaUndoStack.pop();
+    if(vendorQaHistory.length)vendorQaHistory.shift();
+    if(!vendorQaUndoStack.length)document.getElementById('vendorQaUndo').style.display='none';
+    saveState();renderVendorQaList();renderVendorGrid();refreshVendorPivot();renderPnlWalk();renderLandingCharts();
+  });
+
+  // Vendor QA: add new vendor
+  document.getElementById('vendorQaAddBtn').addEventListener('click',()=>{
+    const name=document.getElementById('vendorQaNewName').value.trim();
+    if(!name){alert('Enter a vendor name');return}
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    const row={parentCo:'',vendorName:name,vendorType:document.getElementById('vendorQaNewType').value,businessUnit:document.getElementById('vendorQaNewBU').value,bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:document.getElementById('vendorQaNewAcct').value,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    state.vendorRows.push(row);
+    vendorQaHistory.unshift('Added: '+name);
+    document.getElementById('vendorQaNewName').value='';
+    saveState();renderVendorQaList();renderVendorGrid();refreshVendorPivot();
+  });
+
+  // Vendor QA: search filter
+  document.getElementById('vendorQaSearch').addEventListener('input',renderVendorQaList);
+  document.getElementById('vendorQaMo').addEventListener('change',renderVendorQaList);
+
+  // ── T&E Quick-Adjust ──
+  function renderTeQaList(){
+    populateTeQaDropdowns();
+    const search=(document.getElementById('teQaSearch').value||'').toLowerCase();
+    const moSel=document.getElementById('teQaMo').value;
+    const rows=state.teRows||[];
+    const grouped={};
+    rows.forEach((r,idx)=>{
+      const name=(r.expenseType?r.expenseType+': ':'')+(r.description||'(unnamed)');
+      if(search&&!name.toLowerCase().includes(search)&&!(r.expenseType||'').toLowerCase().includes(search))return;
+      if(!grouped[name])grouped[name]={indices:[],fy:0,moAmts:{}};
+      grouped[name].indices.push(idx);
+      QA_MO.forEach(m=>{
+        grouped[name].moAmts[m]=(grouped[name].moAmts[m]||0)+(parseFloat(r[m])||0);
+      });
+      grouped[name].fy+=QA_MO.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
+    });
+    const list=document.getElementById('teQaList');
+    const entries=Object.entries(grouped).sort((a,b)=>b[1].fy-a[1].fy);
+    if(!entries.length){list.innerHTML='<div style="padding:12px;color:var(--text-dim);font-size:.8rem;text-align:center">No T&amp;E entries found</div>';updateTeQaTotal();return}
+    let h='';
+    entries.forEach(([name,g])=>{
+      const displayAmt=moSel==='all'?g.fy:(g.moAmts[moSel]||0);
+      const moLabel=moSel==='all'?'FY':QA_MO_LABELS[QA_MO.indexOf(moSel)];
+      h+=`<div class="qa-row-item" data-qa-name="${esc(name)}">
+        <span class="qa-row-name" title="${esc(name)}">${esc(name)}</span>
+        <span class="qa-row-fy">${moLabel}: ${qaFmt(displayAmt)}</span>
+        <div class="qa-mo-adj">
+          <button class="qa-dec-btn" data-qa-name="${esc(name)}" data-dir="-1" title="Decrease">−</button>
+          <button class="qa-inc-btn" data-qa-name="${esc(name)}" data-dir="1" title="Increase">+</button>
+        </div>
+      </div>`;
+    });
+    list.innerHTML=h;
+    list.querySelectorAll('.qa-inc-btn,.qa-dec-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const vName=btn.dataset.qaName;
+        const dir=parseInt(btn.dataset.dir);
+        const step=parseInt(document.getElementById('teQaStep').value)||5000;
+        if(step%5000!==0)return;
+        const mo=document.getElementById('teQaMo').value;
+        teQaUndoStack.push(JSON.parse(JSON.stringify(state.teRows)));
+        document.getElementById('teQaUndo').style.display='';
+        const g=grouped[vName];
+        if(!g)return;
+        const targetMos=mo==='all'?QA_MO:[mo];
+        const perRow=Math.round((step*dir)/g.indices.length);
+        g.indices.forEach(idx=>{
+          targetMos.forEach(m=>{
+            state.teRows[idx][m]=Math.round((parseFloat(state.teRows[idx][m])||0)+perRow);
+          });
+        });
+        const moLabel=mo==='all'?'all months':QA_MO_LABELS[QA_MO.indexOf(mo)];
+        teQaHistory.unshift(`${dir>0?'+':''}${qaFmt(step*dir)} → ${vName} (${moLabel})`);
+        if(teQaHistory.length>20)teQaHistory.pop();
+        saveState();renderTeQaList();renderTeGrid();refreshTePivot();renderPnlWalk();renderLandingCharts();
+      });
+    });
+    updateTeQaTotal();
+    renderTeQaHistoryList();
+  }
+  function updateTeQaTotal(){
+    const total=(state.teRows||[]).reduce((s,r)=>s+QA_MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+    document.getElementById('teQaTotal').textContent=qaFmt(total);
+  }
+  function renderTeQaHistoryList(){
+    const el=document.getElementById('teQaHistory');
+    el.innerHTML=teQaHistory.map(h=>`<div class="qa-history-item">${esc(h)}</div>`).join('');
+  }
+
+  // T&E QA: undo
+  document.getElementById('teQaUndo').addEventListener('click',()=>{
+    if(!teQaUndoStack.length)return;
+    state.teRows=teQaUndoStack.pop();
+    if(teQaHistory.length)teQaHistory.shift();
+    if(!teQaUndoStack.length)document.getElementById('teQaUndo').style.display='none';
+    saveState();renderTeQaList();renderTeGrid();refreshTePivot();renderPnlWalk();renderLandingCharts();
+  });
+
+  // T&E QA: add new entry
+  document.getElementById('teQaAddBtn').addEventListener('click',()=>{
+    const eType=document.getElementById('teQaNewType').value;
+    const desc=document.getElementById('teQaNewDesc').value.trim();
+    if(!desc&&!eType){alert('Enter an expense type or description');return}
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    const row={expenseType:eType,description:desc,businessUnit:document.getElementById('teQaNewBU').value,bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:document.getElementById('teQaNewAcct').value,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    state.teRows.push(row);
+    teQaHistory.unshift('Added: '+(eType?eType+': ':'')+desc);
+    document.getElementById('teQaNewDesc').value='';
+    saveState();renderTeQaList();renderTeGrid();refreshTePivot();
+  });
+
+  // T&E QA: search filter
+  document.getElementById('teQaSearch').addEventListener('input',renderTeQaList);
+  document.getElementById('teQaMo').addEventListener('change',renderTeQaList);
 
   // Initial render
   renderVendorGrid();
