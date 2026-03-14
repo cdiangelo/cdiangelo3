@@ -2659,7 +2659,8 @@ const FTE_TOOLTIP={
   }
 };
 function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return '$'+n}
-function stackedBarDatalabels(datasets,tickColor){
+function stackedBarDatalabels(datasets,tickColor,fontSize){
+  const fs=fontSize||11;
   // Show total label on topmost positive bar and bottommost negative bar per x-index
   const posStacks=datasets.filter(d=>!d.stack||d.stack==='pos');
   const negStacks=datasets.filter(d=>d.stack==='neg');
@@ -2667,13 +2668,13 @@ function stackedBarDatalabels(datasets,tickColor){
   const bottomNegIdx=negStacks.length?datasets.indexOf(negStacks[negStacks.length-1]):-1;
   datasets.forEach((ds,i)=>{
     if(i===topPosIdx){
-      ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},
+      ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:fs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;posStacks.forEach(d=>{const val=d.data[ctx.dataIndex];if(val>0)sum+=val});
           return sum?fmtShort(sum):'';
         }};
     } else if(i===bottomNegIdx){
-      ds.datalabels={display:true,anchor:'start',align:'start',color:tickColor,font:{size:11,weight:'bold'},
+      ds.datalabels={display:true,anchor:'start',align:'start',color:tickColor,font:{size:fs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;negStacks.forEach(d=>{sum+=d.data[ctx.dataIndex]});
           return sum<0?fmtShort(sum):'';
@@ -8753,16 +8754,19 @@ function renderLandingCharts(){
       budgetDS.push({label:'Total Comp',data,backgroundColor:isDark?'#d4524d':'#8b2020'});
     }
   }
+  // Data labels for top of each stacked bar
+  const budgetDL=useSplit||isPnl?{}:{display:true,anchor:'end',align:'end',color:tickColor,font:{size:8,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':v>0?'$'+Math.round(v):''};
+  if(useSplit||isPnl)stackedBarDatalabels(budgetDS,tickColor,8);
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')||!useSplit}},datalabels:{display:false}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9},callback:fmtTick},grid:{color:gridColor}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:useSplit||isPnl?{}:budgetDL},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
   // ── Long-Term Forecast Chart ──
   if(landingForecastChartInst)landingForecastChartInst.destroy();
   let fcDS=[];
-  const yearLabels=FORECAST_YEARS.map((y,i)=>i===0?'Current':'Year '+(i));
+  const yearLabels=['Current',...FORECAST_YEARS.map(y=>String(y))];
   if(useSplit){
     const groups={};
     emps.forEach(e=>{const key=getPnlSplitKey(e,split);if(!groups[key])groups[key]=[];groups[key].push(e)});
@@ -8785,10 +8789,12 @@ function renderLandingCharts(){
       fcDS.push({label:'Total Investment',data:rows.map(r=>r.total),backgroundColor:isDark?'#d4524d':'#8b2020'});
     }
   }
+  if(useSplit||isPnl)stackedBarDatalabels(fcDS,tickColor,8);
+  else fcDS.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:8,weight:'bold'},formatter:v=>{const a=Math.abs(v);return a>=1e6?'$'+(v/1e6).toFixed(1)+'M':a>=1000?(v<0?'-':'')+'$'+(a/1000).toFixed(0)+'K':''}}});
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')||!useSplit}},datalabels:{display:false}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9},callback:fmtTick},grid:{color:gridColor}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 }
 
