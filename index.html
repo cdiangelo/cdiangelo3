@@ -3873,7 +3873,7 @@ function renderEmployees(){
       </tr>`;
     }
     return `<tr data-id="${e.id}">
-      <td style="white-space:nowrap"><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm btn-danger" onclick="deleteEmp('${e.id}')">Del</button></td>
+      <td style="white-space:nowrap"><button class="btn btn-sm" onclick="startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="startEdit('${e.id}')">Form</button> <button class="btn btn-sm" style="background:#555;border-color:#555;color:#fff" onclick="deleteEmp('${e.id}')">Del</button></td>
       <td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
       <td style="font-size:.82rem">${(()=>{const mkts=getEmpMarkets(e);return mkts.map(m=>`<div>${m.code}${mkts.length>1?` <span style="font-size:.75rem;color:var(--text-dim)">${m.pct}%</span>`:''}</div>`).join('')})()}</td><td style="font-size:.82rem">${getBizLineName(e.businessLine)}</td>
       <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||'—'}</td>
