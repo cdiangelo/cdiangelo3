@@ -625,6 +625,14 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .scen-history-entry .entry-refinement{color:#8e6bc0;font-style:italic}
 .scen-action-pane{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--panel-inset)}
 .scen-filter-section{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.scen-filter-section>div:nth-child(n+4){grid-column:span 3}
+.month-range-bar{display:flex;gap:0;margin-top:4px;user-select:none}
+.month-cell{font-size:.62rem;padding:3px 0;text-align:center;flex:1;border:1px solid var(--border);cursor:pointer;color:var(--text-dim);transition:all .12s;background:none}
+.month-cell:first-child{border-radius:4px 0 0 4px}
+.month-cell:last-child{border-radius:0 4px 4px 0}
+.month-cell+.month-cell{border-left:none}
+.month-cell:hover{border-color:var(--accent);color:var(--accent);z-index:1}
+.month-cell.active{background:var(--accent);color:#fff;border-color:var(--accent);z-index:1}
 .scen-pill-group{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;max-height:90px;overflow-y:auto}
 .scen-pill{font-size:.65rem;padding:2px 8px;border-radius:10px;background:none;border:1px solid var(--border);cursor:pointer;color:var(--text-dim);transition:all .15s;white-space:nowrap}
 .scen-pill:hover{border-color:var(--accent);color:var(--accent)}
@@ -1996,6 +2004,17 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Product</label><div id="scenFilterProduct" class="scen-pill-group"></div></div>
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Function</label><div id="scenFilterFunction" class="scen-pill-group"></div></div>
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Country</label><div id="scenFilterCountry" class="scen-pill-group"></div></div>
+<div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Account</label><div id="scenFilterAccount" class="scen-pill-group"></div></div>
+<div>
+<label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Months</label>
+<div id="scenMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div>
+<div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div>
+<div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div>
+<div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<span id="scenMonthRangeLabel" style="font-size:.66rem;color:var(--text-dim);margin-top:2px;display:block"></span>
+</div>
 </div>
 <div style="margin-top:8px">
 <input id="scenEmpSearch" class="scen-emp-search" placeholder="Search employees..." oninput="filterScenEmpList()">
@@ -3970,8 +3989,8 @@ function startEdit(id){
   updateBenchmarkBadge();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);delete state.allocOverrides[id];saveState();renderEmployees()}}
-document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('Remove all employees? This cannot be undone.')){state.employees=[];state.allocOverrides={};saveState();renderEmployees()}});
+function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);delete state.allocOverrides[id];saveState();renderAll()}}
+document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('Remove all employees? This cannot be undone.')){state.employees=[];state.allocOverrides={};saveState();renderAll()}});
 
 let inlineEditId=null;
 let inlineEditAllocs=null;
@@ -7484,7 +7503,8 @@ let scenBudgetSplit='none',scenBudgetView='total',scenFcSplit='total',scenFilter
 let scenBudgetChartInst=null,scenFcChartInst=null;
 let budgetUndoStack=[],fcUndoStack=[];
 let scenSelectedMonth=null;
-let scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+let scenSelectedMonths=new Set();
+let scenFilterState={product:new Set(),function:new Set(),country:new Set(),account:new Set()};
 let scenActionHistory=[]; // {id, cmd, scopedCmd, msg, delta, isRefinement, parentId}
 let scenSelectedActionId=null;
 let fcActionHistory=[];
@@ -7892,19 +7912,25 @@ function parseBudgetCommand(text){
   // Cut vendor/T&E spend (smart targeting)
   m=text.match(/cut\s+(?:all\s+)?vendor\s+spend\s+by\s+(\d+\.?\d*)%/i);
   if(m){
-    const pct=parseFloat(m[1]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    budgetScenario.vendorRows.forEach(r=>MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))}));
-    return {msg:`Reduced all vendor spend by ${pct}%.`,ok:true};
+    const pct=parseFloat(m[1]);const activeMo=getScenActiveMonths();
+    const hasAcct=scenFilterState.account.size>0;
+    budgetScenario.vendorRows.forEach(r=>{if(!hasAcct||matchesScenAcctFilter(r)){activeMo.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))})}});
+    const moNote=scenSelectedMonths.size?` (${activeMo.length} months)`:'';
+    const acctNote=hasAcct?` [${[...scenFilterState.account].join(', ')}]`:'';
+    return {msg:`Reduced all vendor spend by ${pct}%${moNote}${acctNote}.`,ok:true};
   }
   m=text.match(/cut\s+(.+?)\s+(?:spend|vendor|t&?e)\s+by\s+(\d+\.?\d*)%/i);
   if(m){
-    const target=m[1].trim();const pct=parseFloat(m[2]);const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const target=m[1].trim();const pct=parseFloat(m[2]);const activeMo=getScenActiveMonths();
+    const hasAcct=scenFilterState.account.size>0;
     const vf=resolveVendorFilter(target,budgetScenario.vendorRows,budgetScenario.teRows);
     if(!vf)return {msg:`Could not match "${target}" to any vendor, parent co, type, account, project, or T&E category.`,ok:false};
     let vCount=0,tCount=0;
-    budgetScenario.vendorRows.forEach(r=>{if(vf.vFilter(r)){MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});vCount++}});
-    budgetScenario.teRows.forEach(r=>{if(vf.tFilter(r)){MO.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});tCount++}});
-    return {msg:`Reduced ${vf.desc} spend by ${pct}% (${vCount} vendor + ${tCount} T&E rows).`,ok:true};
+    budgetScenario.vendorRows.forEach(r=>{if(vf.vFilter(r)&&(!hasAcct||matchesScenAcctFilter(r))){activeMo.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});vCount++}});
+    budgetScenario.teRows.forEach(r=>{if(vf.tFilter(r)&&(!hasAcct||scenFilterState.account.has(r.acctDesc))){activeMo.forEach(mo=>{r[mo]=Math.round((parseFloat(r[mo])||0)*(1-pct/100))});tCount++}});
+    const moNote=scenSelectedMonths.size?` (${activeMo.length} months)`:'';
+    const acctNote=hasAcct?` [${[...scenFilterState.account].join(', ')}]`:'';
+    return {msg:`Reduced ${vf.desc} spend by ${pct}% (${vCount} vendor + ${tCount} T&E rows)${moNote}${acctNote}.`,ok:true};
   }
   // Set cap% (with optional group)
   m=text.match(/set\s+(.+?)\s+cap\s*%?\s+to\s+(\d+)/i);
@@ -8441,6 +8467,10 @@ function populateActionPanePills(){
   renderScenFilterPills('scenFilterProduct',products,'product');
   renderScenFilterPills('scenFilterFunction',FUNCTIONS,'function');
   renderScenFilterPills('scenFilterCountry',COUNTRIES,'country');
+  // Populate account pills from vendor + T&E rows
+  const accts=[...new Set([...(state.vendorRows||[]).map(r=>r.acctDesc),...(state.teRows||[]).map(r=>r.acctDesc)].filter(Boolean))].sort();
+  renderScenFilterPills('scenFilterAccount',accts,'account');
+  renderMonthRangeBar();
   filterScenEmpList();
   // Populate seniority dropdown for hire section
   const senSel=document.getElementById('scenHireSeniority');
@@ -8530,7 +8560,7 @@ function scenAddHires(){
 function openActionPane(monthIdx){
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   scenSelectedMonth=monthIdx;
-  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+  scenFilterState={product:new Set(),function:new Set(),country:new Set(),account:new Set()};
   const badge=document.getElementById('scenMonthBadge');
   badge.textContent=MO_SHORT[monthIdx];badge.style.display='inline-block';
   document.getElementById('scenMonthSelect').value=String(monthIdx);
@@ -8548,8 +8578,8 @@ function toggleDetailOut(){
     return;
   }
   // Open detail pane for browsing/filtering (no refinement context)
-  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
-  scenSelectedMonth=null;
+  scenFilterState={product:new Set(),function:new Set(),country:new Set(),account:new Set()};
+  scenSelectedMonth=null;scenSelectedMonths.clear();
   document.getElementById('scenMonthBadge').style.display='none';
   document.getElementById('scenMonthSelect').value='';
   document.getElementById('scenEmpSearch').value='';
@@ -8568,8 +8598,8 @@ function applyRefinementMode(){
   const pane=document.getElementById('budgetActionPane');
   const action=scenActionHistory.find(a=>a.id===scenSelectedActionId);
   if(!action)return;
-  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
-  scenSelectedMonth=null;
+  scenFilterState={product:new Set(),function:new Set(),country:new Set(),account:new Set()};
+  scenSelectedMonth=null;scenSelectedMonths.clear();
   document.getElementById('scenMonthBadge').style.display='none';
   document.getElementById('scenMonthSelect').value='';
   document.getElementById('scenEmpSearch').value='';
@@ -8599,11 +8629,13 @@ function onScenMonthChange(val){
 }
 
 function clearScenFilters(){
-  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+  scenFilterState={product:new Set(),function:new Set(),country:new Set(),account:new Set()};
   scenSelectedMonth=null;
+  scenSelectedMonths.clear();
   document.getElementById('scenMonthSelect').value='';
   document.getElementById('scenMonthBadge').style.display='none';
   document.getElementById('scenEmpSearch').value='';
+  renderMonthRangeBar();
   populateActionPanePills();
 }
 
@@ -8617,7 +8649,8 @@ function closeActionPane(){
   document.getElementById('scenMonthBadge').style.display='none';
   document.getElementById('scenDetailOut').classList.remove('active');
   scenSelectedMonth=null;
-  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+  scenSelectedMonths.clear();
+  scenFilterState={product:new Set(),function:new Set(),country:new Set(),account:new Set()};
 }
 
 function renderScenFilterPills(containerId,items,filterKey){
@@ -8633,11 +8666,66 @@ function toggleScenFilter(key,value){
   if(scenFilterState[key].has(value))scenFilterState[key].delete(value);
   else scenFilterState[key].add(value);
   // Re-render just this pill group
-  const idMap={product:'scenFilterProduct',function:'scenFilterFunction',country:'scenFilterCountry'};
-  const items=key==='product'?[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort():key==='function'?FUNCTIONS:COUNTRIES;
+  const idMap={product:'scenFilterProduct',function:'scenFilterFunction',country:'scenFilterCountry',account:'scenFilterAccount'};
+  const items=key==='product'?[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort():key==='function'?FUNCTIONS:key==='account'?[...new Set([...(state.vendorRows||[]).map(r=>r.acctDesc),...(state.teRows||[]).map(r=>r.acctDesc)].filter(Boolean))].sort():COUNTRIES;
   renderScenFilterPills(idMap[key],items,key);
   filterScenEmpList();
   updateHirePreview();
+}
+
+function renderMonthRangeBar(){
+  const bar=document.getElementById('scenMonthRangeBar');
+  if(!bar)return;
+  bar.querySelectorAll('.month-cell').forEach(cell=>{
+    const mo=parseInt(cell.dataset.mo);
+    cell.classList.toggle('active',scenSelectedMonths.has(mo));
+  });
+  const label=document.getElementById('scenMonthRangeLabel');
+  if(label){
+    if(!scenSelectedMonths.size){label.textContent='All months (click or drag to select range)'}
+    else{const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const sorted=[...scenSelectedMonths].sort((a,b)=>a-b);label.textContent=sorted.map(m=>MO_SHORT[m]).join(', ')}
+  }
+}
+function initMonthRangeBar(){
+  const bar=document.getElementById('scenMonthRangeBar');
+  if(!bar||bar._inited)return;bar._inited=true;
+  let dragging=false,startMo=null;
+  function getMo(e){const cell=e.target.closest('.month-cell');return cell?parseInt(cell.dataset.mo):null}
+  function selectRange(from,to){
+    const lo=Math.min(from,to),hi=Math.max(from,to);
+    scenSelectedMonths.clear();
+    for(let i=lo;i<=hi;i++)scenSelectedMonths.add(i);
+    renderMonthRangeBar();
+  }
+  bar.addEventListener('mousedown',e=>{
+    const mo=getMo(e);if(mo===null)return;
+    dragging=true;startMo=mo;
+    // If clicking a single already-selected month and it's the only one, deselect
+    if(scenSelectedMonths.size===1&&scenSelectedMonths.has(mo)){scenSelectedMonths.clear();renderMonthRangeBar();dragging=false;return}
+    selectRange(mo,mo);
+    e.preventDefault();
+  });
+  bar.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    const mo=getMo(e);if(mo===null)return;
+    selectRange(startMo,mo);
+  });
+  document.addEventListener('mouseup',()=>{if(dragging){dragging=false}});
+  // Touch support
+  bar.addEventListener('touchstart',e=>{
+    const touch=e.touches[0];const el=document.elementFromPoint(touch.clientX,touch.clientY);
+    if(!el||!el.classList.contains('month-cell'))return;
+    const mo=parseInt(el.dataset.mo);dragging=true;startMo=mo;
+    if(scenSelectedMonths.size===1&&scenSelectedMonths.has(mo)){scenSelectedMonths.clear();renderMonthRangeBar();dragging=false;return}
+    selectRange(mo,mo);e.preventDefault();
+  },{passive:false});
+  bar.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    const touch=e.touches[0];const el=document.elementFromPoint(touch.clientX,touch.clientY);
+    if(!el||!el.classList.contains('month-cell'))return;
+    selectRange(startMo,parseInt(el.dataset.mo));e.preventDefault();
+  },{passive:false});
+  document.addEventListener('touchend',()=>{if(dragging){dragging=false}});
 }
 
 function getEmpProducts(emp){
@@ -8770,14 +8858,23 @@ function renderVendorDetailList(){
 }
 
 let vendorAdjMode='dollars';
+function getScenActiveMonths(){
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  if(scenSelectedMonths.size)return MO.filter((_,i)=>scenSelectedMonths.has(i));
+  return MO;
+}
+function matchesScenAcctFilter(r){
+  if(!scenFilterState.account.size)return true;
+  return scenFilterState.account.has(r.acctDesc);
+}
 function adjVendorSpendPct(vendorName,pct){
   if(!budgetScenario)return;
   budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
   document.getElementById('scenBudgetUndo').style.display='inline-block';
-  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const activeMo=getScenActiveMonths();
   const factor=pct/100;
   budgetScenario.vendorRows.forEach(r=>{
-    if(r.vendor===vendorName){MO.forEach(m=>{r[m]=Math.round((parseFloat(r[m])||0)*(1+factor))})}
+    if(r.vendor===vendorName&&matchesScenAcctFilter(r)){activeMo.forEach(m=>{r[m]=Math.round((parseFloat(r[m])||0)*(1+factor))})}
   });
   renderBudgetScenario();
 }
@@ -8785,13 +8882,13 @@ function adjVendorSpend(vendorName,delta){
   if(!budgetScenario)return;
   budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
   document.getElementById('scenBudgetUndo').style.display='inline-block';
-  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const activeMo=getScenActiveMonths();
   const rows=budgetScenario.vendorRows||[];
-  const matching=rows.filter(r=>(r.vendorName||r.parentCo)===vendorName);
+  const matching=rows.filter(r=>(r.vendorName||r.parentCo)===vendorName&&matchesScenAcctFilter(r));
   if(!matching.length)return;
-  // Distribute delta evenly across months on the first matching row
-  const perMonth=Math.round(delta/12);
-  MO.forEach(mo=>{matching[0][mo]=(parseFloat(matching[0][mo])||0)+perMonth});
+  // Distribute delta evenly across active months on the first matching row
+  const perMonth=Math.round(delta/activeMo.length);
+  activeMo.forEach(mo=>{matching[0][mo]=(parseFloat(matching[0][mo])||0)+perMonth});
   budgetScenarioDirty=true;
   const dir=delta>0?'Increased':'Decreased';
   const amt=Math.abs(delta)>=1000000?`$${(Math.abs(delta)/1000000).toFixed(1)}m`:`$${(Math.abs(delta)/1000).toFixed(0)}k`;
@@ -9173,8 +9270,16 @@ function initScenarioPane(){
         container.querySelectorAll('.cmd-group').forEach(g=>g.classList.remove('active'));
         tab.classList.add('active');
         container.querySelector('.cmd-group[data-cat="'+tab.dataset.cat+'"]').classList.add('active');
-        // Render vendor detail list when vendor tab is selected in budget
-        if(id==='budgetChatExamples'&&tab.dataset.cat==='vendor'){renderVendorDetailList()}
+        // Render vendor detail list when vendor tab is selected in budget; hide employee sections
+        if(id==='budgetChatExamples'){
+          const isVendor=tab.dataset.cat==='vendor';
+          const empSearch=document.getElementById('scenEmpSearch');
+          const empList=document.getElementById('scenEmpList');
+          const hireSection=document.getElementById('scenHireSection');
+          if(empSearch)empSearch.parentElement.style.display=isVendor?'none':'';
+          if(hireSection)hireSection.style.display=isVendor?'none':'';
+          if(isVendor)renderVendorDetailList();
+        }
       });
     });
   });
@@ -9206,6 +9311,7 @@ function initScenarioPane(){
   document.getElementById('scenLinkFilters').addEventListener('change',function(){scenFiltersLinked=this.checked});
   // Initialize scenario data (charts render when panel opens)
   initBudgetScenario();initForecastScenario();
+  initMonthRangeBar();
   // Saved scenarios
   document.getElementById('scenSaveBudgetBtn').addEventListener('click',()=>saveScenario('budget'));
   document.getElementById('scenSaveFcBtn').addEventListener('click',()=>saveScenario('forecast'));
