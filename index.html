@@ -760,11 +760,11 @@ Template Mode &mdash; changes saved in this browser only.
 <div>
 <label>Group By</label>
 <div class="toggle-group" id="groupToggle">
-<button class="btn active" data-group="function">Function</button>
+<button class="btn" data-group="function">Function</button>
 <button class="btn" data-group="seniority">Seniority</button>
 <button class="btn" data-group="country">Country</button>
 <button class="btn" data-group="quarter">Quarter</button>
-<button class="btn" data-group="month">Month</button>
+<button class="btn active" data-group="month">Month</button>
 </div>
 </div>
 <div id="periodToggleWrap" style="display:none">
@@ -784,9 +784,9 @@ Template Mode &mdash; changes saved in this browser only.
 <div>
 <label>Stack By</label>
 <div class="toggle-group" id="stackToggle">
-<button class="btn active" data-stack="seniority">Seniority</button>
+<button class="btn" data-stack="seniority">Seniority</button>
 <button class="btn" data-stack="country">Country</button>
-<button class="btn" data-stack="category">Product Category</button>
+<button class="btn active" data-stack="category">Product Category</button>
 </div>
 </div>
 <div>
@@ -2750,7 +2750,7 @@ function refreshProjectDropdown(){
 // ── DASHBOARD ──
 let dashChart=null;
 let fteChart=null;
-let groupBy='function',stackBy='seniority',compView='total';
+let groupBy='month',stackBy='category',compView='total';
 function getFilteredEmployees(){
   let emps=state.employees;
   const c=document.getElementById('dashCountry').value;
