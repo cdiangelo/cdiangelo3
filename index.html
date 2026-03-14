@@ -7919,6 +7919,150 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
 
 })();
 
+// ── Fun Mode — Scenic Video PiP ──
+(function(){
+  const FUN_VIDEOS=[
+    {id:'wnhvanMdx4s',label:'Earth from Space'},
+    {id:'aGK82Tluxq8',label:'Scenic Views'},
+    {id:'YEVmlxEExbk',label:'Nature'},
+    {id:'g01AqnNI_TE',label:'World Wonders',start:845},
+    {id:'a6aHuWXrI_Q',label:'Scene 5'},
+    {id:'i3qUonr3d9U',label:'Scene 6'},
+    {id:'q7nz919dhVc',label:'Scene 7'},
+    {id:'ptVUsBllmsE',label:'Scene 8'}
+  ];
+
+  let funState=-1; // -1=off, 0..N-1=video index
+  let funWrap=null;
+  let isFullscreen=false;
+  let savedOpacity=parseFloat(localStorage.getItem('funOpacity'))||1;
+
+  const isDark=()=>document.documentElement.classList.contains('dark');
+  const dimC=()=>isDark()?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)';
+  const hovC=()=>isDark()?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.25)';
+  const bgC=()=>isDark()?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
+
+  // Fun button
+  const btn=document.createElement('button');
+  btn.textContent='fun';
+  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:none;color:${dimC()};font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s;-webkit-tap-highlight-color:transparent`;
+  btn.addEventListener('mouseenter',()=>btn.style.color=hovC());
+  btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.color=dimC()});
+  new MutationObserver(()=>{btn.style.background=bgC();if(funState<0)btn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  document.body.appendChild(btn);
+
+  function buildIframeSrc(v){
+    const s=v.start||0;
+    return `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&mute=1&loop=1&playlist=${v.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&start=${s}&iv_load_policy=3`;
+  }
+
+  function showVideo(idx){
+    const v=FUN_VIDEOS[idx];
+    // Remove old
+    if(funWrap){funWrap.remove();funWrap=null;}
+    isFullscreen=false;
+
+    funWrap=document.createElement('div');
+    funWrap.id='funVideoWrap';
+    applyPipStyle(funWrap);
+
+    // Iframe
+    const iframe=document.createElement('iframe');
+    iframe.id='funVideoFrame';
+    iframe.src=buildIframeSrc(v);
+    iframe.style.cssText='width:100%;height:100%;border:none;opacity:'+savedOpacity;
+    iframe.allow='autoplay; encrypted-media';
+    iframe.loading='lazy';
+    funWrap.appendChild(iframe);
+
+    // Controls bar
+    const controls=document.createElement('div');
+    controls.style.cssText='position:absolute;top:6px;right:6px;display:flex;gap:6px;align-items:center;pointer-events:auto;z-index:2;opacity:.5;transition:opacity .2s';
+    controls.addEventListener('mouseenter',()=>controls.style.opacity='1');
+    controls.addEventListener('mouseleave',()=>controls.style.opacity='.5');
+
+    // Opacity slider
+    const slider=document.createElement('input');
+    slider.type='range';slider.min='0.15';slider.max='1';slider.step='0.05';slider.value=savedOpacity;
+    slider.style.cssText='width:50px;height:3px;cursor:pointer;accent-color:#fff';
+    slider.addEventListener('input',()=>{
+      savedOpacity=parseFloat(slider.value);
+      iframe.style.opacity=savedOpacity;
+      localStorage.setItem('funOpacity',savedOpacity);
+    });
+    controls.appendChild(slider);
+
+    // Fullscreen toggle
+    const fsBtn=document.createElement('button');
+    fsBtn.innerHTML='&#x26F6;';
+    fsBtn.title='Toggle fullscreen';
+    fsBtn.style.cssText='background:rgba(0,0,0,.4);color:#fff;border:none;width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center';
+    fsBtn.addEventListener('click',toggleFullscreen);
+    controls.appendChild(fsBtn);
+
+    funWrap.appendChild(controls);
+
+    // Label
+    const lbl=document.createElement('div');
+    lbl.textContent=v.label;
+    lbl.style.cssText='position:absolute;bottom:6px;left:8px;font-size:.6rem;color:rgba(255,255,255,.7);text-shadow:0 1px 3px rgba(0,0,0,.6);pointer-events:none;z-index:2;letter-spacing:.3px';
+    funWrap.appendChild(lbl);
+
+    document.body.appendChild(funWrap);
+  }
+
+  function applyPipStyle(el){
+    el.style.cssText='position:fixed;bottom:12px;left:12px;width:25vw;min-width:280px;aspect-ratio:16/9;z-index:9998;pointer-events:none;overflow:hidden;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.25);transition:all .3s ease';
+  }
+
+  function applyFullscreenStyle(el){
+    el.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;pointer-events:none;overflow:hidden;border-radius:0;box-shadow:none;transition:all .3s ease';
+    // Oversize iframe to avoid black bars
+    const iframe=el.querySelector('iframe');
+    if(iframe){iframe.style.cssText='position:absolute;top:50%;left:50%;width:120vw;height:120vh;transform:translate(-50%,-50%);border:none;opacity:'+savedOpacity;}
+  }
+
+  function toggleFullscreen(){
+    if(!funWrap)return;
+    isFullscreen=!isFullscreen;
+    if(isFullscreen){
+      applyFullscreenStyle(funWrap);
+    } else {
+      applyPipStyle(funWrap);
+      const iframe=funWrap.querySelector('iframe');
+      if(iframe)iframe.style.cssText='width:100%;height:100%;border:none;opacity:'+savedOpacity;
+    }
+  }
+
+  // Escape key exits fullscreen
+  document.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape'&&isFullscreen&&funWrap){
+      isFullscreen=false;
+      applyPipStyle(funWrap);
+      const iframe=funWrap.querySelector('iframe');
+      if(iframe)iframe.style.cssText='width:100%;height:100%;border:none;opacity:'+savedOpacity;
+    }
+  });
+
+  btn.addEventListener('click',()=>{
+    funState++;
+    if(funState>=FUN_VIDEOS.length){
+      // Off
+      funState=-1;
+      if(funWrap){funWrap.remove();funWrap=null;}
+      isFullscreen=false;
+      btn.textContent='fun';
+      btn.dataset.on='';
+      btn.style.color=dimC();
+      return;
+    }
+    showVideo(funState);
+    btn.textContent='fun: '+FUN_VIDEOS[funState].label;
+    btn.dataset.on='1';
+    btn.style.color='rgba(59,130,246,0.5)';
+  });
+})();
+
 </script>
 </body>
 </html>
