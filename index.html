@@ -7930,7 +7930,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
     {id:'ptVUsBllmsE',label:'Scene 8'}
   ];
 
-  const AD_WAIT_MS=35000; // ms to show thumbnail overlay (hides pre-roll ads)
+  const AD_WAIT_MS=5000; // ms to show thumbnail overlay before allowing skip
   let funState=-1; // -1=off, 0..N-1=video index
   let funWrap=null;
   let isFullscreen=false;
@@ -7971,7 +7971,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
     const iframe=document.createElement('iframe');
     iframe.id='funVideoFrame';
     iframe.src=buildIframeSrc(v);
-    iframe.style.cssText='width:100%;height:100%;border:none;opacity:'+savedOpacity;
+    iframe.style.cssText='width:100%;height:100%;border:none;pointer-events:auto;opacity:'+savedOpacity;
     iframe.allow='autoplay; encrypted-media';
     iframe.loading='lazy';
     funWrap.appendChild(iframe);
