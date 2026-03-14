@@ -4481,16 +4481,18 @@ function renderForecastProjection(){
       });
       if(allocated.length){splitGroups[p.code]=allocated;splitGroupKeys[p.code]=p.id}
     });
-    // Capture unassigned and partially-allocated remainder
-    const unassigned=[];
+    // Capture unassigned and partially-allocated remainder — merge into GEN-000
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    const genCode=genProj?'GEN-000':'Unassigned';
     state.employees.forEach(e=>{
       const used=allocTracker[e.id]||0;
       if(used<0.999){
         const rem=1-used;
-        unassigned.push({...e,salary:Math.round((e.salary||0)*rem),capPct:e.capPct,_allocPct:rem});
+        if(!splitGroups[genCode])splitGroups[genCode]=[];
+        splitGroups[genCode].push({...e,salary:Math.round((e.salary||0)*rem),capPct:e.capPct,_allocPct:rem});
+        if(!splitGroupKeys[genCode])splitGroupKeys[genCode]=genProj?genProj.id:null;
       }
     });
-    if(unassigned.length){splitGroups['Unassigned']=unassigned;splitGroupKeys['Unassigned']=null}
   } else if(forecastSplit==='function'){
     splitGroups={};
     const used=new Set();
@@ -6130,7 +6132,8 @@ function parseBudgetCommand(text){
       for(let i=0;i<hiresThisMonth;i++){
         const template=emps[0]||{seniority:'Mid',function:'Software Engineering',country:'United States'};
         const hireDate=`${CURRENT_YEAR}-${String(mo+1).padStart(2,'0')}-01`;
-        emps.push({id:uid(),name:`New Hire ${mo+1}-${i+1}`,country:template.country,seniority:template.seniority,function:template.function,salary:benchmark(template.seniority,template.function,template.country),capPct:template.capPct||0,notes:'Hiring ramp',hireDate,termDate:'',businessLine:template.businessLine||'',businessUnit:template.businessUnit||'',allocations:[]});
+        const _gp=state.projects.find(p=>p.code==='GEN-000');
+        emps.push({id:uid(),name:`New Hire ${mo+1}-${i+1}`,country:template.country,seniority:template.seniority,function:template.function,salary:benchmark(template.seniority,template.function,template.country),capPct:template.capPct||0,notes:'Hiring ramp',hireDate,termDate:'',businessLine:template.businessLine||'',businessUnit:template.businessUnit||'',allocations:_gp?[{projId:_gp.id,pct:100,primary:true}]:[]});
       }
     }
     return {msg:`Set hiring ramp: ${num} per ${period} (${total} annualized). Added hires for remaining months.`,ok:true};
@@ -6184,7 +6187,8 @@ function parseBudgetCommand(text){
     const func=FUNCTIONS.find(f=>f.toLowerCase().includes(m[3].trim().toLowerCase()))||m[3].trim();
     const country=COUNTRIES.find(c=>c.toLowerCase().includes(m[4].trim().toLowerCase()))||m[4].trim();
     for(let i=0;i<num;i++){
-      emps.push({id:uid(),name:`New ${sen} ${i+1}`,country,seniority:sen,function:func,salary:benchmark(sen,func,country),capPct:0,notes:'Scenario',hireDate:'',termDate:'',businessLine:state.bizLines[0]?.code||'',businessUnit:COUNTRY_BU[country]||'',allocations:[]});
+      const _gp2=state.projects.find(p=>p.code==='GEN-000');
+      emps.push({id:uid(),name:`New ${sen} ${i+1}`,country,seniority:sen,function:func,salary:benchmark(sen,func,country),capPct:0,notes:'Scenario',hireDate:'',termDate:'',businessLine:state.bizLines[0]?.code||'',businessUnit:COUNTRY_BU[country]||'',allocations:_gp2?[{projId:_gp2.id,pct:100,primary:true}]:[]});
     }
     return {msg:`Added ${num} ${sen} ${func} in ${country} at ${fmt(benchmark(sen,func,country))} each.`,ok:true};
   }
