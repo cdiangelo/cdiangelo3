@@ -4087,11 +4087,14 @@ function renderEmpPivot(){
         backgroundColor:pivotColors[ri%pivotColors.length],
         stack:'s0'};
     });
+    const _epDk=document.documentElement.classList.contains('dark');
+    const _epTc=_epDk?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+    const _epGc=_epDk?'rgba(255,255,255,.08)':'#ddd';
     empPivotChartInst=new Chart(canvas,{
       type:'bar',data:{labels:chartLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},datalabels:{display:false}},
-        scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:function(v){return isCurrency?(v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v):v}}}}
+        scales:{x:{stacked:true,ticks:{font:{size:10},color:_epTc},grid:{color:_epGc}},y:{stacked:true,ticks:{font:{size:10},color:_epTc,callback:function(v){return isCurrency?(v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v):v}},grid:{color:_epGc}}}
       }
     });
   }
@@ -9367,7 +9370,7 @@ function initVendorModule(){
     return a?a.code:'';
   }
 
-  function getBlankBg(){return document.documentElement.classList.contains('dark')?'background:#2a2a2a;color:#666':'background:#e8e8e8;color:#888'}
+  function getBlankBg(){const dk=document.documentElement.classList.contains('dark');const cr=chartColorScheme==='crisp';if(dk)return cr?'background:#1e1e22;color:#555':'background:#2a2a2a;color:#666';return cr?'background:#ddd;color:#888':'background:#e8e8e8;color:#888'}
   let vendorAmtScale=1;
   function getScaleLabel(){return vendorAmtScale===1000?'K':vendorAmtScale===1000000?'M':'$'}
   function scaleVal(v){return vendorAmtScale===1?v:Math.round((v/vendorAmtScale)*100)/100}
@@ -9392,7 +9395,8 @@ function initVendorModule(){
     const BLANK_BG=getBlankBg();const blk=v=>!v?BLANK_BG:'';
     // Color tag: use whiteboard color suite for row tagging
     const tagColor=row._colorTag||'';
-    const tagDotStyle=`width:16px;height:16px;border-radius:3px;cursor:pointer;display:inline-block;border:1px solid var(--border);background:${tagColor||'#fff'}`;
+    const tagDefault=document.documentElement.classList.contains('dark')?'#2a2a2e':'#eee';
+    const tagDotStyle=`width:16px;height:16px;border-radius:3px;cursor:pointer;display:inline-block;border:1px solid var(--border);background:${tagColor||tagDefault}`;
     let h=`<tr data-vi="${i}" draggable="false" style="${tagColor?'border-left:3px solid '+tagColor:''}"><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem;position:relative"><span class="row-color-tag" data-vi="${i}" data-prefix="${prefix}" style="${tagDotStyle}" title="Color tag"></span></td>`;
     // Custom first columns per type
     if(fields==='vendor'){
@@ -9446,7 +9450,8 @@ function initVendorModule(){
         // Update blank highlighting
         const td=el.closest('td');
         if(el.tagName==='SELECT'||['parentCo','vendorName','description'].includes(f)){
-          td.style.background=el.value?'':'#fffde7';
+          const blankHl=document.documentElement.classList.contains('dark')?(chartColorScheme==='crisp'?'#252529':'#2a2a2a'):(chartColorScheme==='crisp'?'#e0e0e0':'#fffde7');
+          td.style.background=el.value?'':blankHl;
         }
         if(f==='project'){
           const proj=state.projects.find(p=>p.id===el.value);
@@ -10152,14 +10157,17 @@ function initVendorModule(){
     const canvas=document.getElementById(canvasId);
     const ctx=canvas.getContext('2d');
     if(chartInstRef)chartInstRef.destroy();
+    const _isDark=document.documentElement.classList.contains('dark');
+    const _tickC=_isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+    const _gridC=_isDark?'rgba(255,255,255,.08)':'#ddd';
     return new Chart(ctx,{
       type:'bar',
       data:{labels:MO_LABELS_SHORT,datasets},
       options:{
         responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10}}},
+        plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10},color:_tickC}},
           datalabels:{display:false},
-          title:{display:true,text:'Monthly Spend by '+rowDim.replace(/([A-Z])/g,' $1').replace(/^\w/,c=>c.toUpperCase()),font:{size:13}},
+          title:{display:true,text:'Monthly Spend by '+rowDim.replace(/([A-Z])/g,' $1').replace(/^\w/,c=>c.toUpperCase()),font:{size:13},color:_tickC},
           tooltip:{
             callbacks:{
               afterBody:function(items){
@@ -10180,8 +10188,8 @@ function initVendorModule(){
           }
         },
         scales:{
-          x:{stacked:true,ticks:{font:{size:10}}},
-          y:{stacked:true,ticks:{font:{size:10},callback:function(v){return v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v}}}
+          x:{stacked:true,ticks:{font:{size:10},color:_tickC},grid:{color:_gridC}},
+          y:{stacked:true,ticks:{font:{size:10},color:_tickC,callback:function(v){return v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v}},grid:{color:_gridC}}
         }
       }
     });
