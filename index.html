@@ -1617,6 +1617,16 @@ Template Mode &mdash; changes saved in this browser only.
 <input id="scenEmpSearch" class="scen-emp-search" placeholder="Search employees..." oninput="filterScenEmpList()">
 <div id="scenEmpList" class="scen-emp-list"></div>
 </div>
+<div id="scenHireSection" style="margin-top:10px;padding:8px 10px;background:rgba(58,125,68,.06);border:1px solid rgba(58,125,68,.2);border-radius:6px">
+<div style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Add Hires</div>
+<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+<input id="scenHireCount" type="number" min="1" max="100" value="1" oninput="updateHirePreview()" style="width:48px;padding:2px 4px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);text-align:center">
+<select id="scenHireSeniority" onchange="updateHirePreview()" style="padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)"></select>
+<span style="font-size:.7rem;color:var(--text-dim)">using filters above</span>
+<button class="btn btn-sm" onclick="scenAddHires()" style="padding:2px 10px;font-size:.72rem;background:rgba(58,125,68,.12);border-color:rgba(58,125,68,.3);color:#3a7d44;margin-left:auto">+ Add</button>
+</div>
+<div id="scenHirePreview" style="font-size:.68rem;color:var(--text-dim);margin-top:3px"></div>
+</div>
 </div>
 <div class="chat-examples" id="budgetChatExamples">
 <div class="cmd-cats">
@@ -2107,7 +2117,9 @@ function updatePresenceIndicators(users){
   const bar=document.getElementById('presenceBar');
   if(!bar||!sessionContext)return;
   bar.className='presence-bar active';
-  bar.innerHTML='<span style="color:var(--text-dim);margin-right:4px">Online:</span>'+
+  const sessionLabel=`<span style="font-weight:600;color:var(--accent);margin-right:8px">${sessionContext.sessionName||'Session'}</span><span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light);margin-right:12px">${sessionContext.code||''}</span>`;
+  const versionLabel=sessionContext.versionName?`<span style="font-size:.72rem;color:var(--text-dim);margin-right:12px;border-left:1px solid var(--border);padding-left:10px">v: <strong>${sessionContext.versionName}</strong></span>`:'';
+  bar.innerHTML=sessionLabel+versionLabel+'<span style="color:var(--text-dim);margin-right:4px">Online:</span>'+
     users.map(u=>{
       const isMe=u.id===sessionContext.userId;
       const onDiffVersion=u.versionId!==sessionContext.versionId;
@@ -7600,6 +7612,56 @@ function populateActionPanePills(){
   renderScenFilterPills('scenFilterFunction',FUNCTIONS,'function');
   renderScenFilterPills('scenFilterCountry',COUNTRIES,'country');
   filterScenEmpList();
+  // Populate seniority dropdown for hire section
+  const senSel=document.getElementById('scenHireSeniority');
+  if(senSel&&!senSel.options.length){
+    SENIORITY.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;senSel.appendChild(o)});
+    senSel.value='Mid-Level';
+  }
+  updateHirePreview();
+}
+
+function updateHirePreview(){
+  const el=document.getElementById('scenHirePreview');
+  if(!el)return;
+  const count=parseInt(document.getElementById('scenHireCount').value)||1;
+  const sen=document.getElementById('scenHireSeniority').value||'Mid-Level';
+  const fs=scenFilterState;
+  const func=fs.function.size===1?[...fs.function][0]:'Software Engineering';
+  const country=fs.country.size===1?[...fs.country][0]:'United States';
+  const salary=benchmark(sen,func,country);
+  const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const moLabel=scenSelectedMonth!==null?MO_SHORT[scenSelectedMonth]:'now';
+  el.textContent=`${count}× ${sen} ${func} in ${country} @ ${fmt(salary)} starting ${moLabel}`;
+}
+
+function scenAddHires(){
+  if(!budgetScenario)return;
+  const count=parseInt(document.getElementById('scenHireCount').value)||1;
+  const sen=document.getElementById('scenHireSeniority').value||'Mid-Level';
+  const fs=scenFilterState;
+  const func=fs.function.size===1?[...fs.function][0]:'Software Engineering';
+  const country=fs.country.size===1?[...fs.country][0]:'United States';
+  const salary=benchmark(sen,func,country);
+  // Determine hire date from selected month
+  let hireDate='';
+  if(scenSelectedMonth!==null){
+    const mo=String(scenSelectedMonth+1).padStart(2,'0');
+    hireDate=`${CURRENT_YEAR}-${mo}-01`;
+  }
+  budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
+  document.getElementById('scenBudgetUndo').style.display='inline-block';
+  const emps=budgetScenario.emps;
+  const _gp=state.projects.find(p=>p.code==='GEN-000');
+  for(let i=0;i<count;i++){
+    emps.push({id:uid(),name:`New ${sen} ${i+1}`,country,seniority:sen,function:func,salary,capPct:0,notes:'Scenario hire',hireDate,termDate:'',businessLine:state.bizLines[0]?.code||'',businessUnit:COUNTRY_BU[country]||'',allocations:_gp?[{projId:_gp.id,pct:100,primary:true}]:[]});
+  }
+  budgetScenarioDirty=true;
+  const entry={id:Date.now(),cmd:`add ${count} ${sen} ${func} in ${country}`,scopedCmd:`add ${count} ${sen} ${func} in ${country}`,msg:`Added ${count} ${sen} ${func} in ${country} at ${fmt(salary)} each.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
+  scenActionHistory.push(entry);
+  document.getElementById('scenBudgetApply').style.display='inline-block';
+  renderScenActionHistory();renderBudgetScenarioChart();filterScenEmpList();renderScenarioPnlSummary();updateDetailOutBtn();
+  initForecastScenario();renderFcScenarioChart();
 }
 
 function openActionPane(monthIdx){
@@ -7670,6 +7732,7 @@ function onScenMonthChange(val){
   const badge=document.getElementById('scenMonthBadge');
   if(val===''){badge.style.display='none'}
   else{const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];badge.textContent=MO_SHORT[parseInt(val)];badge.style.display='inline-block'}
+  updateHirePreview();
 }
 
 function clearScenFilters(){
@@ -7711,6 +7774,7 @@ function toggleScenFilter(key,value){
   const items=key==='product'?[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort():key==='function'?FUNCTIONS:COUNTRIES;
   renderScenFilterPills(idMap[key],items,key);
   filterScenEmpList();
+  updateHirePreview();
 }
 
 function getEmpProducts(emp){
