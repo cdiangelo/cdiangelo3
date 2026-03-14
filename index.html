@@ -1037,8 +1037,8 @@ Template Mode &mdash; changes saved in this browser only.
 <select id="monthlyFilter"><option value="">All Employees</option></select>
 </div>
 </div>
-<div class="controls ops-hide" id="monthlyColToggles" style="margin-top:-8px;flex-wrap:wrap;gap:8px">
-<span style="font-size:.78rem;color:var(--text-dim)">Columns:</span>
+<div class="controls" id="monthlyColToggles" style="margin-top:-8px;flex-wrap:wrap;gap:8px">
+<span style="font-size:.78rem;color:var(--text-dim)" id="monthlyColLabel">Split By:</span>
 <label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="country"> Country</label>
 <label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="seniority"> Seniority</label>
 <label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="monthly-col" value="function"> Function</label>
@@ -3851,6 +3851,12 @@ function renderMonthly(){
     document.querySelectorAll('#monthlyToggle .btn').forEach(x=>{x.classList.toggle('active',x.dataset.mode==='summary')});
   }
   if(isOps)document.getElementById('monthlyFilter').value='';
+  // In ops mode, enforce single-selection on split toggles
+  if(isOps){
+    const checked=[...document.querySelectorAll('.monthly-col:checked')];
+    if(checked.length>1){checked.slice(1).forEach(cb=>cb.checked=false)}
+  }
+  document.getElementById('monthlyColLabel').textContent=isOps?'Split By:':'Columns:';
 
   const filterVal=document.getElementById('monthlyFilter').value;
   let emps=state.employees;
@@ -3940,7 +3946,13 @@ document.querySelectorAll('#monthlyToggle .btn').forEach(b=>b.addEventListener('
   document.querySelectorAll('#monthlyToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');monthlyMode=b.dataset.mode;renderMonthly();
 }));
 document.getElementById('monthlyFilter').addEventListener('change',renderMonthly);
-document.querySelectorAll('.monthly-col').forEach(cb=>cb.addEventListener('change',renderMonthly));
+document.querySelectorAll('.monthly-col').forEach(cb=>cb.addEventListener('change',function(){
+  const isOps=document.body.classList.contains('ops-mode');
+  if(isOps&&this.checked){
+    document.querySelectorAll('.monthly-col').forEach(other=>{if(other!==this)other.checked=false});
+  }
+  renderMonthly();
+}));
 
 // ── SCRATCH PAD (Spreadsheet + Whiteboard) ──
 function createScratchPad(cfg){
