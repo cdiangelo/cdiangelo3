@@ -839,7 +839,7 @@ body.session-active header{top:30px}
 <h2>Join a Session</h2>
 <p>Enter a 5-character session code to join a collaborative workspace.</p>
 <div class="session-error" id="sessionError1"></div>
-<input type="text" class="code-input" id="sessionCodeInput" maxlength="5" placeholder="_ _ _ _ _" autocomplete="off">
+<input type="text" class="code-input" id="sessionCodeInput" maxlength="5" placeholder="_ _ _ _ _" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" inputmode="text">
 <button class="btn-session btn-session-primary" id="btnJoinCode">Join Session</button>
 <div class="admin-link" id="adminCreateLink">Admin: Create New Session</div>
 </div>
@@ -953,7 +953,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div style="font-size:.78rem;color:var(--text-dim)">Enter a session code to collaborate in real-time, or <span style="cursor:pointer;text-decoration:underline;color:var(--accent)" onclick="document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById('sessionStepAdmin').classList.add('active');document.getElementById('sessionErrorAdmin').style.display='none';document.getElementById('adminSessionCode').value='';document.getElementById('adminSessionName').value='';document.getElementById('adminPassword').value='';document.getElementById('sessionModal').classList.add('show')">create a new session</span>.</div>
 </div>
 <div style="display:flex;gap:8px;align-items:center">
-<input type="text" id="landingCodeInput" maxlength="5" placeholder="_ _ _ _ _" autocomplete="off" style="width:120px;padding:8px 12px;font-size:1.3rem;text-align:center;letter-spacing:5px;text-transform:uppercase;font-weight:700;font-family:monospace;border:2px solid var(--border);border-radius:8px;background:var(--panel-inset);color:var(--text)">
+<input type="text" id="landingCodeInput" maxlength="5" placeholder="_ _ _ _ _" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" inputmode="text" style="width:120px;padding:8px 12px;font-size:1.3rem;text-align:center;letter-spacing:5px;text-transform:uppercase;font-weight:700;font-family:monospace;border:2px solid var(--border);border-radius:8px;background:var(--panel-inset);color:var(--text)">
 <button class="btn btn-primary" id="landingJoinBtn" style="padding:8px 18px;font-size:.9rem">Join</button>
 </div>
 <div id="landingCodeError" style="width:100%;color:var(--danger);font-size:.8rem;display:none"></div>
@@ -2713,7 +2713,7 @@ function initSessionModal(){
 
   // Step 1: Join by code
   document.getElementById('btnJoinCode').addEventListener('click',async()=>{
-    const code=document.getElementById('sessionCodeInput').value.trim().toUpperCase();
+    const code=document.getElementById('sessionCodeInput').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
     const errEl=document.getElementById('sessionError1');
     if(code.length<3){errEl.textContent='Please enter a valid session code.';errEl.style.display='block';return}
     try{
@@ -2817,7 +2817,7 @@ function initSessionModal(){
   const landingCodeInput=document.getElementById('landingCodeInput');
   if(landingJoinBtn&&landingCodeInput){
     async function handleLandingJoin(){
-      const code=landingCodeInput.value.trim().toUpperCase();
+      const code=landingCodeInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
       const errEl=document.getElementById('landingCodeError');
       if(code.length<3){errEl.textContent='Enter a valid session code.';errEl.style.display='block';return}
       errEl.style.display='none';
