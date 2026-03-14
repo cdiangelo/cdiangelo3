@@ -6620,6 +6620,14 @@ function renderExecFcSparkline(){
   const labels=['Current',...FORECAST_YEARS];
   if(execFcSparkChart)execFcSparkChart.destroy();
   const colors=getChartColors();
+  // Compute Y/Y % change labels
+  const yoyLabels=vals.map((v,i)=>{
+    if(i===0)return '';
+    const prev=vals[i-1];
+    if(!prev)return '';
+    const pct=((v-prev)/Math.abs(prev))*100;
+    return (pct>=0?'+':'')+pct.toFixed(1)+'%';
+  });
   execFcSparkChart=new Chart(document.getElementById('execFcSparkline'),{
     type:'line',
     data:{labels,datasets:[{
@@ -6630,7 +6638,13 @@ function renderExecFcSparkline(){
       tension:0.3
     }]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},datalabels:{display:false},
+      plugins:{legend:{display:false},
+        datalabels:{
+          align:'top',anchor:'end',
+          font:{size:9,weight:'500'},
+          color:hexToRgba(colors[0],0.6),
+          formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]||''
+        },
         tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
       scales:{
         x:{ticks:{font:{size:9},color:'var(--text-dim)'},grid:{display:false}},
