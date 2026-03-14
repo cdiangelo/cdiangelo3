@@ -12488,14 +12488,11 @@ function renderPnlWalk(){
   });
 
   // Distribute vendor/T&E/contractor OAO across categories/products proportionally by HC
+  // Note: contractor CapEx is NOT included in the comp plan P&L — only in landing page summaries
   const oaoTotal=getVendorOaoTotal();
-  const contractorCapEx=getContractorCapExTotal();
-  // Add contractor CapEx to employee capex totals
-  totals.capex+=contractorCapEx;
   function enrichWithOao(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
     d.oao=Math.round(oaoTotal*share);
-    d.capex+=Math.round(contractorCapEx*share);
     d.adjEbitda=d.cbOpex+d.oao;
     d.da=0;
     d.totalOpex=d.adjEbitda;
