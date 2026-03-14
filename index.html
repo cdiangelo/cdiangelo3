@@ -3920,12 +3920,14 @@ function renderEmpPivot(){
     if(empPivotChartInst)empPivotChartInst.destroy();
     const pivotColors=getChartColors();
     const chartLabels=colVals.map(v=>v.length>14?v.slice(0,12)+'…':v).concat(['Total']);
-    const datasets=sortedRows.map((rv,ri)=>({
-      label:rv.length>20?rv.slice(0,18)+'…':rv,
-      data:colVals.map(cv=>pivot[rv][cv]).concat([rowTotals[rv]]),
-      backgroundColor:pivotColors[ri%pivotColors.length],
-      stack:'s0'
-    }));
+    // Build datasets in reverse so first table row (largest) is at top of stack
+    const datasets=[...sortedRows].reverse().map((rv,i)=>{
+      const ri=sortedRows.length-1-i; // original index for consistent color
+      return {label:rv.length>20?rv.slice(0,18)+'…':rv,
+        data:colVals.map(cv=>pivot[rv][cv]).concat([rowTotals[rv]]),
+        backgroundColor:pivotColors[ri%pivotColors.length],
+        stack:'s0'};
+    });
     empPivotChartInst=new Chart(canvas,{
       type:'bar',data:{labels:chartLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
@@ -9902,13 +9904,14 @@ function initVendorModule(){
       let moSum=0;colVals.forEach(cv=>{moSum+=pivot[rv][cv].months[mi]});return s+moSum;
     },0)});
     const sortedRows=[...rowVals].sort((a,b)=>rowTotals[b]-rowTotals[a]);
-    // Each row dim value becomes a dataset (stacked bars), months on x-axis
-    const datasets=sortedRows.map((rv,ri)=>({
-      label:rv,
-      data:MO_LABELS_SHORT.map((_,mi)=>{let s=0;colVals.forEach(cv=>{s+=pivot[rv][cv].months[mi]});return s}),
-      backgroundColor:getChartColors()[ri%getChartColors().length],
-      stack:'stack0'
-    }));
+    // Build datasets in reverse so first legend/table row (largest) is at top of stack
+    const datasets=[...sortedRows].reverse().map((rv,i)=>{
+      const ri=sortedRows.length-1-i;
+      return {label:rv,
+        data:MO_LABELS_SHORT.map((_,mi)=>{let s=0;colVals.forEach(cv=>{s+=pivot[rv][cv].months[mi]});return s}),
+        backgroundColor:getChartColors()[ri%getChartColors().length],
+        stack:'stack0'};
+    });
 
     // Build a lookup: for each rowDim value + month index, list the distinct vendor/description names
     const showNames=nameField&&rowDim!==nameField;
