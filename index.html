@@ -755,7 +755,7 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- DASHBOARD -->
 <div id="tab-dashboard" class="tab-content">
-<div id="dashAvgBase" style="display:inline-block;margin-bottom:12px;padding:8px 18px;background:var(--panel);border:1px solid var(--border-light);border-radius:10px;font-size:.85rem"></div>
+<div class="stat-cards" id="dashStatCards"></div>
 <div class="controls">
 <div>
 <label>Group By</label>
@@ -2953,13 +2953,12 @@ function renderDashboard(){
   const totalComp=emps.reduce((a,e)=>a+getProratedComp(e),0);
   const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
   const svc=getStatValueColor();
-  const sep='<span style="margin:0 10px;color:var(--border)">|</span>';
-  document.getElementById('dashAvgBase').innerHTML=
-    `<span style="color:var(--text-dim)">HC:</span> <strong style="color:${svc}">${emps.length}</strong>`+sep+
-    `<span style="color:var(--text-dim)">Avg Base:</span> <strong style="color:${svc}">${fmt(avgBase)}</strong>`+sep+
-    `<span style="color:var(--text-dim)">Total Comp:</span> <strong style="color:${svc}">${fmt(totalComp)}</strong>`+sep+
-    `<span style="color:var(--text-dim)">Total CapEx:</span> <strong style="color:${svc}">${fmt(totalCapEx)}</strong>`+sep+
-    `<span style="color:var(--text-dim)">Avg CapEx %:</span> <strong style="color:${svc}">${avgCapPct}%</strong>`;
+  document.getElementById('dashStatCards').innerHTML=
+    `<div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svc}">${emps.length}</div></div>`+
+    `<div class="stat-card"><div class="label">Avg Base Salary</div><div class="value" style="color:${svc}">${fmt(avgBase)}</div></div>`+
+    `<div class="stat-card"><div class="label">${CURRENT_YEAR} Total Comp</div><div class="value" style="color:${svc}">${fmt(totalComp)}</div></div>`+
+    `<div class="stat-card"><div class="label">${CURRENT_YEAR} Total CapEx</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>`+
+    `<div class="stat-card"><div class="label">Avg CapEx %</div><div class="value" style="color:${svc}">${avgCapPct}%</div></div>`;
   const showPeriod=(groupBy==='month'||groupBy==='quarter');
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
