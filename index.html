@@ -2639,8 +2639,8 @@ function initSessionModal(){
       const user=await resp.json();
       sessionContext.userId=user.id;sessionContext.userName=user.displayName;sessionContext.userColor=user.color;
       loadUserColorScheme();
-      await enterSession();
       closeSessionModal();
+      try{await enterSession()}catch(re){console.error('Session enter error:',re)}
     }catch(e){errEl.textContent='Connection error. Try again.';errEl.style.display='block'}
   });
   document.getElementById('sessionDisplayName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btnJoinProfile').click()});
