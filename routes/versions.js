@@ -3,19 +3,19 @@ const { getDb } = require('../db/init');
 
 const router = express.Router({ mergeParams: true });
 
-function getSession(code) {
+async function getSession(code) {
   const db = getDb();
-  return db.prepare('SELECT id FROM sessions WHERE code = ?').get(code.toUpperCase());
+  return await db.prepare('SELECT id FROM sessions WHERE code = ?').get(code.toUpperCase());
 }
 
 // List versions
-router.get('/', (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const session = getSession(req.params.code);
+    const session = await getSession(req.params.code);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const db = getDb();
-    const versions = db.prepare(
+    const versions = await db.prepare(
       `SELECT v.id, v.name, v.updated_at, v.created_at, v.created_by,
               u.display_name as created_by_name
        FROM versions v
@@ -31,9 +31,9 @@ router.get('/', (req, res, next) => {
 });
 
 // Create version
-router.post('/', (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
-    const session = getSession(req.params.code);
+    const session = await getSession(req.params.code);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const { name, stateData, userId } = req.body;
@@ -43,12 +43,12 @@ router.post('/', (req, res, next) => {
     const db = getDb();
 
     // Check for duplicate name
-    const existing = db.prepare(
+    const existing = await db.prepare(
       'SELECT id FROM versions WHERE session_id = ? AND name = ?'
     ).get(session.id, name.trim());
     if (existing) return res.status(409).json({ error: 'A version with that name already exists' });
 
-    const result = db.prepare(
+    const result = await db.prepare(
       'INSERT INTO versions (session_id, name, state_data, created_by) VALUES (?, ?, ?, ?)'
     ).run(session.id, name.trim(), stateData, userId || null);
 
@@ -59,13 +59,13 @@ router.post('/', (req, res, next) => {
 });
 
 // Load version state
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   try {
-    const session = getSession(req.params.code);
+    const session = await getSession(req.params.code);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const db = getDb();
-    const version = db.prepare(
+    const version = await db.prepare(
       'SELECT id, name, state_data, updated_at FROM versions WHERE id = ? AND session_id = ?'
     ).get(req.params.id, session.id);
 
@@ -77,17 +77,17 @@ router.get('/:id', (req, res, next) => {
 });
 
 // Update version state (auto-save target)
-router.put('/:id', (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
   try {
-    const session = getSession(req.params.code);
+    const session = await getSession(req.params.code);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const { stateData } = req.body;
     if (!stateData) return res.status(400).json({ error: 'State data is required' });
 
     const db = getDb();
-    const result = db.prepare(
-      'UPDATE versions SET state_data = ?, updated_at = datetime(\'now\') WHERE id = ? AND session_id = ?'
+    const result = await db.prepare(
+      'UPDATE versions SET state_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND session_id = ?'
     ).run(stateData, req.params.id, session.id);
 
     if (result.changes === 0) return res.status(404).json({ error: 'Version not found' });
@@ -98,9 +98,9 @@ router.put('/:id', (req, res, next) => {
 });
 
 // Rename version
-router.put('/:id/rename', (req, res, next) => {
+router.put('/:id/rename', async (req, res, next) => {
   try {
-    const session = getSession(req.params.code);
+    const session = await getSession(req.params.code);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const { name } = req.body;
@@ -109,13 +109,13 @@ router.put('/:id/rename', (req, res, next) => {
     const db = getDb();
 
     // Check for duplicate
-    const existing = db.prepare(
+    const existing = await db.prepare(
       'SELECT id FROM versions WHERE session_id = ? AND name = ? AND id != ?'
     ).get(session.id, name.trim(), req.params.id);
     if (existing) return res.status(409).json({ error: 'A version with that name already exists' });
 
-    const result = db.prepare(
-      'UPDATE versions SET name = ?, updated_at = datetime(\'now\') WHERE id = ? AND session_id = ?'
+    const result = await db.prepare(
+      'UPDATE versions SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND session_id = ?'
     ).run(name.trim(), req.params.id, session.id);
 
     if (result.changes === 0) return res.status(404).json({ error: 'Version not found' });
@@ -126,9 +126,9 @@ router.put('/:id/rename', (req, res, next) => {
 });
 
 // Duplicate version
-router.post('/:id/duplicate', (req, res, next) => {
+router.post('/:id/duplicate', async (req, res, next) => {
   try {
-    const session = getSession(req.params.code);
+    const session = await getSession(req.params.code);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const { name, userId } = req.body;
@@ -137,17 +137,17 @@ router.post('/:id/duplicate', (req, res, next) => {
     const db = getDb();
 
     // Check for duplicate name
-    const dupName = db.prepare(
+    const dupName = await db.prepare(
       'SELECT id FROM versions WHERE session_id = ? AND name = ?'
     ).get(session.id, name.trim());
     if (dupName) return res.status(409).json({ error: 'A version with that name already exists' });
 
-    const source = db.prepare(
+    const source = await db.prepare(
       'SELECT state_data FROM versions WHERE id = ? AND session_id = ?'
     ).get(req.params.id, session.id);
     if (!source) return res.status(404).json({ error: 'Source version not found' });
 
-    const result = db.prepare(
+    const result = await db.prepare(
       'INSERT INTO versions (session_id, name, state_data, created_by) VALUES (?, ?, ?, ?)'
     ).run(session.id, name.trim(), source.state_data, userId || null);
 
@@ -158,18 +158,18 @@ router.post('/:id/duplicate', (req, res, next) => {
 });
 
 // Delete version
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
-    const session = getSession(req.params.code);
+    const session = await getSession(req.params.code);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const db = getDb();
 
     // Don't allow deleting the last version
-    const count = db.prepare('SELECT COUNT(*) as cnt FROM versions WHERE session_id = ?').get(session.id).cnt;
-    if (count <= 1) return res.status(400).json({ error: 'Cannot delete the last version' });
+    const countRow = await db.prepare('SELECT COUNT(*) as cnt FROM versions WHERE session_id = ?').get(session.id);
+    if (countRow.cnt <= 1) return res.status(400).json({ error: 'Cannot delete the last version' });
 
-    const result = db.prepare(
+    const result = await db.prepare(
       'DELETE FROM versions WHERE id = ? AND session_id = ?'
     ).run(req.params.id, session.id);
 

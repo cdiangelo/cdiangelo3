@@ -2,7 +2,7 @@
   "name": "cdiangelo3",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,10 +14,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "express": "^5.2.1",
-    "sql.js": "^1.14.1",
+    "pg": "^8.20.0",
     "ws": "^8.19.0"
   }
 }

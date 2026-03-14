@@ -6,14 +6,14 @@ const router = express.Router();
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-function generateCode() {
+async function generateCode() {
   const db = getDb();
   for (let attempt = 0; attempt < 20; attempt++) {
     let code = '';
     for (let i = 0; i < 5; i++) {
       code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
     }
-    const existing = db.prepare('SELECT id FROM sessions WHERE code = ?').get(code);
+    const existing = await db.prepare('SELECT id FROM sessions WHERE code = ?').get(code);
     if (!existing) return code;
   }
   throw new Error('Failed to generate unique session code');
@@ -37,16 +37,16 @@ router.post('/', async (req, res, next) => {
     let code;
     if (customCode && customCode.trim().length >= 3) {
       code = customCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-      const existing = db.prepare('SELECT id FROM sessions WHERE code = ?').get(code);
+      const existing = await db.prepare('SELECT id FROM sessions WHERE code = ?').get(code);
       if (existing) {
         return res.status(409).json({ error: 'A session with that code already exists' });
       }
     } else {
-      code = generateCode();
+      code = await generateCode();
     }
     const hash = bcrypt.hashSync(adminPassword, 10);
 
-    const result = db.prepare(
+    const result = await db.prepare(
       'INSERT INTO sessions (code, name, admin_hash) VALUES (?, ?, ?)'
     ).run(code, name.trim(), hash);
 
@@ -57,10 +57,10 @@ router.post('/', async (req, res, next) => {
 });
 
 // Look up session by code
-router.get('/:code', (req, res, next) => {
+router.get('/:code', async (req, res, next) => {
   try {
     const db = getDb();
-    const session = db.prepare(
+    const session = await db.prepare(
       'SELECT id, code, name, created_at FROM sessions WHERE code = ?'
     ).get(req.params.code.toUpperCase());
 
