@@ -8489,8 +8489,10 @@ document.querySelectorAll('#landingChartViewToggle .btn').forEach(b=>b.addEventL
 }));
 
 function renderLandingCharts(){
-  if(typeof Chart==='undefined')return;
+  if(typeof Chart==='undefined'||!state||!state.employees)return;
+  // Include ALL employees (regardless of allocation status) — unallocated employees still have salary/comp data
   const emps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  if(!emps.length)return;
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?'#ffffff':'#5a5a5a';
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
