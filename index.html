@@ -471,9 +471,11 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   .pnl-walk-table th:first-child{position:sticky;left:0;z-index:2;background:var(--panel-inset);min-width:80px;max-width:120px;font-size:.68rem;word-break:break-word;white-space:normal}
   .pnl-walk-table td:first-child{position:sticky;left:0;z-index:1;background:var(--panel);min-width:80px;max-width:120px;font-size:.68rem;word-break:break-word;white-space:normal}
   .pnl-walk-table .num{font-size:.66rem;white-space:nowrap}
-  #landingSessionBox{padding:12px 14px;gap:10px;flex-direction:column;align-items:stretch}
+  #landingSessionBox{padding:12px 14px;gap:10px;flex-direction:column!important;align-items:stretch!important}
   #landingSessionBox>div:first-child{min-width:0!important}
-  #landingSessionBox input[type="text"]{width:100%;font-size:1.1rem;letter-spacing:3px;box-sizing:border-box}
+  #landingSessionBox>div:nth-child(2){flex-direction:row;display:flex;gap:8px;width:100%}
+  #landingSessionBox input[type="text"]{width:100%!important;font-size:1.1rem;letter-spacing:3px;box-sizing:border-box;flex:1;min-width:0}
+  #landingSessionBox .btn-primary{white-space:nowrap;flex-shrink:0}
   /* Landing header: stack title and controls */
   #landingPage>div:first-child{flex-direction:column!important;gap:8px}
   #landingPage>div:first-child>div:last-child{margin-top:0!important;flex-wrap:wrap;gap:8px}
@@ -498,8 +500,10 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   #scenBudgetPnl th,#scenBudgetPnl td,#scenFcPnl th,#scenFcPnl td{padding:3px 5px;font-size:.68rem;white-space:nowrap}
   /* Vendor detail list contained */
   .vendor-detail-list{overflow-x:hidden;max-width:100%}
-  /* Prevent any child from forcing page-level horizontal scroll */
-  body{overflow-x:hidden}
+  /* Hide sticky notepad on mobile */
+  .sticky-note-btn,.sticky-note-panel{display:none!important}
+  /* Prevent page-level horizontal scroll — applied to html to avoid clipping fixed elements */
+  html{overflow-x:hidden}
 }
 @media(max-width:480px){
   .stat-cards{grid-template-columns:1fr}
