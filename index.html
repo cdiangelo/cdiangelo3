@@ -1631,10 +1631,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="vtab-vendor-grid" class="vtab-content" style="display:block">
 <!-- Vendor Spend Analysis — pivot + chart -->
 <div class="card" id="vendorTopSpendCard" style="margin-bottom:12px">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:4px">
-<h3 class="section-title" style="margin:0;font-size:.92rem">Vendor Spend Analysis</h3>
-<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
-<label style="font-size:.7rem;color:var(--text-dim)">Rows:</label>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
+<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap">Vendor Spend Analysis</h3>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Rows:</label>
 <select id="vPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
 <option value="vendorType">Vendor Type</option>
 <option value="parentCo">Parent Co</option>
@@ -1646,7 +1646,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <option value="_product">Product</option>
 <option value="_productType">Product Type</option>
 </select>
-<label style="font-size:.7rem;color:var(--text-dim)">Cols:</label>
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Cols:</label>
 <select id="vPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
 <option value="businessUnit">Business Unit</option>
 <option value="vendorType">Vendor Type</option>
@@ -1752,10 +1752,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="vtab-vendor-te" class="vtab-content" style="display:none">
 <!-- T&E Spend Analysis — pivot + chart -->
 <div class="card" id="teTopSpendCard" style="margin-bottom:12px">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:4px">
-<h3 class="section-title" style="margin:0;font-size:.92rem">T&amp;E Spend Analysis</h3>
-<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
-<label style="font-size:.7rem;color:var(--text-dim)">Rows:</label>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
+<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap">T&amp;E Spend Analysis</h3>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Rows:</label>
 <select id="tePivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
 <option value="expenseType">Expense Type</option>
 <option value="businessUnit">Business Unit</option>
@@ -1766,7 +1766,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <option value="_product">Product</option>
 <option value="_productType">Product Type</option>
 </select>
-<label style="font-size:.7rem;color:var(--text-dim)">Cols:</label>
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Cols:</label>
 <select id="tePivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
 <option value="businessUnit">Business Unit</option>
 <option value="expenseType">Expense Type</option>
@@ -3511,16 +3511,24 @@ const yoyArrowsPlugin={
     const datasets=chart.data.datasets;
     const nLabels=chart.data.labels.length;
     if(nLabels<2)return;
-    // Sum positive stacked values per x-index
+    // Sum visible stacked values per x-index (respects legend toggle)
     const totals=[];
+    let hasNeg=false;
     for(let i=0;i<nLabels;i++){
-      let sum=0;
-      datasets.forEach(ds=>{
-        if(ds.stack==='neg')return;
-        const v=ds.data[i];if(typeof v==='number'&&v>0)sum+=v;
+      let sumPos=0,sumNeg=0;
+      datasets.forEach((ds,di)=>{
+        const meta=chart.getDatasetMeta(di);
+        if(meta.hidden)return;
+        const v=ds.data[i];if(typeof v!=='number')return;
+        if(ds.stack==='neg'){sumNeg+=v;hasNeg=true}
+        else if(v>0)sumPos+=v;
       });
-      totals.push(sum);
+      // If only negative datasets visible, use absolute neg values
+      totals.push(sumPos||Math.abs(sumNeg));
     }
+    // Find first visible dataset for bar positions
+    let visMetaIdx=0;
+    for(let di=0;di<datasets.length;di++){if(!chart.getDatasetMeta(di).hidden){visMetaIdx=di;break}}
     // Responsive font: scale with chart width
     const chartW=area.right-area.left;
     const baseFontSize=Math.max(9,Math.min(13,chartW/(nLabels*6)));
@@ -3533,8 +3541,8 @@ const yoyArrowsPlugin={
       if(!prev)continue;
       const pct=((cur-prev)/Math.abs(prev))*100;
       const pctStr=(pct>=0?'+':'')+pct.toFixed(1)+'%';
-      // Get bar positions from first positive dataset meta
-      const meta0=chart.getDatasetMeta(0);
+      // Get bar positions from first visible dataset meta
+      const meta0=chart.getDatasetMeta(visMetaIdx);
       if(!meta0||!meta0.data[i]||!meta0.data[i+1])continue;
       const barL=meta0.data[i];
       const barR=meta0.data[i+1];
