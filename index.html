@@ -1645,6 +1645,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="fcScenStatus" class="scen-status"></div>
 <div id="fcActionPane" class="scen-action-pane" style="display:none">
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+<span class="scen-month-badge" id="fcYearBadge" style="display:none"></span>
 <span style="font-size:.75rem;color:var(--text-dim)">Select filters below, then use preset actions to apply scoped changes</span>
 <button class="btn btn-sm" onclick="clearFcFilters()" style="padding:1px 8px;font-size:.68rem;margin-left:auto">Clear All</button>
 </div>
@@ -6416,6 +6417,7 @@ let scenSelectedActionId=null;
 let fcActionHistory=[];
 let fcSelectedActionId=null;
 let fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+let fcSelectedYear=null;
 
 function initBudgetScenario(){
   budgetScenario={
@@ -7138,12 +7140,80 @@ function renderFcScenarioChart(){
   }
   const canvas=document.getElementById('scenFcChart');
   if(scenFcChartInst){scenFcChartInst.destroy()}
+  const fcAccentCol=isDark?'#8e6bc0':'#7b1fa2';
+  const fcPlusPlugin={
+    id:'fcPlusMarkers',
+    afterDraw(chart){
+      const meta=chart.getDatasetMeta(0);
+      if(!meta||!meta.data.length)return;
+      const ctx=chart.ctx;const top=chart.chartArea.top;
+      const hm=chart._fcHoveredIdx;
+      meta.data.forEach((bar,i)=>{
+        if(hm===i){
+          ctx.save();
+          ctx.beginPath();ctx.arc(bar.x,top+12,11,0,Math.PI*2);
+          ctx.fillStyle=fcAccentCol;ctx.fill();
+          ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+          ctx.fillText('+',bar.x,top+12);
+          ctx.restore();
+        }
+      });
+    }
+  };
   scenFcChartInst=new Chart(canvas,{
     type:'bar',data:{labels,datasets},
+    plugins:[fcPlusPlugin],
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:11}}},datalabels:{display:false}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:gridColor}}}
     }
   });
+  // Canvas event listeners for + markers on forecast chart
+  canvas.onmousemove=function(evt){
+    const chart=scenFcChartInst;if(!chart)return;
+    const rect=canvas.getBoundingClientRect();
+    const x=evt.clientX-rect.left;const y=evt.clientY-rect.top;
+    const area=chart.chartArea;
+    if(y<area.top||y>area.top+30||x<area.left||x>area.right){
+      if(chart._fcHoveredIdx!=null){chart._fcHoveredIdx=null;chart.draw();canvas.style.cursor=''}
+      return;
+    }
+    const meta=chart.getDatasetMeta(0);
+    let closest=null,closestDist=Infinity;
+    meta.data.forEach((bar,i)=>{
+      const d=Math.abs(bar.x-x);
+      if(d<closestDist){closestDist=d;closest=i}
+    });
+    if(closest!=null&&closestDist<30){
+      if(chart._fcHoveredIdx!==closest){chart._fcHoveredIdx=closest;chart.draw()}
+      canvas.style.cursor='pointer';
+    } else {
+      if(chart._fcHoveredIdx!=null){chart._fcHoveredIdx=null;chart.draw()}
+      canvas.style.cursor='';
+    }
+  };
+  canvas.onmouseleave=function(){
+    const chart=scenFcChartInst;if(!chart)return;
+    if(chart._fcHoveredIdx!=null){chart._fcHoveredIdx=null;chart.draw()}
+    canvas.style.cursor='';
+  };
+  canvas.onclick=function(){
+    const chart=scenFcChartInst;if(!chart||chart._fcHoveredIdx==null)return;
+    openFcYearPane(chart._fcHoveredIdx);
+  };
+}
+
+function openFcYearPane(barIdx){
+  // barIdx 0 = 'Current', 1+ = FORECAST_YEARS
+  const yearLabels=['Current',...FORECAST_YEARS.map(String)];
+  const label=yearLabels[barIdx];
+  fcSelectedYear=barIdx===0?null:FORECAST_YEARS[barIdx-1];
+  fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+  const badge=document.getElementById('fcYearBadge');
+  badge.textContent=label;badge.style.display='inline-block';
+  const pane=document.getElementById('fcActionPane');
+  pane.style.display='block';
+  document.getElementById('fcDetailOut').classList.add('active');
+  populateFcPills();
 }
 
 // ── Chat UI ──
@@ -7375,12 +7445,17 @@ function buildFcScopedCommand(text){
   const fs=fcFilterState;
   const hasFn=fs.function.size>0;
   const hasCo=fs.country.size>0;
-  if(!hasFn&&!hasCo)return text;
-  let scopeParts=[];
-  if(hasFn&&fs.function.size===1)scopeParts.push([...fs.function][0]);
-  if(hasCo&&fs.country.size===1)scopeParts.push('in '+[...fs.country][0]);
-  if(!scopeParts.length)return text;
-  return text.replace(/\ball\b/i,scopeParts.join(' '));
+  if(hasFn||hasCo){
+    let scopeParts=[];
+    if(hasFn&&fs.function.size===1)scopeParts.push([...fs.function][0]);
+    if(hasCo&&fs.country.size===1)scopeParts.push('in '+[...fs.country][0]);
+    if(scopeParts.length)text=text.replace(/\ball\b/i,scopeParts.join(' '));
+  }
+  // Append year scope if a specific year is selected and command doesn't already have a year
+  if(fcSelectedYear&&!/\b\d{4}\b/.test(text)){
+    text=text.replace(/$/,' in '+fcSelectedYear);
+  }
+  return text;
 }
 
 function handleFcChat(text,isRefinement,parentId){
@@ -7454,6 +7529,8 @@ function toggleFcDetailOut(){
   const action=fcActionHistory.find(a=>a.id===fcSelectedActionId);
   if(!action)return;
   fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+  fcSelectedYear=null;
+  document.getElementById('fcYearBadge').style.display='none';
   pane.style.display='block';
   btn.classList.add('active');
   const prompt=pane.querySelector('.scen-detail-prompt');
@@ -7477,6 +7554,8 @@ function closeFcActionPane(){
   delete pane.dataset.refineActionId;
   document.getElementById('fcDetailOut').classList.remove('active');
   fcFilterState={product:new Set(),function:new Set(),country:new Set()};
+  fcSelectedYear=null;
+  document.getElementById('fcYearBadge').style.display='none';
 }
 
 function clearFcFilters(){
