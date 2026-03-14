@@ -2368,7 +2368,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 // Register datalabels plugin
 if(typeof Chart!=='undefined'&&typeof ChartDataLabels!=='undefined'){Chart.register(ChartDataLabels);Chart.defaults.plugins.datalabels={display:false}}
 // Set global chart font defaults
-if(typeof Chart!=='undefined'){Chart.defaults.font.size=12;Chart.defaults.font.family="'Inter','Segoe UI',system-ui,sans-serif"}
+if(typeof Chart!=='undefined'){Chart.defaults.font.size=13;Chart.defaults.font.family="'Inter','Segoe UI',system-ui,sans-serif";Chart.defaults.plugins.legend.labels.boxWidth=14;Chart.defaults.plugins.legend.labels.font={size:13}}
 
 // ── LOCAL API FALLBACK (works when server/Pages returns 405) ──
 (function(){
@@ -3497,6 +3497,88 @@ function stackedBarDatalabels(datasets,tickColor,fontSize,crispSection){
     }
   });
 }
+// Y/Y % change arrows plugin for forecast bar charts
+const yoyArrowsPlugin={
+  id:'yoyArrows',
+  afterDraw(chart){
+    if(!chart.options.plugins.yoyArrows)return;
+    const opts=chart.options.plugins.yoyArrows;
+    const ctx=chart.ctx;
+    const area=chart.chartArea;
+    const datasets=chart.data.datasets;
+    const nLabels=chart.data.labels.length;
+    if(nLabels<2)return;
+    // Sum positive stacked values per x-index
+    const totals=[];
+    for(let i=0;i<nLabels;i++){
+      let sum=0;
+      datasets.forEach(ds=>{
+        if(ds.stack==='neg')return;
+        const v=ds.data[i];if(typeof v==='number'&&v>0)sum+=v;
+      });
+      totals.push(sum);
+    }
+    // Responsive font: scale with chart width
+    const chartW=area.right-area.left;
+    const baseFontSize=Math.max(9,Math.min(13,chartW/(nLabels*6)));
+    const fontSize=opts.fontSize||baseFontSize;
+    const arrowColor=opts.color||(document.documentElement.classList.contains('dark')?'rgba(255,255,255,.45)':'rgba(0,0,0,.35)');
+    const textColor=opts.textColor||(document.documentElement.classList.contains('dark')?'rgba(255,255,255,.7)':'rgba(0,0,0,.6)');
+    ctx.save();
+    for(let i=0;i<nLabels-1;i++){
+      const prev=totals[i],cur=totals[i+1];
+      if(!prev)continue;
+      const pct=((cur-prev)/Math.abs(prev))*100;
+      const pctStr=(pct>=0?'+':'')+pct.toFixed(1)+'%';
+      // Get bar positions from first positive dataset meta
+      const meta0=chart.getDatasetMeta(0);
+      if(!meta0||!meta0.data[i]||!meta0.data[i+1])continue;
+      const barL=meta0.data[i];
+      const barR=meta0.data[i+1];
+      // Y position: map value to pixel using y scale
+      const yScale=chart.scales.y;
+      const y1=yScale.getPixelForValue(totals[i]);
+      const y2=yScale.getPixelForValue(totals[i+1]);
+      const halfW=barL.width?barL.width/2:12;
+      const x1=barL.x+halfW+2;
+      const x2=barR.x-halfW-2;
+      const midX=(x1+x2)/2;
+      const midY=(y1+y2)/2;
+      // Draw arrow line
+      ctx.beginPath();
+      ctx.strokeStyle=arrowColor;
+      ctx.lineWidth=1.2;
+      ctx.setLineDash([3,2]);
+      ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Arrowhead
+      const angle=Math.atan2(y2-y1,x2-x1);
+      const headLen=6;
+      ctx.beginPath();
+      ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-headLen*Math.cos(angle-0.4),y2-headLen*Math.sin(angle-0.4));
+      ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-headLen*Math.cos(angle+0.4),y2-headLen*Math.sin(angle+0.4));
+      ctx.strokeStyle=arrowColor;ctx.lineWidth=1.5;ctx.stroke();
+      // Label background + text
+      ctx.font=`600 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
+      const tw=ctx.measureText(pctStr).width;
+      const pad=3;
+      const bgColor=pct>=0?(document.documentElement.classList.contains('dark')?'rgba(60,120,60,.6)':'rgba(58,125,68,.12)'):(document.documentElement.classList.contains('dark')?'rgba(140,50,50,.6)':'rgba(184,48,48,.12)');
+      const labelColor=pct>=0?(document.documentElement.classList.contains('dark')?'#7adf7a':'#2a6a2a'):(document.documentElement.classList.contains('dark')?'#ff8a8a':'#a03030');
+      ctx.fillStyle=bgColor;
+      ctx.beginPath();
+      const rx=midX-tw/2-pad,ry=midY-fontSize/2-pad-2,rw=tw+pad*2,rh=fontSize+pad*2;
+      ctx.roundRect?ctx.roundRect(rx,ry,rw,rh,3):ctx.rect(rx,ry,rw,rh);
+      ctx.fill();
+      ctx.fillStyle=labelColor;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(pctStr,midX,midY-1);
+    }
+    ctx.restore();
+  }
+};
 function renderDashboard(){
   const emps=getFilteredEmployees();
   const avgBase=emps.length?Math.round(emps.reduce((a,e)=>a+e.salary,0)/emps.length):0;
@@ -3713,7 +3795,7 @@ function renderDashboard(){
       type:'line',
       data:{labels:MONTH_SHORT,datasets:fteDatasets},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-        plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{},tooltip:FTE_TOOLTIP},
+        plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:14,font:{size:13}}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
           x:{ticks:{color:tickColor,font:{size:12}},grid:{display:false},stacked:true},
           y:{beginAtZero:true,stacked:true,ticks:{color:tickColor,font:{size:12}},grid:{color:gridColor},title:{display:true,text:'Allocated FTEs',color:tickColor,font:{size:12}}}
@@ -5719,7 +5801,8 @@ function renderForecastProjection(){
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
         data:{labels:rows.map(r=>r.year),datasets:fDatasets},
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+        plugins:[yoyArrowsPlugin],
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -5783,7 +5866,8 @@ function renderForecastProjection(){
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
         data:{labels:yearLabels,datasets},
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+        plugins:[yoyArrowsPlugin],
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -5823,7 +5907,7 @@ function renderForecastProjection(){
       type:'line',
       data:{labels:fteLabels,datasets:fcFteDatasets},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-        plugins:{legend:{display:fcFteDatasets.length>1,labels:{color:tickColor2,boxWidth:10,font:{size:11}}},datalabels:{},tooltip:FTE_TOOLTIP},
+        plugins:{legend:{display:fcFteDatasets.length>1,labels:{color:tickColor2,boxWidth:14,font:{size:13}}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
           x:{ticks:{color:tickColor2,font:{size:12}},grid:{display:false},stacked:true},
           y:{beginAtZero:true,stacked:true,ticks:{color:tickColor2,font:{size:12}},grid:{color:gridColor2},title:{display:true,text:'Projected FTEs',color:tickColor2,font:{size:12}}}
@@ -7197,7 +7281,7 @@ function renderExecView(){
       type:'bar',
       data:{labels:periodLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-        plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},
+        plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:14,font:{size:13}}},datalabels:{}},
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}},
@@ -7308,7 +7392,8 @@ function renderExecView(){
       stackedBarDatalabels(ds,tickColor,null,'execFc');
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+        plugins:[yoyArrowsPlugin],
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{labels:{color:tickColor}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -7354,7 +7439,8 @@ function renderExecView(){
       stackedBarDatalabels(ds,tickColor,null,'execFc');
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},scales:{
+        plugins:[yoyArrowsPlugin],
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{labels:{color:tickColor,boxWidth:14,font:{size:13}}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -8128,7 +8214,7 @@ function renderBudgetScenarioChart(){
   scenBudgetChartInst=new Chart(canvas,{
     type:'bar',data:{labels:MO_SHORT,datasets},
     plugins:[plusPlugin],
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:11}}},datalabels:{display:false}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:12,font:{size:12}}},datalabels:{display:false}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}
     }
   });
@@ -8218,8 +8304,8 @@ function renderFcScenarioChart(){
   };
   scenFcChartInst=new Chart(canvas,{
     type:'bar',data:{labels,datasets},
-    plugins:[fcPlusPlugin],
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:8,font:{size:11}}},datalabels:{display:false}},
+    plugins:[fcPlusPlugin,yoyArrowsPlugin],
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:12,font:{size:12}}},datalabels:{display:false},yoyArrows:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:gridColor}}}
     }
   });
@@ -10930,7 +11016,7 @@ function renderLandingCharts(){
   if(useSplit||isPnl){stackedBarDatalabels(budgetDS,tickColor,8,'landing');budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:useSplit||isPnl?{}:budgetDL},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('(CapEx)')}},datalabels:useSplit||isPnl?{}:budgetDL},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
@@ -10969,7 +11055,7 @@ function renderLandingCharts(){
   else{const _ldlC=getCrispDatalabelColor('landing')||tickColor;fcDS.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_ldlC,font:{size:chartColorScheme==='crisp'?10:8,weight:'bold'},formatter:v=>{const a=Math.abs(v);return a>=1e6?'$'+(v/1e6).toFixed(1)+'M':a>=1000?(v<0?'-':'')+'$'+(a/1000).toFixed(0)+'K':''}}})};
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 }
