@@ -1350,6 +1350,8 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="market">Market</option>
 <option value="acctDesc">Account</option>
 <option value="vendorName">Vendor Name</option>
+<option value="_product">Product</option>
+<option value="_productType">Product Type</option>
 </select>
 <label style="font-size:.7rem;color:var(--text-dim)">Cols:</label>
 <select id="vPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
@@ -1360,6 +1362,8 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="market">Market</option>
 <option value="acctDesc">Account</option>
 <option value="vendorName">Vendor Name</option>
+<option value="_product">Product</option>
+<option value="_productType">Product Type</option>
 </select>
 <button class="btn btn-primary" id="vPivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
 </div>
@@ -1466,6 +1470,8 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="market">Market</option>
 <option value="acctDesc">Account</option>
 <option value="description">Description</option>
+<option value="_product">Product</option>
+<option value="_productType">Product Type</option>
 </select>
 <label style="font-size:.7rem;color:var(--text-dim)">Cols:</label>
 <select id="tePivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
@@ -1475,6 +1481,8 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="market">Market</option>
 <option value="acctDesc">Account</option>
 <option value="description">Description</option>
+<option value="_product">Product</option>
+<option value="_productType">Product Type</option>
 </select>
 <button class="btn btn-primary" id="tePivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
 </div>
@@ -9599,8 +9607,11 @@ function initVendorModule(){
 
   function buildPivot(rows, rowDim, colDim, filters){
     const {band, selectedNames, nameField, notesSearch}=filters||{};
-    // Compute full-year per row
-    let withFY=rows.map(r=>({...r, _fy:MO_KEYS.reduce((s,m)=>s+(parseFloat(r[m])||0),0)})).filter(r=>r._fy>0);
+    // Compute full-year per row and enrich with product/productType from linked project
+    let withFY=rows.map(r=>{
+      const proj=r.project?state.projects.find(p=>p.id===r.project):null;
+      return {...r, _fy:MO_KEYS.reduce((s,m)=>s+(parseFloat(r[m])||0),0), _product:proj?proj.product||'':'', _productType:proj?proj.category||'':''};
+    }).filter(r=>r._fy>0);
     // Apply dollar band filter
     const bandRange=parseBand(band);
     if(bandRange)withFY=withFY.filter(r=>r._fy>=bandRange.lo&&r._fy<bandRange.hi);
