@@ -7945,7 +7945,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
   // Fun button
   const btn=document.createElement('button');
   btn.textContent='fun';
-  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:none;color:${dimC()};font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s;-webkit-tap-highlight-color:transparent`;
+  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:none;color:${dimC()};font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s;-webkit-tap-highlight-color:transparent;width:36px;text-align:center`;
   btn.addEventListener('mouseenter',()=>btn.style.color=hovC());
   btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.color=dimC()});
   new MutationObserver(()=>{btn.style.background=bgC();if(funState<0)btn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
@@ -8064,22 +8064,28 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
     }
   });
 
+  function funOff(){
+    funState=-1;
+    if(adTimer){clearTimeout(adTimer);adTimer=null;}
+    if(funWrap){funWrap.remove();funWrap=null;}
+    isFullscreen=false;
+    btn.dataset.on='';
+    btn.style.color=dimC();
+  }
+
+  // Left click: turn on / rotate to next video
   btn.addEventListener('click',()=>{
     funState++;
-    if(funState>=FUN_VIDEOS.length){
-      // Off
-      funState=-1;
-      if(funWrap){funWrap.remove();funWrap=null;}
-      isFullscreen=false;
-      btn.textContent='fun';
-      btn.dataset.on='';
-      btn.style.color=dimC();
-      return;
-    }
+    if(funState>=FUN_VIDEOS.length) funState=0;
     showVideo(funState);
-    btn.textContent='fun: '+FUN_VIDEOS[funState].label;
     btn.dataset.on='1';
     btn.style.color='rgba(59,130,246,0.5)';
+  });
+
+  // Right click: turn off
+  btn.addEventListener('contextmenu',(e)=>{
+    e.preventDefault();
+    if(funState>=0) funOff();
   });
 }catch(e){console.warn('Fun mode error:',e)}})();
 
