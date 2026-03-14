@@ -7917,10 +7917,8 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
   body.addEventListener('blur',saveNote);
 })();
 
-})();
-
 // ── Fun Mode — Scenic Video PiP ──
-(function(){
+(function(){try{
   const FUN_VIDEOS=[
     {id:'wnhvanMdx4s',label:'Earth from Space'},
     {id:'aGK82Tluxq8',label:'Scenic Views'},
@@ -8061,7 +8059,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
     btn.dataset.on='1';
     btn.style.color='rgba(59,130,246,0.5)';
   });
-})();
+}catch(e){console.warn('Fun mode error:',e)}})();
 
 </script>
 </body>
