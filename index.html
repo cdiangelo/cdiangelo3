@@ -1476,12 +1476,14 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="scenario-chart-container"><canvas id="scenBudgetChart"></canvas></div>
 <div class="chatbot-panel" id="budgetScenPanel">
-<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm" id="scenDetailOut" style="padding:2px 10px;font-size:.72rem" onclick="openActionPaneDetailed()">Detail Out</button><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
+<div class="chatbot-header"><span>Budget Scenarios</span><div style="display:flex;gap:4px"><button class="btn btn-sm" id="scenDetailOut" style="padding:2px 10px;font-size:.72rem" onclick="toggleDetailOut()">Refine</button><button class="btn btn-sm btn-primary" id="scenBudgetApply" style="padding:2px 10px;font-size:.72rem;display:none">Apply to Budget</button><button class="btn btn-sm" id="scenBudgetUndo" style="padding:2px 10px;font-size:.72rem;display:none">Undo</button><button class="btn btn-sm" id="scenBudgetReset" style="padding:2px 10px;font-size:.72rem">Reset</button></div></div>
 <div id="budgetScenStatus" class="scen-status"></div>
 <div id="budgetActionPane" class="scen-action-pane" style="display:none">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-<div style="display:flex;align-items:center;gap:8px"><span class="scen-month-badge" id="scenMonthBadge"></span><select id="scenMonthSelect" style="display:none;padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text)" onchange="onScenMonthChange(this.value)"><option value="">All Months</option><option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option></select> <span style="font-size:.78rem;color:var(--text-dim)">Scope changes to selected filters</span></div>
-<button class="btn btn-sm" onclick="closeActionPane()" style="padding:2px 8px;font-size:.72rem">Close</button>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+<span class="scen-month-badge" id="scenMonthBadge" style="display:none"></span>
+<select id="scenMonthSelect" style="padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text)" onchange="onScenMonthChange(this.value)"><option value="">All Months</option><option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option></select>
+<span style="font-size:.75rem;color:var(--text-dim)">Select filters below, then use preset actions to apply scoped changes</span>
+<button class="btn btn-sm" onclick="clearScenFilters()" style="padding:1px 8px;font-size:.68rem;margin-left:auto">Clear All</button>
 </div>
 <div class="scen-filter-section">
 <div><label style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Product</label><div id="scenFilterProduct" class="scen-pill-group"></div></div>
@@ -6777,44 +6779,64 @@ function handleBudgetChat(text){
 }
 
 // ── Action Pane Functions ──
-function openActionPane(monthIdx){
-  scenSelectedMonth=monthIdx;
-  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
-  const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  document.getElementById('scenMonthBadge').textContent=MO_SHORT[monthIdx];
-  // Populate filter pills
+function populateActionPanePills(){
   const products=[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort();
   renderScenFilterPills('scenFilterProduct',products,'product');
   renderScenFilterPills('scenFilterFunction',FUNCTIONS,'function');
   renderScenFilterPills('scenFilterCountry',COUNTRIES,'country');
-  document.getElementById('scenEmpSearch').value='';
-  document.getElementById('budgetActionPane').style.display='block';
   filterScenEmpList();
 }
 
-function openActionPaneDetailed(){
-  scenSelectedMonth=null;
+function openActionPane(monthIdx){
+  const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  scenSelectedMonth=monthIdx;
   scenFilterState={product:new Set(),function:new Set(),country:new Set()};
-  document.getElementById('scenMonthBadge').style.display='none';
-  const sel=document.getElementById('scenMonthSelect');
-  sel.style.display='inline-block';sel.value='';
-  const products=[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort();
-  renderScenFilterPills('scenFilterProduct',products,'product');
-  renderScenFilterPills('scenFilterFunction',FUNCTIONS,'function');
-  renderScenFilterPills('scenFilterCountry',COUNTRIES,'country');
+  const badge=document.getElementById('scenMonthBadge');
+  badge.textContent=MO_SHORT[monthIdx];badge.style.display='inline-block';
+  document.getElementById('scenMonthSelect').value=String(monthIdx);
   document.getElementById('scenEmpSearch').value='';
   document.getElementById('budgetActionPane').style.display='block';
-  filterScenEmpList();
+  document.getElementById('scenDetailOut').classList.add('active');
+  populateActionPanePills();
+}
+
+function toggleDetailOut(){
+  const pane=document.getElementById('budgetActionPane');
+  const btn=document.getElementById('scenDetailOut');
+  if(pane.style.display!=='none'){
+    closeActionPane();
+  } else {
+    scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+    scenSelectedMonth=null;
+    document.getElementById('scenMonthBadge').style.display='none';
+    document.getElementById('scenMonthSelect').value='';
+    document.getElementById('scenEmpSearch').value='';
+    pane.style.display='block';
+    btn.classList.add('active');
+    populateActionPanePills();
+  }
 }
 
 function onScenMonthChange(val){
   scenSelectedMonth=val===''?null:parseInt(val);
+  const badge=document.getElementById('scenMonthBadge');
+  if(val===''){badge.style.display='none'}
+  else{const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];badge.textContent=MO_SHORT[parseInt(val)];badge.style.display='inline-block'}
+}
+
+function clearScenFilters(){
+  scenFilterState={product:new Set(),function:new Set(),country:new Set()};
+  scenSelectedMonth=null;
+  document.getElementById('scenMonthSelect').value='';
+  document.getElementById('scenMonthBadge').style.display='none';
+  document.getElementById('scenEmpSearch').value='';
+  populateActionPanePills();
 }
 
 function closeActionPane(){
   document.getElementById('budgetActionPane').style.display='none';
-  document.getElementById('scenMonthSelect').style.display='none';
-  document.getElementById('scenMonthBadge').style.display='inline-block';
+  document.getElementById('scenMonthBadge').style.display='none';
+  document.getElementById('scenDetailOut').classList.remove('active');
   scenSelectedMonth=null;
   scenFilterState={product:new Set(),function:new Set(),country:new Set()};
 }
