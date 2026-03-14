@@ -9598,8 +9598,9 @@ function renderDataPanelWsList(){
         if(wsMergeMode){
           html+=`<input type="checkbox" ${isChecked?'checked':''} onchange="toggleWsMergeSelect('${vKey}');renderDataPanelWsList()" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer">`;
         }
-        const vTime=v.savedAt||v.createdAt?new Date(v.savedAt||v.createdAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
-        html+=`<span style="flex:1;color:var(--text)">${v.name}${vTime?' <span style="color:var(--text-dim);font-size:.65rem">'+vTime+'</span>':''}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
+        const vRaw=v.savedAt||v.updatedAt||v.createdAt||v.created_at||v.updated_at;
+        const vTime=vRaw?new Date(vRaw).toLocaleString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):'';
+        html+=`<span style="flex:1;color:var(--text)">${v.name}${vTime?' <span style="color:var(--text-dim);font-size:.65rem;margin-left:4px">'+vTime+'</span>':''}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
         if(!wsMergeMode){
           html+=`${!isActive?`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadVersionFromServer(${v.id},'${esc}');renderDataPanelWsList()">Load</button>`:''}`;
           html+=`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteVersionFromServer(${v.id},'${esc}');renderDataPanelWsList()">×</button>`;
@@ -9610,7 +9611,11 @@ function renderDataPanelWsList(){
     }).catch(()=>{container.innerHTML='<div style="color:var(--danger);font-size:.78rem;padding:4px">Error</div>'});
     return;
   }
-  const idx=getWorkspaceIndex();
+  let idx=getWorkspaceIndex();
+  // Ensure active workspace always appears with a timestamp
+  if(!idx.find(w=>w.name===currentWorkspaceName)){
+    idx=[{key:'ws_'+currentWorkspaceName.replace(/[^a-zA-Z0-9_-]/g,'_'),name:currentWorkspaceName,savedAt:new Date().toISOString(),employees:(state.employees||[]).length,projects:(state.projects||[]).length},...idx];
+  }
   if(!idx.length){container.innerHTML='<div style="color:var(--text-dim);font-size:.78rem;padding:4px">No saved workspaces</div>';return}
   let html='';
   if(idx.length>=2){
@@ -9629,8 +9634,8 @@ function renderDataPanelWsList(){
     if(wsMergeMode){
       html+=`<input type="checkbox" ${isChecked?'checked':''} onchange="toggleWsMergeSelect('${w.key}');renderDataPanelWsList()" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer">`;
     }
-    const wTime=w.savedAt?new Date(w.savedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
-    html+=`<span style="flex:1;color:var(--text)">${w.name}${wTime?' <span style="color:var(--text-dim);font-size:.65rem">'+wTime+'</span>':''}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
+    const wTime=w.savedAt?new Date(w.savedAt).toLocaleString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):'unsaved';
+    html+=`<span style="flex:1;color:var(--text)">${w.name} <span style="color:var(--text-dim);font-size:.65rem;margin-left:4px">${wTime}</span>${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
     if(!wsMergeMode){
       html+=`${!isActive?`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadWorkspace('${w.key}','${esc}');renderDataPanelWsList()">Load</button>`:''}`;
       html+=`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteWorkspace('${w.key}','${esc}');renderDataPanelWsList()">×</button>`;
