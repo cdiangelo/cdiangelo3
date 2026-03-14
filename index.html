@@ -1354,6 +1354,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" data-split="project">Project</button>
 <button class="btn" data-split="function">Function</button>
 <button class="btn" data-split="country">Country</button>
+<button class="btn" data-split="comp">Base / Bonus / Benefits</button>
 </div>
 </div>
 <div>
@@ -3439,7 +3440,9 @@ const yoyArrowsPlugin={
     for(let i=0;i<nLabels-1;i++){
       const prev=totals[i],cur=totals[i+1];
       if(!prev)continue;
-      const pct=((cur-prev)/Math.abs(prev))*100;
+      let pct=((cur-prev)/Math.abs(prev))*100;
+      // When only CapEx (negative) bars visible, invert so increasing spend shows as positive growth
+      if(yPositions[i]<0&&yPositions[i+1]<0)pct=-pct;
       const pctStr=(pct>=0?'+':'')+pct.toFixed(1)+'%';
       // Get bar positions from first visible dataset meta
       const meta0=chart.getDatasetMeta(visMetaIdx);
@@ -5639,7 +5642,7 @@ function renderForecastProjection(){
 
   // Table
   const tbl=document.getElementById('forecastTable');
-  if(!splitGroups){
+  if(!splitGroups||forecastSplit==='comp'){
     // Total view with base/bonus/benefits breakdown
     const rows=[];
     const activeEmps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
