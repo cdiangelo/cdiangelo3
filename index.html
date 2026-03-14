@@ -708,7 +708,6 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-tab="dashboard">Dashboard</button>
 <button data-tab="monthly">Monthly Spread</button>
 <button data-tab="scratch">Scratch Pad</button>
-<button data-tab="export">Export / Import Data</button>
 </div>
 </div>
 <div class="nav-group">
@@ -722,10 +721,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="nav-group-label">Dimension Management</div>
 <div class="nav-group-btns">
 <button data-tab="projects">Project / Market Mapping</button>
-<button data-tab="bonuses">Bonus Assumptions</button>
-<button data-tab="benefits">Benefits Assumptions</button>
 <button data-tab="benchmarks">Comp Benchmarks</button>
-<button data-tab="imports">Import / Export</button>
 </div>
 </div>
 </nav>
@@ -991,32 +987,6 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 
-<!-- BONUS ASSUMPTIONS -->
-<div id="tab-bonuses" class="tab-content">
-<div class="controls">
-<button class="btn btn-primary" id="btnApplyBonuses">Apply to All Employees</button>
-<button class="btn btn-danger" id="btnResetBonuses">Reset Defaults</button>
-</div>
-<div class="card table-wrap"><table class="matrix-table" id="bonusMatrix"></table></div>
-</div>
-
-<!-- BENEFITS ASSUMPTIONS -->
-<div id="tab-benefits" class="tab-content">
-<div class="card" style="margin-bottom:20px">
-<h3 class="section-title">Benefits Cost Assumptions</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Define benefits as a percentage of base salary by seniority level. Benefits are included in total compensation calculations.</p>
-</div>
-<div class="controls">
-<button class="btn btn-danger" id="btnResetBenefits">Reset Defaults</button>
-</div>
-<div class="card table-wrap"><table class="matrix-table" id="benefitsMatrix"></table></div>
-<div class="card-inset" style="margin-top:20px;padding:16px">
-<h4 style="color:var(--accent);margin-bottom:12px">Benefits Breakdown by Country</h4>
-<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Country multipliers applied to base benefits rate to account for regional cost differences.</p>
-<div class="table-wrap"><table class="matrix-table" id="benefitsCountryTable"></table></div>
-</div>
-</div>
-
 <!-- COMP BENCHMARKS -->
 <div id="tab-benchmarks" class="tab-content">
 <div class="card" style="margin-bottom:20px">
@@ -1055,44 +1025,6 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 
-<!-- IMPORT / EXPORT -->
-<div id="tab-imports" class="tab-content">
-<div class="card">
-<h3 class="section-title">Mass Upload (Excel)</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Upload Excel (.xlsx) files to bulk import or update data. Download a pre-formatted template first, fill it in, then upload. Existing employees matched by name will be updated; new names will be added.</p>
-<div class="export-grid" style="margin-bottom:16px">
-<div class="export-card">
-<h3>Employee Roster</h3>
-<p>Bulk add/update employees with all roster fields including salary, capitalization %, and project assignments.</p>
-<button class="btn" id="btnDlRosterTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadRoster">Upload Roster</button>
-<input type="file" id="rosterFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-<div class="export-card">
-<h3>Bonus Matrix</h3>
-<p>Upload bonus percentages as a Seniority x Function grid.</p>
-<button class="btn" id="btnDlBonusTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBonus">Upload Bonus</button>
-<input type="file" id="bonusFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-<div class="export-card">
-<h3>Benefits Matrix</h3>
-<p>Upload benefits percentages (Seniority x Function) and country multipliers on a second sheet.</p>
-<button class="btn" id="btnDlBenefitsTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBenefits">Upload Benefits</button>
-<input type="file" id="benefitsFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-<div class="export-card">
-<h3>Base Comp Rates</h3>
-<p>Upload seniority base salaries, function multipliers, and country multipliers used to compute benchmark salaries.</p>
-<button class="btn" id="btnDlBaseCompTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBaseComp">Upload Base Comp</button>
-<input type="file" id="baseCompFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-</div>
-<div id="uploadResultBox" style="display:none" class="card-inset"><pre id="uploadResultText" style="white-space:pre-wrap;font-size:.82rem;max-height:300px;overflow:auto"></pre></div>
-</div>
-</div>
 
 <!-- MONTHLY SPREAD -->
 <div id="tab-monthly" class="tab-content">
@@ -1235,8 +1167,8 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 
-<!-- EXPORT -->
-<div id="tab-export" class="tab-content">
+<!-- Export/Import/Workspaces (hidden — accessible from data panel) -->
+<div id="tab-export" class="tab-content" style="display:none">
 <div class="export-grid">
 <div class="export-card">
 <h3>Print View</h3>
@@ -1258,7 +1190,6 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="card" style="margin-top:24px">
 <h3 class="section-title">Workspaces</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Save multiple named copies of your comp plan. Each workspace stores a complete snapshot of all data. Switch between them to compare scenarios. Data is stored in your browser's local storage.</p>
 <div class="controls" style="margin-bottom:16px">
 <input id="wsSaveName" placeholder="Workspace name…" style="max-width:280px">
 <button class="btn btn-primary" id="btnWsSave">Save As</button>
@@ -1886,6 +1817,30 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 
 <div class="data-section">
+<h4>Bonus Matrix</h4>
+<p>Upload bonus percentages as a Seniority × Function grid.</p>
+<button class="btn" id="btnDlBonusTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBonus">Upload Bonus</button>
+<input type="file" id="bonusFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>Benefits Matrix</h4>
+<p>Upload benefits percentages and country multipliers.</p>
+<button class="btn" id="btnDlBenefitsTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBenefits">Upload Benefits</button>
+<input type="file" id="benefitsFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
+<h4>Base Comp Rates</h4>
+<p>Upload seniority base salaries, function &amp; country multipliers.</p>
+<button class="btn" id="btnDlBaseCompTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBaseComp">Upload Base Comp</button>
+<input type="file" id="baseCompFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+
+<div class="data-section">
 <h4>Full Data Export</h4>
 <p>Export all data (employees, vendors, T&amp;E) to a single Excel workbook.</p>
 <button class="btn btn-primary" id="dataPanelFullExport">Export All Data (Excel)</button>
@@ -1900,7 +1855,12 @@ Template Mode &mdash; changes saved in this browser only.
 <div style="margin-top:8px">
 <button class="btn btn-primary" id="dataPanelExportHTML">Download Shareable HTML</button>
 </div>
+<div style="margin-top:8px">
+<button class="btn" id="dataPanelPrint" style="width:100%">Open Print View</button>
 </div>
+</div>
+
+<div id="uploadResultBox" style="display:none" class="card-inset"><pre id="uploadResultText" style="white-space:pre-wrap;font-size:.82rem;max-height:300px;overflow:auto"></pre></div>
 </div>
 
 <script>
@@ -2677,8 +2637,6 @@ document.querySelectorAll('#mainNav button').forEach(b=>{
     if(b.dataset.tab==='dashboard')renderDashboard();
     if(b.dataset.tab==='employees')renderEmployees();
     if(b.dataset.tab==='projects')renderProjects();
-    if(b.dataset.tab==='bonuses')renderBonusMatrix();
-    if(b.dataset.tab==='benefits')renderBenefitsMatrix();
     if(b.dataset.tab==='benchmarks')renderBenchmarkTables();
     if(b.dataset.tab==='monthly')renderMonthly();
     if(b.dataset.tab==='forecast')renderForecast();
@@ -3785,79 +3743,9 @@ function refreshAllDropdowns(){
   if(vendorModuleInited&&typeof renderVendorGridPublic==='function'){renderVendorGridPublic()}
 }
 
-// ── BONUS ASSUMPTIONS ──
-function renderBonusMatrix(){
-  const tbl=document.getElementById('bonusMatrix');
-  let html='<thead><tr><th>Seniority \\ Function</th>';
-  FUNCTIONS.forEach((f,i)=>html+=`<th>${FUNC_SHORT[i]}</th>`);
-  html+='</tr></thead><tbody>';
-  SENIORITY.forEach(s=>{
-    html+=`<tr><td style="text-align:left;white-space:nowrap;font-weight:600;color:var(--accent)">${s}</td>`;
-    FUNCTIONS.forEach(f=>{
-      const v=state.bonusMatrix[s]?.[f]??DEFAULT_BONUS[s];
-      html+=`<td><input type="number" min="0" max="100" value="${v}" data-s="${s}" data-f="${f}" class="bonus-input">%</td>`;
-    });
-    html+='</tr>';
-  });
-  html+='</tbody>';
-  tbl.innerHTML=html;
-  tbl.querySelectorAll('.bonus-input').forEach(inp=>inp.addEventListener('change',()=>{
-    const s=inp.dataset.s,f=inp.dataset.f;
-    if(!state.bonusMatrix[s])state.bonusMatrix[s]={};
-    state.bonusMatrix[s][f]=parseFloat(inp.value)||0;
-    saveState();
-  }));
-}
-document.getElementById('btnApplyBonuses').addEventListener('click',()=>{saveState();renderEmployees();alert('Bonus percentages applied.')});
-document.getElementById('btnResetBonuses').addEventListener('click',()=>{
-  SENIORITY.forEach(s=>{state.bonusMatrix[s]={};FUNCTIONS.forEach(f=>{state.bonusMatrix[s][f]=DEFAULT_BONUS[s]})});
-  saveState();renderBonusMatrix();
-});
-
-// ── BENEFITS ASSUMPTIONS ──
-function renderBenefitsMatrix(){
-  const tbl=document.getElementById('benefitsMatrix');
-  let html='<thead><tr><th>Seniority \\ Function</th>';
-  FUNCTIONS.forEach((f,i)=>html+=`<th>${FUNC_SHORT[i]}</th>`);
-  html+='</tr></thead><tbody>';
-  SENIORITY.forEach(s=>{
-    html+=`<tr><td style="text-align:left;white-space:nowrap;font-weight:600;color:var(--accent)">${s}</td>`;
-    FUNCTIONS.forEach(f=>{
-      const v=state.benefitsMatrix[s]?.[f]??DEFAULT_BENEFITS[s];
-      html+=`<td><input type="number" min="0" max="100" value="${v}" data-s="${s}" data-f="${f}" class="benefits-input">%</td>`;
-    });
-    html+='</tr>';
-  });
-  html+='</tbody>';
-  tbl.innerHTML=html;
-  tbl.querySelectorAll('.benefits-input').forEach(inp=>inp.addEventListener('change',()=>{
-    const s=inp.dataset.s,f=inp.dataset.f;
-    if(!state.benefitsMatrix[s])state.benefitsMatrix[s]={};
-    state.benefitsMatrix[s][f]=parseFloat(inp.value)||0;
-    saveState();
-  }));
-
-  // Country multipliers
-  const ctbl=document.getElementById('benefitsCountryTable');
-  let chtml='<thead><tr><th>Country</th>';
-  COUNTRIES.forEach(c=>chtml+=`<th>${COUNTRY_SHORT[COUNTRIES.indexOf(c)]}</th>`);
-  chtml+='</tr></thead><tbody><tr><td style="text-align:left;font-weight:600;color:var(--accent)">Multiplier</td>';
-  COUNTRIES.forEach(c=>{
-    const v=state.benefitsCountryMult[c]??1;
-    chtml+=`<td><input type="number" min="0" max="3" step="0.01" value="${v}" data-c="${c}" class="ben-country-input" style="width:70px"></td>`;
-  });
-  chtml+='</tr></tbody>';
-  ctbl.innerHTML=chtml;
-  ctbl.querySelectorAll('.ben-country-input').forEach(inp=>inp.addEventListener('change',()=>{
-    state.benefitsCountryMult[inp.dataset.c]=parseFloat(inp.value)||0;
-    saveState();
-  }));
-}
-document.getElementById('btnResetBenefits').addEventListener('click',()=>{
-  SENIORITY.forEach(s=>{state.benefitsMatrix[s]={};FUNCTIONS.forEach(f=>{state.benefitsMatrix[s][f]=DEFAULT_BENEFITS[s]})});
-  state.benefitsCountryMult={...BENEFITS_COUNTRY_MULT};
-  saveState();renderBenefitsMatrix();
-});
+// ── BONUS / BENEFITS (managed via data panel uploads) ──
+function renderBonusMatrix(){/* no-op: managed via upload */}
+function renderBenefitsMatrix(){/* no-op: managed via upload */}
 
 // ── COMP BENCHMARKS ──
 function renderBenchmarkTables(){
@@ -8619,6 +8507,10 @@ function initDataPanel(){
   // Backup: Share HTML
   document.getElementById('dataPanelExportHTML').addEventListener('click',()=>{
     document.getElementById('btnExportHTML').click();
+  });
+  // Print View
+  document.getElementById('dataPanelPrint').addEventListener('click',()=>{
+    document.getElementById('btnPrint').click();
   });
 
   // Full Data Export (Excel with all sheets)
