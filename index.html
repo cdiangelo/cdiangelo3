@@ -427,7 +427,13 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .scen-month-badge{display:inline-block;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;padding:2px 10px;border-radius:10px}
 .scen-emp-search{width:100%;padding:5px 10px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);margin-bottom:4px;box-sizing:border-box}
 .scen-emp-list{max-height:120px;overflow-y:auto;font-size:.74rem;border:1px solid var(--border-light);border-radius:6px;background:var(--panel)}
-.scen-emp-list .emp-row{display:flex;justify-content:space-between;padding:3px 8px;border-bottom:1px solid var(--border-light)}
+.scen-emp-list .emp-row{display:flex;align-items:center;padding:3px 8px;border-bottom:1px solid var(--border-light);gap:4px}
+.scen-emp-list .emp-actions{display:flex;gap:2px;margin-left:auto;flex-shrink:0}
+.scen-emp-list .emp-act{background:none;border:none;cursor:pointer;font-size:.68rem;padding:1px 3px;border-radius:3px;line-height:1;color:var(--text-dim);opacity:.55;transition:opacity .15s,color .15s}
+.scen-emp-list .emp-act:hover{opacity:1}
+.scen-emp-list .emp-act.act-x:hover{color:var(--danger)}
+.scen-emp-list .emp-act.act-arrow:hover{color:var(--accent)}
+.scen-emp-list .emp-act.act-up:hover,.scen-emp-list .emp-act.act-down:hover{color:var(--success)}
 .scen-emp-list .emp-row:last-child{border-bottom:none}
 .scen-emp-list .emp-name{color:var(--text);font-weight:500}
 .scen-emp-list .emp-meta{color:var(--text-dim);white-space:nowrap}
@@ -1655,6 +1661,10 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="increase all cap% by 10">All cap% +10pp</button>
 <button data-cmd="decrease all cap% by 10">All cap% -10pp</button>
 <button data-cmd="set software engineering cap% to 60">SWE cap% 60</button>
+<button data-cmd="increase capitalization by 10%">Cap +10%</button>
+<button data-cmd="decrease capitalization by 10%">Cap -10%</button>
+<button data-cmd="increase capitalization by 25%">Cap +25%</button>
+<button data-cmd="decrease capitalization by 25%">Cap -25%</button>
 </div>
 <div class="cmd-group" data-cat="growth">
 <button data-cmd="add 5 senior software engineering in us">+5 Sr SWE (US)</button>
@@ -1739,6 +1749,10 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-cmd="set cap% to 50">Set cap% 50</button>
 <button data-cmd="increase all cap% by 10">All cap% +10pp</button>
 <button data-cmd="decrease all cap% by 10">All cap% -10pp</button>
+<button data-cmd="increase capitalization by 10%">Cap +10%</button>
+<button data-cmd="decrease capitalization by 10%">Cap -10%</button>
+<button data-cmd="increase capitalization by 25%">Cap +25%</button>
+<button data-cmd="decrease capitalization by 25%">Cap -25%</button>
 </div>
 <div class="cmd-group" data-cat="growth">
 <button data-cmd="set hires to 1 per month">1 hire/mo</button>
@@ -5567,7 +5581,7 @@ function setDarkMode(on){
   localStorage.setItem('compPlanDark',on?'1':'0');
   toggleDark.checked=on;
   landingToggleDark.checked=on;
-  renderForecast();renderExecView();renderDashboard();renderLandingCharts();
+  renderForecast();renderExecView();renderDashboard();renderLandingCharts();renderBudgetScenarioChart();renderFcScenarioChart();
   colorSchemeCallbacks.forEach(fn=>fn());
 }
 toggleDark.addEventListener('change',()=>setDarkMode(toggleDark.checked));
@@ -7049,6 +7063,21 @@ function parseBudgetCommand(text){
     let count=0;emps.forEach(e=>{if(filter(e)){e.capPct=Math.max(0,(parseFloat(e.capPct)||0)-delta);count++}});
     return {msg:`Decreased cap% by ${delta}pp for ${count} employees.`,ok:true};
   }
+  // Increase/decrease capitalization by x% (relative/multiplicative)
+  m=text.match(/(?:increase|raise)\s+(?:(.+?)\s+)?capitalization\s+by\s+(\d+\.?\d*)%/i);
+  if(m){
+    const filter=m[1]?resolveGroup(m[1],emps):null;const pct=parseFloat(m[2]);
+    if(m[1]&&!filter)return {msg:groupErr(m[1]),ok:false};
+    let count=0;emps.forEach(e=>{if(!filter||filter(e)){const cur=parseFloat(e.capPct)||0;e.capPct=Math.min(100,cur*(1+pct/100));count++}});
+    return {msg:`Increased capitalization by ${pct}% for ${count} employees.`,ok:true};
+  }
+  m=text.match(/(?:reduce|decrease|cut)\s+(?:(.+?)\s+)?capitalization\s+by\s+(\d+\.?\d*)%/i);
+  if(m){
+    const filter=m[1]?resolveGroup(m[1],emps):null;const pct=parseFloat(m[2]);
+    if(m[1]&&!filter)return {msg:groupErr(m[1]),ok:false};
+    let count=0;emps.forEach(e=>{if(!filter||filter(e)){const cur=parseFloat(e.capPct)||0;e.capPct=Math.max(0,cur*(1-pct/100));count++}});
+    return {msg:`Decreased capitalization by ${pct}% for ${count} employees.`,ok:true};
+  }
   // Terminate group on date
   m=text.match(/terminate\s+(.+?)\s+on\s+(\S+)/i);
   if(m){
@@ -7180,6 +7209,21 @@ function parseForecastCommand(text){
     if(!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
     let count=0;emps.forEach(e=>{if(filter(e)){e.capPct=Math.max(0,(parseFloat(e.capPct)||0)-delta);count++}});
     return {msg:`Decreased cap% by ${delta}pp for ${count} forecast employees.`,ok:true};
+  }
+  // Increase/decrease capitalization by x% (relative/multiplicative)
+  m=text.match(/(?:increase|raise)\s+(?:(.+?)\s+)?capitalization\s+by\s+(\d+\.?\d*)%/i);
+  if(m){
+    const filter=m[1]?resolveGroup(m[1],emps):null;const pct=parseFloat(m[2]);
+    if(m[1]&&!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    let count=0;emps.forEach(e=>{if(!filter||filter(e)){const cur=parseFloat(e.capPct)||0;e.capPct=Math.min(100,cur*(1+pct/100));count++}});
+    return {msg:`Increased capitalization by ${pct}% for ${count} forecast employees.`,ok:true};
+  }
+  m=text.match(/(?:reduce|decrease|cut)\s+(?:(.+?)\s+)?capitalization\s+by\s+(\d+\.?\d*)%/i);
+  if(m){
+    const filter=m[1]?resolveGroup(m[1],emps):null;const pct=parseFloat(m[2]);
+    if(m[1]&&!filter)return {msg:`Could not identify group "${m[1]}".`,ok:false};
+    let count=0;emps.forEach(e=>{if(!filter||filter(e)){const cur=parseFloat(e.capPct)||0;e.capPct=Math.max(0,cur*(1-pct/100));count++}});
+    return {msg:`Decreased capitalization by ${pct}% for ${count} forecast employees.`,ok:true};
   }
   // Vendor spend forecast commands
   m=text.match(/(?:grow|increase)\s+vendor\s+spend\s+by\s+(\d+\.?\d*)%\s+annually/i);
@@ -7632,10 +7676,58 @@ function filterScenEmpList(){
   const el=document.getElementById('scenEmpList');
   const show=emps.slice(0,50);
   if(!show.length){el.innerHTML='<div class="emp-count">No matching employees</div>';return}
-  let html=show.map(e=>`<div class="emp-row"><span class="emp-name">${e.name}</span><span class="emp-meta">${e.function} · ${e.country} · ${fmt(e.salary)}</span></div>`).join('');
+  let html=show.map(e=>{
+    const esc=e.name.replace(/'/g,"\\'");
+    return `<div class="emp-row"><span class="emp-name">${e.name}</span><span class="emp-meta">${e.function} · ${e.country} · ${fmt(e.salary)} · cap ${e.capPct||0}%</span><span class="emp-actions"><button class="emp-act act-up" title="Increase cap% by 10pp" onclick="scenEmpCapAdj('${esc}',10)">&#9650;</button><button class="emp-act act-down" title="Decrease cap% by 10pp" onclick="scenEmpCapAdj('${esc}',-10)">&#9660;</button><button class="emp-act act-arrow" title="Transfer out" onclick="scenEmpTransfer('${esc}')">&#8594;</button><button class="emp-act act-x" title="Terminate" onclick="scenEmpTerminate('${esc}')">&#10005;</button></span></div>`;
+  }).join('');
   if(emps.length>50)html+=`<div class="emp-count">+${emps.length-50} more</div>`;
   else html+=`<div class="emp-count">${emps.length} employee${emps.length===1?'':'s'}</div>`;
   el.innerHTML=html;
+}
+
+function scenEmpTerminate(name){
+  if(!budgetScenario)return;
+  const emp=budgetScenario.emps.find(e=>e.name===name);
+  if(!emp)return;
+  budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
+  document.getElementById('scenBudgetUndo').style.display='inline-block';
+  emp.termDate=new Date().toISOString().slice(0,10);
+  budgetScenarioDirty=true;
+  const entry={id:Date.now(),cmd:`terminate ${name}`,scopedCmd:`terminate ${name}`,msg:`Terminated ${name} effective ${emp.termDate}.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
+  scenActionHistory.push(entry);
+  document.getElementById('scenBudgetApply').style.display='inline-block';
+  renderScenActionHistory();renderBudgetScenarioChart();filterScenEmpList();renderScenarioPnlSummary();updateDetailOutBtn();
+  initForecastScenario();renderFcScenarioChart();
+}
+function scenEmpTransfer(name){
+  if(!budgetScenario)return;
+  const emp=budgetScenario.emps.find(e=>e.name===name);
+  if(!emp)return;
+  budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
+  document.getElementById('scenBudgetUndo').style.display='inline-block';
+  budgetScenario.emps=budgetScenario.emps.filter(e=>e.name!==name);
+  budgetScenarioDirty=true;
+  const entry={id:Date.now(),cmd:`remove ${name}`,scopedCmd:`remove ${name}`,msg:`Removed ${name} from budget.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
+  scenActionHistory.push(entry);
+  document.getElementById('scenBudgetApply').style.display='inline-block';
+  renderScenActionHistory();renderBudgetScenarioChart();filterScenEmpList();renderScenarioPnlSummary();updateDetailOutBtn();
+  initForecastScenario();renderFcScenarioChart();
+}
+function scenEmpCapAdj(name,delta){
+  if(!budgetScenario)return;
+  const emp=budgetScenario.emps.find(e=>e.name===name);
+  if(!emp)return;
+  budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
+  document.getElementById('scenBudgetUndo').style.display='inline-block';
+  const old=parseFloat(emp.capPct)||0;
+  emp.capPct=Math.max(0,Math.min(100,old+delta));
+  budgetScenarioDirty=true;
+  const dir=delta>0?'Increased':'Decreased';
+  const entry={id:Date.now(),cmd:`${dir.toLowerCase()} "${name}" cap% by ${Math.abs(delta)}`,scopedCmd:`${dir.toLowerCase()} "${name}" cap% by ${Math.abs(delta)}`,msg:`${dir} ${name} cap% from ${old}% to ${emp.capPct}%.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
+  scenActionHistory.push(entry);
+  document.getElementById('scenBudgetApply').style.display='inline-block';
+  renderScenActionHistory();renderBudgetScenarioChart();filterScenEmpList();renderScenarioPnlSummary();updateDetailOutBtn();
+  initForecastScenario();renderFcScenarioChart();
 }
 
 function buildFcScopedCommand(text){
@@ -7799,10 +7891,45 @@ function filterFcEmpList(){
   const el=document.getElementById('fcEmpList');
   const show=emps.slice(0,50);
   if(!show.length){el.innerHTML='<div class="emp-count">No matching employees</div>';return}
-  let html=show.map(e=>`<div class="emp-row"><span class="emp-name">${e.name}</span><span class="emp-meta">${e.function} · ${e.country} · ${fmt(e.salary)}</span></div>`).join('');
+  let html=show.map(e=>{
+    const esc=e.name.replace(/'/g,"\\'");
+    return `<div class="emp-row"><span class="emp-name">${e.name}</span><span class="emp-meta">${e.function} · ${e.country} · ${fmt(e.salary)} · cap ${e.capPct||0}%</span><span class="emp-actions"><button class="emp-act act-up" title="Increase cap% by 10pp" onclick="fcEmpCapAdj('${esc}',10)">&#9650;</button><button class="emp-act act-down" title="Decrease cap% by 10pp" onclick="fcEmpCapAdj('${esc}',-10)">&#9660;</button><button class="emp-act act-arrow" title="Remove from forecast" onclick="fcEmpRemove('${esc}')">&#8594;</button><button class="emp-act act-x" title="Terminate" onclick="fcEmpTerminate('${esc}')">&#10005;</button></span></div>`;
+  }).join('');
   if(emps.length>50)html+=`<div class="emp-count">+${emps.length-50} more</div>`;
   else html+=`<div class="emp-count">${emps.length} employee${emps.length===1?'':'s'}</div>`;
   el.innerHTML=html;
+}
+
+function fcEmpTerminate(name){
+  fcEmpRemove(name);
+}
+function fcEmpRemove(name){
+  if(!forecastScenario)return;
+  const emp=forecastScenario.emps.find(e=>e.name===name);
+  if(!emp)return;
+  fcUndoStack.push(JSON.parse(JSON.stringify(forecastScenario)));
+  document.getElementById('scenFcUndo').style.display='inline-block';
+  forecastScenario.emps=forecastScenario.emps.filter(e=>e.name!==name);
+  fcScenarioDirty=true;
+  const entry={id:Date.now(),cmd:`remove ${name}`,scopedCmd:`remove ${name}`,msg:`Removed ${name} from forecast.`,delta:computeFcDelta(),isRefinement:false,parentId:null};
+  fcActionHistory.push(entry);
+  document.getElementById('scenFcApply').style.display='inline-block';
+  renderFcActionHistory();renderFcScenarioChart();filterFcEmpList();renderFcPnlSummary();updateFcDetailOutBtn();
+}
+function fcEmpCapAdj(name,delta){
+  if(!forecastScenario)return;
+  const emp=forecastScenario.emps.find(e=>e.name===name);
+  if(!emp)return;
+  fcUndoStack.push(JSON.parse(JSON.stringify(forecastScenario)));
+  document.getElementById('scenFcUndo').style.display='inline-block';
+  const old=parseFloat(emp.capPct)||0;
+  emp.capPct=Math.max(0,Math.min(100,old+delta));
+  fcScenarioDirty=true;
+  const dir=delta>0?'Increased':'Decreased';
+  const entry={id:Date.now(),cmd:`${dir.toLowerCase()} "${name}" cap% by ${Math.abs(delta)}`,scopedCmd:`${dir.toLowerCase()} "${name}" cap% by ${Math.abs(delta)}`,msg:`${dir} ${name} cap% from ${old}% to ${emp.capPct}%.`,delta:computeFcDelta(),isRefinement:false,parentId:null};
+  fcActionHistory.push(entry);
+  document.getElementById('scenFcApply').style.display='inline-block';
+  renderFcActionHistory();renderFcScenarioChart();filterFcEmpList();renderFcPnlSummary();updateFcDetailOutBtn();
 }
 
 function applyBudgetScenario(){
@@ -9298,7 +9425,7 @@ backBtn.addEventListener('click',showLanding);
 document.querySelector('#appShell header .container').insertBefore(backBtn,document.querySelector('#appShell header .container').children[1]);
 
 // ── INIT ──
-function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList();renderPnlWalk();renderLandingCharts()}
+function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList();renderPnlWalk();renderLandingCharts();renderBudgetScenarioChart();renderFcScenarioChart()}
 
 // Check for session auto-reconnect
 (async function initApp(){
