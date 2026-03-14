@@ -228,11 +228,11 @@ body.cs-crisp .panel,body.cs-crisp .card{background:#fff;border:1px solid #ddd}
 body.cs-crisp table th{background:#f5f5f5;border-bottom:2px solid #222}
 body.cs-crisp table td{border-bottom:1px solid #eee}
 body.cs-crisp tr:nth-child(even) td{background:#fafafa}
-html.dark body.cs-crisp .stat-card .value{color:#f0f0f0!important;font-weight:700}
-html.dark body.cs-crisp h3,html.dark body.cs-crisp .exec-pane h3,html.dark body.cs-crisp .landing-chart-title{color:#f0f0f0;font-weight:700}
+html.dark body.cs-crisp .stat-card .value{color:#c0c0c0!important;font-weight:700}
+html.dark body.cs-crisp h3,html.dark body.cs-crisp .exec-pane h3,html.dark body.cs-crisp .landing-chart-title{color:#c0c0c0;font-weight:700}
 html.dark body.cs-crisp .stat-card .label{color:#aaa}
 html.dark body.cs-crisp .stat-card{border:1px solid #444;background:#1e1e22}
-html.dark body.cs-crisp table th{background:#252529;border-bottom:2px solid #ddd}
+html.dark body.cs-crisp table th{background:#252529;border-bottom:2px solid #666}
 html.dark body.cs-crisp table td{border-bottom:1px solid #333}
 html.dark body.cs-crisp tr:nth-child(even) td{background:#222226}
 /* ── Mobile Responsive ── */
@@ -3051,7 +3051,7 @@ const CHART_COLORS_MONO=['#7a6e6e','#6e7a7a','#8a7e6e','#6e6e7a','#6e7a6e','#7a6
 const CHART_COLORS_MONO_DARK=['#c4b8b8','#b8c4c4','#c8c0b0','#b8b8c4','#b8c4b8','#c4b8c4','#a8b8c8','#c4c4b8','#b0c0b8','#bcc0b0'];
 const CHART_COLORS_NEON=['#ff006e','#00f5d4','#e6b800','#8338ec','#3a86ff','#fb5607','#06d6a0','#f72585','#4cc9f0','#e07000'];
 const CHART_COLORS_CRISP=['#222222','#888888','#bbbbbb','#555555','#999999','#333333','#aaaaaa','#666666','#cccccc','#444444'];
-const CHART_COLORS_CRISP_DARK=['#e8e8e8','#aaaaaa','#777777','#cccccc','#999999','#dddddd','#888888','#bbbbbb','#666666','#d0d0d0'];
+const CHART_COLORS_CRISP_DARK=['#8a8a8a','#6a6a6a','#555555','#7a7a7a','#606060','#909090','#505050','#6e6e6e','#484848','#858585'];
 let chartColorScheme='muted';
 // Shared pattern draw helper for mono mode
 function drawMonoPattern(ctx,px,py,pw,ph,patIdx,fg){
@@ -3207,7 +3207,7 @@ function getSparkColor(type){
   const isDark=document.documentElement.classList.contains('dark');
   if(chartColorScheme==='mono')return isDark?'#bbbbbb':'#555555';
   if(chartColorScheme==='neon')return type==='danger'?'#ff006e':'#00f5d4';
-  if(chartColorScheme==='crisp')return isDark?'#e0e0e0':'#222222';
+  if(chartColorScheme==='crisp')return isDark?'#a0a0a0':'#222222';
   // muted
   if(isDark)return type==='danger'?'#e0a8a8':'#a0c8b0';
   return type==='danger'?'#8b2020':'#3a7d44';
@@ -3216,7 +3216,7 @@ function getStatValueColor(){
   const isDark=document.documentElement.classList.contains('dark');
   if(chartColorScheme==='mono')return isDark?'#bbbbbb':'#444444';
   if(chartColorScheme==='neon')return isDark?'#00f5d4':'var(--accent)';
-  if(chartColorScheme==='crisp')return isDark?'#f0f0f0':'#111111';
+  if(chartColorScheme==='crisp')return isDark?'#c0c0c0':'#111111';
   return isDark?'#c8b0b0':'var(--accent)';
 }
 function hexToRgba(hex,alpha){
@@ -3282,7 +3282,7 @@ function renderDashboard(){
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#ffffff':'#5a5a5a';
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   let labels,groups;
   if(groupBy==='month'){
@@ -5449,7 +5449,7 @@ function renderForecastProjection(){
     // Chart - stacked base/bonus/benefits with capex view support
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?'#ffffff':'#5a5a5a';
+      const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       let fDatasets;
@@ -5519,7 +5519,7 @@ function renderForecastProjection(){
     // Chart - stacked by group
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?'#ffffff':'#5a5a5a';
+      const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       const datasets=groupNames.map((g,i)=>({
@@ -5548,7 +5548,7 @@ function renderForecastProjection(){
   // ── Forecast FTE sparkline ──
   if(typeof Chart!=='undefined'){
     const isDark2=document.documentElement.classList.contains('dark');
-    const tickColor2=isDark2?'#ffffff':'#5a5a5a';
+    const tickColor2=isDark2?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
     const gridColor2=isDark2?'rgba(255,255,255,.08)':'#ddd';
     if(window._forecastFteChart)window._forecastFteChart.destroy();
     const fteLabels=totalRows.map(r=>r.year);
@@ -6807,7 +6807,7 @@ function renderExecView(){
   populateExecFilters();
   const emps=getExecFilteredEmps();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#ffffff':'#5a5a5a';
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -7804,7 +7804,7 @@ function renderBudgetScenarioChart(){
   if(typeof Chart==='undefined')return;
   if(!budgetScenario)initBudgetScenario();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#ffffff':'#5a5a5a';
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const emps=budgetScenario.emps;
@@ -7906,7 +7906,7 @@ function renderFcScenarioChart(){
   if(typeof Chart==='undefined')return;
   if(!forecastScenario)initForecastScenario();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#ffffff':'#5a5a5a';
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const rows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
   const labels=rows.map(r=>String(r.year));
@@ -10618,7 +10618,7 @@ function renderLandingCharts(){
   const emps=getPnlFilteredEmps();
   if(!emps.length)return;
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?'#ffffff':'#5a5a5a';
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const useSplit=false;
