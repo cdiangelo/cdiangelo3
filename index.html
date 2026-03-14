@@ -9729,9 +9729,9 @@ function initVendorModule(){
 
   let vPivotChartInst=null, tePivotChartInst=null;
 
-  function renderPivotChart(canvasId, data, chartInstRef, rowDim){
+  function renderPivotChart(canvasId, data, chartInstRef, rowDim, nameField){
     if(typeof Chart==='undefined')return null;
-    const {rowVals,colVals,pivot}=data;
+    const {rowVals,colVals,pivot,topRows}=data;
     // Monthly stacked bar: x-axis = months, stacks = rowDim values (clustered by colDim)
     // We show monthly totals grouped by the row dimension
     const rowTotals={};rowVals.forEach(rv=>{rowTotals[rv]=MO_KEYS.reduce((s,m,mi)=>{
@@ -9746,6 +9746,24 @@ function initVendorModule(){
       stack:'stack0'
     }));
 
+    // Build a lookup: for each rowDim value + month index, list the distinct vendor/description names
+    const showNames=nameField&&rowDim!==nameField;
+    const namesByRowMonth={};
+    if(showNames){
+      topRows.forEach(r=>{
+        const rv=r[rowDim]||'(blank)';
+        const name=r[nameField]||'';
+        if(!name)return;
+        MO_KEYS.forEach((m,mi)=>{
+          if((parseFloat(r[m])||0)>0){
+            const key=rv+'|'+mi;
+            if(!namesByRowMonth[key])namesByRowMonth[key]=new Set();
+            namesByRowMonth[key].add(name);
+          }
+        });
+      });
+    }
+
     const canvas=document.getElementById(canvasId);
     const ctx=canvas.getContext('2d');
     if(chartInstRef)chartInstRef.destroy();
@@ -9756,7 +9774,25 @@ function initVendorModule(){
         responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10}}},
           datalabels:{display:false},
-          title:{display:true,text:'Monthly Spend by '+rowDim.replace(/([A-Z])/g,' $1').replace(/^\w/,c=>c.toUpperCase()),font:{size:13}}
+          title:{display:true,text:'Monthly Spend by '+rowDim.replace(/([A-Z])/g,' $1').replace(/^\w/,c=>c.toUpperCase()),font:{size:13}},
+          tooltip:{
+            callbacks:{
+              afterBody:function(items){
+                if(!showNames||!items.length)return '';
+                const item=items[0];
+                const rv=item.dataset.label;
+                const mi=item.dataIndex;
+                const key=rv+'|'+mi;
+                const names=namesByRowMonth[key];
+                if(!names||!names.size)return '';
+                const abbr=n=>n.length>28?n.slice(0,26)+'…':n;
+                const list=[...names].sort().map(abbr);
+                return list.length>12?list.slice(0,12).concat('+'+(list.length-12)+' more'):list;
+              }
+            },
+            bodyFont:{size:10},
+            footerFont:{size:9}
+          }
         },
         scales:{
           x:{stacked:true,ticks:{font:{size:10}}},
@@ -9779,7 +9815,7 @@ function initVendorModule(){
       return;
     }
     renderPivotTable(document.getElementById('vPivotThead'),document.getElementById('vPivotTbody'),document.getElementById('vPivotWrap'),data,fmtScaled);
-    vPivotChartInst=renderPivotChart('vPivotChart',data,vPivotChartInst,rowDim);
+    vPivotChartInst=renderPivotChart('vPivotChart',data,vPivotChartInst,rowDim,'vendorName');
   }
 
   function refreshTePivot(){
@@ -9795,7 +9831,7 @@ function initVendorModule(){
       return;
     }
     renderPivotTable(document.getElementById('tePivotThead'),document.getElementById('tePivotTbody'),document.getElementById('tePivotWrap'),data,fmtScaled);
-    tePivotChartInst=renderPivotChart('tePivotChart',data,tePivotChartInst,rowDim);
+    tePivotChartInst=renderPivotChart('tePivotChart',data,tePivotChartInst,rowDim,'expenseType');
   }
 
   // ── Pivot Row Selection & Refinement ──
