@@ -1162,6 +1162,13 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="form-group"><label>Product</label><select id="execFilterProduct"><option value="">All Products</option></select></div>
 <div class="form-group"><label>Category</label><select id="execFilterCategory"><option value="">All Categories</option></select></div>
 </div>
+<div id="execMonthRangeWrap" style="margin-bottom:10px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:2px;display:block">Month Range</label>
+<div id="execMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div><div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div><div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div><div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<div id="execMonthRangeLabel" style="font-size:.65rem;color:var(--text-dim);margin-top:2px">All months (click or drag to select range)</div>
+</div>
 <div class="stat-cards" id="execStatCards"></div>
 
 <!-- Pane 1: Monthly Dashboard with split-by -->
@@ -7198,6 +7205,7 @@ let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',exec
 let execMonthlyChart=null,execForecastChart=null,execFcSparkChart=null;
 let execFcCollapsed=true;
 let execFilterProduct='',execFilterCategory='';
+let execSelectedMonths=new Set(); // month range filter for exec view (empty = all months)
 
 function populateExecFilters(){
   const prodSel=document.getElementById('execFilterProduct');
@@ -7380,6 +7388,8 @@ function getExecFilteredEmps(){
   return emps;
 }
 function renderExecView(){
+  initExecMonthRangeBar();
+  renderExecMonthRangeBar();
   populateExecFilters();
   const emps=getExecFilteredEmps();
   const isDark=document.documentElement.classList.contains('dark');
@@ -7395,20 +7405,30 @@ function renderExecView(){
   const curMonth=currentMonth; // global as-of month override
   const isQuarterly=execPeriod==='quarterly';
   // Always show all 12 months (like dashboard) — period only affects cumulative transforms & stat cards
-  const periodMonths=[0,1,2,3,4,5,6,7,8,9,10,11];
+  // When exec month range is set, filter to those months only
+  const allMonths=[0,1,2,3,4,5,6,7,8,9,10,11];
+  const periodMonths=execSelectedMonths.size>0?allMonths.filter(m=>execSelectedMonths.has(m)):allMonths;
   const periodLabels=isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
   // For stat cards: compute the scoped month range
   let statStart=0,statEnd=11;
   if(execPeriod==='mtd'){statStart=curMonth;statEnd=curMonth}
   else if(execPeriod==='qtd'){statStart=Math.floor(curMonth/3)*3;statEnd=curMonth}
   else if(execPeriod==='ytd'){statStart=0;statEnd=curMonth}
-  const statMonths=[];for(let i=statStart;i<=statEnd;i++)statMonths.push(i);
+  let statMonths=[];for(let i=statStart;i<=statEnd;i++)statMonths.push(i);
+  // If exec month range bar has a selection, intersect with period months
+  if(execSelectedMonths.size>0){
+    statMonths=statMonths.filter(m=>execSelectedMonths.has(m));
+  }
 
   // ── Stat cards (scoped to period) ──
   let periodComp=0,periodCapEx=0;
   emps.forEach(e=>{statMonths.forEach(mi=>{periodComp+=getMonthlyComp(e,mi);periodCapEx+=getMonthlyCapEx(e,mi)})});
   const periodOpEx=periodComp-periodCapEx;
-  const periodLabel=execPeriod==='full'||isQuarterly?'Full Year':execPeriod.toUpperCase();
+  let periodLabel=execPeriod==='full'||isQuarterly?'Full Year':execPeriod.toUpperCase();
+  if(execSelectedMonths.size>0&&execSelectedMonths.size<12){
+    const sorted=[...execSelectedMonths].sort((a,b)=>a-b);
+    periodLabel=MONTH_SHORT[sorted[0]]+(sorted.length>1?' – '+MONTH_SHORT[sorted[sorted.length-1]]:'');
+  }
   const svColor=getStatValueColor();
   document.getElementById('execStatCards').innerHTML=
     `<div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svColor}">${emps.length}</div><canvas class="sparkline" id="sparkHC"></canvas></div>`+
@@ -7416,12 +7436,12 @@ function renderExecView(){
     `<div class="stat-card"><div class="label">${periodLabel} CapEx</div><div class="value" style="color:${svColor}">${fmt(periodCapEx)}</div><canvas class="sparkline" id="sparkCapEx"></canvas></div>`+
     `<div class="stat-card"><div class="label">${periodLabel} OpEx</div><div class="value" style="color:var(--success)">${fmt(periodOpEx)}</div><canvas class="sparkline" id="sparkOpEx"></canvas></div>`;
 
-  // Sparkline data
-  const MONTH_IDX=[0,1,2,3,4,5,6,7,8,9,10,11];
-  const sparkHCData=MONTH_IDX.map(mi=>emps.filter(e=>getMonthFactor(e,mi)>0).length);
-  const sparkCompData=MONTH_IDX.map(mi=>emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0));
-  const sparkCapExData=MONTH_IDX.map(mi=>emps.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0));
-  const sparkOpExData=MONTH_IDX.map(mi=>emps.reduce((a,e)=>a+getMonthlyComp(e,mi)-getMonthlyCapEx(e,mi),0));
+  // Sparkline data — scoped to exec month range if selected
+  const SPARK_MONTHS=execSelectedMonths.size>0?[...execSelectedMonths].sort((a,b)=>a-b):[0,1,2,3,4,5,6,7,8,9,10,11];
+  const sparkHCData=SPARK_MONTHS.map(mi=>emps.filter(e=>getMonthFactor(e,mi)>0).length);
+  const sparkCompData=SPARK_MONTHS.map(mi=>emps.reduce((a,e)=>a+getMonthlyComp(e,mi),0));
+  const sparkCapExData=SPARK_MONTHS.map(mi=>emps.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0));
+  const sparkOpExData=SPARK_MONTHS.map(mi=>emps.reduce((a,e)=>a+getMonthlyComp(e,mi)-getMonthlyCapEx(e,mi),0));
   requestAnimationFrame(()=>{
     renderSparkline('sparkHC',sparkHCData,getSparkColor('primary'));
     renderSparkline('sparkComp',sparkCompData,getSparkColor('primary'));
@@ -7479,20 +7499,27 @@ function renderExecView(){
   const monthlyData={};
   groupNames.forEach(g=>{
     const raw=monthlyDataFull[g];
+    let transformed;
     if(isQuarterly){
       // Aggregate 12 months into 4 quarters
-      monthlyData[g]=[0,1,2,3].map(q=>raw[q*3]+raw[q*3+1]+raw[q*3+2]);
+      transformed=[0,1,2,3].map(q=>raw[q*3]+raw[q*3+1]+raw[q*3+2]);
     } else if(execPeriod==='ytd'){
       // Cumulative from Jan (same as dashboard YTD)
       const cumul=[];raw.forEach((v,i)=>cumul.push((cumul[i-1]||0)+v));
-      monthlyData[g]=cumul;
+      transformed=cumul;
     } else if(execPeriod==='qtd'){
       // Cumulative with quarterly reset (same as dashboard QTD)
       const cumul=[];raw.forEach((v,i)=>{const qi=i%3;cumul.push(qi===0?v:(cumul[i-1]||0)+v)});
-      monthlyData[g]=cumul;
+      transformed=cumul;
     } else {
       // 'full' or 'mtd': show each month as-is (same as dashboard MTD)
-      monthlyData[g]=raw.slice();
+      transformed=raw.slice();
+    }
+    // Filter to selected months (non-quarterly only)
+    if(!isQuarterly&&execSelectedMonths.size>0){
+      monthlyData[g]=periodMonths.map(mi=>transformed[mi]);
+    } else {
+      monthlyData[g]=transformed;
     }
   });
 
@@ -9032,6 +9059,61 @@ function initMonthRangeBar(){
   document.addEventListener('touchend',()=>{if(dragging){dragging=false}});
 }
 
+// ── Exec View Month Range Bar ──
+function renderExecMonthRangeBar(){
+  const bar=document.getElementById('execMonthRangeBar');
+  if(!bar)return;
+  bar.querySelectorAll('.month-cell').forEach(cell=>{
+    const mo=parseInt(cell.dataset.mo);
+    cell.classList.toggle('active',execSelectedMonths.has(mo));
+  });
+  const label=document.getElementById('execMonthRangeLabel');
+  if(label){
+    if(!execSelectedMonths.size){label.textContent='All months (click or drag to select range)'}
+    else{const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const sorted=[...execSelectedMonths].sort((a,b)=>a-b);label.textContent=sorted.map(m=>MO_SHORT[m]).join(', ')}
+  }
+}
+function initExecMonthRangeBar(){
+  const bar=document.getElementById('execMonthRangeBar');
+  if(!bar||bar._inited)return;bar._inited=true;
+  let dragging=false,startMo=null;
+  function getMo(e){const cell=e.target.closest('.month-cell');return cell?parseInt(cell.dataset.mo):null}
+  function selectRange(from,to){
+    const lo=Math.min(from,to),hi=Math.max(from,to);
+    execSelectedMonths.clear();
+    for(let i=lo;i<=hi;i++)execSelectedMonths.add(i);
+    renderExecMonthRangeBar();
+  }
+  function onFinish(){if(dragging){dragging=false;renderExecView()}}
+  bar.addEventListener('mousedown',e=>{
+    const mo=getMo(e);if(mo===null)return;
+    dragging=true;startMo=mo;
+    if(execSelectedMonths.size===1&&execSelectedMonths.has(mo)){execSelectedMonths.clear();renderExecMonthRangeBar();dragging=false;renderExecView();return}
+    selectRange(mo,mo);
+    e.preventDefault();
+  });
+  bar.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    const mo=getMo(e);if(mo===null)return;
+    selectRange(startMo,mo);
+  });
+  document.addEventListener('mouseup',()=>{onFinish()});
+  bar.addEventListener('touchstart',e=>{
+    const touch=e.touches[0];const el=document.elementFromPoint(touch.clientX,touch.clientY);
+    if(!el||!el.classList.contains('month-cell'))return;
+    const mo=parseInt(el.dataset.mo);dragging=true;startMo=mo;
+    if(execSelectedMonths.size===1&&execSelectedMonths.has(mo)){execSelectedMonths.clear();renderExecMonthRangeBar();dragging=false;renderExecView();return}
+    selectRange(mo,mo);e.preventDefault();
+  },{passive:false});
+  bar.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    const touch=e.touches[0];const el=document.elementFromPoint(touch.clientX,touch.clientY);
+    if(!el||!el.classList.contains('month-cell'))return;
+    selectRange(startMo,parseInt(el.dataset.mo));e.preventDefault();
+  },{passive:false});
+  document.addEventListener('touchend',()=>{onFinish()});
+}
+
 function getEmpProducts(emp){
   if(!emp.allocations||!emp.allocations.length)return [];
   return emp.allocations.map(a=>{const p=state.projects.find(pr=>pr.id===a.projId);return p?p.product:null}).filter(Boolean);
@@ -9713,6 +9795,7 @@ function initScenarioPane(){
   // Initialize scenario data (charts render when panel opens)
   initBudgetScenario();initForecastScenario();
   initMonthRangeBar();
+  initExecMonthRangeBar();
   // Saved scenarios
   document.getElementById('scenSaveBudgetBtn').addEventListener('click',()=>saveScenario('budget'));
   document.getElementById('scenSaveFcBtn').addEventListener('click',()=>saveScenario('forecast'));
