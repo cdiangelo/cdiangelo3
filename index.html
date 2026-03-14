@@ -1759,6 +1759,10 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="market">Market</option>
 <option value="top">Top of Market</option>
 </select>
+<select id="scenHireType" style="padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="new_hire">New Hire</option>
+<option value="transfer_in">Transfer In</option>
+</select>
 <span style="font-size:.7rem;color:var(--text-dim)">using filters above</span>
 <button class="btn btn-sm" onclick="scenAddHires()" style="padding:2px 10px;font-size:.72rem;background:rgba(58,125,68,.12);border-color:rgba(58,125,68,.3);color:#3a7d44;margin-left:auto">+ Add</button>
 </div>
@@ -7835,6 +7839,7 @@ function scenAddHires(){
   const func=fs.function.size===1?[...fs.function][0]:'Software Engineering';
   const country=fs.country.size===1?[...fs.country][0]:'United States';
   const rateType=document.getElementById('scenHireCompRate').value||'market';
+  const hireType=document.getElementById('scenHireType').value||'new_hire';
   const salary=getHireCompSalary(sen,func,country,rateType);
   // Determine hire date from selected month
   let hireDate='';
@@ -7846,12 +7851,14 @@ function scenAddHires(){
   document.getElementById('scenBudgetUndo').style.display='inline-block';
   const emps=budgetScenario.emps;
   const _gp=state.projects.find(p=>p.code==='GEN-000');
+  const hireTag=hireType==='transfer_in'?'Transfer In':'New Hire';
   for(let i=0;i<count;i++){
-    emps.push({id:uid(),name:`New ${sen} ${i+1}`,country,seniority:sen,function:func,salary,capPct:0,notes:'Scenario hire',hireDate,termDate:'',businessLine:state.bizLines[0]?.code||'',businessUnit:COUNTRY_BU[country]||'',allocations:_gp?[{projId:_gp.id,pct:100,primary:true}]:[]});
+    emps.push({id:uid(),name:`New ${sen} ${i+1}`,country,seniority:sen,function:func,salary,capPct:0,notes:'Scenario hire',scenTag:hireTag,hireDate,termDate:'',businessLine:state.bizLines[0]?.code||'',businessUnit:COUNTRY_BU[country]||'',allocations:_gp?[{projId:_gp.id,pct:100,primary:true}]:[]});
   }
   budgetScenarioDirty=true;
   const rateLabel=rateType==='top'?' (Top of Mkt)':rateType==='custom'?' (Custom)':'';
-  const entry={id:Date.now(),cmd:`add ${count} ${sen} ${func} in ${country}`,scopedCmd:`add ${count} ${sen} ${func} in ${country}`,msg:`Added ${count} ${sen} ${func} in ${country} at ${fmt(salary)}${rateLabel} each.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
+  const typeLabel=hireTag==='Transfer In'?' [Transfer In]':' [New Hire]';
+  const entry={id:Date.now(),cmd:`add ${count} ${sen} ${func} in ${country}`,scopedCmd:`add ${count} ${sen} ${func} in ${country}`,msg:`Added ${count} ${sen} ${func} in ${country} at ${fmt(salary)}${rateLabel} each${typeLabel}.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
   scenActionHistory.push(entry);
   document.getElementById('scenBudgetApply').style.display='inline-block';
   renderScenActionHistory();renderBudgetScenarioChart();filterScenEmpList();renderScenarioPnlSummary();updateDetailOutBtn();
@@ -8007,7 +8014,8 @@ function filterScenEmpList(){
   if(!show.length){el.innerHTML=tagsHtml+'<div class="emp-count">No matching employees</div>';return}
   let html=tagsHtml+show.map(e=>{
     const esc=e.name.replace(/'/g,"\\'");
-    return `<div class="emp-row"><span class="emp-name">${e.name}</span><span class="emp-meta">${e.function} · ${e.country} · ${fmt(e.salary)} · cap ${e.capPct||0}%</span><span class="emp-actions"><button class="emp-act act-up" title="Increase cap% by 10pp" onclick="scenEmpCapAdj('${esc}',10)">&#9650;</button><button class="emp-act act-down" title="Decrease cap% by 10pp" onclick="scenEmpCapAdj('${esc}',-10)">&#9660;</button><button class="emp-act act-arrow" title="Transfer out" onclick="scenEmpTransfer('${esc}')">&#8594;</button><button class="emp-act act-x" title="Terminate" onclick="scenEmpTerminate('${esc}')">&#10005;</button></span></div>`;
+    const tagBadge=e.scenTag?`<span style="display:inline-block;padding:1px 6px;font-size:.6rem;border-radius:8px;font-weight:600;margin-left:4px;${e.scenTag==='Transfer In'?'background:rgba(59,130,246,.15);color:#3b82f6;border:1px solid rgba(59,130,246,.3)':'background:rgba(58,125,68,.15);color:#3a7d44;border:1px solid rgba(58,125,68,.3)'}">${e.scenTag}</span>`:'';
+    return `<div class="emp-row"><span class="emp-name">${e.name}${tagBadge}</span><span class="emp-meta">${e.function} · ${e.country} · ${fmt(e.salary)} · cap ${e.capPct||0}%</span><span class="emp-actions"><button class="emp-act act-up" title="Increase cap% by 10pp" onclick="scenEmpCapAdj('${esc}',10)">&#9650;</button><button class="emp-act act-down" title="Decrease cap% by 10pp" onclick="scenEmpCapAdj('${esc}',-10)">&#9660;</button><button class="emp-act act-arrow" title="Transfer out" onclick="scenEmpTransfer('${esc}')">&#8594;</button><button class="emp-act act-x" title="Terminate" onclick="scenEmpTerminate('${esc}')">&#10005;</button></span></div>`;
   }).join('');
   if(emps.length>50)html+=`<div class="emp-count">+${emps.length-50} more</div>`;
   else html+=`<div class="emp-count">${emps.length} employee${emps.length===1?'':'s'}</div>`;
