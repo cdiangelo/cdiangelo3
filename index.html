@@ -1723,8 +1723,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Vendor Nav Tabs -->
 <nav style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap" id="vendorNav">
 <button class="btn active" data-vtab="vendor-grid">Vendor Spend</button>
-<button class="btn" data-vtab="vendor-te">T&amp;E</button>
 <button class="btn" data-vtab="vendor-contractors">Contractors</button>
+<button class="btn" data-vtab="vendor-te">T&amp;E</button>
 <button class="btn" data-vtab="vendor-dims">Dimensions</button>
 <button class="btn" data-vtab="vendor-scratch">Scratch Pad</button>
 </nav>
@@ -2142,7 +2142,9 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
 <th style="min-width:140px">Contractor Name</th>
+<th class="sortable" data-csort="vendorName" style="min-width:130px">Vendor Name <span class="sort-arrow"></span></th>
 <th style="min-width:100px">Rate / Hours</th>
+<th style="min-width:120px">Start / End Mo</th>
 <th style="min-width:80px">CapEx %</th>
 <th style="min-width:100px">Notes</th>
 <th class="sortable" data-csort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
@@ -6114,8 +6116,14 @@ function renderForecastProjection(){
       const capex=Math.round(total*capRate);
       rows.push({year:y,hc,base,bonus,benefits,total,capex,opex:total-capex});
     });
-    let html='<thead><tr><th>Year</th><th>Headcount</th><th>Base Cost</th><th>Bonus Cost</th><th>Benefits Cost</th><th>Total Comp</th><th>CapEx</th><th>OpEx (P&L)</th></tr></thead><tbody>';
-    rows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${displayYear(r.year)}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
+    let html;
+    if(forecastSplit==='total'){
+      html='<thead><tr><th>Year</th><th>Headcount</th><th>Total Comp</th><th>CapEx</th><th>OpEx (P&L)</th></tr></thead><tbody>';
+      rows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${displayYear(r.year)}</td><td>${r.hc}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
+    } else {
+      html='<thead><tr><th>Year</th><th>Headcount</th><th>Base Cost</th><th>Bonus Cost</th><th>Benefits Cost</th><th>Total Comp</th><th>CapEx</th><th>OpEx (P&L)</th></tr></thead><tbody>';
+      rows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${displayYear(r.year)}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
+    }
     html+='</tbody>';
     tbl.innerHTML=html;
 
@@ -6127,7 +6135,19 @@ function renderForecastProjection(){
       if(forecastChart)forecastChart.destroy();
       let fDatasets;
       const fcc=getChartColors();
-      if(forecastView==='opex'){
+      if(forecastSplit==='total'){
+        // Total view — single bar, no base/bonus/benefits breakout
+        if(forecastView==='opex'){
+          fDatasets=[
+            {label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:fcc[0],stack:'pos'},
+            {label:'CapEx',data:rows.map(r=>-r.capex),backgroundColor:hexToRgba(fcc[0],0.35),stack:'neg'}
+          ];
+        } else {
+          fDatasets=[
+            {label:'Total Comp',data:rows.map(r=>r.total),backgroundColor:fcc[0]}
+          ];
+        }
+      } else if(forecastView==='opex'){
         fDatasets=[
           {label:'Base (OpEx)',data:rows.map(r=>Math.round(r.base*(1-r.capex/Math.max(r.total,1)))),backgroundColor:fcc[0],stack:'pos'},
           {label:'Bonus (OpEx)',data:rows.map(r=>Math.round(r.bonus*(1-r.capex/Math.max(r.total,1)))),backgroundColor:fcc[1],stack:'pos'},
@@ -11135,6 +11155,8 @@ function initVendorModule(){
     let h=`<tr data-ci="${i}" draggable="false" style="${tagColor?'border-left:3px solid '+tagColor:''}"><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem;position:relative"><span class="row-color-tag" data-vi="${i}" data-prefix="cr" style="${tagDotStyle}" title="Color tag"></span></td>`;
     // Name
     h+=`<td style="${blk(row.name)}"><input class="cr-field" data-f="name" value="${esc(row.name)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+    // Vendor Name
+    h+=`<td style="${blk(row.vendorName)}"><input class="cr-field" data-f="vendorName" value="${esc(row.vendorName||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
     // Rate / Hours — expandable cell
     h+=`<td style="vertical-align:top;min-width:100px">`;
     h+=`<div style="display:flex;align-items:center;gap:4px"><button class="cr-rate-toggle btn btn-sm" data-ci="${i}" style="padding:0 4px;font-size:.65rem;line-height:1.3;border:1px solid var(--border);background:transparent;color:var(--text-dim)" title="Toggle rate calculator">${expanded?'▼':'▶'}</button>`;
@@ -11143,10 +11165,19 @@ function initVendorModule(){
       h+=`<div style="margin-top:4px;display:flex;flex-direction:column;gap:3px;padding:4px;background:var(--panel-inset);border-radius:4px">`;
       h+=`<div style="display:flex;align-items:center;gap:4px"><label style="font-size:.68rem;color:var(--text-dim);width:50px">$/hr</label><input class="cr-field cr-rate-input" data-f="hourlyRate" type="number" value="${hourly||''}" step="any" style="width:80px;font-size:.76rem;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
       h+=`<div style="display:flex;align-items:center;gap:4px"><label style="font-size:.68rem;color:var(--text-dim);width:50px">Hrs/mo</label><input class="cr-field cr-rate-input" data-f="monthlyHours" type="number" value="${hours||''}" step="any" style="width:80px;font-size:.76rem;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
-      h+=`<button class="btn btn-sm cr-apply-rate" data-ci="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply to all months</button>`;
+      h+=`<button class="btn btn-sm cr-apply-rate" data-ci="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply to selected months</button>`;
       h+=`</div>`;
     }
     h+=`</td>`;
+    // Start / End Month
+    const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const startMo=typeof row._startMonth==='number'?row._startMonth:0;
+    const endMo=typeof row._endMonth==='number'?row._endMonth:11;
+    const moSelOpts=MO_LABELS.map((l,mi)=>`<option value="${mi}">${l}</option>`).join('');
+    h+=`<td style="vertical-align:top;white-space:nowrap"><div style="display:flex;flex-direction:column;gap:2px">`;
+    h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">From</label><select class="cr-field cr-start-mo" data-f="_startMonth" style="font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${moSelOpts}</select></div>`;
+    h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">To</label><select class="cr-field cr-end-mo" data-f="_endMonth" style="font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${moSelOpts}</select></div>`;
+    h+=`</div></td>`;
     // CapEx %
     h+=`<td><input class="cr-field" data-f="capPct" type="number" value="${capPct}" min="0" max="100" step="1" style="width:60px;border:none;background:transparent;font-size:.82rem;padding:2px 4px;text-align:right">%</td>`;
     // Notes
@@ -11198,7 +11229,7 @@ function initVendorModule(){
     });
     const hasFilter=contractorSelectedMonths.size>0&&contractorSelectedMonths.size<12;
     const fyTotal=hasFilter?moTotals.filter((_,i)=>contractorSelectedMonths.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
-    const colSpan=12;// name,rate,cap%,notes,BU,BL,market,proj,acctDesc,acctCode = 10 + 2 (drag,tag)
+    const colSpan=14;// name,vendorName,rate,startEndMo,cap%,notes,BU,BL,market,proj,acctDesc,acctCode = 12 + 2 (drag,tag)
     let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL${hasFilter?' (filtered)':''}${contractorView!=='expense'?' — '+contractorView.toUpperCase():''}</td>`;
     moTotals.forEach((t,mi)=>{
       const dim=hasFilter&&!contractorSelectedMonths.has(mi)?'opacity:.35;':'';
@@ -11225,7 +11256,10 @@ function initVendorModule(){
       const i=+tr.dataset.ci;if(isNaN(i))return;
       const row=state.contractorRows[i];if(!row)return;
       tr.querySelectorAll('select.cr-field').forEach(sel=>{
-        const f=sel.dataset.f;if(f&&row[f])sel.value=row[f];
+        const f=sel.dataset.f;
+        if(f==='_startMonth'){sel.value=typeof row._startMonth==='number'?row._startMonth:0}
+        else if(f==='_endMonth'){sel.value=typeof row._endMonth==='number'?row._endMonth:11}
+        else if(f&&row[f])sel.value=row[f];
       });
     });
     // Field changes
@@ -11243,6 +11277,9 @@ function initVendorModule(){
           renderContractorGrid();
         } else if(f==='hourlyRate'||f==='monthlyHours'){
           row[f]=parseFloat(el.value)||0;
+        } else if(f==='_startMonth'||f==='_endMonth'){
+          row[f]=parseInt(el.value)||0;
+          saveState();return;
         } else {
           row[f]=el.value;
           if(f==='acctDesc'){
@@ -11261,12 +11298,14 @@ function initVendorModule(){
         renderContractorGrid();
       });
     });
-    // Apply rate to all months
+    // Apply rate to selected months (respects start/end month, individual months remain manually editable)
     tbody.querySelectorAll('.cr-apply-rate').forEach(btn=>{
       btn.addEventListener('click',()=>{
         const i=+btn.dataset.ci;const row=state.contractorRows[i];
         const monthlyAmt=Math.round((parseFloat(row.hourlyRate)||0)*(parseFloat(row.monthlyHours)||0));
-        MO.forEach(m=>{row[m]=monthlyAmt});
+        const startMo=typeof row._startMonth==='number'?row._startMonth:0;
+        const endMo=typeof row._endMonth==='number'?row._endMonth:11;
+        MO.forEach((m,mi)=>{if(mi>=startMo&&mi<=endMo)row[m]=monthlyAmt;else row[m]=0});
         saveState();renderContractorGrid();
       });
     });
@@ -11294,7 +11333,7 @@ function initVendorModule(){
   // Add contractor row
   document.getElementById('contractorAddRow').addEventListener('click',()=>{
     const genProj=state.projects.find(p=>p.code==='GEN-000');
-    state.contractorRows.push({name:'',hourlyRate:0,monthlyHours:0,capPct:0,businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+    state.contractorRows.push({name:'',vendorName:'',hourlyRate:0,monthlyHours:0,_startMonth:0,_endMonth:11,capPct:0,businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
     saveState();renderContractorGrid();
   });
 
@@ -11302,7 +11341,7 @@ function initVendorModule(){
   document.getElementById('contractorClearAllRows').addEventListener('click',()=>{
     if(!confirm('Clear all data from all Contractor rows?'))return;
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    state.contractorRows.forEach(r=>{r.name='';r.hourlyRate=0;r.monthlyHours=0;r.capPct=0;r.businessUnit='';r.bizLine='';r.market='';r.project='';r.acctDesc='';r.notes='';moKeys.forEach(m=>r[m]=0)});
+    state.contractorRows.forEach(r=>{r.name='';r.vendorName='';r.hourlyRate=0;r.monthlyHours=0;r._startMonth=0;r._endMonth=11;r.capPct=0;r.businessUnit='';r.bizLine='';r.market='';r.project='';r.acctDesc='';r.notes='';moKeys.forEach(m=>r[m]=0)});
     saveState();renderContractorGrid();renderPnlWalk();renderLandingCharts();
   });
 
@@ -11334,12 +11373,12 @@ function initVendorModule(){
       const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
       const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       const FIELD_MAP={};
-      [['Contractor Name','name'],['Name','name'],['Hourly Rate','hourlyRate'],['Rate','hourlyRate'],['Monthly Hours','monthlyHours'],['Hours','monthlyHours'],['CapEx %','capPct'],['CapEx','capPct'],['Cap %','capPct'],['Business Unit','businessUnit'],['BU','businessUnit'],['Biz Line','bizLine'],['Business Line','bizLine'],['Market','market'],['Project','project'],['Account Description','acctDesc'],['Account','acctDesc'],['Notes','notes']].forEach(([k,v])=>{FIELD_MAP[k]=v;FIELD_MAP[k.toLowerCase()]=v});
+      [['Contractor Name','name'],['Name','name'],['Vendor Name','vendorName'],['Vendor','vendorName'],['Hourly Rate','hourlyRate'],['Rate','hourlyRate'],['Monthly Hours','monthlyHours'],['Hours','monthlyHours'],['CapEx %','capPct'],['CapEx','capPct'],['Cap %','capPct'],['Business Unit','businessUnit'],['BU','businessUnit'],['Biz Line','bizLine'],['Business Line','bizLine'],['Market','market'],['Project','project'],['Account Description','acctDesc'],['Account','acctDesc'],['Notes','notes']].forEach(([k,v])=>{FIELD_MAP[k]=v;FIELD_MAP[k.toLowerCase()]=v});
       MO_LABELS.forEach((m,i)=>{FIELD_MAP[m]=MO_NAMES[i];FIELD_MAP[m.toLowerCase()]=MO_NAMES[i]});
       let imported=0;
       const startIdx=state.contractorRows.length;
       rows.forEach(r=>{
-        const row={name:'',hourlyRate:0,monthlyHours:0,capPct:0,businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+        const row={name:'',vendorName:'',hourlyRate:0,monthlyHours:0,_startMonth:0,_endMonth:11,capPct:0,businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
         Object.keys(r).forEach(k=>{const mapped=FIELD_MAP[k]||FIELD_MAP[k.trim().toLowerCase()];if(mapped)row[mapped]=['hourlyRate','monthlyHours','capPct',...MO_NAMES].includes(mapped)?parseFloat(r[k])||0:String(r[k])});
         state.contractorRows.push(row);imported++;
       });
@@ -11359,15 +11398,15 @@ function initVendorModule(){
     if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    const headers=['Contractor Name','Hourly Rate','Monthly Hours','CapEx %','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code',...MO,'Full Year'];
+    const headers=['Contractor Name','Vendor Name','Hourly Rate','Monthly Hours','CapEx %','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code',...MO,'Full Year'];
     const data=[headers];
     state.contractorRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
       const projObj=state.projects.find(p=>p.id===r.project);
-      data.push([r.name||'',r.hourlyRate||0,r.monthlyHours||0,r.capPct||0,r.notes||'',r.businessUnit||'',r.bizLine||'',r.market||'',projObj?projObj.code:(r.project||''),r.acctDesc||'',acctDescToCode(r.acctDesc),...moKeys.map(m=>parseFloat(r[m])||0),fy]);
+      data.push([r.name||'',r.vendorName||'',r.hourlyRate||0,r.monthlyHours||0,r.capPct||0,r.notes||'',r.businessUnit||'',r.bizLine||'',r.market||'',projObj?projObj.code:(r.project||''),r.acctDesc||'',acctDescToCode(r.acctDesc),...moKeys.map(m=>parseFloat(r[m])||0),fy]);
     });
     const ws=XLSX.utils.aoa_to_sheet(data);
-    ws['!cols']=[{wch:20},{wch:12},{wch:14},{wch:10},{wch:16},{wch:14},{wch:14},{wch:10},{wch:12},{wch:20},{wch:12},...MO.map(()=>({wch:12})),{wch:14}];
+    ws['!cols']=[{wch:20},{wch:20},{wch:12},{wch:14},{wch:10},{wch:16},{wch:14},{wch:14},{wch:10},{wch:12},{wch:20},{wch:12},...MO.map(()=>({wch:12})),{wch:14}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Contractors');
     XLSX.utils.book_append_sheet(wb,buildRefValuesSheet(),'Reference Values');
@@ -12287,7 +12326,7 @@ function initVendorModule(){
     const name=document.getElementById('contractorQaNewName').value.trim();
     if(!name){alert('Enter a contractor name');return}
     const genProj=state.projects.find(p=>p.code==='GEN-000');
-    const row={name,hourlyRate:0,monthlyHours:0,capPct:0,businessUnit:document.getElementById('contractorQaNewBU').value,bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:document.getElementById('contractorQaNewAcct').value,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    const row={name,vendorName:'',hourlyRate:0,monthlyHours:0,_startMonth:0,_endMonth:11,capPct:0,businessUnit:document.getElementById('contractorQaNewBU').value,bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:document.getElementById('contractorQaNewAcct').value,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
     state.contractorRows.push(row);
     contractorQaHistory.unshift('Added: '+name);
     document.getElementById('contractorQaNewName').value='';
