@@ -154,6 +154,8 @@ html.dark .pnl-walk-table tr.total td{background:rgba(212,82,77,.12)}
 html.dark .modal-overlay{background:rgba(0,0,0,.7)}
 html.dark .scenario-slide-panel table td,html.dark .data-slide-panel table td{color:var(--text)}
 html.dark .scenario-slide-panel table th,html.dark .data-slide-panel table th{color:var(--text-dim)}
+html.dark .stat-card .value{color:#d0a0a0}
+html.dark .stat-card .value[style*="--success"]{color:#90c898}
 html.dark .btn{background:var(--panel-inset);color:var(--text);border-color:var(--border)}
 html.dark .btn:hover{background:var(--border);color:var(--text-dark)}
 html.dark .scenario-toggle-btn{background:rgba(58,125,68,.45);border-color:rgba(255,255,255,.1)}
@@ -172,6 +174,12 @@ body.ops-mode .ops-hide{display:none!important}
 .toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s}
 .header-toggle input:checked+.toggle-track{background:var(--accent)}
 .header-toggle input:checked+.toggle-track::after{transform:translateX(16px)}
+/* 3-tier color scheme slider */
+.color-scheme-wrap{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text-dim)}
+.color-scheme-slider{-webkit-appearance:none;appearance:none;width:40px;height:14px;background:var(--border);border-radius:7px;outline:none;cursor:pointer}
+.color-scheme-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer}
+.color-scheme-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+.color-scheme-label{min-width:32px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
 /* ── Mobile Responsive ── */
 @media(max-width:768px){
   .stat-cards{grid-template-columns:1fr 1fr}
@@ -660,6 +668,10 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="header-toggles">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
 <label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
+<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon">
+<input type="range" min="0" max="2" value="0" class="color-scheme-slider" id="colorSchemeSlider">
+<span class="color-scheme-label" id="colorSchemeLabel">Muted</span>
+</div>
 </div>
 </div>
 </header>
@@ -724,6 +736,10 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- EXEC VIEW -->
 <div id="tab-exec" class="tab-content active">
+<div class="filter-row controls" style="margin-bottom:12px" id="execFilters">
+<div class="form-group"><label>Product</label><select id="execFilterProduct"><option value="">All Products</option></select></div>
+<div class="form-group"><label>Category</label><select id="execFilterCategory"><option value="">All Categories</option></select></div>
+</div>
 <div class="stat-cards" id="execStatCards"></div>
 
 <!-- Pane 1: Monthly Dashboard with split-by -->
@@ -2643,7 +2659,21 @@ function renderStats(emps){
     <div class="stat-card"><div class="label">${CURRENT_YEAR} CapEx Offset</div><div class="value">${fmt(totalCapEx)}</div></div>`;
 }
 const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a','#5e7a8b','#8b7a5e','#6b8b7a','#7a8b5e'];
-function hexToRgba(hex,alpha){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${alpha})`}
+const CHART_COLORS_MUTED_DARK=['#c4a0a0','#a0b8c8','#c8b8a0','#b0a0c0','#a0c0a0','#c0a0b0','#a0b0c0','#c0b0a0','#a0c0b0','#b0c0a0'];
+const CHART_COLORS_MONO=['#555','#888','#bbb','#444','#999','#666','#aaa','#777','#ccc','#333'];
+const CHART_COLORS_MONO_DARK=['#ccc','#999','#666','#ddd','#aaa','#bbb','#888','#eee','#777','#555'];
+const CHART_COLORS_NEON=['#ff006e','#00f5d4','#fee440','#8338ec','#3a86ff','#fb5607','#06d6a0','#f72585','#4cc9f0','#ff9e00'];
+let chartColorScheme='muted';
+function getChartColors(){
+  const isDark=document.documentElement.classList.contains('dark');
+  if(chartColorScheme==='mono')return isDark?CHART_COLORS_MONO_DARK:CHART_COLORS_MONO;
+  if(chartColorScheme==='neon')return CHART_COLORS_NEON;
+  return isDark?CHART_COLORS_MUTED_DARK:CHART_COLORS;
+}
+function hexToRgba(hex,alpha){
+  if(hex.startsWith('rgba'))return hex.replace(/,[\d.]+\)$/,','+alpha+')');
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${alpha})`
+}
 const FTE_TOOLTIP={
   mode:'index',intersect:false,
   callbacks:{
@@ -2753,12 +2783,12 @@ function renderDashboard(){
     const opexAdjComp=(x)=>compView==='opex'?compVal(x)-capExVal(x):compVal(x);
     COUNTRIES.forEach((c,i)=>{
       const data=labels.map(l=>groups[l].filter(x=>empOf(x).country===c).reduce((a,x)=>a+opexAdjComp(x),0));
-      if(data.some(v=>v>0))datasets.push({label:c,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length],stack:'pos'});
+      if(data.some(v=>v>0))datasets.push({label:c,data,backgroundColor:getChartColors()[i%getChartColors().length],stack:'pos'});
     });
     if(compView==='opex'){
       COUNTRIES.forEach((c,i)=>{
         const data=labels.map(l=>-groups[l].filter(x=>empOf(x).country===c).reduce((a,x)=>a+capExVal(x),0));
-        if(data.some(v=>v<0))datasets.push({label:c+' (CapEx)',data,backgroundColor:hexToRgba(CHART_COLORS[i%CHART_COLORS.length],0.35),stack:'neg'});
+        if(data.some(v=>v<0))datasets.push({label:c+' (CapEx)',data,backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.35),stack:'neg'});
       });
     }
   } else if(stackBy==='category'){
@@ -2776,7 +2806,7 @@ function renderDashboard(){
         const allocPct=allocs.filter(al=>catProjIds.has(al.projId)).reduce((s,al)=>s+al.pct,0)/100;
         return a+Math.round(opexAdjComp2(x)*allocPct);
       },0));
-      if(data.some(v=>v>0))datasets.push({label:cat,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length],stack:'pos'});
+      if(data.some(v=>v>0))datasets.push({label:cat,data,backgroundColor:getChartColors()[i%getChartColors().length],stack:'pos'});
     });
     const unData=labels.map(l=>groups[l].reduce((a,x)=>{
       const allocs=getEffectiveAllocs(empOf(x));
@@ -2795,19 +2825,19 @@ function renderDashboard(){
           const allocPct=allocs.filter(al=>catProjIds2.has(al.projId)).reduce((s,al)=>s+al.pct,0)/100;
           return a+Math.round(capExVal(x)*allocPct);
         },0));
-        if(data.some(v=>v<0))datasets.push({label:cat+' (CapEx)',data,backgroundColor:hexToRgba(CHART_COLORS[i%CHART_COLORS.length],0.35),stack:'neg'});
+        if(data.some(v=>v<0))datasets.push({label:cat+' (CapEx)',data,backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.35),stack:'neg'});
       });
     }
   } else {
     const opexAdjComp3=(x)=>compView==='opex'?compVal(x)-capExVal(x):compVal(x);
     SENIORITY.forEach((s,i)=>{
       const data=labels.map(l=>groups[l].filter(x=>empOf(x).seniority===s).reduce((a,x)=>a+opexAdjComp3(x),0));
-      if(data.some(v=>v>0))datasets.push({label:s,data,backgroundColor:CHART_COLORS[i%CHART_COLORS.length],stack:'pos'});
+      if(data.some(v=>v>0))datasets.push({label:s,data,backgroundColor:getChartColors()[i%getChartColors().length],stack:'pos'});
     });
     if(compView==='opex'){
       SENIORITY.forEach((s,i)=>{
         const data=labels.map(l=>-groups[l].filter(x=>empOf(x).seniority===s).reduce((a,x)=>a+capExVal(x),0));
-        if(data.some(v=>v<0))datasets.push({label:s+' (CapEx)',data,backgroundColor:hexToRgba(CHART_COLORS[i%CHART_COLORS.length],0.35),stack:'neg'});
+        if(data.some(v=>v<0))datasets.push({label:s+' (CapEx)',data,backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.35),stack:'neg'});
       });
     }
   }
@@ -2841,7 +2871,7 @@ function renderDashboard(){
     dashChart=new Chart(document.getElementById('dashChart'),{
       type:'bar',
       data:{labels:labels.map(l=>l.length>18?l.slice(0,16)+'…':l),datasets},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
         x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
         y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
       }}
@@ -2861,14 +2891,14 @@ function renderDashboard(){
         const segEmps=emps.filter(e=>e.seniority===s);
         if(!segEmps.length)return;
         const data=MONTH_SHORT.map((_,mi)=>Math.round(segEmps.reduce((a,e)=>a+empFte(e,mi),0)*10)/10);
-        fteDatasets.push({label:s,data,borderColor:CHART_COLORS[i%CHART_COLORS.length],backgroundColor:hexToRgba(CHART_COLORS[i%CHART_COLORS.length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
+        fteDatasets.push({label:s,data,borderColor:getChartColors()[i%getChartColors().length],backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
       });
     } else if(stackBy==='country'){
       COUNTRIES.forEach((c,i)=>{
         const segEmps=emps.filter(e=>e.country===c);
         if(!segEmps.length)return;
         const data=MONTH_SHORT.map((_,mi)=>Math.round(segEmps.reduce((a,e)=>a+empFte(e,mi),0)*10)/10);
-        fteDatasets.push({label:c,data,borderColor:CHART_COLORS[i%CHART_COLORS.length],backgroundColor:hexToRgba(CHART_COLORS[i%CHART_COLORS.length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
+        fteDatasets.push({label:c,data,borderColor:getChartColors()[i%getChartColors().length],backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
       });
     } else if(stackBy==='category'){
       const cats=[...new Set(state.projects.map(p=>p.category).filter(Boolean))];
@@ -2883,7 +2913,7 @@ function renderDashboard(){
           });
           return Math.round(fte*10)/10;
         });
-        fteDatasets.push({label:cat,data,borderColor:CHART_COLORS[i%CHART_COLORS.length],backgroundColor:hexToRgba(CHART_COLORS[i%CHART_COLORS.length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
+        fteDatasets.push({label:cat,data,borderColor:getChartColors()[i%getChartColors().length],backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
       });
     } else {
       // baseBonus default: Base/Bonus/Benefits colors as single area
@@ -2905,7 +2935,7 @@ function renderDashboard(){
     fteChart=new Chart(document.getElementById('fteChart'),{
       type:'line',
       data:{labels:MONTH_SHORT,datasets:fteDatasets},
-      options:{responsive:true,maintainAspectRatio:false,
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
         plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
           x:{ticks:{color:tickColor,font:{size:12}},grid:{display:false},stacked:true},
@@ -4671,7 +4701,7 @@ function renderForecastProjection(){
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
         data:{labels:rows.map(r=>r.year),datasets:fDatasets},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -4722,20 +4752,20 @@ function renderForecastProjection(){
       const datasets=groupNames.map((g,i)=>({
         label:g.length>20?g.slice(0,18)+'…':g,
         data:yearLabels.map((_,yi)=>{const r=groupForecasts[g][yi];return r?(showOpex?r.opex:r.total):0}),
-        backgroundColor:CHART_COLORS[i%CHART_COLORS.length],
+        backgroundColor:getChartColors()[i%getChartColors().length],
         stack:'pos'
       }));
       if(showOpex){
         groupNames.forEach((g,i)=>{
           const capData=yearLabels.map((_,yi)=>{const r=groupForecasts[g][yi];return r?-r.capex:0});
-          if(capData.some(v=>v<0))datasets.push({label:(g.length>18?g.slice(0,16)+'…':g)+' (CapEx)',data:capData,backgroundColor:hexToRgba(CHART_COLORS[i%CHART_COLORS.length],0.35),stack:'neg'});
+          if(capData.some(v=>v<0))datasets.push({label:(g.length>18?g.slice(0,16)+'…':g)+' (CapEx)',data:capData,backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.35),stack:'neg'});
         });
       }
       stackedBarDatalabels(datasets,tickColor);
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
         data:{labels:yearLabels,datasets},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -4754,7 +4784,7 @@ function renderForecastProjection(){
       const gNames=Object.keys(splitGroups);
       gNames.forEach((g,i)=>{
         const gf=groupForecasts[g];
-        fcFteDatasets.push({label:g.length>20?g.slice(0,18)+'…':g,data:fteLabels.map((_,yi)=>gf[yi]?gf[yi].hc:0),borderColor:CHART_COLORS[i%CHART_COLORS.length],backgroundColor:hexToRgba(CHART_COLORS[i%CHART_COLORS.length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
+        fcFteDatasets.push({label:g.length>20?g.slice(0,18)+'…':g,data:fteLabels.map((_,yi)=>gf[yi]?gf[yi].hc:0),borderColor:getChartColors()[i%getChartColors().length],backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
       });
     } else {
       fcFteDatasets=[{label:'Projected FTEs',data:totalRows.map(r=>r.hc),borderColor:isDark2?'#a38b5e':'#8b5e5e',backgroundColor:hexToRgba(isDark2?'#a38b5e':'#8b5e5e',0.15),fill:true,tension:0.4,pointRadius:3,borderWidth:2}];
@@ -4774,7 +4804,7 @@ function renderForecastProjection(){
     window._forecastFteChart=new Chart(document.getElementById('forecastFteChart'),{
       type:'line',
       data:{labels:fteLabels,datasets:fcFteDatasets},
-      options:{responsive:true,maintainAspectRatio:false,
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
         plugins:{legend:{display:fcFteDatasets.length>1,labels:{color:tickColor2,boxWidth:10,font:{size:11}}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
           x:{ticks:{color:tickColor2,font:{size:12}},grid:{display:false},stacked:true},
@@ -5224,7 +5254,7 @@ function setDarkMode(on){
   localStorage.setItem('compPlanDark',on?'1':'0');
   toggleDark.checked=on;
   landingToggleDark.checked=on;
-  renderForecast();
+  renderForecast();renderExecView();renderDashboard();renderLandingCharts();
 }
 toggleDark.addEventListener('change',()=>setDarkMode(toggleDark.checked));
 landingToggleDark.addEventListener('change',()=>setDarkMode(landingToggleDark.checked));
@@ -5236,6 +5266,25 @@ toggleOps.addEventListener('change',()=>{
 // Restore preferences
 if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;landingToggleDark.checked=true;document.documentElement.classList.add('dark')}
 if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
+// Color scheme slider
+const colorSchemeSlider=document.getElementById('colorSchemeSlider');
+const colorSchemeLabel=document.getElementById('colorSchemeLabel');
+const COLOR_SCHEME_NAMES=['Muted','Mono','Neon'];
+const COLOR_SCHEME_KEYS=['muted','mono','neon'];
+colorSchemeSlider.addEventListener('input',()=>{
+  const v=parseInt(colorSchemeSlider.value);
+  chartColorScheme=COLOR_SCHEME_KEYS[v];
+  colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[v];
+  localStorage.setItem('compPlanColorScheme',chartColorScheme);
+  renderAll();renderLandingCharts();
+});
+const savedScheme=localStorage.getItem('compPlanColorScheme');
+if(savedScheme&&COLOR_SCHEME_KEYS.includes(savedScheme)){
+  chartColorScheme=savedScheme;
+  const idx=COLOR_SCHEME_KEYS.indexOf(savedScheme);
+  colorSchemeSlider.value=idx;
+  colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
+}
 
 // ── WORKSPACES (localStorage) ──
 let currentWorkspaceName='Default';
@@ -5777,6 +5826,19 @@ setInterval(()=>{
 // ── EXEC VIEW ──
 let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total';
 let execMonthlyChart=null,execForecastChart=null;
+let execFilterProduct='',execFilterCategory='';
+
+function populateExecFilters(){
+  const prodSel=document.getElementById('execFilterProduct');
+  const catSel=document.getElementById('execFilterCategory');
+  if(!prodSel||!catSel||!state||!state.projects)return;
+  const products=[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort();
+  const categories=[...new Set(state.projects.map(p=>p.category).filter(Boolean))].sort();
+  prodSel.innerHTML='<option value="">All Products</option>'+products.map(p=>`<option value="${p}"${p===execFilterProduct?' selected':''}>${p}</option>`).join('');
+  catSel.innerHTML='<option value="">All Categories</option>'+categories.map(c=>`<option value="${c}"${c===execFilterCategory?' selected':''}>${c}</option>`).join('');
+}
+document.getElementById('execFilterProduct').addEventListener('change',function(){execFilterProduct=this.value;renderExecView()});
+document.getElementById('execFilterCategory').addEventListener('change',function(){execFilterCategory=this.value;renderExecView()});
 
 document.querySelectorAll('#execSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#execSplitToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execSplit=b.dataset.esplit;renderExecView();
@@ -5832,26 +5894,34 @@ function renderSparkline(canvasId,data,color){
   const pad=4;const dotR=2.5;
   const xStep=(w-pad*2)/(data.length-1);
   const pts=data.map((v,i)=>({x:pad+i*xStep,y:h-pad-(v-min)/range*(h-pad*2)}));
-  // Hex to rgba helper
-  function hexA(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`}
+  // Hex/rgba to rgba helper
+  function hexA(c,a){
+    if(c.startsWith('rgba'))return c.replace(/,[\d.]+\)$/,','+a+')');
+    if(c.startsWith('rgb')){const m=c.match(/(\d+),\s*(\d+),\s*(\d+)/);return m?`rgba(${m[1]},${m[2]},${m[3]},${a})`:c}
+    const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);return `rgba(${r},${g},${b},${a})`
+  }
+  const isDarkSp=document.documentElement.classList.contains('dark');
   // Area fill
   ctx.beginPath();ctx.moveTo(pts[0].x,h);
   pts.forEach(p=>ctx.lineTo(p.x,p.y));
   ctx.lineTo(pts[pts.length-1].x,h);ctx.closePath();
-  ctx.fillStyle=hexA(color,0.08);ctx.fill();
+  ctx.fillStyle=hexA(color,isDarkSp?0.12:0.08);ctx.fill();
   // Line
   ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
   pts.forEach(p=>ctx.lineTo(p.x,p.y));
-  ctx.strokeStyle=hexA(color,0.45);ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
+  ctx.strokeStyle=hexA(color,isDarkSp?0.7:0.45);ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
   // Dots
   pts.forEach(p=>{
     ctx.beginPath();ctx.arc(p.x,p.y,dotR,0,Math.PI*2);
-    ctx.fillStyle=hexA(color,0.55);ctx.fill();
+    ctx.fillStyle=hexA(color,isDarkSp?0.8:0.55);ctx.fill();
   });
 }
 
 function renderExecView(){
-  const emps=getFilteredEmployees();
+  populateExecFilters();
+  let emps=getFilteredEmployees();
+  if(execFilterProduct){emps=emps.filter(e=>{const p=getEmpProject(e);return p&&p.product===execFilterProduct})}
+  if(execFilterCategory){emps=emps.filter(e=>{const p=getEmpProject(e);return p&&p.category===execFilterCategory})}
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?'#ffffff':'#5a5a5a';
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
@@ -5886,10 +5956,10 @@ function renderExecView(){
   const sparkOpExData=MONTH_IDX.map(mi=>emps.reduce((a,e)=>a+getMonthlyComp(e,mi)-getMonthlyCapEx(e,mi),0));
   const isDarkSpark=document.documentElement.classList.contains('dark');
   requestAnimationFrame(()=>{
-    renderSparkline('sparkHC',sparkHCData,isDarkSpark?'#4a9d54':'#3a7d44');
-    renderSparkline('sparkComp',sparkCompData,isDarkSpark?'#4a9d54':'#3a7d44');
-    renderSparkline('sparkCapEx',sparkCapExData,isDarkSpark?'#d4524d':'#8b2020');
-    renderSparkline('sparkOpEx',sparkOpExData,isDarkSpark?'#4a9d54':'#3a7d44');
+    renderSparkline('sparkHC',sparkHCData,isDarkSpark?'#b0d0b8':'#3a7d44');
+    renderSparkline('sparkComp',sparkCompData,isDarkSpark?'#b0d0b8':'#3a7d44');
+    renderSparkline('sparkCapEx',sparkCapExData,isDarkSpark?'#e0a8a8':'#8b2020');
+    renderSparkline('sparkOpEx',sparkOpExData,isDarkSpark?'#b0d0b8':'#3a7d44');
   });
 
   // ── Pane 1: Monthly chart split by selected dimension ──
@@ -5959,7 +6029,7 @@ function renderExecView(){
   if(typeof Chart!=='undefined'){
     if(execMonthlyChart)execMonthlyChart.destroy();
     const datasets=groupNames.map((g,i)=>{
-      const color=execSplit==='none'?(isDark?'#d4524d':'#8b2020'):CHART_COLORS[i%CHART_COLORS.length];
+      const color=execSplit==='none'?(isDark?'#d4524d':'#8b2020'):getChartColors()[i%getChartColors().length];
       return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y',order:2};
     });
     if(execSplit!=='none'){stackedBarDatalabels(datasets,tickColor)}
@@ -5971,7 +6041,7 @@ function renderExecView(){
     execMonthlyChart=new Chart(document.getElementById('execMonthlyChart'),{
       type:'bar',
       data:{labels:periodLabels,datasets},
-      options:{responsive:true,maintainAspectRatio:false,
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
         plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
@@ -6082,7 +6152,7 @@ function renderExecView(){
       stackedBarDatalabels(ds,tickColor);
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -6123,12 +6193,12 @@ function renderExecView(){
       const ds=gNames.map((g,i)=>({
         label:g.length>20?g.slice(0,18)+'…':g,
         data:yearLabels.map((_,yi)=>{const r=gForecasts[g][yi];return r?(showFcOpex?r.opex:r.total):0}),
-        backgroundColor:CHART_COLORS[i%CHART_COLORS.length]
+        backgroundColor:getChartColors()[i%getChartColors().length]
       }));
       stackedBarDatalabels(ds,tickColor);
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -8736,11 +8806,11 @@ function renderLandingCharts(){
       if(isPnl){
         const opex=MO_SHORT.map((_,mi)=>{const c=groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=groups[g].reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
         const capex=MO_SHORT.map((_,mi)=>-groups[g].reduce((s,e)=>s+getMonthlyCapEx(e,mi),0));
-        budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:opex,backgroundColor:CHART_COLORS[gi%CHART_COLORS.length],stack:'pos'});
-        if(capex.some(v=>v<0))budgetDS.push({label:g+' (CapEx)',data:capex,backgroundColor:hexToRgba(CHART_COLORS[gi%CHART_COLORS.length],0.35),stack:'neg'});
+        budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:opex,backgroundColor:getChartColors()[gi%getChartColors().length],stack:'pos'});
+        if(capex.some(v=>v<0))budgetDS.push({label:g+' (CapEx)',data:capex,backgroundColor:hexToRgba(getChartColors()[gi%getChartColors().length],0.35),stack:'neg'});
       } else {
         const data=MO_SHORT.map((_,mi)=>groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0));
-        budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data,backgroundColor:CHART_COLORS[gi%CHART_COLORS.length]});
+        budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data,backgroundColor:getChartColors()[gi%getChartColors().length]});
       }
     });
   } else {
@@ -8756,10 +8826,10 @@ function renderLandingCharts(){
   }
   // Data labels for top of each stacked bar
   const budgetDL=useSplit||isPnl?{}:{display:true,anchor:'end',align:'end',color:tickColor,font:{size:8,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':v>0?'$'+Math.round(v):''};
-  if(useSplit||isPnl)stackedBarDatalabels(budgetDS,tickColor,8);
+  if(useSplit||isPnl){stackedBarDatalabels(budgetDS,tickColor,8);budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:useSplit||isPnl?{}:budgetDL},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:useSplit||isPnl?{}:budgetDL},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
@@ -8767,18 +8837,21 @@ function renderLandingCharts(){
   if(landingForecastChartInst)landingForecastChartInst.destroy();
   let fcDS=[];
   const yearLabels=['Current',...FORECAST_YEARS.map(y=>String(y))];
+  try{
   if(useSplit){
     const groups={};
-    emps.forEach(e=>{const key=getPnlSplitKey(e,split);if(!groups[key])groups[key]=[];groups[key].push(e)});
+    emps.forEach(e=>{const key=getPnlSplitKey(e,split);if(key!=null){if(!groups[key])groups[key]=[];groups[key].push(e)}});
     const gNames=Object.keys(groups).sort();
     gNames.forEach((g,gi)=>{
+      try{
       const rows=projectForecast(groups[g],g);
       if(isPnl){
-        fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.opex),backgroundColor:CHART_COLORS[gi%CHART_COLORS.length],stack:'pos'});
-        if(rows.some(r=>r.capex>0))fcDS.push({label:g+' (CapEx)',data:rows.map(r=>-r.capex),backgroundColor:hexToRgba(CHART_COLORS[gi%CHART_COLORS.length],0.35),stack:'neg'});
+        fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.opex),backgroundColor:getChartColors()[gi%getChartColors().length],stack:'pos'});
+        if(rows.some(r=>r.capex>0))fcDS.push({label:g+' (CapEx)',data:rows.map(r=>-r.capex),backgroundColor:hexToRgba(getChartColors()[gi%getChartColors().length],0.35),stack:'neg'});
       } else {
-        fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.total),backgroundColor:CHART_COLORS[gi%CHART_COLORS.length]});
+        fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.total),backgroundColor:getChartColors()[gi%getChartColors().length]});
       }
+      }catch(e){console.warn('Forecast group error for '+g+':',e)}
     });
   } else {
     const rows=projectForecast(emps);
@@ -8789,11 +8862,12 @@ function renderLandingCharts(){
       fcDS.push({label:'Total Investment',data:rows.map(r=>r.total),backgroundColor:isDark?'#d4524d':'#8b2020'});
     }
   }
-  if(useSplit||isPnl)stackedBarDatalabels(fcDS,tickColor,8);
+  }catch(e){console.warn('Landing forecast chart error:',e)}
+  if(useSplit||isPnl){stackedBarDatalabels(fcDS,tickColor,8);fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
   else fcDS.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:8,weight:'bold'},formatter:v=>{const a=Math.abs(v);return a>=1e6?'$'+(v/1e6).toFixed(1)+'M':a>=1000?(v<0?'-':'')+'$'+(a/1000).toFixed(0)+'K':''}}});
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 }
