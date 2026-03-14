@@ -2262,6 +2262,16 @@ let ws=null; // WebSocket connection
 function debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms)}}
 
 // Auto-save indicator
+let lastSaveTime=null;
+function formatSaveTime(d){
+  const h=d.getHours(),m=d.getMinutes();
+  const ampm=h>=12?'PM':'AM';
+  return ((h%12)||12)+':'+String(m).padStart(2,'0')+' '+ampm;
+}
+function updateLastSaveDisplay(){
+  const el=document.getElementById('lastSaveTime');
+  if(el&&lastSaveTime)el.textContent='Saved '+formatSaveTime(lastSaveTime);
+}
 function updateSaveIndicator(status){
   const el=document.getElementById('saveIndicator');
   if(!el)return;
@@ -2282,7 +2292,9 @@ const debouncedServerSave=debounce(async()=>{
       body:JSON.stringify({stateData:JSON.stringify(state)})
     });
     if(!resp.ok)throw new Error('Save failed');
+    lastSaveTime=new Date();
     updateSaveIndicator('saved');
+    updateLastSaveDisplay();
   }catch(e){updateSaveIndicator('error');console.error('Auto-save error:',e)}
 },300);
 
@@ -2563,6 +2575,7 @@ function updateSessionUI(){
       `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel-inset);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code||''}</span>`+
       `<span style="font-size:.72rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">v: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage versions" style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px">${sessionContext.versionName||'Default'}</span></span>`+
       `<span class="save-indicator" id="saveIndicator" style="display:none"></span>`+
+      `<span id="lastSaveTime" style="font-size:.68rem;color:var(--text-dim);margin-left:6px">${lastSaveTime?'Saved '+formatSaveTime(lastSaveTime):''}</span>`+
       ` <span style="font-size:.75rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">${sessionContext.userName}</span>`+
       ` <span style="cursor:pointer;font-size:.72rem;color:var(--danger);margin-left:4px" onclick="leaveSession()" title="Leave session">Leave</span>`;
     // Show initial user in top bar
