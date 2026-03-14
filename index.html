@@ -4156,34 +4156,36 @@ function renderEmpPivot(){
   const grandTotal=Object.values(colTotals).reduce((s,v)=>s+v,0);
   const nDataCols=colVals.length+1; // +1 for Total
   const datColW=Math.floor(100/(nDataCols+1))+'%'; // +1 accounts for row label col
+  const truncCol=v=>v.length>14?v.slice(0,12)+'…':v;
   let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);font-size:.72rem;width:auto"></th>';
-  colVals.forEach(cv=>h+=`<th style="text-align:right;font-size:.72rem;white-space:nowrap;width:${datColW}">${cv}</th>`);
-  h+=`<th style="text-align:right;font-size:.72rem;font-weight:700;width:${datColW}">Total</th></tr></thead><tbody>`;
+  colVals.forEach(cv=>h+=`<th style="text-align:center;font-size:.72rem;white-space:nowrap;width:${datColW}" title="${cv}">${truncCol(cv)}</th>`);
+  h+=`<th style="text-align:center;font-size:.72rem;font-weight:700;width:${datColW}">Total</th></tr></thead><tbody>`;
   sortedRows.forEach((rv,ri)=>{
     const pivotColors=getChartColors();
     const dotColor=pivotColors[ri%pivotColors.length];
     h+=`<tr><td style="font-weight:600;font-size:.74rem;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${dotColor};margin-right:4px"></span>${rv}</td>`;
-    colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;${v===0?'color:var(--text-dim)':''}">${v===0?'—':isCurrency?fmt(v):v}</td>`});
-    h+=`<td class="num" style="font-size:.74rem;font-weight:700">${isCurrency?fmt(rowTotals[rv]):rowTotals[rv]}</td></tr>`;
+    colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;text-align:center;${v===0?'color:var(--text-dim)':''}">${v===0?'—':isCurrency?fmt(v):v}</td>`});
+    h+=`<td class="num" style="font-size:.74rem;font-weight:700;text-align:center">${isCurrency?fmt(rowTotals[rv]):rowTotals[rv]}</td></tr>`;
   });
   h+=`<tr style="font-weight:700;border-top:2px solid var(--accent)"><td style="position:sticky;left:0;background:var(--panel);z-index:1;font-size:.74rem">Total</td>`;
-  colVals.forEach(cv=>h+=`<td class="num" style="font-size:.74rem">${isCurrency?fmt(colTotals[cv]):colTotals[cv]}</td>`);
-  h+=`<td class="num" style="font-size:.74rem;font-weight:800">${isCurrency?fmt(grandTotal):grandTotal}</td></tr></tbody>`;
+  colVals.forEach(cv=>h+=`<td class="num" style="font-size:.74rem;text-align:center">${isCurrency?fmt(colTotals[cv]):colTotals[cv]}</td>`);
+  h+=`<td class="num" style="font-size:.74rem;font-weight:800;text-align:center">${isCurrency?fmt(grandTotal):grandTotal}</td></tr></tbody>`;
   tbl.innerHTML=h;
   tbl.style.tableLayout='fixed';
 
-  // Sync grid: left col width = table's row-label column width, and center table under chart
+  // Align table data columns under chart bars
   requestAnimationFrame(()=>{
-    const topRow=document.getElementById('empPivotTopRow');
-    const firstTh=tbl.querySelector('thead th');
-    if(topRow&&firstTh){
-      const labelW=firstTh.offsetWidth;
-      topRow.style.gridTemplateColumns=labelW+'px 1fr';
-    }
-    // Let table span full width — row labels align under controls, data cols under chart
+    const ctrlCol=document.getElementById('empPivotControlsCol');
     const tblWrap=document.getElementById('empPivotTableWrap');
-    if(tblWrap){
-      tblWrap.style.marginLeft='0';
+    if(tblWrap)tblWrap.style.marginLeft='0';
+    if(ctrlCol&&empPivotChartInst&&empPivotChartInst.chartArea){
+      const ctrlW=ctrlCol.offsetWidth;
+      const chartLeft=empPivotChartInst.chartArea.left; // y-axis label area
+      const firstColW=ctrlW+chartLeft;
+      const firstTh=tbl.querySelector('thead th');
+      if(firstTh)firstTh.style.width=firstColW+'px';
+      // Also set all row-label tds to match
+      tbl.querySelectorAll('tbody td:first-child, tfoot td:first-child').forEach(td=>td.style.width=firstColW+'px');
     }
   });
 }
