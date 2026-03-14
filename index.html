@@ -906,8 +906,17 @@ Template Mode &mdash; changes saved in this browser only.
 <header>
 <div class="container">
 <div style="display:flex;align-items:center;gap:8px"><h1>Comp<span>Plan</span></h1>
-<button class="btn btn-sm" id="compBackBtn" onclick="showLanding()">Back to Overview</button></div>
-<span class="workspace-indicator" id="wsIndicator">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span><span class="save-indicator" id="saveIndicator" style="display:none"></span></span>
+<button class="btn btn-sm" id="compBackBtn" onclick="showLanding()">Back to Overview</button>
+<span class="workspace-indicator" id="wsIndicator" style="margin-left:4px">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span><span class="save-indicator" id="saveIndicator" style="display:none"></span></span>
+<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
+<label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
+<div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
+<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="colorSchemeSlider">
+<span class="color-scheme-label" id="colorSchemeLabel">Muted</span>
+</div>
+</div>
+</div>
 <nav id="mainNav">
 <div class="nav-group">
 <div class="nav-group-label">Comp Plan</div>
@@ -928,14 +937,6 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </nav>
-<div class="header-toggles">
-<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
-<label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
-<div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
-<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="colorSchemeSlider">
-<span class="color-scheme-label" id="colorSchemeLabel">Muted</span>
-</div>
-</div>
 </div>
 <!-- Presence Bar (inside sticky header) -->
 <div class="presence-bar" id="presenceBar"></div>
