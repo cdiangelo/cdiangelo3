@@ -888,8 +888,13 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 
 <!-- Pane 2: Long Term Forecast -->
-<div class="exec-pane">
-<h3>Long Term Forecast</h3>
+<div class="exec-pane" id="execFcPane">
+<h3 style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none" id="execFcHeader">
+<span id="execFcArrow" style="font-size:.7rem;display:inline-block;width:12px;color:var(--text-dim)">▼</span>
+Long Term Forecast
+</h3>
+<div id="execFcSparkWrap" style="display:none;height:48px;margin-bottom:8px;position:relative"><canvas id="execFcSparkline"></canvas></div>
+<div id="execFcBody">
 <div class="controls" style="margin-bottom:12px">
 <div>
 <label>Split By</label>
@@ -910,6 +915,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="chart-container"><canvas id="execForecastChart"></canvas></div>
 <div class="table-wrap"><table class="forecast-table" id="execForecastTable"></table></div>
+</div>
 </div>
 
 <!-- Pane 3: Roster by Product Category / Product -->
@@ -6566,7 +6572,8 @@ setInterval(()=>{
 
 // ── EXEC VIEW ──
 let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total';
-let execMonthlyChart=null,execForecastChart=null;
+let execMonthlyChart=null,execForecastChart=null,execFcSparkChart=null;
+let execFcCollapsed=false;
 let execFilterProduct='',execFilterCategory='';
 
 function populateExecFilters(){
@@ -6596,6 +6603,42 @@ document.querySelectorAll('#execFcSplitToggle .btn').forEach(b=>b.addEventListen
 document.querySelectorAll('#execFcViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#execFcViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execFcView=b.dataset.efview;renderExecView();
 }));
+// Collapse/expand long term forecast
+document.getElementById('execFcHeader').addEventListener('click',()=>{
+  execFcCollapsed=!execFcCollapsed;
+  document.getElementById('execFcBody').style.display=execFcCollapsed?'none':'';
+  document.getElementById('execFcSparkWrap').style.display=execFcCollapsed?'':'none';
+  document.getElementById('execFcArrow').textContent=execFcCollapsed?'▶':'▼';
+  if(execFcCollapsed)renderExecFcSparkline();
+});
+function renderExecFcSparkline(){
+  if(typeof Chart==='undefined')return;
+  const emps=getExecFilteredEmps();
+  const rows=projectForecast(emps);
+  const showOpex=execFcView==='opex';
+  const vals=rows.map(r=>showOpex?r.opex:r.total);
+  const labels=['Current',...FORECAST_YEARS];
+  if(execFcSparkChart)execFcSparkChart.destroy();
+  const colors=getChartColors();
+  execFcSparkChart=new Chart(document.getElementById('execFcSparkline'),{
+    type:'line',
+    data:{labels,datasets:[{
+      data:vals,fill:true,
+      backgroundColor:hexToRgba(colors[0],0.25),
+      borderColor:colors[0],borderWidth:2,
+      pointRadius:3,pointBackgroundColor:colors[0],
+      tension:0.3
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},datalabels:{display:false},
+        tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
+      scales:{
+        x:{ticks:{font:{size:9},color:'var(--text-dim)'},grid:{display:false}},
+        y:{display:false}
+      }
+    }
+  });
+}
 document.getElementById('execTableToggle').addEventListener('click',function(){
   const wrap=document.getElementById('execTableWrap');
   const vis=wrap.style.display!=='none';
@@ -6658,11 +6701,15 @@ function renderSparkline(canvasId,data,color){
   });
 }
 
-function renderExecView(){
-  populateExecFilters();
+function getExecFilteredEmps(){
   let emps=getFilteredEmployees();
   if(execFilterProduct){emps=emps.filter(e=>{const p=getEmpProject(e);return p&&p.product===execFilterProduct})}
   if(execFilterCategory){emps=emps.filter(e=>{const p=getEmpProject(e);return p&&p.category===execFilterCategory})}
+  return emps;
+}
+function renderExecView(){
+  populateExecFilters();
+  const emps=getExecFilteredEmps();
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?'#ffffff':'#5a5a5a';
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
@@ -6953,6 +7000,9 @@ function renderExecView(){
       });
     }
   }
+
+  // Update sparkline if collapsed
+  if(execFcCollapsed)renderExecFcSparkline();
 
   // ── Pane 3: Roster by Category > Product > People ──
   const rosterPane=document.getElementById('execRosterPane');
