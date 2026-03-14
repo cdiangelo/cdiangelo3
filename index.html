@@ -217,8 +217,48 @@ body.cs-mono .stat-card .label{color:#888}
 html.dark body.cs-mono .stat-card .value{color:#aaa!important}
 html.dark body.cs-mono h3,html.dark body.cs-mono .exec-pane h3,html.dark body.cs-mono .landing-chart-title{color:#999}
 html.dark body.cs-mono .stat-card .label{color:#888}
-body.cs-neon .stat-card .value{color:#3a86ff!important}
-html.dark body.cs-neon .stat-card .value{color:#00f5d4!important}
+/* Neon scheme — vibrant, deep contrast, fun and explosive */
+body.cs-neon{--accent:#9b5de5;--accent-light:#b07af0;--danger:#ff3d8f;--success:#2ec4b6;--warning:#f0c020;--bg:#f0f0f5;--panel:#f5f5fa;--panel-inset:#ebebf2}
+body.cs-neon .stat-card .value{color:#9b5de5!important;font-weight:700}
+body.cs-neon h3,body.cs-neon .exec-pane h3,body.cs-neon .landing-chart-title{color:#4a2080}
+body.cs-neon .section-title{color:#4a2080}
+body.cs-neon nav button.active{background:linear-gradient(135deg,#9b5de5,#ff3d8f);border-color:transparent;color:#fff}
+body.cs-neon .btn.active,body.cs-neon .btn-primary{background:linear-gradient(135deg,#9b5de5,#4da6ff);border-color:transparent}
+body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#9b5de5,#ff3d8f);color:#fff}
+body.cs-neon header h1{color:#9b5de5}
+body.cs-neon a{color:#9b5de5}
+html.dark body.cs-neon{--accent:#b07af0;--accent-light:#c090ff;--danger:#ff5a9e;--success:#56cfe1;--warning:#f0c020;--bg:#0a0a10;--panel:#111118;--panel-inset:#0e0e14;--text:#d0d0e0;--text-dim:#8888a0;--text-dark:#e0e0f0;--border:#222230;--border-light:#1a1a25}
+html.dark body.cs-neon .stat-card .value{color:#00e5c8!important;font-weight:700}
+html.dark body.cs-neon h3,html.dark body.cs-neon .exec-pane h3,html.dark body.cs-neon .landing-chart-title{color:#b07af0}
+html.dark body.cs-neon .stat-card{border:1px solid #222230;background:#111118}
+html.dark body.cs-neon .stat-card .label{color:#8888a0}
+html.dark body.cs-neon .card,html.dark body.cs-neon .card-inset{background:#111118;border-color:#222230}
+html.dark body.cs-neon .exec-pane{background:#111118;border-color:#222230}
+html.dark body.cs-neon .table-wrap{background:#111118;border-color:#222230}
+html.dark body.cs-neon table th{background:#0e0e14;border-bottom:2px solid #9b5de5}
+html.dark body.cs-neon table td{border-bottom:1px solid #1a1a25}
+html.dark body.cs-neon tr:nth-child(even) td{background:#0d0d14}
+html.dark body.cs-neon header{background:#111118;border-bottom-color:#222230}
+html.dark body.cs-neon nav button.active{background:linear-gradient(135deg,#9b5de5,#ff3d8f);border-color:transparent;color:#fff}
+html.dark body.cs-neon nav button{color:#8888a0;border-color:#222230}
+html.dark body.cs-neon .btn{background:#161620;color:#d0d0e0;border-color:#222230}
+html.dark body.cs-neon .btn.active,html.dark body.cs-neon .btn-primary{background:linear-gradient(135deg,#9b5de5,#4da6ff);border-color:transparent}
+html.dark body.cs-neon .toggle-group{background:#0e0e14;border-color:#222230}
+html.dark body.cs-neon .toggle-group .btn{color:#8888a0}
+html.dark body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#9b5de5,#ff3d8f);color:#fff}
+html.dark body.cs-neon .section-title{color:#b07af0}
+html.dark body.cs-neon .forecast-section h4{color:#9b5de5}
+html.dark body.cs-neon .modal{background:#111118}
+html.dark body.cs-neon .export-card{background:#111118;border-color:#222230}
+html.dark body.cs-neon select,html.dark body.cs-neon input,html.dark body.cs-neon textarea{background:#161620;border-color:#222230;color:#d0d0e0}
+html.dark body.cs-neon .scenario-slide-panel,html.dark body.cs-neon .data-slide-panel{background:#0a0a10}
+html.dark body.cs-neon .landing-chart-card{background:#111118;border-color:#222230}
+html.dark body.cs-neon .forecast-group-row{background:#111118;border-color:#222230}
+html.dark body.cs-neon .pivot-adj-bar{background:#0e0e14}
+html.dark body.cs-neon .chart-container{background:transparent}
+html.dark body.cs-neon a{color:#b07af0}
+html.dark body.cs-neon header h1{color:#b07af0}
+html.dark body.cs-neon tr:hover{background:rgba(155,93,229,.06)}
 /* Crisp scheme — sharp white/black, minimal, editorial */
 body.cs-crisp{--accent:#444;--accent-light:#555;--danger:#666;--success:#555;--warning:#777;--bg:#e0e0e0;--panel:#ebebeb;--panel-inset:#e4e4e4}
 body.cs-crisp .stat-card .value{color:#111!important;font-weight:700}
@@ -909,7 +949,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="stat-cards" id="execStatCards"></div>
 
 <!-- Pane 1: Monthly Dashboard with split-by -->
-<div class="exec-pane">
+<div class="exec-pane collapsed">
 <h3 class="exec-pane-toggle" onclick="toggleExecPane(this)"><span class="toggle-icon" style="font-size:.7rem;margin-right:6px;display:inline-block">&#9660;</span>Trend Views</h3>
 <div class="exec-pane-body">
 <div class="controls" style="margin-bottom:12px">
@@ -959,11 +999,11 @@ Template Mode &mdash; changes saved in this browser only.
 <!-- Pane 2: Long Term Forecast -->
 <div class="exec-pane" id="execFcPane">
 <h3 style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none" id="execFcHeader">
-<span id="execFcArrow" style="font-size:.7rem;display:inline-block;width:12px;color:var(--text-dim)">▼</span>
+<span id="execFcArrow" style="font-size:.7rem;display:inline-block;width:12px;color:var(--text-dim)">▶</span>
 Long Term Forecast
 </h3>
 <div id="execFcSparkWrap" style="display:none;height:72px;margin-bottom:8px;position:relative;z-index:1;overflow:visible"><canvas id="execFcSparkline"></canvas></div>
-<div id="execFcBody">
+<div id="execFcBody" style="display:none">
 <div class="controls" style="margin-bottom:12px">
 <div>
 <label>Split By</label>
@@ -1035,7 +1075,7 @@ Long Term Forecast
 <div class="card" style="padding:14px">
 <div id="empPivotTopRow" style="display:grid;grid-template-columns:auto 1fr;gap:0;margin-bottom:4px">
 <!-- Left: title + filters above row labels -->
-<div style="display:flex;flex-direction:column;gap:3px;padding-right:8px;justify-content:flex-end">
+<div id="empPivotControlsCol" style="display:flex;flex-direction:column;gap:3px;padding-right:8px;justify-content:flex-end">
 <h3 class="section-title" style="font-size:.85rem;margin:0">Roster Pivot</h3>
 <div style="display:flex;flex-direction:column;gap:2px">
 <div style="display:flex;gap:4px;align-items:center">
@@ -1074,7 +1114,7 @@ Long Term Forecast
 <!-- Right: chart directly over data columns -->
 <div style="position:relative;height:220px"><canvas id="empPivotChart"></canvas></div>
 </div>
-<div style="overflow:auto;max-height:220px"><table class="pnl-walk-table" id="empPivotTable" style="font-size:.76rem"></table></div>
+<div id="empPivotTableWrap" style="overflow:auto;max-height:220px"><table class="pnl-walk-table" id="empPivotTable" style="font-size:.76rem"></table></div>
 </div>
 </div>
 <div class="controls" style="justify-content:flex-end;margin-bottom:8px">
@@ -3102,10 +3142,10 @@ const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a',
 const CHART_COLORS_MUTED_DARK=['#c4a0a0','#a0b8c8','#c8b8a0','#b0a0c0','#a0c0a0','#c0a0b0','#a0b0c0','#c0b0a0','#a0c0b0','#b0c0a0'];
 const CHART_COLORS_MONO=['#7a6e6e','#6e7a7a','#8a7e6e','#6e6e7a','#6e7a6e','#7a6e7a','#5a6a7a','#7a7a6e','#6a7a72','#74786a'];
 const CHART_COLORS_MONO_DARK=['#c4b8b8','#b8c4c4','#c8c0b0','#b8b8c4','#b8c4b8','#c4b8c4','#a8b8c8','#c4c4b8','#b0c0b8','#bcc0b0'];
-const CHART_COLORS_NEON=['#ff006e','#00f5d4','#e6b800','#8338ec','#3a86ff','#fb5607','#06d6a0','#f72585','#4cc9f0','#e07000'];
+const CHART_COLORS_NEON=['#ff3d8f','#00e5c8','#f0c020','#9b5de5','#4da6ff','#ff6b35','#2ec4b6','#e040a0','#56cfe1','#ff9f1c'];
 const CHART_COLORS_CRISP=['#222222','#888888','#bbbbbb','#555555','#999999','#333333','#aaaaaa','#666666','#cccccc','#444444'];
 const CHART_COLORS_CRISP_DARK=['#8a8a8a','#6a6a6a','#555555','#7a7a7a','#606060','#909090','#505050','#6e6e6e','#484848','#858585'];
-let chartColorScheme='muted';
+let chartColorScheme='crisp';
 // Shared pattern draw helper for mono mode
 function drawMonoPattern(ctx,px,py,pw,ph,patIdx,fg){
   ctx.save();ctx.beginPath();ctx.rect(px,py,pw,ph);ctx.clip();
@@ -3255,11 +3295,27 @@ function getChartColors(){
   if(chartColorScheme==='crisp')return isDark?CHART_COLORS_CRISP_DARK:CHART_COLORS_CRISP;
   return isDark?CHART_COLORS_MUTED_DARK:CHART_COLORS;
 }
+function getCrispDatalabelColor(section){
+  if(chartColorScheme!=='crisp')return null;
+  const dk=document.documentElement.classList.contains('dark');
+  const map={
+    budget:    dk?'#60a5fa':'#2563eb',
+    fte:       dk?'#5eead4':'#0d9488',
+    breakdown: dk?'#93b5d4':'#4f6d8f',
+    forecast:  dk?'#f87171':'#dc4a2a',
+    forecastFte:dk?'#fbbf24':'#d97706',
+    exec:      dk?'#60a5fa':'#2563eb',
+    execFc:    dk?'#f87171':'#dc4a2a',
+    sparkline: dk?'#4ade80':'#16a34a',
+    landing:   dk?'#93b5d4':'#4f6d8f'
+  };
+  return map[section]||null;
+}
 function getSparkColor(type){
   // type: 'primary' (HC, Comp, OpEx), 'danger' (CapEx)
   const isDark=document.documentElement.classList.contains('dark');
   if(chartColorScheme==='mono')return isDark?'#bbbbbb':'#555555';
-  if(chartColorScheme==='neon')return type==='danger'?'#ff006e':'#00f5d4';
+  if(chartColorScheme==='neon')return type==='danger'?'#ff3d8f':'#00e5c8';
   if(chartColorScheme==='crisp')return isDark?'#a0a0a0':'#222222';
   // muted
   if(isDark)return type==='danger'?'#e0a8a8':'#a0c8b0';
@@ -3268,7 +3324,7 @@ function getSparkColor(type){
 function getStatValueColor(){
   const isDark=document.documentElement.classList.contains('dark');
   if(chartColorScheme==='mono')return isDark?'#bbbbbb':'#444444';
-  if(chartColorScheme==='neon')return isDark?'#00f5d4':'var(--accent)';
+  if(chartColorScheme==='neon')return isDark?'#00e5c8':'#9b5de5';
   if(chartColorScheme==='crisp')return isDark?'#c0c0c0':'#111111';
   return isDark?'#c8b0b0':'var(--accent)';
 }
@@ -3291,8 +3347,9 @@ const FTE_TOOLTIP={
   }
 };
 function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return '$'+n}
-function stackedBarDatalabels(datasets,tickColor,fontSize){
+function stackedBarDatalabels(datasets,tickColor,fontSize,crispSection){
   const fs=fontSize||11;
+  const dlColor=getCrispDatalabelColor(crispSection)||tickColor;
   // Show total label on topmost positive bar and bottommost negative bar per x-index
   const posStacks=datasets.filter(d=>!d.stack||d.stack==='pos');
   const negStacks=datasets.filter(d=>d.stack==='neg');
@@ -3300,13 +3357,13 @@ function stackedBarDatalabels(datasets,tickColor,fontSize){
   const bottomNegIdx=negStacks.length?datasets.indexOf(negStacks[negStacks.length-1]):-1;
   datasets.forEach((ds,i)=>{
     if(i===topPosIdx){
-      ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:fs,weight:'bold'},
+      ds.datalabels={display:true,anchor:'end',align:'end',color:dlColor,font:{size:fs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;posStacks.forEach(d=>{const val=d.data[ctx.dataIndex];if(val>0)sum+=val});
           return sum?fmtShort(sum):'';
         }};
     } else if(i===bottomNegIdx){
-      ds.datalabels={display:true,anchor:'start',align:'start',color:tickColor,font:{size:fs,weight:'bold'},
+      ds.datalabels={display:true,anchor:'start',align:'start',color:dlColor,font:{size:fs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;negStacks.forEach(d=>{sum+=d.data[ctx.dataIndex]});
           return sum<0?fmtShort(sum):'';
@@ -3335,7 +3392,7 @@ function renderDashboard(){
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#c0c0e0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#4a2080':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   let labels,groups;
   if(groupBy==='month'){
@@ -3463,7 +3520,7 @@ function renderDashboard(){
   }
   if(typeof Chart!=='undefined'){
     if(dashChart)dashChart.destroy();
-    stackedBarDatalabels(datasets,tickColor);
+    stackedBarDatalabels(datasets,tickColor,null,'budget');
     dashChart=new Chart(document.getElementById('dashChart'),{
       type:'bar',
       data:{labels:labels.map(l=>l.length>18?l.slice(0,16)+'…':l),datasets},
@@ -3519,7 +3576,7 @@ function renderDashboard(){
     // Add total data label on topmost FTE dataset
     fteDatasets.forEach((ds,i)=>{
       if(i===fteDatasets.length-1){
-        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},
+        ds.datalabels={display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('fte')||tickColor,font:{size:11,weight:'bold'},
           formatter:(_,ctx)=>{
             let sum=0;fteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
             return sum?Math.round(sum*10)/10:'';
@@ -3550,7 +3607,7 @@ function renderDashBreakdownCharts(labels,groups,isMonth,baseVal,bonusVal,benVal
   const cc=getChartColors();
   const shortLabels=labels.map(l=>l.length>10?l.slice(0,8)+'…':l);
   const chartOpts=(title)=>({responsive:true,maintainAspectRatio:false,layout:{padding:{top:14}},
-    plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',color:tickColor,font:{size:10,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}},
+    plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('breakdown')||tickColor,font:{size:10,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}},
     scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},y:{beginAtZero:true,ticks:{color:tickColor,font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}}
   });
   function makeData(valFn){
@@ -4121,13 +4178,20 @@ function renderEmpPivot(){
   tbl.innerHTML=h;
   tbl.style.tableLayout='fixed';
 
-  // Sync grid: left col width = table's row-label column width
+  // Sync grid: left col width = table's row-label column width, and center table under chart
   requestAnimationFrame(()=>{
     const topRow=document.getElementById('empPivotTopRow');
     const firstTh=tbl.querySelector('thead th');
     if(topRow&&firstTh){
       const labelW=firstTh.offsetWidth;
       topRow.style.gridTemplateColumns=labelW+'px 1fr';
+    }
+    // Align table wrap under chart column by measuring controls column width
+    const ctrlCol=document.getElementById('empPivotControlsCol');
+    const tblWrap=document.getElementById('empPivotTableWrap');
+    if(ctrlCol&&tblWrap){
+      const ctrlW=ctrlCol.offsetWidth;
+      tblWrap.style.marginLeft=ctrlW+'px';
     }
   });
 }
@@ -4622,7 +4686,8 @@ function createScratchPad(cfg){
   function getWbColors(){
     const isDark=document.documentElement.classList.contains('dark');
     const base=isDark?'#ffffff':'#1a1a1a';
-    const colors=[base].concat(getChartColors().slice(0,7));
+    const palette=chartColorScheme==='crisp'?(isDark?CHART_COLORS_MUTED_DARK:CHART_COLORS):getChartColors();
+    const colors=[base].concat(palette.slice(0,7));
     if(!colors.includes('#000000'))colors.push('#000000');
     return colors;
   }
@@ -5505,7 +5570,7 @@ function renderForecastProjection(){
     // Chart - stacked base/bonus/benefits with capex view support
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+      const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#c0c0e0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#4a2080':'#5a5a5a');
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       let fDatasets;
@@ -5526,7 +5591,7 @@ function renderForecastProjection(){
           {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:fcc[2]}
         ];
       }
-      stackedBarDatalabels(fDatasets,tickColor);
+      stackedBarDatalabels(fDatasets,tickColor,null,'forecast');
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
         data:{labels:rows.map(r=>r.year),datasets:fDatasets},
@@ -5575,7 +5640,7 @@ function renderForecastProjection(){
     // Chart - stacked by group
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+      const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#c0c0e0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#4a2080':'#5a5a5a');
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       const datasets=groupNames.map((g,i)=>({
@@ -5590,7 +5655,7 @@ function renderForecastProjection(){
           if(capData.some(v=>v<0))datasets.push({label:(g.length>18?g.slice(0,16)+'…':g)+' (CapEx)',data:capData,backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.35),stack:'neg'});
         });
       }
-      stackedBarDatalabels(datasets,tickColor);
+      stackedBarDatalabels(datasets,tickColor,null,'forecast');
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
         data:{labels:yearLabels,datasets},
@@ -5621,7 +5686,7 @@ function renderForecastProjection(){
     // Add total data label on topmost forecast FTE dataset
     fcFteDatasets.forEach((ds,i)=>{
       if(i===fcFteDatasets.length-1){
-        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor2,font:{size:11,weight:'bold'},
+        ds.datalabels={display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('forecastFte')||tickColor2,font:{size:11,weight:'bold'},
           formatter:(_,ctx)=>{
             let sum=0;fcFteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
             return sum||'';
@@ -6113,8 +6178,8 @@ const colorSchemeSlider=document.getElementById('colorSchemeSlider');
 const colorSchemeLabel=document.getElementById('colorSchemeLabel');
 const landingColorSchemeSlider=document.getElementById('landingColorSchemeSlider');
 const landingColorSchemeLabel=document.getElementById('landingColorSchemeLabel');
-const COLOR_SCHEME_NAMES=['Muted','Mono','Neon','Crisp'];
-const COLOR_SCHEME_KEYS=['muted','mono','neon','crisp'];
+const COLOR_SCHEME_NAMES=['Crisp','Mono','Muted','Neon'];
+const COLOR_SCHEME_KEYS=['crisp','mono','muted','neon'];
 function applyColorSchemeClass(){
   document.body.classList.remove('cs-muted','cs-mono','cs-neon','cs-crisp');
   document.body.classList.add('cs-'+chartColorScheme);
@@ -6710,7 +6775,7 @@ setInterval(()=>{
 // ── EXEC VIEW ──
 let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total';
 let execMonthlyChart=null,execForecastChart=null,execFcSparkChart=null;
-let execFcCollapsed=false;
+let execFcCollapsed=true;
 let execFilterProduct='',execFilterCategory='';
 
 function populateExecFilters(){
@@ -6777,7 +6842,7 @@ function renderExecFcSparkline(){
         display:ctx=>yoyLabels[ctx.dataIndex]!=='',
         align:'top',anchor:'end',z:10,
         font:{size:12,weight:'bold'},
-        color:hexToRgba(colors[0],0.85),
+        color:getCrispDatalabelColor('sparkline')||hexToRgba(colors[0],0.85),
         formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]
       }
     }]},
@@ -6863,7 +6928,7 @@ function renderExecView(){
   populateExecFilters();
   const emps=getExecFilteredEmps();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#c0c0e0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#4a2080':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -6977,8 +7042,8 @@ function renderExecView(){
       const color=execSplit==='none'?getChartColors()[0]:getChartColors()[i%getChartColors().length];
       return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y',order:2};
     });
-    if(execSplit!=='none'){stackedBarDatalabels(datasets,tickColor)}
-    else{datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}})}
+    if(execSplit!=='none'){stackedBarDatalabels(datasets,tickColor,null,'exec')}
+    else{const _execDlC=getCrispDatalabelColor('exec')||tickColor;datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_execDlC,font:{size:11,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}})}
     // FTE count line
     const ecc=getChartColors();
     datasets.push({label:'Allocated FTE',data:monthlyFte,type:'line',borderColor:ecc[1],backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:ecc[1],yAxisID:'y1',tension:0.3,datalabels:{display:false},order:0});
@@ -7096,7 +7161,7 @@ function renderExecView(){
       ]:[
         {label:'Total Comp',data:totalFcRows.map(r=>r.total),backgroundColor:efc[0]}
       ];
-      stackedBarDatalabels(ds,tickColor);
+      stackedBarDatalabels(ds,tickColor,null,'execFc');
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
         options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
@@ -7142,7 +7207,7 @@ function renderExecView(){
         data:yearLabels.map((_,yi)=>{const r=gForecasts[g][yi];return r?(showFcOpex?r.opex:r.total):0}),
         backgroundColor:getChartColors()[i%getChartColors().length]
       }));
-      stackedBarDatalabels(ds,tickColor);
+      stackedBarDatalabels(ds,tickColor,null,'execFc');
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
         options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor,boxWidth:10,font:{size:11}}},datalabels:{}},scales:{
@@ -7860,7 +7925,7 @@ function renderBudgetScenarioChart(){
   if(typeof Chart==='undefined')return;
   if(!budgetScenario)initBudgetScenario();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#c0c0e0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#4a2080':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const emps=budgetScenario.emps;
@@ -7962,7 +8027,7 @@ function renderFcScenarioChart(){
   if(typeof Chart==='undefined')return;
   if(!forecastScenario)initForecastScenario();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#c0c0e0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#4a2080':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const rows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
   const labels=rows.map(r=>String(r.year));
@@ -9583,7 +9648,8 @@ function initVendorModule(){
   function getWbTagColors(){
     const isDark=document.documentElement.classList.contains('dark');
     const base=isDark?'#ffffff':'#1a1a1a';
-    return [base].concat(getChartColors().slice(0,7));
+    const palette=chartColorScheme==='crisp'?(isDark?CHART_COLORS_MUTED_DARK:CHART_COLORS):getChartColors();
+    return [base].concat(palette.slice(0,7));
   }
 
   function fields2colSpan(prefix){return prefix==='vr'?11:10}
@@ -10158,7 +10224,7 @@ function initVendorModule(){
     const ctx=canvas.getContext('2d');
     if(chartInstRef)chartInstRef.destroy();
     const _isDark=document.documentElement.classList.contains('dark');
-    const _tickC=_isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+    const _tickC=_isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#c0c0e0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#4a2080':'#5a5a5a');
     const _gridC=_isDark?'rgba(255,255,255,.08)':'#ddd';
     return new Chart(ctx,{
       type:'bar',
@@ -10679,7 +10745,7 @@ function renderLandingCharts(){
   const emps=getPnlFilteredEmps();
   if(!emps.length)return;
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#c0c0e0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#4a2080':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const useSplit=false;
@@ -10716,8 +10782,8 @@ function renderLandingCharts(){
     }
   }
   // Data labels for top of each stacked bar
-  const budgetDL=useSplit||isPnl?{}:{display:true,anchor:'end',align:'end',color:tickColor,font:{size:8,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':v>0?'$'+Math.round(v):''};
-  if(useSplit||isPnl){stackedBarDatalabels(budgetDS,tickColor,8);budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
+  const budgetDL=useSplit||isPnl?{}:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('landing')||tickColor,font:{size:8,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':v>0?'$'+Math.round(v):''};
+  if(useSplit||isPnl){stackedBarDatalabels(budgetDS,tickColor,8,'landing');budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:useSplit||isPnl?{}:budgetDL},
@@ -10755,8 +10821,8 @@ function renderLandingCharts(){
     }
   }
   }catch(e){console.warn('Landing forecast chart error:',e)}
-  if(useSplit||isPnl){stackedBarDatalabels(fcDS,tickColor,8);fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
-  else fcDS.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:8,weight:'bold'},formatter:v=>{const a=Math.abs(v);return a>=1e6?'$'+(v/1e6).toFixed(1)+'M':a>=1000?(v<0?'-':'')+'$'+(a/1000).toFixed(0)+'K':''}}});
+  if(useSplit||isPnl){stackedBarDatalabels(fcDS,tickColor,8,'landing');fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
+  else{const _ldlC=getCrispDatalabelColor('landing')||tickColor;fcDS.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_ldlC,font:{size:8,weight:'bold'},formatter:v=>{const a=Math.abs(v);return a>=1e6?'$'+(v/1e6).toFixed(1)+'M':a>=1000?(v<0?'-':'')+'$'+(a/1000).toFixed(0)+'K':''}}})};
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:8,font:{size:9},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
