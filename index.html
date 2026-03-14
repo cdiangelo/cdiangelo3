@@ -11227,7 +11227,7 @@ function initVendorModule(){
     });
     const hasFilter=contractorSelectedMonths.size>0&&contractorSelectedMonths.size<12;
     const fyTotal=hasFilter?moTotals.filter((_,i)=>contractorSelectedMonths.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
-    const colSpan=14;// name,vendorName,rate,startEndMo,cap%,notes,BU,BL,market,proj,acctDesc,acctCode = 12 + 2 (drag,tag)
+    const colSpan=12;// name,vendorName,rate,startEndMo,cap%,notes,BU,BL,market,proj,acctDesc,acctCode (drag+tag are separate <td>s)
     let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL${hasFilter?' (filtered)':''}${contractorView!=='expense'?' — '+contractorView.toUpperCase():''}</td>`;
     moTotals.forEach((t,mi)=>{
       const dim=hasFilter&&!contractorSelectedMonths.has(mi)?'opacity:.35;':'';
