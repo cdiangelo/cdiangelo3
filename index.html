@@ -655,6 +655,10 @@ Template Mode &mdash; changes saved in this browser only.
 <p class="landing-subtitle">Select a module to begin, or review the consolidated P&amp;L summary below.</p>
 </div>
 <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+<div class="toggle-group" id="landingChartViewToggle" style="font-size:.72rem">
+<button class="btn active" data-lcview="pnl" style="padding:2px 10px;font-size:.72rem">P&amp;L</button>
+<button class="btn" data-lcview="total" style="padding:2px 10px;font-size:.72rem">Total Inv</button>
+</div>
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
 <div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon">
 <input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="landingColorSchemeSlider">
@@ -711,12 +715,6 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <!-- Right: Charts stacked vertically -->
 <div style="display:flex;flex-direction:column;gap:16px">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:0">
-<div class="toggle-group" id="landingChartViewToggle" style="font-size:.72rem">
-<button class="btn active" data-lcview="pnl" style="padding:2px 10px;font-size:.72rem">P&amp;L</button>
-<button class="btn" data-lcview="total" style="padding:2px 10px;font-size:.72rem">Total Inv</button>
-</div>
-</div>
 <div class="landing-chart-card">
 <div class="landing-chart-title">Monthly Budget</div>
 <div class="chart-wrap"><canvas id="landingBudgetChart"></canvas></div>
