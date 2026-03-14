@@ -268,6 +268,28 @@ body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptions
 #forecastAssumptionsModal .forecast-section{margin-bottom:8px;padding:8px 10px}
 #forecastAssumptionsModal .forecast-section p{font-size:.72rem;margin-bottom:6px}
 #forecastAssumptionsModal .forecast-section input{padding:4px 6px}
+/* Forecast Methodology Panel */
+.method-section h5{font-size:.8rem;font-weight:700;color:var(--text-dark);margin:0 0 8px;text-transform:uppercase;letter-spacing:.03em}
+.method-baseline{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.method-baseline .mb-item{background:var(--bg);border:1px solid var(--border-light);border-radius:6px;padding:8px 10px}
+.method-baseline .mb-label{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.03em}
+.method-baseline .mb-val{font-size:1rem;font-weight:700;color:var(--accent);margin-top:2px}
+.method-step{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light)}
+.method-step:last-child{border-bottom:none}
+.method-step .ms-num{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;margin-top:2px}
+.method-step .ms-body{flex:1}
+.method-step .ms-title{font-weight:700;font-size:.78rem;color:var(--text-dark)}
+.method-step .ms-formula{font-family:monospace;font-size:.72rem;color:var(--text-dim);margin-top:2px;background:var(--bg);padding:4px 8px;border-radius:4px;display:inline-block}
+.method-step .ms-note{font-size:.7rem;color:var(--text-dim);margin-top:3px;font-style:italic}
+.method-step.ms-disabled{opacity:.45}
+.method-step.ms-disabled .ms-num{background:var(--text-dim)}
+.method-walk-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.method-walk-table th{text-align:left;padding:6px 8px;border-bottom:2px solid var(--accent);color:var(--accent);font-weight:700;font-size:.7rem;text-transform:uppercase}
+.method-walk-table td{padding:5px 8px;border-bottom:1px solid var(--border-light)}
+.method-walk-table tr:hover{background:rgba(139,32,32,.03)}
+html.dark .method-walk-table tr:hover{background:rgba(212,82,77,.05)}
+.method-walk-table .mw-highlight{font-weight:700;color:var(--accent)}
+.method-walk-table .mw-dim{color:var(--text-dim)}
 .factor-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .factor-pill{background:var(--panel-inset);border:1px solid var(--border);border-radius:16px;padding:3px 12px;font-size:.76rem;cursor:pointer;transition:background .2s}
 .factor-pill:hover{background:var(--accent);color:#fff}
@@ -1092,6 +1114,20 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="card" style="margin-top:12px;margin-bottom:16px"><div style="height:120px;position:relative"><canvas id="forecastFteChart"></canvas></div></div>
 <button class="btn btn-sm" id="forecastTableToggle" style="margin-bottom:8px;font-size:.76rem">&#9654; Show Details</button>
 <div id="forecastTableWrap" class="table-wrap" style="display:none"><table class="forecast-table" id="forecastTable"></table></div>
+
+<button class="btn btn-sm" id="forecastMethodToggle" style="margin-top:12px;font-size:.76rem">&#9654; Forecast Methodology</button>
+<div id="forecastMethodPanel" style="display:none">
+<div class="card-inset" style="margin-top:8px;padding:16px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h4 style="margin:0;color:var(--accent);font-size:.88rem">Projection Engine — How It Works</h4>
+<span style="font-size:.72rem;color:var(--text-dim)">All values derived from your current roster &amp; assumptions</span>
+</div>
+
+<div id="methodBaselineSection" class="method-section"></div>
+<div id="methodStepsSection" class="method-section" style="margin-top:16px"></div>
+<div id="methodYearWalk" style="margin-top:16px"></div>
+</div>
+</div>
 </div>
 
 <!-- Forecast Assumptions Modal -->
@@ -4695,6 +4731,130 @@ function projectForecast(emps,groupKey){
   });
   return rows;
 }
+function renderForecastMethodology(){
+  const panel=document.getElementById('forecastMethodPanel');
+  if(!panel||panel.style.display==='none')return;
+  const fa=state.forecastAssumptions;
+  const tog=fa.toggles;
+  const emps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  const forwardEmps=emps.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+  const fHC=forwardEmps.length;
+  const fBase=forwardEmps.reduce((a,e)=>a+e.salary,0);
+  const fBonus=forwardEmps.reduce((a,e)=>a+getBonusAmt(e),0);
+  const fBen=forwardEmps.reduce((a,e)=>a+getBenefitsAmt(e),0);
+  const fTotal=emps.reduce((a,e)=>a+getProratedBase(e)+getProratedBonus(e)+getProratedBenefits(e),0);
+  const fCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
+  const avgSal=fHC?fBase/fHC:100000;
+  const bonusRate=fHC&&fBase?fBonus/fBase:0.1;
+  const benRate=fHC&&fBase?fBen/fBase:0.2;
+  const capRate=fTotal?fCapEx/fTotal:0;
+  const fmt=v=>'$'+Math.round(v).toLocaleString();
+  const pct=v=>(v*100).toFixed(1)+'%';
+  const attrMode=getForecastMode('attrition');
+  const hiresMode=getForecastMode('hires');
+
+  // Baseline section
+  document.getElementById('methodBaselineSection').innerHTML=`
+    <h5>Baseline (Derived from Current Roster)</h5>
+    <div class="method-baseline">
+      <div class="mb-item"><div class="mb-label">Forward HC</div><div class="mb-val">${fHC}</div></div>
+      <div class="mb-item"><div class="mb-label">Avg Salary</div><div class="mb-val">${fmt(avgSal)}</div></div>
+      <div class="mb-item"><div class="mb-label">Bonus Rate</div><div class="mb-val">${pct(bonusRate)}</div></div>
+      <div class="mb-item"><div class="mb-label">Benefits Rate</div><div class="mb-val">${pct(benRate)}</div></div>
+      <div class="mb-item"><div class="mb-label">Current Cap Rate</div><div class="mb-val">${pct(capRate)}</div></div>
+      <div class="mb-item"><div class="mb-label">Current Total</div><div class="mb-val">${fmt(fTotal)}</div></div>
+    </div>`;
+
+  // Steps section
+  const steps=[
+    {key:'attrition',num:1,title:'Attrition Loss',
+      formula:attrMode==='pct'?'attrLoss = HC \u00d7 attrition%':'attrLoss = attrition # \u00d7 groupRatio',
+      note:'Removes employees from HC pool each year based on turnover rate'},
+    {key:'hires',num:2,title:'New Hires (with AI Gearing)',
+      formula:hiresMode==='pct'?'netHires = round(HC \u00d7 hires% \u00d7 aiGear)':'netHires = round(hires# \u00d7 groupRatio \u00d7 aiGear)',
+      note:'AI gearing reduces required hires (e.g. 0.8 = 20% fewer needed)'},
+    {key:null,num:3,title:'Headcount Update',
+      formula:'HC = max(0, HC \u2212 attrLoss + netHires)',
+      note:'Net headcount after attrition and hiring',always:true},
+    {key:'merit',num:4,title:'Merit + Market Growth',
+      formula:'salaryGrowth \u00d7= (1 + merit% + market%)',
+      note:'Compounds year-over-year on top of average salary'},
+    {key:null,num:5,title:'Compensation Calculation',
+      formula:'base = HC \u00d7 avgSalary \u00d7 salaryGrowth\ntotal = base \u00d7 (1 + bonusRate + benRate)',
+      note:'Applies blended bonus & benefits rates from current roster',always:true},
+    {key:'capitalization',num:6,title:'CapEx / OpEx Split',
+      formula:'capex = total \u00d7 capRate\nopex = total \u2212 capex',
+      note:tog.capitalization?'Using assumption cap rate':'Using current roster cap rate ('+pct(capRate)+')'}
+  ];
+
+  let stepsHtml='<h5>Calculation Steps (per year)</h5>';
+  steps.forEach(s=>{
+    const active=s.always||!s.key||tog[s.key]!==false;
+    stepsHtml+=`<div class="method-step${active?'':' ms-disabled'}">
+      <div class="ms-num">${s.num}</div>
+      <div class="ms-body">
+        <div class="ms-title">${s.title}${!active?' (OFF)':''}</div>
+        <div class="ms-formula">${s.formula.replace(/\n/g,'<br>')}</div>
+        <div class="ms-note">${s.note}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('methodStepsSection').innerHTML=stepsHtml;
+
+  // Year-by-year walk table with intermediate values
+  let hc=fHC,salaryGrowth=1;
+  const allEmpsCount=Math.max(state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR).length,1);
+  let walkRows=[];
+  FORECAST_YEARS.forEach((y,i)=>{
+    const attrVal=tog.attrition?fa.attrition[i]:0;
+    const attrLoss=attrMode==='pct'?Math.round(hc*attrVal/100):Math.round(attrVal*(fHC/allEmpsCount));
+    const hiresVal=tog.hires?fa.hires[i]:0;
+    const rawHires=hiresMode==='pct'?Math.round(hc*hiresVal/100):Math.round(hiresVal*(fHC/allEmpsCount));
+    const meritRate=tog.merit?fa.merit[i]/100:0;
+    const marketRate=tog.market?fa.market[i]/100:0;
+    const aiGear=tog.ai?fa.ai[i]:1;
+    const capRateY=tog.capitalization?fa.capitalization[i]/100:capRate;
+    const netHires=Math.round(rawHires*aiGear);
+    const prevHC=hc;
+    hc=Math.max(0,hc-attrLoss+netHires);
+    salaryGrowth*=(1+meritRate+marketRate);
+    const base=Math.round(hc*avgSal*salaryGrowth);
+    const total=Math.round(base*(1+bonusRate+benRate));
+    const capex=Math.round(total*capRateY);
+    walkRows.push({year:y,prevHC,attrLoss,rawHires,aiGear,netHires,hc,
+      meritRate,marketRate,salaryGrowth,base,total,capex,opex:total-capex,
+      attrVal,hiresVal,capRateY});
+  });
+
+  let walkHtml=`<h5 style="margin-bottom:8px">Year-by-Year Walk</h5>
+    <div style="overflow-x:auto"><table class="method-walk-table">
+    <thead><tr>
+      <th>Year</th><th>Start HC</th>
+      <th>Attrition</th><th>Hires (raw)</th><th>AI Gear</th><th>Net Hires</th>
+      <th>End HC</th><th>Merit%</th><th>Market%</th><th>Growth Mult</th>
+      <th>Base</th><th>Total</th><th>CapEx</th><th>OpEx</th>
+    </tr></thead><tbody>`;
+  walkRows.forEach(r=>{
+    walkHtml+=`<tr>
+      <td class="mw-highlight">${r.year}</td>
+      <td>${r.prevHC}</td>
+      <td class="mw-dim">\u2212${r.attrLoss}${attrMode==='pct'?' ('+r.attrVal+'%)':''}</td>
+      <td>${r.rawHires}${hiresMode==='pct'?' ('+r.hiresVal+'%)':''}</td>
+      <td class="mw-dim">\u00d7${r.aiGear.toFixed(2)}</td>
+      <td>+${r.netHires}</td>
+      <td class="mw-highlight">${r.hc}</td>
+      <td>${(r.meritRate*100).toFixed(1)}%</td>
+      <td>${(r.marketRate*100).toFixed(1)}%</td>
+      <td class="mw-dim">${r.salaryGrowth.toFixed(3)}x</td>
+      <td>${fmt(r.base)}</td>
+      <td class="mw-highlight">${fmt(r.total)}</td>
+      <td class="mw-dim">${fmt(r.capex)}</td>
+      <td>${fmt(r.opex)}</td>
+    </tr>`;
+  });
+  walkHtml+='</tbody></table></div>';
+  document.getElementById('methodYearWalk').innerHTML=walkHtml;
+}
 function renderForecastProjection(){
   const fa=state.forecastAssumptions;
   const tog=fa.toggles;
@@ -4932,6 +5092,7 @@ function renderForecastProjection(){
       }
     });
   }
+  renderForecastMethodology();
 }
 function renderForecast(){renderForecastInputs();renderForecastProjection();renderForecastFactorPills()}
 
@@ -4970,6 +5131,14 @@ document.getElementById('forecastTableToggle').addEventListener('click',function
   const vis=wrap.style.display!=='none';
   wrap.style.display=vis?'none':'';
   this.innerHTML=vis?'&#9654; Show Details':'&#9660; Hide Details';
+});
+
+document.getElementById('forecastMethodToggle').addEventListener('click',function(){
+  const panel=document.getElementById('forecastMethodPanel');
+  const vis=panel.style.display!=='none';
+  panel.style.display=vis?'none':'';
+  this.innerHTML=vis?'&#9654; Forecast Methodology':'&#9660; Forecast Methodology';
+  if(!vis)renderForecastMethodology();
 });
 
 // Forecast modal close handlers
