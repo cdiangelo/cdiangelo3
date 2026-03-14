@@ -2398,6 +2398,7 @@ function initSessionModal(){
       if(!resp.ok){const d=await resp.json();errEl.textContent=d.error||'Error';errEl.style.display='block';return}
       const user=await resp.json();
       sessionContext.userId=user.id;sessionContext.userName=user.displayName;sessionContext.userColor=user.color;
+      loadUserColorScheme();
       await enterSession();
       closeSessionModal();
     }catch(e){errEl.textContent='Connection error. Try again.';errEl.style.display='block'}
@@ -5962,10 +5963,24 @@ function syncColorSchemeSliders(idx){
   vendorColorSchemeSlider.value=idx;vendorColorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
 }
 const colorSchemeCallbacks=[];
+function getColorSchemeKey(){
+  const uid=sessionContext&&sessionContext.userId;
+  return uid?'compPlanColorScheme_'+uid:'compPlanColorScheme';
+}
+function loadUserColorScheme(){
+  const key=getColorSchemeKey();
+  const saved=localStorage.getItem(key);
+  if(saved&&COLOR_SCHEME_KEYS.includes(saved)){
+    chartColorScheme=saved;
+    const idx=COLOR_SCHEME_KEYS.indexOf(saved);
+    syncColorSchemeSliders(idx);
+    applyColorSchemeClass();
+  }
+}
 function onColorSchemeChange(v){
   chartColorScheme=COLOR_SCHEME_KEYS[v];
   syncColorSchemeSliders(v);
-  localStorage.setItem('compPlanColorScheme',chartColorScheme);
+  localStorage.setItem(getColorSchemeKey(),chartColorScheme);
   applyColorSchemeClass();
   renderAll();renderLandingCharts();
   colorSchemeCallbacks.forEach(fn=>fn());
@@ -5973,6 +5988,7 @@ function onColorSchemeChange(v){
 colorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(colorSchemeSlider.value)));
 landingColorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(landingColorSchemeSlider.value)));
 vendorColorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(vendorColorSchemeSlider.value)));
+// Load color scheme: try user-specific first, then global fallback
 const savedScheme=localStorage.getItem('compPlanColorScheme');
 if(savedScheme&&COLOR_SCHEME_KEYS.includes(savedScheme)){
   chartColorScheme=savedScheme;
@@ -10544,6 +10560,7 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
         if(vResp.ok){
           const v=await vResp.json();
           state=JSON.parse(v.state_data);ensureStateFields();
+          loadUserColorScheme();
           updateSessionUI();initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
           initSessionModal();renderPnlWalk();renderLandingCharts();connectWebSocket();
           return;
