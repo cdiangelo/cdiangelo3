@@ -673,6 +673,9 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="pnl-walk">
 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
 <h3 style="margin-bottom:0">P&amp;L Summary Walk</h3>
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.72rem">Product</label><select id="pnlFilterProduct" style="padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)"><option value="">All Products</option></select></div>
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.72rem">Category</label><select id="pnlFilterCategory" style="padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)"><option value="">All Categories</option></select></div>
 <div class="controls" style="margin-bottom:0">
 <label style="margin-bottom:0;margin-right:4px">Split By</label>
 <div class="toggle-group" id="pnlSplitToggle">
@@ -684,6 +687,7 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="btn" data-pnlsplit="country">Country</button>
 <button class="btn" data-pnlsplit="quarter">Quarter</button>
 <button class="btn" data-pnlsplit="month">Month</button>
+</div>
 </div>
 </div>
 </div>
@@ -4159,7 +4163,9 @@ function createScratchPad(cfg){
   function getWbColors(){
     const isDark=document.documentElement.classList.contains('dark');
     const base=isDark?'#ffffff':'#1a1a1a';
-    return [base].concat(getChartColors().slice(0,7));
+    const colors=[base].concat(getChartColors().slice(0,7));
+    if(!colors.includes('#000000'))colors.push('#000000');
+    return colors;
   }
   let wbColor=getWbColors()[0],wbOpacity=1,wbSize=3,wbShowGrid=false,wbDrawing=false;
   let wbHistory=[],wbShapeStart=null,wbSelection=null,wbSelImg=null,wbSelOffset=null;
@@ -9390,7 +9396,7 @@ function getVendorOaoByMonth(mi){
 }
 
 // ── LANDING PAGE ──
-let pnlSplit='total';
+let pnlSplit='total',pnlFilterProduct='',pnlFilterCategory='';
 
 function showLanding(){
   document.getElementById('landingPage').style.display='';
@@ -9434,6 +9440,9 @@ document.querySelectorAll('#pnlSplitToggle .btn').forEach(b=>b.addEventListener(
   document.querySelectorAll('#pnlSplitToggle .btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');pnlSplit=b.dataset.pnlsplit;renderPnlWalk();renderLandingCharts();
 }));
+// P&L product/category filters
+document.getElementById('pnlFilterProduct').addEventListener('change',function(){pnlFilterProduct=this.value;renderPnlWalk();renderLandingCharts()});
+document.getElementById('pnlFilterCategory').addEventListener('change',function(){pnlFilterCategory=this.value;renderPnlWalk();renderLandingCharts()});
 
 function getPnlSplitKey(emp,split){
   if(split==='total')return 'Total';
@@ -9446,8 +9455,20 @@ function getPnlSplitKey(emp,split){
   return 'Total';
 }
 
+function populatePnlFilters(){
+  const prodSel=document.getElementById('pnlFilterProduct');
+  const catSel=document.getElementById('pnlFilterCategory');
+  if(!prodSel||!catSel||!state||!state.projects)return;
+  const products=[...new Set(state.projects.map(p=>p.product).filter(Boolean))].sort();
+  const categories=[...new Set(state.projects.map(p=>p.category).filter(Boolean))].sort();
+  prodSel.innerHTML='<option value="">All Products</option>'+products.map(p=>`<option value="${p}"${p===pnlFilterProduct?' selected':''}>${p}</option>`).join('');
+  catSel.innerHTML='<option value="">All Categories</option>'+categories.map(c=>`<option value="${c}"${c===pnlFilterCategory?' selected':''}>${c}</option>`).join('');
+}
 function renderPnlWalk(){
-  const emps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  populatePnlFilters();
+  let emps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  if(pnlFilterProduct){emps=emps.filter(e=>{const p=getEmpProject(e);return p&&p.product===pnlFilterProduct})}
+  if(pnlFilterCategory){emps=emps.filter(e=>{const p=getEmpProject(e);return p&&p.category===pnlFilterCategory})}
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const tbl=document.getElementById('pnlWalkTable');
 
@@ -9568,7 +9589,9 @@ document.querySelectorAll('#landingChartViewToggle .btn').forEach(b=>b.addEventL
 function renderLandingCharts(){
   if(typeof Chart==='undefined'||!state||!state.employees)return;
   // Include ALL employees (regardless of allocation status) — unallocated employees still have salary/comp data
-  const emps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  let emps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+  if(pnlFilterProduct){emps=emps.filter(e=>{const p=getEmpProject(e);return p&&p.product===pnlFilterProduct})}
+  if(pnlFilterCategory){emps=emps.filter(e=>{const p=getEmpProject(e);return p&&p.category===pnlFilterCategory})}
   if(!emps.length)return;
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?'#ffffff':'#5a5a5a';
@@ -9750,8 +9773,9 @@ function renderAll(){renderExecView();renderDashboard();renderEmployees();render
   // Color swatches — adapt to color scheme
   function getSnColors(){
     const cc=getChartColors();
-    // Take first 5 chart colors + a neutral reset
-    return cc.slice(0,5);
+    const colors=cc.slice(0,5);
+    if(!colors.includes('#000000'))colors.push('#000000');
+    return colors;
   }
   function getSnHighlights(){
     const cc=getChartColors();
