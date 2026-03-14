@@ -9348,14 +9348,19 @@ function initDataPanel(){
     if(isOpen)renderDataPanelWsList();
   });
 
-  // Current Year selector — only changes display labels, not underlying data
+  // Current Year selector — only changes header labels, no chart/table re-render
   document.getElementById('currentYearSelect').addEventListener('change',function(){
     DISPLAY_BASE_YEAR=parseInt(this.value);
     const dYears=getDisplayYears();
     document.getElementById('currentYearFcLabel').textContent='Forecast: '+dYears[0]+'–'+dYears[4];
-    // Update exec trend year toggle options
+    // Update trend year toggle button labels
     buildExecTrendYearToggle();
-    renderAll();renderLandingCharts();
+    // Update trend view header label
+    const trendYrEl=document.getElementById('execTrendYearLabel');
+    if(trendYrEl)trendYrEl.textContent=' — '+(execTrendYear==='current'?String(DISPLAY_BASE_YEAR):displayYear(execTrendYear));
+    // Update forecast header label
+    const fcLabel=document.getElementById('execFcViewLabel');
+    if(fcLabel){const suffix=execFcView==='opex'?' — C&B OpEx':' — Total Investment';fcLabel.textContent=suffix}
   });
 
   // Workspace: Save As
