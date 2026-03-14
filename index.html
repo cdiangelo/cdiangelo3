@@ -1268,13 +1268,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <h3 class="section-title">Business Lines</h3>
 <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Manage business line codes. Each code is a numeric identifier tied to a specific service or product provided/developed.</p>
 <div class="form-grid" style="margin-bottom:16px">
-<div class="form-group"><label>Line Code</label><input id="bizCode" placeholder="e.g. 800" maxlength="4"></div>
+<div class="form-group"><label>Line Code</label><input id="bizCode" placeholder="e.g. 800000" maxlength="6"></div>
 <div class="form-group"><label>Line Name</label><input id="bizName" placeholder="e.g. AI/ML Services"></div>
-<div class="form-group"><label>Description</label><input id="bizDesc" placeholder="Service or product description"></div>
 <div class="form-group" style="align-self:end"><button class="btn btn-primary" id="btnAddBizLine">Add Business Line</button></div>
 </div>
 <div class="table-wrap"><table id="bizLinesTable"><thead><tr>
-<th>Code</th><th>Name</th><th>Description</th><th>Employees</th><th>Actions</th>
+<th>Code</th><th>Name</th><th>Employees</th><th>Actions</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 </div>
@@ -2866,13 +2865,13 @@ const DEFAULT_MARKETS = [
   {code:'PL0010',name:'Poland'},{code:'GL0000',name:'Global'}
 ];
 const DEFAULT_BIZ_LINES = [
-  {code:'100',name:'Platform Engineering',description:'Core platform development and maintenance'},
-  {code:'200',name:'Product Development',description:'New product features and enhancements'},
-  {code:'300',name:'Operations',description:'Operational support and tooling'},
-  {code:'400',name:'Data & Analytics',description:'Data pipelines, reporting, and analytics'},
-  {code:'500',name:'Infrastructure',description:'Cloud infrastructure and DevOps'},
-  {code:'600',name:'Security',description:'Security engineering and compliance'},
-  {code:'700',name:'Corporate',description:'Corporate systems and internal tools'}
+  {code:'100000',name:'Platform Engineering'},
+  {code:'200000',name:'Product Development'},
+  {code:'300000',name:'Operations'},
+  {code:'400000',name:'Data & Analytics'},
+  {code:'500000',name:'Infrastructure'},
+  {code:'600000',name:'Security'},
+  {code:'700000',name:'Corporate'}
 ];
 
 const VENDOR_TYPES = [
@@ -2908,11 +2907,11 @@ function loadState(){
   SENIORITY.forEach(s=>{benefitsMatrix[s]={};FUNCTIONS.forEach(f=>{benefitsMatrix[s][f]=DEFAULT_BENEFITS[s]})});
   const benefitsCountryMult={...BENEFITS_COUNTRY_MULT};
   const samples=[
-    {name:'Alice Chen',country:'United States',seniority:'Senior',function:'Software Engineering',marketCode:'US0001',businessLine:'100'},
-    {name:'Bob Kumar',country:'India',seniority:'Mid-Level',function:'Data Engineering',marketCode:'IN0005',businessLine:'400'},
-    {name:'Sarah Mills',country:'United Kingdom',seniority:'Director',function:'Product Management',marketCode:'UK0002',businessLine:'200'},
-    {name:'James Park',country:'Canada',seniority:'Staff',function:'DevOps/SRE',marketCode:'CA0003',businessLine:'500'},
-    {name:'Maria Rodriguez',country:'Germany',seniority:'Senior',function:'Data Science',marketCode:'DE0004',businessLine:'400'}
+    {name:'Alice Chen',country:'United States',seniority:'Senior',function:'Software Engineering',marketCode:'US0001',businessLine:'100000'},
+    {name:'Bob Kumar',country:'India',seniority:'Mid-Level',function:'Data Engineering',marketCode:'IN0005',businessLine:'400000'},
+    {name:'Sarah Mills',country:'United Kingdom',seniority:'Director',function:'Product Management',marketCode:'UK0002',businessLine:'200000'},
+    {name:'James Park',country:'Canada',seniority:'Staff',function:'DevOps/SRE',marketCode:'CA0003',businessLine:'500000'},
+    {name:'Maria Rodriguez',country:'Germany',seniority:'Senior',function:'Data Science',marketCode:'DE0004',businessLine:'400000'}
   ];
   const employees=samples.map(e=>({id:uid(),name:e.name,country:e.country,seniority:e.seniority,function:e.function,salary:benchmark(e.seniority,e.function,e.country),notes:'',hireDate:'',termDate:'',marketCode:e.marketCode,businessLine:e.businessLine,businessUnit:COUNTRY_BU[e.country]||'',allocations:[]}));
   const projects=[
@@ -2943,6 +2942,9 @@ function ensureStateFields(){
   state.projects.forEach(p=>{if(!p.description)p.description='';if(!p.marketCode)p.marketCode='';if(!p.bizLineCode)p.bizLineCode=''});
   if(!state.markets)state.markets=DEFAULT_MARKETS.map(m=>({...m}));
   if(!state.bizLines)state.bizLines=DEFAULT_BIZ_LINES.map(b=>({...b}));
+  // Migrate 3-digit biz line codes to 6-digit
+  state.bizLines.forEach(b=>{if(b.code&&b.code.length<6&&/^\d+$/.test(b.code))b.code=b.code.padEnd(6,'0')});
+  state.employees.forEach(e=>{if(e.businessLine&&e.businessLine.length<6&&/^\d+$/.test(e.businessLine))e.businessLine=e.businessLine.padEnd(6,'0')});
   // Ensure a default "General" project exists for unallocated employees
   if(!state.projects.some(p=>p.code==='GEN-000')){
     state.projects.unshift({id:uid(),name:'General / Unallocated',code:'GEN-000',description:'Default coding string for employees without a project allocation',category:'',marketCode:'GL0000',capPct:0});
@@ -4478,15 +4480,13 @@ function renderMarkets(){
 document.getElementById('btnAddBizLine').addEventListener('click',()=>{
   const code=document.getElementById('bizCode').value.trim();
   const name=document.getElementById('bizName').value.trim();
-  const description=document.getElementById('bizDesc').value.trim();
   if(!code||!name){alert('Please fill line code and name');return}
-  if(!/^\d+$/.test(code)){alert('Business line code must be numeric (e.g. 800)');return}
+  if(!/^\d+$/.test(code)){alert('Business line code must be numeric (e.g. 800000)');return}
   if(state.bizLines.some(b=>b.code===code)){alert('Business line code already exists');return}
-  state.bizLines.push({code,name,description});
+  state.bizLines.push({code,name});
   saveState();
   document.getElementById('bizCode').value='';
   document.getElementById('bizName').value='';
-  document.getElementById('bizDesc').value='';
   renderBizLines();refreshAllDropdowns();
 });
 function deleteBizLine(code){
@@ -4502,7 +4502,6 @@ function saveBizLineEdit(code){
   const row=document.querySelector(`tr[data-biz="${code}"]`);if(!row)return;
   const b=state.bizLines.find(x=>x.code===code);if(!b)return;
   b.name=row.querySelector('.biz-name').value.trim()||b.name;
-  b.description=row.querySelector('.biz-desc').value.trim();
   saveState();renderBizLines();refreshAllDropdowns();
 }
 function renderBizLines(){
@@ -4512,7 +4511,6 @@ function renderBizLines(){
     return `<tr data-biz="${b.code}">
       <td style="font-weight:600;color:var(--accent)">${b.code}</td>
       <td><input class="biz-name" value="${b.name}" onchange="saveBizLineEdit('${b.code}')" style="padding:4px 6px;font-size:.85rem;border:1px solid var(--border-light);border-radius:4px"></td>
-      <td><input class="biz-desc" value="${b.description||''}" onchange="saveBizLineEdit('${b.code}')" style="padding:4px 6px;font-size:.85rem;border:1px solid var(--border-light);border-radius:4px;width:100%"></td>
       <td style="font-size:.82rem;color:var(--text-dim)">${empCount}</td>
       <td><button class="btn btn-sm btn-danger" onclick="deleteBizLine('${b.code}')">Del</button></td>
     </tr>`;
@@ -10300,7 +10298,7 @@ function initVendorModule(){
     if(!code||!name){alert('Fill code and name');return}
     if(!/^\d+$/.test(code)){alert('Code must be numeric');return}
     if(state.bizLines.some(b=>b.code===code)){alert('Code already exists');return}
-    state.bizLines.push({code,name,description:''});
+    state.bizLines.push({code,name});
     saveState();renderVendorDims();refreshAllDropdowns();renderBizLines();
     document.getElementById('vBizCode').value='';document.getElementById('vBizName').value='';
   });
