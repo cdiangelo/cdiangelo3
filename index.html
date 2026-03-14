@@ -2950,9 +2950,16 @@ function renderDashboard(){
   const emps=getFilteredEmployees();
   const avgBase=emps.length?Math.round(emps.reduce((a,e)=>a+e.salary,0)/emps.length):0;
   const avgCapPct=emps.length?Math.round(emps.reduce((a,e)=>a+getCapPct(e),0)/emps.length):0;
+  const totalComp=emps.reduce((a,e)=>a+getProratedComp(e),0);
+  const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
   const svc=getStatValueColor();
-  document.getElementById('dashAvgBase').innerHTML=`<span style="color:var(--text-dim)">Avg Base Salary:</span> <strong style="color:${svc}">${fmt(avgBase)}</strong>`+
-    `<span style="margin-left:16px;color:var(--text-dim)">Avg CapEx %:</span> <strong style="color:${svc}">${avgCapPct}%</strong>`;
+  const sep='<span style="margin:0 10px;color:var(--border)">|</span>';
+  document.getElementById('dashAvgBase').innerHTML=
+    `<span style="color:var(--text-dim)">HC:</span> <strong style="color:${svc}">${emps.length}</strong>`+sep+
+    `<span style="color:var(--text-dim)">Avg Base:</span> <strong style="color:${svc}">${fmt(avgBase)}</strong>`+sep+
+    `<span style="color:var(--text-dim)">Total Comp:</span> <strong style="color:${svc}">${fmt(totalComp)}</strong>`+sep+
+    `<span style="color:var(--text-dim)">Total CapEx:</span> <strong style="color:${svc}">${fmt(totalCapEx)}</strong>`+sep+
+    `<span style="color:var(--text-dim)">Avg CapEx %:</span> <strong style="color:${svc}">${avgCapPct}%</strong>`;
   const showPeriod=(groupBy==='month'||groupBy==='quarter');
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
