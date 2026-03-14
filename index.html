@@ -3872,9 +3872,7 @@ const yoyArrowsPlugin={
     for(let i=0;i<nLabels-1;i++){
       const prev=totals[i],cur=totals[i+1];
       if(!prev)continue;
-      let pct=((cur-prev)/Math.abs(prev))*100;
-      // When only CapEx (negative) bars visible, invert so increasing spend shows as positive growth
-      if(yPositions[i]<0&&yPositions[i+1]<0)pct=-pct;
+      const pct=((cur-prev)/Math.abs(prev))*100;
       const pctStr=(pct>=0?'+':'')+pct.toFixed(1)+'%';
       // Get bar positions from first visible dataset meta
       const meta0=chart.getDatasetMeta(visMetaIdx);
