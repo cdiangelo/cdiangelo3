@@ -222,9 +222,9 @@ body.cs-neon{--accent:#0088aa;--accent-light:#00a0c0;--danger:#cc2255;--success:
 body.cs-neon .stat-card .value{color:#0088aa!important;font-weight:700}
 body.cs-neon h3,body.cs-neon .exec-pane h3,body.cs-neon .landing-chart-title{color:#006680}
 body.cs-neon .section-title{color:#006680}
-body.cs-neon nav button.active{background:linear-gradient(135deg,#00c8d0,#ff2a6d);border-color:transparent;color:#fff}
-body.cs-neon .btn.active,body.cs-neon .btn-primary{background:linear-gradient(135deg,#00c8d0,#00b4ff);border-color:transparent}
-body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#00c8d0,#ff2a6d);color:#fff}
+body.cs-neon nav button.active{background:linear-gradient(135deg,#0099bb,#0088aa);border-color:transparent;color:#fff}
+body.cs-neon .btn.active,body.cs-neon .btn-primary{background:linear-gradient(135deg,#0099bb,#0088aa);border-color:transparent}
+body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#0099bb,#0088aa);color:#fff}
 body.cs-neon header h1{color:#0088aa}
 body.cs-neon a{color:#0088aa}
 html.dark body.cs-neon{--accent:#00fff0;--accent-light:#40ffe8;--danger:#ff2a6d;--success:#39ff14;--warning:#ffe600;--bg:#08080e;--panel:#0e0e18;--panel-inset:#0a0a12;--text:#d0d8e8;--text-dim:#6688a0;--text-dark:#e0e8f0;--border:#1a1a2a;--border-light:#141420}
@@ -239,13 +239,13 @@ html.dark body.cs-neon table th{background:#0a0a12;border-bottom:2px solid #00b4
 html.dark body.cs-neon table td{border-bottom:1px solid #141420}
 html.dark body.cs-neon tr:nth-child(even) td{background:#0b0b14}
 html.dark body.cs-neon header{background:#0e0e18;border-bottom-color:#1a1a2a}
-html.dark body.cs-neon nav button.active{background:linear-gradient(135deg,#00c8d0,#ff2a6d);border-color:transparent;color:#fff}
+html.dark body.cs-neon nav button.active{background:linear-gradient(135deg,#00c8d0,#00b4cc);border-color:transparent;color:#fff}
 html.dark body.cs-neon nav button{color:#6688a0;border-color:#1a1a2a}
 html.dark body.cs-neon .btn{background:#12121e;color:#d0d8e8;border-color:#1a1a2a}
-html.dark body.cs-neon .btn.active,html.dark body.cs-neon .btn-primary{background:linear-gradient(135deg,#00c8d0,#00b4ff);border-color:transparent}
+html.dark body.cs-neon .btn.active,html.dark body.cs-neon .btn-primary{background:linear-gradient(135deg,#00c8d0,#00b4cc);border-color:transparent}
 html.dark body.cs-neon .toggle-group{background:#0a0a12;border-color:#1a1a2a}
 html.dark body.cs-neon .toggle-group .btn{color:#6688a0}
-html.dark body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#00c8d0,#ff2a6d);color:#fff}
+html.dark body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#00c8d0,#00b4cc);color:#fff}
 html.dark body.cs-neon .section-title{color:#00d4d4}
 html.dark body.cs-neon .forecast-section h4{color:#00b4ff}
 html.dark body.cs-neon .modal{background:#0e0e18}
@@ -1002,7 +1002,7 @@ Template Mode &mdash; changes saved in this browser only.
 <span id="execFcArrow" style="font-size:.7rem;display:inline-block;width:12px;color:var(--text-dim)">▶</span>
 Long Term Forecast
 </h3>
-<div id="execFcSparkWrap" style="display:none;height:72px;margin-bottom:8px;position:relative;z-index:1;overflow:visible"><canvas id="execFcSparkline"></canvas></div>
+<div id="execFcSparkWrap" style="height:72px;margin-bottom:8px;position:relative;z-index:1;overflow:visible"><canvas id="execFcSparkline"></canvas></div>
 <div id="execFcBody" style="display:none">
 <div class="controls" style="margin-bottom:12px">
 <div>
@@ -4176,12 +4176,10 @@ function renderEmpPivot(){
       const labelW=firstTh.offsetWidth;
       topRow.style.gridTemplateColumns=labelW+'px 1fr';
     }
-    // Align table wrap under chart column by measuring controls column width
-    const ctrlCol=document.getElementById('empPivotControlsCol');
+    // Let table span full width — row labels align under controls, data cols under chart
     const tblWrap=document.getElementById('empPivotTableWrap');
-    if(ctrlCol&&tblWrap){
-      const ctrlW=ctrlCol.offsetWidth;
-      tblWrap.style.marginLeft=ctrlW+'px';
+    if(tblWrap){
+      tblWrap.style.marginLeft='0';
     }
   });
 }
