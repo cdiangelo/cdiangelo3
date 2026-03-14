@@ -70,7 +70,7 @@ tr:hover{background:rgba(139,32,32,.03)}
 .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);background:var(--panel)}
 /* Frozen columns for employee roster */
 #empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;background:var(--panel);min-width:80px}
-#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:80px;z-index:2;background:var(--panel)}
+#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:80px;z-index:2;background:var(--panel);min-width:180px;white-space:nowrap}
 #empTable th:nth-child(1),#empTable th:nth-child(2){z-index:3}
 #empTable td:nth-child(2)::after,#empTable th:nth-child(2)::after{content:'';position:absolute;top:0;right:0;bottom:0;width:2px;background:var(--border)}
 #empTable tr:hover td:nth-child(1),#empTable tr:hover td:nth-child(2){background:rgba(139,32,32,.03)}
