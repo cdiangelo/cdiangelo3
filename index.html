@@ -327,48 +327,68 @@ html.dark body.cs-mono a{color:#d4524d}
 html.dark body.cs-mono tr:hover{background:rgba(255,255,255,.03)}
 html.dark body.cs-mono .controls label{color:#707070}
 html.dark body.cs-mono .benchmark-badge{background:rgba(255,255,255,.04);border-color:#444;color:#999}
-/* Neon scheme — vibrant, deep contrast, fun and explosive */
-body.cs-neon{--accent:#0088aa;--accent-light:#00a0c0;--danger:#cc2255;--success:#22aa44;--warning:#cc9900;--bg:#f0f0f5;--panel:#f5f5fa;--panel-inset:#ebebf2}
-body.cs-neon .stat-card .value{color:#0088aa!important;font-weight:700}
-body.cs-neon h3,body.cs-neon .exec-pane h3,body.cs-neon .landing-chart-title{color:#006680}
-body.cs-neon .section-title{color:#006680}
-body.cs-neon nav button.active{background:linear-gradient(135deg,#0099bb,#0088aa);border-color:transparent;color:#fff}
-body.cs-neon .btn.active,body.cs-neon .btn-primary{background:linear-gradient(135deg,#0099bb,#0088aa);border-color:transparent}
-body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#0099bb,#0088aa);color:#fff}
-body.cs-neon header h1{color:#0088aa}
-body.cs-neon a{color:#0088aa}
-html.dark body.cs-neon{--accent:#00fff0;--accent-light:#40ffe8;--danger:#ff2a6d;--success:#39ff14;--warning:#ffe600;--bg:#08080e;--panel:#0e0e18;--panel-inset:#0a0a12;--text:#d0d8e8;--text-dim:#6688a0;--text-dark:#e0e8f0;--border:#1a1a2a;--border-light:#141420}
-html.dark body.cs-neon .stat-card .value{color:#00fff0!important;font-weight:700}
-html.dark body.cs-neon h3,html.dark body.cs-neon .exec-pane h3,html.dark body.cs-neon .landing-chart-title{color:#00d4d4}
-html.dark body.cs-neon .stat-card{border:1px solid #1a1a2a;background:#0e0e18}
-html.dark body.cs-neon .stat-card .label{color:#6688a0}
-html.dark body.cs-neon .card,html.dark body.cs-neon .card-inset{background:#0e0e18;border-color:#1a1a2a}
-html.dark body.cs-neon .exec-pane{background:#0e0e18;border-color:#1a1a2a}
-html.dark body.cs-neon .table-wrap{background:#0e0e18;border-color:#1a1a2a}
-html.dark body.cs-neon table th{background:#0a0a12;border-bottom:2px solid #00b4ff}
-html.dark body.cs-neon table td{border-bottom:1px solid #141420}
+/* Neon scheme — vibrant with navy/purple/grey accents */
+body.cs-neon{--accent:#2a3a6a;--accent-light:#3a4a7a;--danger:#7a2a5a;--success:#2a6a4a;--warning:#8a6a1a;--bg:#eeeef4;--panel:#f4f4fa;--panel-inset:#eaeaf2}
+body.cs-neon .stat-card .value{color:#2a3a6a!important;font-weight:700}
+body.cs-neon .stat-card .label{color:#6a6a7a}
+body.cs-neon .stat-card{border:1px solid #c8c8d8;background:#f4f4fa}
+body.cs-neon h3,body.cs-neon .exec-pane h3,body.cs-neon .landing-chart-title{color:#1a2a4a;font-weight:700}
+body.cs-neon .section-title{color:#1a2a4a}
+body.cs-neon .panel,body.cs-neon .card{background:#f4f4fa;border:1px solid #c8c8d8}
+body.cs-neon table th{background:#e8e8f0;border-bottom:2px solid #3a4a7a}
+body.cs-neon table td{border-bottom:1px solid #d4d4e0}
+body.cs-neon tr:nth-child(even) td{background:#ededf4}
+body.cs-neon nav button.active{background:linear-gradient(135deg,#3a4a7a,#2a3a6a);border-color:transparent;color:#fff}
+body.cs-neon .btn.active,body.cs-neon .btn-primary{background:linear-gradient(135deg,#3a4a7a,#2a3a6a);border-color:transparent}
+body.cs-neon .btn-danger{background:#7a2a5a;border-color:#7a2a5a}
+body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#3a4a7a,#2a3a6a);color:#fff}
+body.cs-neon header h1{color:#2a3a6a}
+body.cs-neon header{background:#f4f4fa}
+body.cs-neon th{color:#2a3a6a}
+body.cs-neon a{color:#4a3a7a}
+body.cs-neon .benchmark-badge{background:rgba(42,58,106,.06);border-color:#b0b0c8;color:#2a3a6a}
+body.cs-neon .modal h3{color:#1a2a4a}
+body.cs-neon .export-card h3{color:#2a3a6a}
+body.cs-neon .forecast-section h4{color:#3a4a7a}
+body.cs-neon .forecast-group-row{background:#f4f4fa;border-color:#c8c8d8}
+body.cs-neon .ws-list .ws-active{color:#2a6a4a}
+html.dark body.cs-neon{--accent:#7a8aff;--accent-light:#8a9aff;--danger:#ff5a8a;--success:#4aee8a;--warning:#ffe040;--bg:#08080e;--panel:#0e0e18;--panel-inset:#0a0a12;--text:#c8d0e0;--text-dim:#5a6a8a;--text-dark:#dce0f0;--border:#1a1a2e;--border-light:#141424}
+html.dark body.cs-neon .stat-card .value{color:#7a8aff!important;font-weight:700}
+html.dark body.cs-neon h3,html.dark body.cs-neon .exec-pane h3,html.dark body.cs-neon .landing-chart-title{color:#b0b8e0;font-weight:700}
+html.dark body.cs-neon .stat-card{border:1px solid #1a1a2e;background:#0e0e18}
+html.dark body.cs-neon .stat-card .label{color:#5a6a8a}
+html.dark body.cs-neon .card,html.dark body.cs-neon .card-inset{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .exec-pane{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .table-wrap{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon table th{background:#0a0a14;border-bottom:2px solid #5a6aaa}
+html.dark body.cs-neon table td{border-bottom:1px solid #141424}
 html.dark body.cs-neon tr:nth-child(even) td{background:#0b0b14}
-html.dark body.cs-neon header{background:#0e0e18;border-bottom-color:#1a1a2a}
-html.dark body.cs-neon nav button.active{background:linear-gradient(135deg,#00c8d0,#00b4cc);border-color:transparent;color:#fff}
-html.dark body.cs-neon nav button{color:#6688a0;border-color:#1a1a2a}
-html.dark body.cs-neon .btn{background:#12121e;color:#d0d8e8;border-color:#1a1a2a}
-html.dark body.cs-neon .btn.active,html.dark body.cs-neon .btn-primary{background:linear-gradient(135deg,#00c8d0,#00b4cc);border-color:transparent}
-html.dark body.cs-neon .toggle-group{background:#0a0a12;border-color:#1a1a2a}
-html.dark body.cs-neon .toggle-group .btn{color:#6688a0}
-html.dark body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#00c8d0,#00b4cc);color:#fff}
-html.dark body.cs-neon .section-title{color:#00d4d4}
-html.dark body.cs-neon .forecast-section h4{color:#00b4ff}
+html.dark body.cs-neon header{background:#0e0e18;border-bottom-color:#1a1a2e}
+html.dark body.cs-neon header h1{color:#7a8aff}
+html.dark body.cs-neon nav button.active{background:linear-gradient(135deg,#5a6aaa,#4a5a9a);border-color:transparent;color:#fff}
+html.dark body.cs-neon nav button{color:#5a6a8a;border-color:#1a1a2e}
+html.dark body.cs-neon .btn{background:#12121e;color:#c8d0e0;border-color:#1a1a2e}
+html.dark body.cs-neon .btn-danger{background:#7a2a5a;border-color:#7a2a5a}
+html.dark body.cs-neon .btn.active,html.dark body.cs-neon .btn-primary{background:linear-gradient(135deg,#5a6aaa,#4a5a9a);border-color:transparent}
+html.dark body.cs-neon .toggle-group{background:#0a0a14;border-color:#1a1a2e}
+html.dark body.cs-neon .toggle-group .btn{color:#5a6a8a}
+html.dark body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#5a6aaa,#4a5a9a);color:#fff}
+html.dark body.cs-neon .section-title{color:#b0b8e0}
+html.dark body.cs-neon .forecast-section h4{color:#7a8aff}
 html.dark body.cs-neon .modal{background:#0e0e18}
-html.dark body.cs-neon .export-card{background:#0e0e18;border-color:#1a1a2a}
-html.dark body.cs-neon select,html.dark body.cs-neon input,html.dark body.cs-neon textarea{background:#12121e;border-color:#1a1a2a;color:#d0d8e8}
+html.dark body.cs-neon .modal h3{color:#b0b8e0}
+html.dark body.cs-neon .export-card{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .ws-list .ws-active{color:#4aee8a}
+html.dark body.cs-neon select,html.dark body.cs-neon input,html.dark body.cs-neon textarea{background:#12121e;border-color:#1a1a2e;color:#c8d0e0}
 html.dark body.cs-neon .scenario-slide-panel,html.dark body.cs-neon .data-slide-panel{background:#08080e}
-html.dark body.cs-neon .landing-chart-card{background:#0e0e18;border-color:#1a1a2a}
-html.dark body.cs-neon .forecast-group-row{background:#0e0e18;border-color:#1a1a2a}
-html.dark body.cs-neon .pivot-adj-bar{background:#0a0a12}
+html.dark body.cs-neon .landing-chart-card{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .forecast-group-row{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .pivot-adj-bar{background:#0a0a14}
 html.dark body.cs-neon .chart-container{background:transparent}
-html.dark body.cs-neon a{color:#00d4d4}
-html.dark body.cs-neon header h1{color:#00fff0}
-html.dark body.cs-neon tr:hover{background:rgba(0,255,240,.04)}
+html.dark body.cs-neon a{color:#9a8aff}
+html.dark body.cs-neon tr:hover{background:rgba(122,138,255,.05)}
+html.dark body.cs-neon .controls label{color:#5a6a8a}
+html.dark body.cs-neon .benchmark-badge{background:rgba(122,138,255,.08);border-color:#2a2a4a;color:#7a8aff}
 /* Crisp scheme — sharp white/black, minimal, editorial */
 body.cs-crisp{--accent:#444;--accent-light:#555;--danger:#666;--success:#555;--warning:#777;--bg:#e0e0e0;--panel:#ebebeb;--panel-inset:#e4e4e4}
 body.cs-crisp .stat-card .value{color:#111!important;font-weight:700}
@@ -6602,8 +6622,9 @@ function openWorkspaceModal(){
       versions.forEach(v=>{
         const isActive=v.id===sessionContext.versionId;
         const esc=v.name.replace(/'/g,"\\'");
+        const vd=new Date(v.updated_at);const vds=vd.toLocaleDateString()+' '+vd.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
         h+=`<li><div class="ws-info"><div class="ws-title">${v.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
-          <div class="ws-meta">${v.created_by_name?v.created_by_name+' — ':''}${new Date(v.updated_at).toLocaleDateString()}</div></div>
+          <div class="ws-meta">${v.created_by_name?v.created_by_name+' — ':''}Saved ${vds}</div></div>
           ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadVersionFromServer(${v.id},'${esc}');closeWorkspaceModal()">Load</button>`:''}</li>`;
       });
       h+='</ul>';
@@ -6618,8 +6639,9 @@ function openWorkspaceModal(){
       idx.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt)).forEach(w=>{
         const isActive=w.name===currentWorkspaceName;
         const esc=w.name.replace(/'/g,"\\'");
+        const d=new Date(w.savedAt);const ds=d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
         html+=`<li><div class="ws-info"><div class="ws-title">${w.name}${isActive?' <span class="ws-active">ACTIVE</span>':''}</div>
-          <div class="ws-meta">${w.employees||0} employees, ${w.projects||0} projects</div></div>
+          <div class="ws-meta">${w.employees||0} employees, ${w.projects||0} projects — Saved ${ds}</div></div>
           ${!isActive?`<button class="btn btn-sm btn-primary" onclick="loadWorkspace('${w.key}','${esc}');closeWorkspaceModal()">Load</button>`:''}</li>`;
       });
       html+='</ul>';
