@@ -893,7 +893,7 @@ Template Mode &mdash; changes saved in this browser only.
 <span id="execFcArrow" style="font-size:.7rem;display:inline-block;width:12px;color:var(--text-dim)">▼</span>
 Long Term Forecast
 </h3>
-<div id="execFcSparkWrap" style="display:none;height:48px;margin-bottom:8px;position:relative"><canvas id="execFcSparkline"></canvas></div>
+<div id="execFcSparkWrap" style="display:none;height:58px;margin-bottom:8px;position:relative;z-index:1;overflow:visible"><canvas id="execFcSparkline"></canvas></div>
 <div id="execFcBody">
 <div class="controls" style="margin-bottom:12px">
 <div>
@@ -6638,17 +6638,17 @@ function renderExecFcSparkline(){
       tension:0.3,
       datalabels:{
         display:ctx=>yoyLabels[ctx.dataIndex]!=='',
-        align:'top',anchor:'end',
-        font:{size:10,weight:'500'},
-        color:hexToRgba(colors[0],0.65),
+        align:'top',anchor:'end',z:10,
+        font:{size:12,weight:'bold'},
+        color:hexToRgba(colors[0],0.85),
         formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]
       }
     }]},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},
       plugins:{legend:{display:false},datalabels:{},
         tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
       scales:{
-        x:{ticks:{font:{size:12,weight:'600'},color:'var(--text-dim)'},grid:{display:false}},
+        x:{ticks:{font:{size:12,weight:'600'},color:document.documentElement.classList.contains('dark')?'#ffffff':'var(--text-dim)'},grid:{display:false}},
         y:{display:false}
       }
     }
