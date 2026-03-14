@@ -782,8 +782,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div>
 <label>Stack By</label>
 <div class="toggle-group" id="stackToggle">
-<button class="btn active" data-stack="baseBonus">Base vs Bonus</button>
-<button class="btn" data-stack="seniority">Seniority</button>
+<button class="btn active" data-stack="seniority">Seniority</button>
 <button class="btn" data-stack="country">Country</button>
 <button class="btn" data-stack="category">Product Category</button>
 </div>
@@ -804,7 +803,16 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="form-group"><label>Product</label><select id="dashProduct"><option value="">All Products</option></select></div>
 <div class="form-group"><label>Project Code</label><select id="dashProject"><option value="">All Projects</option></select></div>
 </div>
-<div class="card"><div class="chart-container"><canvas id="dashChart"></canvas></div></div>
+<div class="card"><div class="chart-container"><canvas id="dashChart"></canvas></div>
+<button class="btn btn-sm" id="dashCompBreakdownToggle" style="margin:8px 0 0 8px;font-size:.76rem">&#9654; Base / Bonus / Benefits</button>
+<div id="dashCompBreakdown" style="display:none;padding:0 8px 8px">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+<div><h4 style="font-size:.8rem;margin:8px 0 4px;color:var(--text-dim)">Base Salary</h4><div style="height:200px;position:relative"><canvas id="dashBaseChart"></canvas></div></div>
+<div><h4 style="font-size:.8rem;margin:8px 0 4px;color:var(--text-dim)">Bonus</h4><div style="height:200px;position:relative"><canvas id="dashBonusChart"></canvas></div></div>
+<div><h4 style="font-size:.8rem;margin:8px 0 4px;color:var(--text-dim)">Benefits</h4><div style="height:200px;position:relative"><canvas id="dashBenefitsChart"></canvas></div></div>
+</div>
+</div>
+</div>
 <div class="card" style="margin-top:12px"><div style="height:120px;position:relative"><canvas id="fteChart"></canvas></div></div>
 </div>
 
@@ -1283,9 +1291,16 @@ Template Mode &mdash; changes saved in this browser only.
 <!-- VENDOR MODULE -->
 <div id="vendorModule" style="display:none">
 <header>
-<div class="container" style="display:flex;align-items:center;gap:16px">
+<div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <h1 style="font-size:1.3rem;color:var(--accent)">Vendor<span style="color:var(--secondary)">Spend</span></h1>
 <button class="btn btn-sm" id="vendorBackBtn">Back to Overview</button>
+<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="vendorToggleDark"><span class="toggle-track"></span>Dark</label>
+<div class="color-scheme-wrap" title="Chart color palette: Muted / Mono / Neon">
+<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="vendorColorSchemeSlider">
+<span class="color-scheme-label" id="vendorColorSchemeLabel">Muted</span>
+</div>
+</div>
 </div>
 </header>
 <main class="container" style="padding-top:24px">
@@ -2319,16 +2334,16 @@ function updateSessionUI(){
   if(persistenceMode==='session'&&sessionContext){
     banner.style.display='none';
     if(landingBox)landingBox.style.display='none';
-    // Keep wsIndicator simple - just version management
-    indicator.innerHTML='Version: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage versions">'+
-      (sessionContext.versionName||'Default')+'</span><span class="save-indicator" id="saveIndicator" style="display:none"></span>';
+    // Hide wsIndicator in session mode — everything is in top bar
+    indicator.style.display='none';
     // Populate the persistent top bar
     topBar.className='active';
     topBar.id='sessionTopBar';
     stbSession.innerHTML=
       `<span style="font-weight:600;color:var(--accent)">Session: ${sessionContext.sessionName||'Active'}</span>`+
       `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel-inset);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code||''}</span>`+
-      (sessionContext.versionName?`<span style="font-size:.72rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">v: <strong>${sessionContext.versionName}</strong></span>`:'')+
+      `<span style="font-size:.72rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">v: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage versions" style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px">${sessionContext.versionName||'Default'}</span></span>`+
+      `<span class="save-indicator" id="saveIndicator" style="display:none"></span>`+
       ` <span style="font-size:.75rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">${sessionContext.userName}</span>`+
       ` <span style="cursor:pointer;font-size:.72rem;color:var(--danger);margin-left:4px" onclick="leaveSession()" title="Leave session">Leave</span>`;
     // Show initial user in top bar
@@ -2342,6 +2357,7 @@ function updateSessionUI(){
   }else{
     banner.style.display='flex';
     if(landingBox)landingBox.style.display='flex';
+    indicator.style.display='';
     indicator.innerHTML='Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">'+currentWorkspaceName+'</span>'+
       '<span class="save-indicator" id="saveIndicator" style="display:none"></span>';
     // Hide top bar and old presence bar
@@ -2732,7 +2748,7 @@ function refreshProjectDropdown(){
 // ── DASHBOARD ──
 let dashChart=null;
 let fteChart=null;
-let groupBy='function',stackBy='baseBonus',compView='total';
+let groupBy='function',stackBy='seniority',compView='total';
 function getFilteredEmployees(){
   let emps=state.employees;
   const c=document.getElementById('dashCountry').value;
@@ -2975,27 +2991,7 @@ function renderDashboard(){
 
   const capExVal=(entry)=>isMonth?getMonthlyCapEx(empOf(entry),entry.mi):getProratedCapEx(entry);
 
-  if(stackBy==='baseBonus'){
-    if(compView==='opex'){
-      // OpEx view: show opex breakdown + capex split by same categories below 0
-      const cc=getChartColors();
-      datasets=[
-        {label:'Base (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x)-Math.round(baseVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:cc[0],stack:'pos'},
-        {label:'Bonus (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x)-Math.round(bonusVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:cc[1],stack:'pos'},
-        {label:'Benefits (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x)-Math.round(benVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:cc[2],stack:'pos'},
-        {label:'Base (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(baseVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba(cc[0],0.35),stack:'neg'},
-        {label:'Bonus (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(bonusVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba(cc[1],0.35),stack:'neg'},
-        {label:'Benefits (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(benVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba(cc[2],0.35),stack:'neg'},
-      ];
-    } else {
-      const cc=getChartColors();
-      datasets=[
-        {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x),0)),backgroundColor:cc[0]},
-        {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x),0)),backgroundColor:cc[1]},
-        {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x),0)),backgroundColor:cc[2]}
-      ];
-    }
-  } else if(stackBy==='country'){
+  if(stackBy==='country'){
     const opexAdjComp=(x)=>compView==='opex'?compVal(x)-capExVal(x):compVal(x);
     COUNTRIES.forEach((c,i)=>{
       const data=labels.map(l=>groups[l].filter(x=>empOf(x).country===c).reduce((a,x)=>a+opexAdjComp(x),0));
@@ -3132,7 +3128,7 @@ function renderDashboard(){
         fteDatasets.push({label:cat,data,borderColor:getChartColors()[i%getChartColors().length],backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
       });
     } else {
-      // baseBonus default: Base/Bonus/Benefits colors as single area
+      // default: single area
       const data=MONTH_SHORT.map((_,mi)=>Math.round(emps.reduce((a,e)=>a+empFte(e,mi),0)*10)/10);
       fteDatasets=[{label:'Allocated FTEs',data,borderColor:getChartColors()[0],backgroundColor:hexToRgba(getChartColors()[0],0.15),fill:true,tension:0.4,pointRadius:2,borderWidth:2}];
     }
@@ -3159,8 +3155,45 @@ function renderDashboard(){
         }
       }
     });
+    // ── Comp breakdown sub-charts (Base / Bonus / Benefits) ──
+    if(document.getElementById('dashCompBreakdown').style.display!=='none'){
+      renderDashBreakdownCharts(labels,groups,isMonth,baseVal,bonusVal,benVal,empOf,capExVal,tickColor,gridColor);
+    }
   }
 }
+let dashBaseChart=null,dashBonusChart=null,dashBenefitsChart=null;
+function renderDashBreakdownCharts(labels,groups,isMonth,baseVal,bonusVal,benVal,empOf,capExVal,tickColor,gridColor){
+  const cc=getChartColors();
+  const shortLabels=labels.map(l=>l.length>10?l.slice(0,8)+'…':l);
+  const chartOpts=(title)=>({responsive:true,maintainAspectRatio:false,layout:{padding:{top:14}},
+    plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',color:tickColor,font:{size:10,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}},
+    scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},y:{beginAtZero:true,ticks:{color:tickColor,font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}}
+  });
+  function makeData(valFn){
+    if(compView==='opex'){
+      return[
+        {label:'OpEx',data:labels.map(l=>groups[l].reduce((a,x)=>a+valFn(x)-Math.round(valFn(x)*getCapPct(empOf(x))/100),0)),backgroundColor:cc[0],stack:'pos'},
+        {label:'CapEx',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(valFn(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba(cc[0],0.35),stack:'neg'}
+      ];
+    }
+    return[{label:'Total',data:labels.map(l=>groups[l].reduce((a,x)=>a+valFn(x),0)),backgroundColor:cc[0]}];
+  }
+  if(dashBaseChart)dashBaseChart.destroy();
+  if(dashBonusChart)dashBonusChart.destroy();
+  if(dashBenefitsChart)dashBenefitsChart.destroy();
+  dashBaseChart=new Chart(document.getElementById('dashBaseChart'),{type:'bar',data:{labels:shortLabels,datasets:makeData(baseVal)},options:chartOpts('Base')});
+  const bonusDs=makeData(bonusVal);bonusDs.forEach(d=>d.backgroundColor=d.stack==='neg'?hexToRgba(cc[1],0.35):cc[1]);
+  dashBonusChart=new Chart(document.getElementById('dashBonusChart'),{type:'bar',data:{labels:shortLabels,datasets:bonusDs},options:chartOpts('Bonus')});
+  const benDs=makeData(benVal);benDs.forEach(d=>d.backgroundColor=d.stack==='neg'?hexToRgba(cc[2],0.35):cc[2]);
+  dashBenefitsChart=new Chart(document.getElementById('dashBenefitsChart'),{type:'bar',data:{labels:shortLabels,datasets:benDs},options:chartOpts('Benefits')});
+}
+document.getElementById('dashCompBreakdownToggle').addEventListener('click',function(){
+  const wrap=document.getElementById('dashCompBreakdown');
+  const vis=wrap.style.display!=='none';
+  wrap.style.display=vis?'none':'';
+  this.innerHTML=vis?'&#9654; Base / Bonus / Benefits':'&#9660; Base / Bonus / Benefits';
+  if(!vis)renderDashboard();
+});
 document.querySelectorAll('#groupToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#groupToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');groupBy=b.dataset.group;renderDashboard();
 }));
@@ -5555,23 +5588,26 @@ document.getElementById('baseCompFileInput').addEventListener('change',function(
 const toggleDark=document.getElementById('toggleDark');
 const landingToggleDark=document.getElementById('landingToggleDark');
 const toggleOps=document.getElementById('toggleOps');
+const vendorToggleDark=document.getElementById('vendorToggleDark');
 function setDarkMode(on){
   document.documentElement.classList.toggle('dark',on);
   localStorage.setItem('compPlanDark',on?'1':'0');
   toggleDark.checked=on;
   landingToggleDark.checked=on;
+  vendorToggleDark.checked=on;
   renderForecast();renderExecView();renderDashboard();renderLandingCharts();renderBudgetScenarioChart();renderFcScenarioChart();
   colorSchemeCallbacks.forEach(fn=>fn());
 }
 toggleDark.addEventListener('change',()=>setDarkMode(toggleDark.checked));
 landingToggleDark.addEventListener('change',()=>setDarkMode(landingToggleDark.checked));
+vendorToggleDark.addEventListener('change',()=>setDarkMode(vendorToggleDark.checked));
 toggleOps.addEventListener('change',()=>{
   document.body.classList.toggle('ops-mode',toggleOps.checked);
   localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
   renderMonthly();
 });
 // Restore preferences
-if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;landingToggleDark.checked=true;document.documentElement.classList.add('dark')}
+if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;landingToggleDark.checked=true;vendorToggleDark.checked=true;document.documentElement.classList.add('dark')}
 if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
 // Color scheme slider (synced across app + landing)
 const colorSchemeSlider=document.getElementById('colorSchemeSlider');
@@ -5584,9 +5620,12 @@ function applyColorSchemeClass(){
   document.body.classList.remove('cs-muted','cs-mono','cs-neon');
   document.body.classList.add('cs-'+chartColorScheme);
 }
+const vendorColorSchemeSlider=document.getElementById('vendorColorSchemeSlider');
+const vendorColorSchemeLabel=document.getElementById('vendorColorSchemeLabel');
 function syncColorSchemeSliders(idx){
   colorSchemeSlider.value=idx;colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
   landingColorSchemeSlider.value=idx;landingColorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
+  vendorColorSchemeSlider.value=idx;vendorColorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
 }
 const colorSchemeCallbacks=[];
 function onColorSchemeChange(v){
@@ -5599,6 +5638,7 @@ function onColorSchemeChange(v){
 }
 colorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(colorSchemeSlider.value)));
 landingColorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(landingColorSchemeSlider.value)));
+vendorColorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(vendorColorSchemeSlider.value)));
 const savedScheme=localStorage.getItem('compPlanColorScheme');
 if(savedScheme&&COLOR_SCHEME_KEYS.includes(savedScheme)){
   chartColorScheme=savedScheme;
