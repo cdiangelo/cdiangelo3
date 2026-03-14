@@ -958,11 +958,14 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <!-- Right: Employee Pivot -->
 <div class="card" style="padding:14px">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:8px">
-<h3 class="section-title" style="font-size:.9rem;margin:0">Roster Pivot</h3>
-<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-<label style="font-size:.68rem;color:var(--text-dim)">Rows:</label>
-<select id="empPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<div id="empPivotTopRow" style="display:grid;grid-template-columns:auto 1fr;gap:0;margin-bottom:4px">
+<!-- Left: title + filters above row labels -->
+<div style="display:flex;flex-direction:column;gap:3px;padding-right:8px;justify-content:flex-end">
+<h3 class="section-title" style="font-size:.85rem;margin:0">Roster Pivot</h3>
+<div style="display:flex;flex-direction:column;gap:2px">
+<div style="display:flex;gap:4px;align-items:center">
+<label style="font-size:.66rem;color:var(--text-dim);width:32px">Rows:</label>
+<select id="empPivotRowDim" style="padding:1px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px">
 <option value="function">Function</option>
 <option value="seniority">Seniority</option>
 <option value="country">Country</option>
@@ -970,8 +973,10 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="product">Product</option>
 <option value="bizline">Business Line</option>
 </select>
-<label style="font-size:.68rem;color:var(--text-dim)">Cols:</label>
-<select id="empPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+</div>
+<div style="display:flex;gap:4px;align-items:center">
+<label style="font-size:.66rem;color:var(--text-dim);width:32px">Cols:</label>
+<select id="empPivotColDim" style="padding:1px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px">
 <option value="seniority">Seniority</option>
 <option value="function">Function</option>
 <option value="country">Country</option>
@@ -979,8 +984,10 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="product">Product</option>
 <option value="bizline">Business Line</option>
 </select>
-<label style="font-size:.68rem;color:var(--text-dim)">Metric:</label>
-<select id="empPivotMetric" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+</div>
+<div style="display:flex;gap:4px;align-items:center">
+<label style="font-size:.66rem;color:var(--text-dim);width:32px">Metric:</label>
+<select id="empPivotMetric" style="padding:1px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px">
 <option value="hc">Headcount</option>
 <option value="comp">Total Comp</option>
 <option value="opex">OpEx</option>
@@ -988,7 +995,10 @@ Template Mode &mdash; changes saved in this browser only.
 </select>
 </div>
 </div>
-<div style="position:relative;height:180px;margin-bottom:8px"><canvas id="empPivotChart"></canvas></div>
+</div>
+<!-- Right: chart directly over data columns -->
+<div style="position:relative;height:220px"><canvas id="empPivotChart"></canvas></div>
+</div>
 <div style="overflow:auto;max-height:220px"><table class="pnl-walk-table" id="empPivotTable" style="font-size:.76rem"></table></div>
 </div>
 </div>
@@ -2626,7 +2636,7 @@ const DEFAULT_ACCOUNTS = [
 ];
 
 function benchmark(s,f,c){return Math.round(SENIORITY_BASE[s]*FUNCTION_MULT[f]*COUNTRY_MULT[c])}
-function fmt(n){return '$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:0})}
+function fmt(n){const v=Number(n);return '$'+(isNaN(v)?0:v).toLocaleString('en-US',{maximumFractionDigits:0})}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
@@ -3907,18 +3917,18 @@ function renderEmpPivot(){
   if(typeof Chart!=='undefined'){
     const canvas=document.getElementById('empPivotChart');
     if(empPivotChartInst)empPivotChartInst.destroy();
-    const COLORS=['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#65a30d','#ea580c','#4f46e5','#0d9488','#b91c1c'];
+    const pivotColors=getChartColors();
     const chartLabels=colVals.map(v=>v.length>14?v.slice(0,12)+'…':v).concat(['Total']);
     const datasets=sortedRows.map((rv,ri)=>({
       label:rv.length>20?rv.slice(0,18)+'…':rv,
       data:colVals.map(cv=>pivot[rv][cv]).concat([rowTotals[rv]]),
-      backgroundColor:COLORS[ri%COLORS.length],
+      backgroundColor:pivotColors[ri%pivotColors.length],
       stack:'s0'
     }));
     empPivotChartInst=new Chart(canvas,{
       type:'bar',data:{labels:chartLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}},datalabels:{display:false}},
+        plugins:{legend:{display:false},datalabels:{display:false}},
         scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:function(v){return isCurrency?(v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v):v}}}}
       }
     });
@@ -3933,8 +3943,10 @@ function renderEmpPivot(){
   let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);font-size:.72rem;width:auto"></th>';
   colVals.forEach(cv=>h+=`<th style="text-align:right;font-size:.72rem;white-space:nowrap;width:${datColW}">${cv}</th>`);
   h+=`<th style="text-align:right;font-size:.72rem;font-weight:700;width:${datColW}">Total</th></tr></thead><tbody>`;
-  sortedRows.forEach(rv=>{
-    h+=`<tr><td style="font-weight:600;font-size:.74rem;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1">${rv}</td>`;
+  sortedRows.forEach((rv,ri)=>{
+    const pivotColors=getChartColors();
+    const dotColor=pivotColors[ri%pivotColors.length];
+    h+=`<tr><td style="font-weight:600;font-size:.74rem;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${dotColor};margin-right:4px"></span>${rv}</td>`;
     colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;${v===0?'color:var(--text-dim)':''}">${v===0?'—':isCurrency?fmt(v):v}</td>`});
     h+=`<td class="num" style="font-size:.74rem;font-weight:700">${isCurrency?fmt(rowTotals[rv]):rowTotals[rv]}</td></tr>`;
   });
@@ -3943,6 +3955,16 @@ function renderEmpPivot(){
   h+=`<td class="num" style="font-size:.74rem;font-weight:800">${isCurrency?fmt(grandTotal):grandTotal}</td></tr></tbody>`;
   tbl.innerHTML=h;
   tbl.style.tableLayout='fixed';
+
+  // Sync grid: left col width = table's row-label column width
+  requestAnimationFrame(()=>{
+    const topRow=document.getElementById('empPivotTopRow');
+    const firstTh=tbl.querySelector('thead th');
+    if(topRow&&firstTh){
+      const labelW=firstTh.offsetWidth;
+      topRow.style.gridTemplateColumns=labelW+'px 1fr';
+    }
+  });
 }
 document.getElementById('empPivotRowDim').addEventListener('change',renderEmpPivot);
 document.getElementById('empPivotColDim').addEventListener('change',renderEmpPivot);
@@ -9868,7 +9890,7 @@ function initVendorModule(){
     const datasets=sortedRows.map((rv,ri)=>({
       label:rv,
       data:MO_LABELS_SHORT.map((_,mi)=>{let s=0;colVals.forEach(cv=>{s+=pivot[rv][cv].months[mi]});return s}),
-      backgroundColor:PIVOT_COLORS[ri%PIVOT_COLORS.length],
+      backgroundColor:getChartColors()[ri%getChartColors().length],
       stack:'stack0'
     }));
 
@@ -10344,6 +10366,8 @@ function renderPnlWalk(){
     {key:'cbOpex',label:'C&B OpEx',isCurrency:true},
     {key:'oao',label:'OAO',isCurrency:true},
     {key:'adjEbitda',label:'Adj. EBITDA',isCurrency:true,cls:'subtotal'},
+    {key:'da',label:'D&A',isCurrency:true},
+    {key:'totalOpex',label:'Total OpEx',isCurrency:true,cls:'subtotal'},
     {key:'capex',label:'CapEx',isCurrency:true},
     {key:'totInv',label:'Total Investment',isCurrency:true,cls:'total'}
   ];
@@ -10497,9 +10521,10 @@ function renderLandingCharts(){
 
 // Add back-to-landing button in header
 const backBtn=document.createElement('button');
-backBtn.className='btn btn-sm';backBtn.textContent='Overview';backBtn.style.marginLeft='8px';
+backBtn.className='btn btn-sm';backBtn.textContent='Overview';backBtn.style.marginLeft='auto';
 backBtn.addEventListener('click',showLanding);
-document.querySelector('#appShell header .container').insertBefore(backBtn,document.querySelector('#appShell header .container').children[1]);
+const headerToggles=document.querySelector('#appShell header .header-toggles');
+headerToggles.parentNode.insertBefore(backBtn,headerToggles);
 
 // ── INIT ──
 function renderAll(){renderExecView();renderDashboard();renderEmployees();renderProjects();renderMarkets();renderBizLines();renderBonusMatrix();renderBenefitsMatrix();renderMonthly();renderForecast();renderWorkspaceList();renderPnlWalk();renderLandingCharts();renderBudgetScenarioChart();renderFcScenarioChart()}
