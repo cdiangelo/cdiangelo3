@@ -174,10 +174,10 @@ body.ops-mode .ops-hide{display:none!important}
 .header-toggle input:checked+.toggle-track::after{transform:translateX(16px)}
 /* 3-tier color scheme slider */
 .color-scheme-wrap{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text-dim)}
-.color-scheme-slider{-webkit-appearance:none;appearance:none;width:64px;height:14px;background:var(--border);border-radius:7px;outline:none;cursor:pointer}
+.color-scheme-slider{-webkit-appearance:none;appearance:none;width:96px;height:14px;background:var(--border);border-radius:7px;outline:none;cursor:pointer}
 .color-scheme-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer}
 .color-scheme-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
-.color-scheme-label{min-width:32px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
+.color-scheme-label{width:36px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
 /* Color scheme body classes */
 body.cs-mono .stat-card .value{color:#666!important}
 body.cs-mono h3,body.cs-mono .exec-pane h3,body.cs-mono .landing-chart-title{color:#777}
@@ -2845,19 +2845,21 @@ function renderDashboard(){
   if(stackBy==='baseBonus'){
     if(compView==='opex'){
       // OpEx view: show opex breakdown + capex split by same categories below 0
+      const cc=getChartColors();
       datasets=[
-        {label:'Base (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x)-Math.round(baseVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:'#8b5e5e',stack:'pos'},
-        {label:'Bonus (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x)-Math.round(bonusVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:'#6b8da3',stack:'pos'},
-        {label:'Benefits (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x)-Math.round(benVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:'#a38b5e',stack:'pos'},
-        {label:'Base (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(baseVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba('#8b5e5e',0.35),stack:'neg'},
-        {label:'Bonus (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(bonusVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba('#6b8da3',0.35),stack:'neg'},
-        {label:'Benefits (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(benVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba('#a38b5e',0.35),stack:'neg'},
+        {label:'Base (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x)-Math.round(baseVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:cc[0],stack:'pos'},
+        {label:'Bonus (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x)-Math.round(bonusVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:cc[1],stack:'pos'},
+        {label:'Benefits (OpEx)',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x)-Math.round(benVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:cc[2],stack:'pos'},
+        {label:'Base (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(baseVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba(cc[0],0.35),stack:'neg'},
+        {label:'Bonus (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(bonusVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba(cc[1],0.35),stack:'neg'},
+        {label:'Benefits (CapEx)',data:labels.map(l=>-groups[l].reduce((a,x)=>a+Math.round(benVal(x)*getCapPct(empOf(x))/100),0)),backgroundColor:hexToRgba(cc[2],0.35),stack:'neg'},
       ];
     } else {
+      const cc=getChartColors();
       datasets=[
-        {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x),0)),backgroundColor:'#8b5e5e'},
-        {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x),0)),backgroundColor:'#6b8da3'},
-        {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x),0)),backgroundColor:'#a38b5e'}
+        {label:'Base Salary',data:labels.map(l=>groups[l].reduce((a,x)=>a+baseVal(x),0)),backgroundColor:cc[0]},
+        {label:'Bonus',data:labels.map(l=>groups[l].reduce((a,x)=>a+bonusVal(x),0)),backgroundColor:cc[1]},
+        {label:'Benefits',data:labels.map(l=>groups[l].reduce((a,x)=>a+benVal(x),0)),backgroundColor:cc[2]}
       ];
     }
   } else if(stackBy==='country'){
@@ -2896,7 +2898,7 @@ function renderDashboard(){
       if(allocPct>=1)return a;
       return a+Math.round(opexAdjComp2(x)*(1-allocPct));
     },0));
-    if(unData.some(v=>v>0))datasets.push({label:'Unallocated',data:unData,backgroundColor:'#999',stack:'pos'});
+    if(unData.some(v=>v>0))datasets.push({label:'Unallocated',data:unData,backgroundColor:getChartColors()[cats.length%getChartColors().length],stack:'pos'});
     if(compView==='opex'){
       cats.forEach((cat,i)=>{
         const catProjIds2=new Set(state.projects.filter(p=>p.category===cat).map(p=>p.id));
@@ -2999,7 +3001,7 @@ function renderDashboard(){
     } else {
       // baseBonus default: Base/Bonus/Benefits colors as single area
       const data=MONTH_SHORT.map((_,mi)=>Math.round(emps.reduce((a,e)=>a+empFte(e,mi),0)*10)/10);
-      fteDatasets=[{label:'Allocated FTEs',data,borderColor:isDark?'#a38b5e':'#8b5e5e',backgroundColor:hexToRgba(isDark?'#a38b5e':'#8b5e5e',0.15),fill:true,tension:0.4,pointRadius:2,borderWidth:2}];
+      fteDatasets=[{label:'Allocated FTEs',data,borderColor:getChartColors()[0],backgroundColor:hexToRgba(getChartColors()[0],0.15),fill:true,tension:0.4,pointRadius:2,borderWidth:2}];
     }
     // Add total data label on topmost FTE dataset
     fteDatasets.forEach((ds,i)=>{
@@ -4762,20 +4764,21 @@ function renderForecastProjection(){
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       let fDatasets;
+      const fcc=getChartColors();
       if(forecastView==='opex'){
         fDatasets=[
-          {label:'Base (OpEx)',data:rows.map(r=>Math.round(r.base*(1-r.capex/Math.max(r.total,1)))),backgroundColor:'#8b5e5e',stack:'pos'},
-          {label:'Bonus (OpEx)',data:rows.map(r=>Math.round(r.bonus*(1-r.capex/Math.max(r.total,1)))),backgroundColor:'#6b8da3',stack:'pos'},
-          {label:'Benefits (OpEx)',data:rows.map(r=>Math.round(r.benefits*(1-r.capex/Math.max(r.total,1)))),backgroundColor:'#a38b5e',stack:'pos'},
-          {label:'Base (CapEx)',data:rows.map(r=>-Math.round(r.base*r.capex/Math.max(r.total,1))),backgroundColor:hexToRgba('#8b5e5e',0.35),stack:'neg'},
-          {label:'Bonus (CapEx)',data:rows.map(r=>-Math.round(r.bonus*r.capex/Math.max(r.total,1))),backgroundColor:hexToRgba('#6b8da3',0.35),stack:'neg'},
-          {label:'Benefits (CapEx)',data:rows.map(r=>-Math.round(r.benefits*r.capex/Math.max(r.total,1))),backgroundColor:hexToRgba('#a38b5e',0.35),stack:'neg'},
+          {label:'Base (OpEx)',data:rows.map(r=>Math.round(r.base*(1-r.capex/Math.max(r.total,1)))),backgroundColor:fcc[0],stack:'pos'},
+          {label:'Bonus (OpEx)',data:rows.map(r=>Math.round(r.bonus*(1-r.capex/Math.max(r.total,1)))),backgroundColor:fcc[1],stack:'pos'},
+          {label:'Benefits (OpEx)',data:rows.map(r=>Math.round(r.benefits*(1-r.capex/Math.max(r.total,1)))),backgroundColor:fcc[2],stack:'pos'},
+          {label:'Base (CapEx)',data:rows.map(r=>-Math.round(r.base*r.capex/Math.max(r.total,1))),backgroundColor:hexToRgba(fcc[0],0.35),stack:'neg'},
+          {label:'Bonus (CapEx)',data:rows.map(r=>-Math.round(r.bonus*r.capex/Math.max(r.total,1))),backgroundColor:hexToRgba(fcc[1],0.35),stack:'neg'},
+          {label:'Benefits (CapEx)',data:rows.map(r=>-Math.round(r.benefits*r.capex/Math.max(r.total,1))),backgroundColor:hexToRgba(fcc[2],0.35),stack:'neg'},
         ];
       } else {
         fDatasets=[
-          {label:'Base',data:rows.map(r=>r.base),backgroundColor:'#8b5e5e'},
-          {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:'#6b8da3'},
-          {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:'#a38b5e'}
+          {label:'Base',data:rows.map(r=>r.base),backgroundColor:fcc[0]},
+          {label:'Bonus',data:rows.map(r=>r.bonus),backgroundColor:fcc[1]},
+          {label:'Benefits',data:rows.map(r=>r.benefits),backgroundColor:fcc[2]}
         ];
       }
       stackedBarDatalabels(fDatasets,tickColor);
@@ -4868,7 +4871,7 @@ function renderForecastProjection(){
         fcFteDatasets.push({label:g.length>20?g.slice(0,18)+'…':g,data:fteLabels.map((_,yi)=>gf[yi]?gf[yi].hc:0),borderColor:getChartColors()[i%getChartColors().length],backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
       });
     } else {
-      fcFteDatasets=[{label:'Projected FTEs',data:totalRows.map(r=>r.hc),borderColor:isDark2?'#a38b5e':'#8b5e5e',backgroundColor:hexToRgba(isDark2?'#a38b5e':'#8b5e5e',0.15),fill:true,tension:0.4,pointRadius:3,borderWidth:2}];
+      fcFteDatasets=[{label:'Projected FTEs',data:totalRows.map(r=>r.hc),borderColor:getChartColors()[0],backgroundColor:hexToRgba(getChartColors()[0],0.15),fill:true,tension:0.4,pointRadius:3,borderWidth:2}];
     }
     // Add total data label on topmost forecast FTE dataset
     fcFteDatasets.forEach((ds,i)=>{
@@ -6125,15 +6128,16 @@ function renderExecView(){
   if(typeof Chart!=='undefined'){
     if(execMonthlyChart)execMonthlyChart.destroy();
     const datasets=groupNames.map((g,i)=>{
-      const color=execSplit==='none'?(isDark?'#d4524d':'#8b2020'):getChartColors()[i%getChartColors().length];
+      const color=execSplit==='none'?getChartColors()[0]:getChartColors()[i%getChartColors().length];
       return {label:g.length>25?g.slice(0,23)+'…':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y',order:2};
     });
     if(execSplit!=='none'){stackedBarDatalabels(datasets,tickColor)}
     else{datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}})}
     // FTE count line
-    datasets.push({label:'Allocated FTE',data:monthlyFte,type:'line',borderColor:isDark?'#4fc3f7':'#0277bd',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:isDark?'#4fc3f7':'#0277bd',yAxisID:'y1',tension:0.3,datalabels:{display:false},order:0});
+    const ecc=getChartColors();
+    datasets.push({label:'Allocated FTE',data:monthlyFte,type:'line',borderColor:ecc[1],backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:ecc[1],yAxisID:'y1',tension:0.3,datalabels:{display:false},order:0});
     // Avg Annualized FTE comp line
-    datasets.push({label:'Avg Ann. FTE Comp',data:monthlyAvgAnnFteComp,type:'line',borderColor:isDark?'#81c784':'#2e7d32',backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:isDark?'#81c784':'#2e7d32',yAxisID:'y',tension:0.3,datalabels:{display:false},order:0});
+    datasets.push({label:'Avg Ann. FTE Comp',data:monthlyAvgAnnFteComp,type:'line',borderColor:ecc[4],backgroundColor:'transparent',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:ecc[4],yAxisID:'y',tension:0.3,datalabels:{display:false},order:0});
     execMonthlyChart=new Chart(document.getElementById('execMonthlyChart'),{
       type:'bar',
       data:{labels:periodLabels,datasets},
@@ -6239,11 +6243,12 @@ function renderExecView(){
 
     if(typeof Chart!=='undefined'){
       if(execForecastChart)execForecastChart.destroy();
+      const efc=getChartColors();
       const ds=showFcOpex?[
-        {label:'OpEx',data:totalFcRows.map(r=>r.opex),backgroundColor:isDark?'#4a9d54':'#3a7d44',stack:'pos'},
-        {label:'CapEx',data:totalFcRows.map(r=>-r.capex),backgroundColor:hexToRgba(isDark?'#d4524d':'#8b2020',0.4),stack:'neg'}
+        {label:'OpEx',data:totalFcRows.map(r=>r.opex),backgroundColor:efc[4],stack:'pos'},
+        {label:'CapEx',data:totalFcRows.map(r=>-r.capex),backgroundColor:hexToRgba(efc[0],0.4),stack:'neg'}
       ]:[
-        {label:'Total Comp',data:totalFcRows.map(r=>r.total),backgroundColor:isDark?'#d4524d':'#8b2020'}
+        {label:'Total Comp',data:totalFcRows.map(r=>r.total),backgroundColor:efc[0]}
       ];
       stackedBarDatalabels(ds,tickColor);
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
@@ -6971,6 +6976,7 @@ function renderBudgetScenarioChart(){
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const emps=budgetScenario.emps;
   const datasets=[];
+  const bsc=getChartColors();
   if(scenBudgetSplit==='none'){
     const opexData=MO_SHORT.map((_,mi)=>{let v=0;emps.forEach(e=>{v+=getMonthlyComp(e,mi)-getMonthlyCapEx(e,mi)});return v});
     const capexData=MO_SHORT.map((_,mi)=>{let v=0;emps.forEach(e=>{v+=getMonthlyCapEx(e,mi)});return v});
@@ -6979,13 +6985,13 @@ function renderBudgetScenarioChart(){
       return (budgetScenario.vendorRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0)+(budgetScenario.teRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
     });
     if(scenBudgetView==='pnl'){
-      datasets.push({label:'C&B OpEx',data:opexData,backgroundColor:isDark?'#5c6bc0':'#7986cb',stack:'pos'});
-      datasets.push({label:'Vendor/T&E',data:oaoData,backgroundColor:isDark?'#ff9800':'#ffb74d',stack:'pos'});
-      datasets.push({label:'CapEx',data:capexData.map(v=>-v),backgroundColor:isDark?'rgba(239,83,80,.5)':'rgba(229,115,115,.5)',stack:'neg'});
+      datasets.push({label:'C&B OpEx',data:opexData,backgroundColor:bsc[1],stack:'pos'});
+      datasets.push({label:'Vendor/T&E',data:oaoData,backgroundColor:bsc[2],stack:'pos'});
+      datasets.push({label:'CapEx',data:capexData.map(v=>-v),backgroundColor:hexToRgba(bsc[0],0.5),stack:'neg'});
     } else {
-      datasets.push({label:'C&B OpEx',data:opexData,backgroundColor:isDark?'#5c6bc0':'#7986cb'});
-      datasets.push({label:'CapEx',data:capexData,backgroundColor:isDark?'#ef5350':'#e57373'});
-      datasets.push({label:'Vendor/T&E',data:oaoData,backgroundColor:isDark?'#ff9800':'#ffb74d'});
+      datasets.push({label:'C&B OpEx',data:opexData,backgroundColor:bsc[1]});
+      datasets.push({label:'CapEx',data:capexData,backgroundColor:bsc[0]});
+      datasets.push({label:'Vendor/T&E',data:oaoData,backgroundColor:bsc[2]});
     }
   } else {
     const groups={};
@@ -6993,10 +6999,9 @@ function renderBudgetScenarioChart(){
       const key=scenBudgetSplit==='function'?e.function:e.country;
       if(!groups[key])groups[key]=[];groups[key].push(e);
     });
-    const palette=['#5c6bc0','#26a69a','#ef5350','#ff9800','#ab47bc','#42a5f5','#66bb6a','#ffa726','#ec407a','#8d6e63'];
     Object.keys(groups).sort().forEach((g,gi)=>{
       const data=MO_SHORT.map((_,mi)=>groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0));
-      datasets.push({label:g,data,backgroundColor:palette[gi%palette.length]});
+      datasets.push({label:g,data,backgroundColor:bsc[gi%bsc.length]});
     });
   }
   const canvas=document.getElementById('scenBudgetChart');
@@ -7073,21 +7078,21 @@ function renderFcScenarioChart(){
   const rows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
   const labels=rows.map(r=>String(r.year));
   const datasets=[];
+  const fsc=getChartColors();
   if(scenFcSplit==='total'){
-    datasets.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:isDark?'#5c6bc0':'#7986cb'});
-    datasets.push({label:'CapEx',data:rows.map(r=>r.capex),backgroundColor:isDark?'#ef5350':'#e57373'});
+    datasets.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:fsc[1]});
+    datasets.push({label:'CapEx',data:rows.map(r=>r.capex),backgroundColor:fsc[0]});
   } else {
     const groups={};
     forecastScenario.emps.forEach(e=>{
       const key=scenFcSplit==='function'?e.function:e.country;
       if(!groups[key])groups[key]=[];groups[key].push(e);
     });
-    const palette=['#5c6bc0','#26a69a','#ef5350','#ff9800','#ab47bc','#42a5f5','#66bb6a','#ffa726','#ec407a','#8d6e63'];
     const origAssumptions=state.forecastAssumptions;
     state.forecastAssumptions=forecastScenario.assumptions;
     Object.keys(groups).sort().forEach((g,gi)=>{
       const gRows=projectForecast(groups[g]);
-      datasets.push({label:g,data:gRows.map(r=>r.total),backgroundColor:palette[gi%palette.length]});
+      datasets.push({label:g,data:gRows.map(r=>r.total),backgroundColor:fsc[gi%fsc.length]});
     });
     state.forecastAssumptions=origAssumptions;
   }
@@ -8910,14 +8915,15 @@ function renderLandingCharts(){
       }
     });
   } else {
+    const lcc=getChartColors();
     if(isPnl){
       const opex=MO_SHORT.map((_,mi)=>{const c=emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
       const capex=MO_SHORT.map((_,mi)=>-emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0));
-      budgetDS.push({label:'OpEx',data:opex,backgroundColor:isDark?'#4a9d54':'#3a7d44',stack:'pos'});
-      budgetDS.push({label:'CapEx',data:capex,backgroundColor:isDark?'#d4524d':'#8b2020',stack:'neg'});
+      budgetDS.push({label:'OpEx',data:opex,backgroundColor:lcc[4],stack:'pos'});
+      budgetDS.push({label:'CapEx',data:capex,backgroundColor:lcc[0],stack:'neg'});
     } else {
       const data=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
-      budgetDS.push({label:'Total Comp',data,backgroundColor:isDark?'#d4524d':'#8b2020'});
+      budgetDS.push({label:'Total Comp',data,backgroundColor:lcc[0]});
     }
   }
   // Data labels for top of each stacked bar
@@ -8951,11 +8957,12 @@ function renderLandingCharts(){
     });
   } else {
     const rows=projectForecast(emps);
+    const lfc=getChartColors();
     if(isPnl){
-      fcDS.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:isDark?'#4a9d54':'#3a7d44',stack:'pos'});
-      fcDS.push({label:'CapEx',data:rows.map(r=>-r.capex),backgroundColor:isDark?'#d4524d':'#8b2020',stack:'neg'});
+      fcDS.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:lfc[4],stack:'pos'});
+      fcDS.push({label:'CapEx',data:rows.map(r=>-r.capex),backgroundColor:lfc[0],stack:'neg'});
     } else {
-      fcDS.push({label:'Total Investment',data:rows.map(r=>r.total),backgroundColor:isDark?'#d4524d':'#8b2020'});
+      fcDS.push({label:'Total Investment',data:rows.map(r=>r.total),backgroundColor:lfc[0]});
     }
   }
   }catch(e){console.warn('Landing forecast chart error:',e)}
