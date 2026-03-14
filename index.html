@@ -650,7 +650,7 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .vendor-detail-list .vendor-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
 .vendor-detail-list .vendor-amt{font-weight:600;min-width:60px;text-align:right;color:var(--text);font-size:.7rem}
 .vendor-detail-list .vendor-adj{display:flex;gap:2px;margin-left:4px;flex-shrink:0}
-.vendor-detail-list .vendor-adj button{background:none;border:1px solid var(--border);cursor:pointer;font-size:.64rem;padding:1px 5px;border-radius:3px;line-height:1.2;color:var(--text-dim);font-weight:600}
+.vendor-detail-list .vendor-adj button{background:none;border:1px solid var(--border);cursor:pointer;font-size:.62rem;padding:1px 4px;border-radius:3px;line-height:1.2;color:var(--text-dim);font-weight:600;white-space:nowrap}
 .vendor-detail-list .vendor-adj button:hover{border-color:var(--accent);color:var(--accent)}
 .vendor-detail-list .vendor-adj button.adj-minus:hover{color:var(--danger);border-color:var(--danger)}
 .scen-emp-list .emp-act.act-arrow:hover{color:var(--accent)}
@@ -8846,14 +8846,16 @@ function renderVendorDetailList(){
   const sorted=Object.values(agg).sort((a,b)=>b.total-a.total);
   if(!sorted.length){el.innerHTML='<div style="padding:6px;font-size:.72rem;color:var(--text-dim)">No vendor spend data</div>';return}
   const isPct=vendorAdjMode==='pct';
-  const modeLabel=isPct?'%':'$K';
-  el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 8px;margin-bottom:2px"><span style="font-size:.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Vendor Spend Detail</span><div class="toggle-group" style="font-size:.72rem;background:var(--panel-inset,var(--panel));border-radius:4px;padding:1px"><button class="btn'+(isPct?'':' active')+'" style="padding:2px 10px;font-size:.72rem;font-weight:600" onclick="vendorAdjMode=\'dollars\';renderVendorScenarioDetail()">$K</button><button class="btn'+(isPct?' active':'')+'" style="padding:2px 10px;font-size:.72rem;font-weight:600" onclick="vendorAdjMode=\'pct\';renderVendorScenarioDetail()">%</button></div></div>'+sorted.map(v=>{
+  const kBtnStyle='padding:3px 12px;font-size:.74rem;font-weight:700;border-radius:4px;';
+  const kActiveStyle=kBtnStyle+'background:var(--accent);color:#fff;border:2px solid var(--accent);';
+  const kInactiveStyle=kBtnStyle+'background:none;color:var(--text-dim);border:2px solid var(--border);';
+  el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;margin-bottom:4px"><span style="font-size:.7rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Vendor Spend Detail</span><div style="display:flex;gap:3px"><button style="'+(!isPct?kActiveStyle:kInactiveStyle)+'" onclick="vendorAdjMode=\'dollars\';renderVendorDetailList()">$K</button><button style="'+(isPct?kActiveStyle:kInactiveStyle)+'" onclick="vendorAdjMode=\'pct\';renderVendorDetailList()">%</button></div></div>'+sorted.map(v=>{
     const amtK=v.total>=1000000?`$${(v.total/1000000).toFixed(1)}m`:`$${(v.total/1000).toFixed(0)}k`;
     const esc=v.name.replace(/'/g,"\\'");
     if(isPct){
-      return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-10)" title="-10%">-10</button><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-50)" title="-50%">-50</button><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-100)" title="-100%">-100</button><button onclick="adjVendorSpendPct('${esc}',10)" title="+10%">+10</button><button onclick="adjVendorSpendPct('${esc}',50)" title="+50%">+50</button><button onclick="adjVendorSpendPct('${esc}',100)" title="+100%">+100</button></span></div>`;
+      return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-10)" title="-10%">-10%</button><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-50)" title="-50%">-50%</button><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-100)" title="-100%">-100%</button><button onclick="adjVendorSpendPct('${esc}',10)" title="+10%">+10%</button><button onclick="adjVendorSpendPct('${esc}',50)" title="+50%">+50%</button><button onclick="adjVendorSpendPct('${esc}',100)" title="+100%">+100%</button></span></div>`;
     }
-    return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjVendorSpend('${esc}',-10000)" title="-$10K">-10</button><button class="adj-minus" onclick="adjVendorSpend('${esc}',-50000)" title="-$50K">-50</button><button class="adj-minus" onclick="adjVendorSpend('${esc}',-100000)" title="-$100K">-100</button><button onclick="adjVendorSpend('${esc}',10000)" title="+$10K">+10</button><button onclick="adjVendorSpend('${esc}',50000)" title="+$50K">+50</button><button onclick="adjVendorSpend('${esc}',100000)" title="+$100K">+100</button></span></div>`;
+    return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjVendorSpend('${esc}',-10000)" title="-$10K">-$10K</button><button class="adj-minus" onclick="adjVendorSpend('${esc}',-50000)" title="-$50K">-$50K</button><button class="adj-minus" onclick="adjVendorSpend('${esc}',-100000)" title="-$100K">-$100K</button><button onclick="adjVendorSpend('${esc}',10000)" title="+$10K">+$10K</button><button onclick="adjVendorSpend('${esc}',50000)" title="+$50K">+$50K</button><button onclick="adjVendorSpend('${esc}',100000)" title="+$100K">+$100K</button></span></div>`;
   }).join('');
 }
 
@@ -8873,10 +8875,18 @@ function adjVendorSpendPct(vendorName,pct){
   document.getElementById('scenBudgetUndo').style.display='inline-block';
   const activeMo=getScenActiveMonths();
   const factor=pct/100;
+  let count=0;
   budgetScenario.vendorRows.forEach(r=>{
-    if(r.vendor===vendorName&&matchesScenAcctFilter(r)){activeMo.forEach(m=>{r[m]=Math.round((parseFloat(r[m])||0)*(1+factor))})}
+    if((r.vendorName||r.parentCo)===vendorName&&matchesScenAcctFilter(r)){activeMo.forEach(m=>{r[m]=Math.round((parseFloat(r[m])||0)*(1+factor))});count++}
   });
-  renderBudgetScenario();
+  budgetScenarioDirty=true;
+  const dir=pct>0?'Increased':'Decreased';
+  const entry={id:Date.now(),cmd:`${dir.toLowerCase()} ${vendorName} spend by ${Math.abs(pct)}%`,scopedCmd:`${dir.toLowerCase()} ${vendorName} spend by ${Math.abs(pct)}%`,msg:`${dir} ${vendorName} spend by ${Math.abs(pct)}% (${count} rows).`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
+  scenActionHistory.push(entry);
+  document.getElementById('scenBudgetApply').style.display='inline-block';
+  renderScenActionHistory();renderBudgetScenarioChart();renderScenarioPnlSummary();updateDetailOutBtn();
+  renderVendorDetailList();
+  initForecastScenario();renderFcScenarioChart();
 }
 function adjVendorSpend(vendorName,delta){
   if(!budgetScenario)return;
