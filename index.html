@@ -753,7 +753,7 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- DASHBOARD -->
 <div id="tab-dashboard" class="tab-content">
-<div class="stat-cards" id="statCards"></div>
+<div id="dashAvgBase" style="display:inline-block;margin-bottom:12px;padding:8px 18px;background:var(--panel);border:1px solid var(--border-light);border-radius:10px;font-size:.85rem"></div>
 <div class="controls">
 <div>
 <label>Group By</label>
@@ -2946,7 +2946,11 @@ function stackedBarDatalabels(datasets,tickColor,fontSize){
 }
 function renderDashboard(){
   const emps=getFilteredEmployees();
-  renderStats(emps);
+  const avgBase=emps.length?Math.round(emps.reduce((a,e)=>a+e.salary,0)/emps.length):0;
+  const avgCapPct=emps.length?Math.round(emps.reduce((a,e)=>a+getCapPct(e),0)/emps.length):0;
+  const svc=getStatValueColor();
+  document.getElementById('dashAvgBase').innerHTML=`<span style="color:var(--text-dim)">Avg Base Salary:</span> <strong style="color:${svc}">${fmt(avgBase)}</strong>`+
+    `<span style="margin-left:16px;color:var(--text-dim)">Avg CapEx %:</span> <strong style="color:${svc}">${avgCapPct}%</strong>`;
   const showPeriod=(groupBy==='month'||groupBy==='quarter');
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
