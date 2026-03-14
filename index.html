@@ -178,6 +178,15 @@ body.ops-mode .ops-hide{display:none!important}
 .color-scheme-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer}
 .color-scheme-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
 .color-scheme-label{min-width:32px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
+/* Color scheme body classes */
+body.cs-mono .stat-card .value{color:#666!important}
+body.cs-mono h3,body.cs-mono .exec-pane h3,body.cs-mono .landing-chart-title{color:#777}
+body.cs-mono .stat-card .label{color:#888}
+html.dark body.cs-mono .stat-card .value{color:#aaa!important}
+html.dark body.cs-mono h3,html.dark body.cs-mono .exec-pane h3,html.dark body.cs-mono .landing-chart-title{color:#999}
+html.dark body.cs-mono .stat-card .label{color:#888}
+body.cs-neon .stat-card .value{color:#3a86ff!important}
+html.dark body.cs-neon .stat-card .value{color:#00f5d4!important}
 /* ── Mobile Responsive ── */
 @media(max-width:768px){
   .stat-cards{grid-template-columns:1fr 1fr}
@@ -2223,6 +2232,12 @@ function updateSessionUI(){
       ` | <span style="font-size:.75rem;color:var(--text-dim)">${sessionContext.userName}</span>`+
       ` <span style="cursor:pointer;font-size:.72rem;color:var(--danger);margin-left:4px" onclick="leaveSession()" title="Leave session">Leave</span>`+
       `<span class="save-indicator" id="saveIndicator" style="display:none"></span>`;
+    // Show presence bar immediately with current user
+    if(!presenceBar.classList.contains('active')){
+      presenceBar.className='presence-bar active';
+      presenceBar.innerHTML=`<span style="color:var(--text-dim);margin-right:4px">Online:</span>`+
+        `<span class="presence-dot"><span style="background:${sessionContext.userColor||'var(--accent)'};width:7px;height:7px;border-radius:50%;display:inline-block"></span>${sessionContext.userName} (you)</span>`;
+    }
   }else{
     banner.style.display='flex';
     if(landingBox)landingBox.style.display='flex';
@@ -2663,6 +2678,38 @@ const CHART_COLORS_MONO=['#555','#888','#bbb','#444','#999','#666','#aaa','#777'
 const CHART_COLORS_MONO_DARK=['#ccc','#999','#666','#ddd','#aaa','#bbb','#888','#eee','#777','#555'];
 const CHART_COLORS_NEON=['#ff006e','#00f5d4','#fee440','#8338ec','#3a86ff','#fb5607','#06d6a0','#f72585','#4cc9f0','#ff9e00'];
 let chartColorScheme='muted';
+// Mono pattern overlay plugin for Chart.js — draws hatch/dot patterns over grey bars
+const monoPatternPlugin={
+  id:'monoPatterns',
+  afterDatasetsDraw(chart){
+    if(chartColorScheme!=='mono')return;
+    const isDark=document.documentElement.classList.contains('dark');
+    const ctx=chart.ctx;
+    chart.data.datasets.forEach((ds,dsi)=>{
+      const meta=chart.getDatasetMeta(dsi);
+      if(meta.hidden||meta.type==='line')return;
+      meta.data.forEach(el=>{
+        const{x,y,width,height,base}=el.getProps(['x','y','width','height','base']);
+        if(width===undefined||base===undefined)return;
+        const bY=Math.min(y,base),bH=Math.abs(base-y),bW=width;
+        if(bH<2||bW<2)return;
+        ctx.save();ctx.beginPath();ctx.rect(x-bW/2,bY,bW,bH);ctx.clip();
+        const fg=isDark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.12)';
+        ctx.strokeStyle=fg;ctx.fillStyle=fg;ctx.lineWidth=1;
+        const pt=dsi%6;
+        if(pt===0){for(let i=-bH;i<bW+bH;i+=6){ctx.beginPath();ctx.moveTo(x-bW/2+i,bY+bH);ctx.lineTo(x-bW/2+i+bH,bY);ctx.stroke()}}
+        else if(pt===1){for(let py=bY+4;py<bY+bH;py+=7)for(let px=x-bW/2+4;px<x+bW/2;px+=7){ctx.beginPath();ctx.arc(px,py,1.5,0,Math.PI*2);ctx.fill()}}
+        else if(pt===2){for(let i=-bH;i<bW+bH;i+=6){ctx.beginPath();ctx.moveTo(x-bW/2+i,bY+bH);ctx.lineTo(x-bW/2+i+bH,bY);ctx.stroke();ctx.beginPath();ctx.moveTo(x-bW/2+i,bY);ctx.lineTo(x-bW/2+i+bH,bY+bH);ctx.stroke()}}
+        else if(pt===3){for(let py=bY+3;py<bY+bH;py+=6){ctx.beginPath();ctx.moveTo(x-bW/2,py);ctx.lineTo(x+bW/2,py);ctx.stroke()}}
+        else if(pt===4){for(let px=x-bW/2+3;px<x+bW/2;px+=6){ctx.beginPath();ctx.moveTo(px,bY);ctx.lineTo(px,bY+bH);ctx.stroke()}}
+        else{for(let py=bY+3;py<bY+bH;py+=5)for(let px=x-bW/2+3;px<x+bW/2;px+=5){ctx.beginPath();ctx.arc(px,py,1,0,Math.PI*2);ctx.fill()}}
+        ctx.restore();
+      });
+    });
+  }
+};
+// Register globally so all charts get it
+if(typeof Chart!=='undefined')Chart.register(monoPatternPlugin);
 function getChartColors(){
   const isDark=document.documentElement.classList.contains('dark');
   if(chartColorScheme==='mono')return isDark?CHART_COLORS_MONO_DARK:CHART_COLORS_MONO;
@@ -2680,7 +2727,7 @@ function getSparkColor(type){
 }
 function getStatValueColor(){
   const isDark=document.documentElement.classList.contains('dark');
-  if(chartColorScheme==='mono')return isDark?'#cccccc':'var(--accent)';
+  if(chartColorScheme==='mono')return isDark?'#bbbbbb':'#444444';
   if(chartColorScheme==='neon')return isDark?'#00f5d4':'var(--accent)';
   return isDark?'#c8b0b0':'var(--accent)';
 }
@@ -5285,11 +5332,16 @@ const colorSchemeSlider=document.getElementById('colorSchemeSlider');
 const colorSchemeLabel=document.getElementById('colorSchemeLabel');
 const COLOR_SCHEME_NAMES=['Muted','Mono','Neon'];
 const COLOR_SCHEME_KEYS=['muted','mono','neon'];
+function applyColorSchemeClass(){
+  document.body.classList.remove('cs-muted','cs-mono','cs-neon');
+  document.body.classList.add('cs-'+chartColorScheme);
+}
 colorSchemeSlider.addEventListener('input',()=>{
   const v=parseInt(colorSchemeSlider.value);
   chartColorScheme=COLOR_SCHEME_KEYS[v];
   colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[v];
   localStorage.setItem('compPlanColorScheme',chartColorScheme);
+  applyColorSchemeClass();
   renderAll();renderLandingCharts();
 });
 const savedScheme=localStorage.getItem('compPlanColorScheme');
@@ -5299,6 +5351,7 @@ if(savedScheme&&COLOR_SCHEME_KEYS.includes(savedScheme)){
   colorSchemeSlider.value=idx;
   colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
 }
+applyColorSchemeClass();
 
 // ── WORKSPACES (localStorage) ──
 let currentWorkspaceName='Default';
