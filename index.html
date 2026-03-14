@@ -2942,8 +2942,6 @@ function renderStats(emps){
   const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
   const totalOpEx=totalComp-totalCapEx;
   const svc=getStatValueColor();
-  const vendorTETotal=typeof getVendorOaoTotal==='function'?getVendorOaoTotal():0;
-  const totalAllOpEx=totalOpEx+vendorTETotal;
   document.getElementById('dashStatCards').innerHTML=`
     <div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svc}">${totalHC}</div></div>
     <div class="stat-card"><div class="label">Base Cost</div><div class="value" style="color:${svc}">${fmt(totalBase)}</div></div>
@@ -2951,10 +2949,8 @@ function renderStats(emps){
     <div class="stat-card"><div class="label">Bonus</div><div class="value" style="color:${svc}">${fmt(totalBonus)}</div></div>
     <div class="stat-card"><div class="label">Benefits</div><div class="value" style="color:${svc}">${fmt(totalBenefits)}</div></div>
     <div class="stat-card"><div class="label">Total Comp</div><div class="value" style="color:${svc}">${fmt(totalComp)}</div></div>
-    <div class="stat-card"><div class="label">Comp OpEx</div><div class="value" style="color:${svc}">${fmt(totalOpEx)}</div></div>
     <div class="stat-card"><div class="label">CapEx Offset</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>
-    <div class="stat-card"><div class="label">Vendor/T&E</div><div class="value" style="color:${svc}">${fmt(vendorTETotal)}</div></div>
-    <div class="stat-card"><div class="label">Total OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmt(totalAllOpEx)}</div></div>`;
+    <div class="stat-card"><div class="label">C&B OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmt(totalOpEx)}</div></div>`;
 }
 const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a','#5e7a8b','#8b7a5e','#6b8b7a','#7a8b5e'];
 const CHART_COLORS_MUTED_DARK=['#c4a0a0','#a0b8c8','#c8b8a0','#b0a0c0','#a0c0a0','#c0a0b0','#a0b0c0','#c0b0a0','#a0c0b0','#b0c0a0'];
@@ -3116,17 +3112,14 @@ function renderDashboard(){
   const totalComp=emps.reduce((a,e)=>a+getProratedComp(e),0);
   const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
   const svc=getStatValueColor();
-  const vendorTETotal2=typeof getVendorOaoTotal==='function'?getVendorOaoTotal():0;
-  const compOpEx=totalComp-totalCapEx;
-  const totalAllOpEx2=compOpEx+vendorTETotal2;
+  const cbOpEx=totalComp-totalCapEx;
   document.getElementById('dashStatCards').innerHTML=
     `<div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svc}">${emps.length}</div></div>`+
     `<div class="stat-card"><div class="label">Avg Base</div><div class="value" style="color:${svc}">${fmt(avgBase)}</div></div>`+
     `<div class="stat-card"><div class="label">Total Comp</div><div class="value" style="color:${svc}">${fmt(totalComp)}</div></div>`+
-    `<div class="stat-card"><div class="label">Total CapEx</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>`+
+    `<div class="stat-card"><div class="label">CapEx Offset</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>`+
     `<div class="stat-card"><div class="label">Avg Cap %</div><div class="value" style="color:${svc}">${avgCapPct}%</div></div>`+
-    `<div class="stat-card"><div class="label">Vendor/T&E</div><div class="value" style="color:${svc}">${fmt(vendorTETotal2)}</div></div>`+
-    `<div class="stat-card"><div class="label">Total OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmt(totalAllOpEx2)}</div></div>`;
+    `<div class="stat-card"><div class="label">C&B OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmt(cbOpEx)}</div></div>`;
   const showPeriod=(groupBy==='month'||groupBy==='quarter');
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
