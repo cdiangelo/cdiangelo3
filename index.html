@@ -2819,6 +2819,10 @@ const DEFAULT_BENEFITS = {Junior:18,'Mid-Level':20,Senior:22,Staff:24,Principal:
 const BENEFITS_COUNTRY_MULT = {'United States':1.00,'United Kingdom':0.85,Canada:0.90,Germany:0.95,India:0.40,Australia:0.88,Singapore:0.75,Netherlands:0.92,Brazil:0.50,Poland:0.55};
 const COUNTRY_BU = {'United States':'US001','United Kingdom':'UK001','Canada':'CA001','Germany':'DE001','India':'IN001','Australia':'AU001','Singapore':'SG001','Netherlands':'NL001','Brazil':'BR001','Poland':'PL001'};
 let FORECAST_YEARS = [2027,2028,2029,2030,2031];
+let DISPLAY_BASE_YEAR=2026;
+function getDisplayYears(){return [DISPLAY_BASE_YEAR+1,DISPLAY_BASE_YEAR+2,DISPLAY_BASE_YEAR+3,DISPLAY_BASE_YEAR+4,DISPLAY_BASE_YEAR+5]}
+function getDisplayFcLabels(){return [String(DISPLAY_BASE_YEAR),...getDisplayYears().map(String)]}
+function displayYear(y){if(y==='Current')return String(DISPLAY_BASE_YEAR);const idx=FORECAST_YEARS.indexOf(typeof y==='string'?parseInt(y):y);return idx>=0?String(getDisplayYears()[idx]):String(y)}
 function rebuildForecastYears(){FORECAST_YEARS=[CURRENT_YEAR+1,CURRENT_YEAR+2,CURRENT_YEAR+3,CURRENT_YEAR+4,CURRENT_YEAR+5]}
 
 const DEFAULT_MARKETS = [
@@ -3021,7 +3025,7 @@ function getBenefitsAmt(emp){if(!emp)return 0;return Math.round((emp.salary||0)*
 function getTotalComp(emp){if(!emp)return 0;return (emp.salary||0)+getBonusAmt(emp)+getBenefitsAmt(emp)}
 
 // ── Date proration helpers ──
-let CURRENT_YEAR=2026;
+const CURRENT_YEAR=2026;
 function daysInMonth(year,month){return new Date(year,month+1,0).getDate()}
 function getMonthFactor(emp,monthIdx,year){
   if(!year)year=CURRENT_YEAR;
@@ -5350,10 +5354,11 @@ function renderForecastInputs(){
       return '';
     };
 
+    const dYears=getDisplayYears();
     if(expandBy==='total'){
       container.innerHTML='<div class="forecast-grid">'+FORECAST_YEARS.map((y,i)=>`
         <div class="forecast-input-group">
-          <label>${y}</label>
+          <label>${dYears[i]}</label>
           <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${suffix}${effectiveNote(key,fa[key][i])}
         </div>
       `).join('')+'</div>';
@@ -5362,7 +5367,7 @@ function renderForecastInputs(){
       let html='<div class="forecast-grid" style="margin-bottom:8px"><div class="forecast-input-group" style="grid-column:1/-1"><span class="group-label" style="font-size:.78rem;color:var(--text-dim);font-style:italic">Default (all groups)</span></div></div>';
       html+='<div class="forecast-grid" style="margin-bottom:12px">'+FORECAST_YEARS.map((y,i)=>`
         <div class="forecast-input-group">
-          <label>${y}</label>
+          <label>${dYears[i]}</label>
           <input type="number" step="${step}" value="${fa[key][i]}" data-key="${key}" data-idx="${i}" class="forecast-param">${suffix}${effectiveNote(key,fa[key][i])}
         </div>
       `).join('')+'</div>';
@@ -5371,7 +5376,7 @@ function renderForecastInputs(){
         html+=FORECAST_YEARS.map((y,i)=>{
           const val=getOverrideVal(key,g.key,i);
           return `<div class="forecast-input-group">
-            <label>${y}</label>
+            <label>${dYears[i]}</label>
             <input type="number" step="${step}" value="${val}" data-key="${key}" data-group="${g.key}" data-idx="${i}" class="forecast-override">${suffix}${effectiveNote(key,val)}
           </div>`;
         }).join('');
@@ -5558,7 +5563,7 @@ function renderForecastMethodology(){
     </tr></thead><tbody>`;
   walkRows.forEach(r=>{
     walkHtml+=`<tr>
-      <td class="mw-highlight">${r.year}</td>
+      <td class="mw-highlight">${displayYear(r.year)}</td>
       <td>${r.prevHC}</td>
       <td class="mw-dim">\u2212${r.attrLoss}${attrMode==='pct'?' ('+r.attrVal+'%)':''}</td>
       <td>${r.rawHires}${hiresMode==='pct'?' ('+r.hiresVal+'%)':''}</td>
@@ -5670,7 +5675,7 @@ function renderForecastProjection(){
       rows.push({year:y,hc,base,bonus,benefits,total,capex,opex:total-capex});
     });
     let html='<thead><tr><th>Year</th><th>Headcount</th><th>Base Cost</th><th>Bonus Cost</th><th>Benefits Cost</th><th>Total Comp</th><th>CapEx</th><th>OpEx (P&L)</th></tr></thead><tbody>';
-    rows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${r.year}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
+    rows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${displayYear(r.year)}</td><td>${r.hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td style="font-weight:600;color:var(--accent)">${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
     html+='</tbody>';
     tbl.innerHTML=html;
 
@@ -5701,7 +5706,7 @@ function renderForecastProjection(){
       stackedBarDatalabels(fDatasets,tickColor,null,'forecast');
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
-        data:{labels:rows.map(r=>r.year),datasets:fDatasets},
+        data:{labels:rows.map(r=>displayYear(r.year)),datasets:fDatasets},
         plugins:[yoyArrowsPlugin],
         options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
@@ -5714,7 +5719,7 @@ function renderForecastProjection(){
     const groupNames=Object.keys(splitGroups);
     groupForecasts={};
     groupNames.forEach(g=>groupForecasts[g]=projectForecast(splitGroups[g],splitGroupKeys[g]));
-    const yearLabels=['Current',...FORECAST_YEARS];
+    const yearLabels=getDisplayFcLabels();
 
     // Normalize group values so they sum exactly to the independent total
     yearLabels.forEach((_,yi)=>{
@@ -5781,7 +5786,7 @@ function renderForecastProjection(){
     const tickColor2=isDark2?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
     const gridColor2=isDark2?'rgba(255,255,255,.08)':'#ddd';
     if(window._forecastFteChart)window._forecastFteChart.destroy();
-    const fteLabels=totalRows.map(r=>r.year);
+    const fteLabels=totalRows.map(r=>displayYear(r.year));
     let fcFteDatasets=[];
     if(splitGroups){
       const gNames=Object.keys(splitGroups);
@@ -6914,12 +6919,13 @@ document.querySelectorAll('#execPeriodToggle .btn').forEach(b=>b.addEventListene
 function buildExecTrendYearToggle(){
   const wrap=document.getElementById('execTrendYearToggle');
   if(!wrap)return;
-  wrap.innerHTML='<button class="btn'+(execTrendYear==='current'?' active':'')+'" data-etrendyr="current">'+CURRENT_YEAR+'</button>'+
-    FORECAST_YEARS.map(y=>'<button class="btn'+(execTrendYear===String(y)?' active':'')+'" data-etrendyr="'+y+'">'+y+'</button>').join('');
+  const dYears=getDisplayYears();
+  wrap.innerHTML='<button class="btn'+(execTrendYear==='current'?' active':'')+'" data-etrendyr="current">'+DISPLAY_BASE_YEAR+'</button>'+
+    FORECAST_YEARS.map((y,i)=>'<button class="btn'+(execTrendYear===String(y)?' active':'')+'" data-etrendyr="'+y+'">'+dYears[i]+'</button>').join('');
   wrap.querySelectorAll('.btn').forEach(b=>b.addEventListener('click',()=>{
     wrap.querySelectorAll('.btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
     execTrendYear=b.dataset.etrendyr;
-    const yrLabel=execTrendYear==='current'?String(CURRENT_YEAR):execTrendYear;
+    const yrLabel=execTrendYear==='current'?String(DISPLAY_BASE_YEAR):displayYear(execTrendYear);
     document.getElementById('execTrendYearLabel').textContent=' — '+yrLabel;
     renderExecView();
   }));
@@ -6963,7 +6969,7 @@ function renderExecFcSparkline(){
   const rows=projectForecast(emps);
   const showOpex=execFcView==='opex';
   const vals=rows.map(r=>showOpex?r.opex:r.total);
-  const labels=['Current',...FORECAST_YEARS];
+  const labels=getDisplayFcLabels();
   if(execFcSparkChart)execFcSparkChart.destroy();
   const colors=getChartColors();
   // Compute Y/Y % change labels
@@ -7075,7 +7081,7 @@ function renderExecView(){
   const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   // Sync trend year header label
-  const trendYrLabel=execTrendYear==='current'?String(CURRENT_YEAR):execTrendYear;
+  const trendYrLabel=execTrendYear==='current'?String(DISPLAY_BASE_YEAR):displayYear(execTrendYear);
   const trendYrEl=document.getElementById('execTrendYearLabel');
   if(trendYrEl)trendYrEl.textContent=' — '+trendYrLabel;
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -7326,14 +7332,14 @@ function renderExecView(){
   }
 
   const totalFcRows=projectForecast(emps);
-  const yearLabels=['Current',...FORECAST_YEARS];
+  const yearLabels=getDisplayFcLabels();
   const fcTbl=document.getElementById('execForecastTable');
   const showFcOpex=execFcView==='opex';
 
   if(!fcSplitGroups){
     // Total view
     let html='<thead><tr><th>Year</th><th>HC</th><th>Total Comp</th><th>CapEx</th><th>OpEx</th></tr></thead><tbody>';
-    totalFcRows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${r.year}</td><td>${r.hc}</td><td>${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
+    totalFcRows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${displayYear(r.year)}</td><td>${r.hc}</td><td>${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
     html+='</tbody>';
     fcTbl.innerHTML=html;
 
@@ -7558,7 +7564,7 @@ function computeFcDelta(){
   const scenRows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
   const lastBase=baseRows[baseRows.length-1]||{hc:0,total:0,opex:0};
   const lastScen=scenRows[scenRows.length-1]||{hc:0,total:0,opex:0};
-  let html='<div style="font-size:.72rem;color:var(--text-dim);margin-bottom:2px">By '+FORECAST_YEARS[FORECAST_YEARS.length-1]+':</div>';
+  let html='<div style="font-size:.72rem;color:var(--text-dim);margin-bottom:2px">By '+getDisplayYears()[4]+':</div>';
   html+=fmtDelta('HC',lastBase.hc,lastScen.hc);
   html+=fmtDelta('Total Inv',lastBase.total,lastScen.total);
   html+=fmtDelta('OpEx',lastBase.opex,lastScen.opex);
@@ -7958,8 +7964,10 @@ function parseForecastCommand(text){
   m=text.match(/set\s+(merit|attrition|hires?|cap\s*%?|capitalization)\s+to\s+(\d+\.?\d*)%?\s+in\s+(\d{4})/i);
   if(m){
     const metric=m[1].toLowerCase().replace(/\s+/g,'');const v=parseFloat(m[2]);const yr=parseInt(m[3]);
-    const yi=FORECAST_YEARS.indexOf(yr);
-    if(yi<0)return {msg:`Year ${yr} not in forecast range (${FORECAST_YEARS[0]}-${FORECAST_YEARS[FORECAST_YEARS.length-1]}).`,ok:false};
+    const dYears=getDisplayYears();
+    let yi=dYears.indexOf(yr);
+    if(yi<0)yi=FORECAST_YEARS.indexOf(yr);
+    if(yi<0)return {msg:`Year ${yr} not in forecast range (${dYears[0]}-${dYears[4]}).`,ok:false};
     if(metric.includes('merit')){fa.merit[yi]=v;fa.toggles.merit=true;return {msg:`Set merit to ${v}% in ${yr}.`,ok:true}}
     if(metric.includes('attrition')){fa.attrition[yi]=v;fa.toggles.attrition=true;return {msg:`Set attrition to ${v}% in ${yr}.`,ok:true}}
     if(metric.includes('hire')){fa.hires[yi]=v;fa.toggles.hires=true;return {msg:`Set hires to ${v} in ${yr}.`,ok:true}}
@@ -7977,7 +7985,7 @@ function parseForecastCommand(text){
   // Reduce headcount by X% thru year
   m=text.match(/(?:reduce|cut|decrease)\s+(.+?)\s+(?:headcount)\s+by\s+(\d+\.?\d*)%(?:\s+thru\s+(\d{4}))?/i);
   if(m){
-    const pct=parseFloat(m[2]);const thruYear=m[3]?parseInt(m[3]):FORECAST_YEARS[FORECAST_YEARS.length-1];
+    const pct=parseFloat(m[2]);const thruYear=m[3]?parseInt(m[3]):getDisplayYears()[4];
     // Increase attrition to achieve this reduction
     FORECAST_YEARS.forEach((y,i)=>{if(y<=thruYear)fa.attrition[i]=Math.min(100,fa.attrition[i]+pct)});
     fa.toggles.attrition=true;
@@ -8217,7 +8225,7 @@ function renderFcScenarioChart(){
   const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const rows=computeForecastPnl(forecastScenario.emps,forecastScenario.assumptions);
-  const labels=rows.map(r=>String(r.year));
+  const labels=rows.map(r=>displayYear(r.year));
   const datasets=[];
   const fsc=getChartColors();
   if(scenFcSplit==='total'){
@@ -8303,7 +8311,7 @@ function renderFcScenarioChart(){
 
 function openFcYearPane(barIdx){
   // barIdx 0 = 'Current', 1+ = FORECAST_YEARS
-  const yearLabels=['Current',...FORECAST_YEARS.map(String)];
+  const yearLabels=getDisplayFcLabels();
   const label=yearLabels[barIdx];
   fcSelectedYear=barIdx===0?null:FORECAST_YEARS[barIdx-1];
   fcFilterState={product:new Set(),function:new Set(),country:new Set(),category:new Set()};
@@ -8742,13 +8750,30 @@ function renderVendorDetailList(){
   });
   const sorted=Object.values(agg).sort((a,b)=>b.total-a.total);
   if(!sorted.length){el.innerHTML='<div style="padding:6px;font-size:.72rem;color:var(--text-dim)">No vendor spend data</div>';return}
-  el.innerHTML='<div style="font-size:.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim);padding:2px 8px;margin-bottom:2px">Vendor Spend Detail</div>'+sorted.map(v=>{
+  const isPct=vendorAdjMode==='pct';
+  const modeLabel=isPct?'%':'$K';
+  el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 8px;margin-bottom:2px"><span style="font-size:.68rem;font-weight:600;text-transform:uppercase;color:var(--text-dim)">Vendor Spend Detail</span><div class="toggle-group" style="font-size:.62rem"><button class="btn btn-sm'+(isPct?'':' active')+'" style="padding:0 6px;font-size:.62rem" onclick="vendorAdjMode=\'dollars\';renderVendorScenarioDetail()">$K</button><button class="btn btn-sm'+(isPct?' active':'')+'" style="padding:0 6px;font-size:.62rem" onclick="vendorAdjMode=\'pct\';renderVendorScenarioDetail()">%</button></div></div>'+sorted.map(v=>{
     const amtK=v.total>=1000000?`$${(v.total/1000000).toFixed(1)}m`:`$${(v.total/1000).toFixed(0)}k`;
     const esc=v.name.replace(/'/g,"\\'");
-    return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjVendorSpend('${esc}',-100000)" title="-$0.1m">-</button><button onclick="adjVendorSpend('${esc}',100000)" title="+$0.1m">+</button></span></div>`;
+    if(isPct){
+      return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-10)" title="-10%">-10</button><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-50)" title="-50%">-50</button><button class="adj-minus" onclick="adjVendorSpendPct('${esc}',-100)" title="-100%">-100</button><button onclick="adjVendorSpendPct('${esc}',10)" title="+10%">+10</button><button onclick="adjVendorSpendPct('${esc}',50)" title="+50%">+50</button><button onclick="adjVendorSpendPct('${esc}',100)" title="+100%">+100</button></span></div>`;
+    }
+    return `<div class="vendor-row"><span class="vendor-name" title="${v.name}">${v.name}</span><span class="vendor-amt">${amtK}</span><span class="vendor-adj"><button class="adj-minus" onclick="adjVendorSpend('${esc}',-10000)" title="-$10K">-10</button><button class="adj-minus" onclick="adjVendorSpend('${esc}',-50000)" title="-$50K">-50</button><button class="adj-minus" onclick="adjVendorSpend('${esc}',-100000)" title="-$100K">-100</button><button onclick="adjVendorSpend('${esc}',10000)" title="+$10K">+10</button><button onclick="adjVendorSpend('${esc}',50000)" title="+$50K">+50</button><button onclick="adjVendorSpend('${esc}',100000)" title="+$100K">+100</button></span></div>`;
   }).join('');
 }
 
+let vendorAdjMode='dollars';
+function adjVendorSpendPct(vendorName,pct){
+  if(!budgetScenario)return;
+  budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
+  document.getElementById('scenBudgetUndo').style.display='inline-block';
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const factor=pct/100;
+  budgetScenario.vendorRows.forEach(r=>{
+    if(r.vendor===vendorName){MO.forEach(m=>{r[m]=Math.round((parseFloat(r[m])||0)*(1+factor))})}
+  });
+  renderBudgetScenario();
+}
 function adjVendorSpend(vendorName,delta){
   if(!budgetScenario)return;
   budgetUndoStack.push(JSON.parse(JSON.stringify(budgetScenario)));
@@ -9034,7 +9059,7 @@ function renderScenarioPnlSummary(){
     <tr style="font-weight:700">${pnlRow('Total Investment',bTotInv,sTotInv,true).replace(/<\/?tr>/g,'')}</tr>
     </table></div>`;
   if(fEl)fEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
-    <strong style="color:var(--accent);font-size:.76rem">Forecast vs Baseline (${FORECAST_YEARS[FORECAST_YEARS.length-1]})</strong>
+    <strong style="color:var(--accent);font-size:.76rem">Forecast vs Baseline (${getDisplayYears()[4]})</strong>
     <table style="${tblStyle}">${thRow}
     ${pnlRow('HC',bLast.hc||0,sLast.hc||0,false)}
     ${pnlRow('OpEx',bLast.opex||0,sLast.opex||0,true)}
@@ -9323,11 +9348,11 @@ function initDataPanel(){
     if(isOpen)renderDataPanelWsList();
   });
 
-  // Current Year selector
+  // Current Year selector — only changes display labels, not underlying data
   document.getElementById('currentYearSelect').addEventListener('change',function(){
-    CURRENT_YEAR=parseInt(this.value);
-    rebuildForecastYears();
-    document.getElementById('currentYearFcLabel').textContent='Forecast: '+FORECAST_YEARS[0]+'–'+FORECAST_YEARS[4];
+    DISPLAY_BASE_YEAR=parseInt(this.value);
+    const dYears=getDisplayYears();
+    document.getElementById('currentYearFcLabel').textContent='Forecast: '+dYears[0]+'–'+dYears[4];
     // Update exec trend year toggle options
     buildExecTrendYearToggle();
     renderAll();renderLandingCharts();
@@ -9568,7 +9593,8 @@ function renderDataPanelWsList(){
         if(wsMergeMode){
           html+=`<input type="checkbox" ${isChecked?'checked':''} onchange="toggleWsMergeSelect('${vKey}');renderDataPanelWsList()" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer">`;
         }
-        html+=`<span style="flex:1;color:var(--text)">${v.name}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
+        const vTime=v.savedAt||v.createdAt?new Date(v.savedAt||v.createdAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
+        html+=`<span style="flex:1;color:var(--text)">${v.name}${vTime?' <span style="color:var(--text-dim);font-size:.65rem">'+vTime+'</span>':''}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
         if(!wsMergeMode){
           html+=`${!isActive?`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadVersionFromServer(${v.id},'${esc}');renderDataPanelWsList()">Load</button>`:''}`;
           html+=`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteVersionFromServer(${v.id},'${esc}');renderDataPanelWsList()">×</button>`;
@@ -9598,7 +9624,8 @@ function renderDataPanelWsList(){
     if(wsMergeMode){
       html+=`<input type="checkbox" ${isChecked?'checked':''} onchange="toggleWsMergeSelect('${w.key}');renderDataPanelWsList()" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer">`;
     }
-    html+=`<span style="flex:1;color:var(--text)">${w.name}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
+    const wTime=w.savedAt?new Date(w.savedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
+    html+=`<span style="flex:1;color:var(--text)">${w.name}${wTime?' <span style="color:var(--text-dim);font-size:.65rem">'+wTime+'</span>':''}${isActive?' <span style="color:var(--success);font-size:.65rem;font-weight:700">ACTIVE</span>':''}</span>`;
     if(!wsMergeMode){
       html+=`${!isActive?`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadWorkspace('${w.key}','${esc}');renderDataPanelWsList()">Load</button>`:''}`;
       html+=`<button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteWorkspace('${w.key}','${esc}');renderDataPanelWsList()">×</button>`;
@@ -10988,7 +11015,7 @@ function renderLandingCharts(){
   // ── Long-Term Forecast Chart ──
   if(landingForecastChartInst)landingForecastChartInst.destroy();
   let fcDS=[];
-  const yearLabels=['Current',...FORECAST_YEARS.map(y=>String(y))];
+  const yearLabels=getDisplayFcLabels();
   try{
   if(useSplit){
     const groups={};
