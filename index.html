@@ -7604,25 +7604,31 @@ const toggleDark=document.getElementById('toggleDark');
 const landingToggleDark=document.getElementById('landingToggleDark');
 const toggleOps=document.getElementById('toggleOps');
 const vendorToggleDark=document.getElementById('vendorToggleDark');
+const depToggleDark=document.getElementById('depToggleDark');
+const revToggleDark=document.getElementById('revToggleDark');
 function setDarkMode(on){
   document.documentElement.classList.toggle('dark',on);
   localStorage.setItem('compPlanDark',on?'1':'0');
   toggleDark.checked=on;
   landingToggleDark.checked=on;
   vendorToggleDark.checked=on;
+  if(depToggleDark)depToggleDark.checked=on;
+  if(revToggleDark)revToggleDark.checked=on;
   renderForecast();renderExecView();renderDashboard();renderLandingCharts();renderBudgetScenarioChart();renderFcScenarioChart();
   colorSchemeCallbacks.forEach(fn=>fn());
 }
 toggleDark.addEventListener('change',()=>setDarkMode(toggleDark.checked));
 landingToggleDark.addEventListener('change',()=>setDarkMode(landingToggleDark.checked));
 vendorToggleDark.addEventListener('change',()=>setDarkMode(vendorToggleDark.checked));
+if(depToggleDark)depToggleDark.addEventListener('change',()=>setDarkMode(depToggleDark.checked));
+if(revToggleDark)revToggleDark.addEventListener('change',()=>setDarkMode(revToggleDark.checked));
 toggleOps.addEventListener('change',()=>{
   document.body.classList.toggle('ops-mode',toggleOps.checked);
   localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
   renderMonthly();
 });
 // Restore preferences
-if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;landingToggleDark.checked=true;vendorToggleDark.checked=true;document.documentElement.classList.add('dark')}
+if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;landingToggleDark.checked=true;vendorToggleDark.checked=true;if(depToggleDark)depToggleDark.checked=true;if(revToggleDark)revToggleDark.checked=true;document.documentElement.classList.add('dark')}
 if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
 // Color scheme slider (synced across app + landing)
 const colorSchemeSlider=document.getElementById('colorSchemeSlider');
