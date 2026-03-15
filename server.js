@@ -22,9 +22,16 @@ app.use('/api/sessions/:code/users', usersRouter);
 app.use('/api/sessions/:code/versions', versionsRouter);
 
 // Serve the app — must come AFTER API routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+const fs = require('fs');
+const distDir = path.join(__dirname, 'dist');
+const isProd = process.env.NODE_ENV === 'production' && fs.existsSync(distDir);
+
+if (isProd) {
+  app.use(express.static(distDir));
+  app.get('/', (req, res) => res.sendFile(path.join(distDir, 'index.html')));
+} else {
+  app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+}
 
 // Catch-all: return 404 JSON for unknown API routes instead of HTML
 app.use('/api', (req, res) => {
