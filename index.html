@@ -6981,7 +6981,21 @@ function projectForecast(emps,groupKey){
     if(!e.termDate)return true;
     return new Date(e.termDate).getFullYear()>=CURRENT_YEAR;
   });
-  // Current year uses prorated values
+  // Identify GEN-000 (unallocated) employees — they should not drive HC dynamics
+  const genProj=state.projects.find(p=>p.code==='GEN-000');
+  const genId=genProj?genProj.id:null;
+  const isGenGroup=groupKey&&genId&&groupKey===genId;
+  function isFullyUnallocated(e){
+    if(!genId)return false;
+    return e.allocations&&e.allocations.length&&e.allocations.every(a=>a.projId===genId);
+  }
+  // In total view (no groupKey), separate unallocated employees so they don't inflate
+  // attrition or consume hires — their costs still grow with merit/market but HC is stable.
+  // For GEN-000 split group, same treatment: costs project forward, no attrition/hires.
+  const excludeUnalloc=!groupKey||isGenGroup;
+  const dynamicActive=excludeUnalloc?activeEmps.filter(e=>!isFullyUnallocated(e)):activeEmps;
+  const staticActive=excludeUnalloc?activeEmps.filter(e=>isFullyUnallocated(e)):[];
+  // Current year uses prorated values (all employees)
   const currentHC=activeEmps.length;
   const currentBase=activeEmps.reduce((a,e)=>a+getProratedBase(e),0);
   const currentBonus=activeEmps.reduce((a,e)=>a+getProratedBonus(e),0);
@@ -6989,10 +7003,16 @@ function projectForecast(emps,groupKey){
   const currentTotal=currentBase+currentBonus+currentBenefits;
   const currentCapEx=activeEmps.reduce((a,e)=>a+getProratedCapEx(e),0);
   // For projecting forward, use full annual rates of active employees (those not terminated in current year)
-  const forwardEmps=activeEmps.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+  const forwardEmps=dynamicActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+  const staticForward=staticActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
   const forwardHC=forwardEmps.length;
+  const staticHC=staticForward.length;
   const forwardBase=forwardEmps.reduce((a,e)=>a+e.salary,0);
   const forwardBonus=forwardEmps.reduce((a,e)=>a+getBonusAmt(e),0);
+  const staticBase=staticForward.reduce((a,e)=>a+e.salary,0);
+  const staticBonusRate=staticHC&&staticBase?staticForward.reduce((a,e)=>a+getBonusAmt(e),0)/staticBase:0;
+  const staticBenRate=staticHC&&staticBase?staticForward.reduce((a,e)=>a+getBenefitsAmt(e),0)/staticBase:0;
+  const staticCapRate=staticHC?staticForward.reduce((a,e)=>a+getProratedCapEx(e),0)/Math.max(staticForward.reduce((a,e)=>a+getProratedComp(e),0),1):0;
   const avgSalary=forwardHC?forwardBase/forwardHC:100000;
   const avgBonusRate=forwardHC&&forwardBase?forwardBonus/forwardBase:0.1;
   const avgBenRate=forwardHC&&forwardBase?forwardEmps.reduce((a,e)=>a+getBenefitsAmt(e),0)/forwardBase:0.2;
@@ -7003,20 +7023,26 @@ function projectForecast(emps,groupKey){
   const groupRatio=groupKey?forwardHC/allEmpsCount:1;
   let hc=forwardHC;let salaryGrowth=1;
   FORECAST_YEARS.forEach((y,i)=>{
+    const meritRate=tog.merit?getAssumptionVal('merit',groupKey,i)/100:0;
+    const marketRate=tog.market?getAssumptionVal('market',groupKey,i)/100:0;
+    const capRate=tog.capitalization?getAssumptionVal('capitalization',groupKey,i)/100:currentCapRate;
     const attrVal=tog.attrition?getAssumptionVal('attrition',groupKey,i):0;
     const attrLoss=attrMode==='pct'?Math.round(hc*attrVal/100):Math.round(attrVal*groupRatio);
     const hiresVal=tog.hires?getAssumptionVal('hires',groupKey,i):0;
     const rawHires=hiresMode==='pct'?Math.round(hc*hiresVal/100):Math.round(hiresVal*groupRatio);
-    const meritRate=tog.merit?getAssumptionVal('merit',groupKey,i)/100:0;
-    const marketRate=tog.market?getAssumptionVal('market',groupKey,i)/100:0;
     const aiGear=tog.ai?getAssumptionVal('ai',groupKey,i):1;
-    const capRate=tog.capitalization?getAssumptionVal('capitalization',groupKey,i)/100:currentCapRate;
     hc=Math.max(0,hc-attrLoss+Math.round(rawHires*aiGear));
     salaryGrowth*=(1+meritRate+marketRate);
-    const base=Math.round(hc*avgSalary*salaryGrowth);
-    const total=Math.round(base*(1+avgBonusRate+avgBenRate));
-    const capex=Math.round(total*capRate);
-    rows.push({year:y,hc,total,capex,opex:total-capex});
+    const dynBase=Math.round(hc*avgSalary*salaryGrowth);
+    const dynTotal=Math.round(dynBase*(1+avgBonusRate+avgBenRate));
+    // Static (unallocated) employees: costs grow with merit/market but HC is frozen
+    const stBase=Math.round(staticHC*((staticHC?staticBase/staticHC:0))*salaryGrowth);
+    const stTotal=Math.round(stBase*(1+staticBonusRate+staticBenRate));
+    const totalHC=hc+staticHC;
+    const total=dynTotal+stTotal;
+    const stCapex=Math.round(stTotal*(tog.capitalization?capRate:staticCapRate));
+    const capex=Math.round(dynTotal*capRate)+stCapex;
+    rows.push({year:y,hc:totalHC,total,capex,opex:total-capex});
   });
   return rows;
 }
@@ -7203,17 +7229,31 @@ function renderForecastProjection(){
     // Total view with base/bonus/benefits breakdown
     const rows=[];
     const activeEmps=state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>=CURRENT_YEAR);
+    // Separate GEN-000 (unallocated) employees — they don't drive HC dynamics
+    const _genP=state.projects.find(p=>p.code==='GEN-000');
+    const _genId=_genP?_genP.id:null;
+    const _isUnalloc=e=>_genId&&e.allocations&&e.allocations.length&&e.allocations.every(a=>a.projId===_genId);
+    const dynActive=activeEmps.filter(e=>!_isUnalloc(e));
+    const stActive=activeEmps.filter(e=>_isUnalloc(e));
     const currentHC=activeEmps.length;
     const currentBase=activeEmps.reduce((a,e)=>a+getProratedBase(e),0);
     const currentBonus=activeEmps.reduce((a,e)=>a+getProratedBonus(e),0);
     const currentBenefits=activeEmps.reduce((a,e)=>a+getProratedBenefits(e),0);
     const currentCapEx=activeEmps.reduce((a,e)=>a+getProratedCapEx(e),0);
-    const forwardEmps=activeEmps.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
-    const forwardHC=forwardEmps.length;
-    const forwardBase=forwardEmps.reduce((a,e)=>a+e.salary,0);
+    const dynForward=dynActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+    const stForward=stActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+    const forwardHC=dynForward.length;
+    const stHC=stForward.length;
+    const forwardBase=dynForward.reduce((a,e)=>a+e.salary,0);
+    const stBaseTotal=stForward.reduce((a,e)=>a+e.salary,0);
+    const stAvgSal=stHC?stBaseTotal/stHC:0;
+    const stBonusRate=stHC&&stBaseTotal?stForward.reduce((a,e)=>a+getBonusAmt(e),0)/stBaseTotal:0;
+    const stBenRate=stHC&&stBaseTotal?stForward.reduce((a,e)=>a+getBenefitsAmt(e),0)/stBaseTotal:0;
+    const stCompTotal=stForward.reduce((a,e)=>a+getProratedComp(e),0);
+    const stCapRate=stCompTotal?stForward.reduce((a,e)=>a+getProratedCapEx(e),0)/stCompTotal:0;
     const avgSalary=forwardHC?forwardBase/forwardHC:100000;
-    const avgBonusRate=forwardHC&&forwardBase?forwardEmps.reduce((a,e)=>a+getBonusAmt(e),0)/forwardBase:0.1;
-    const avgBenRate=forwardHC&&forwardBase?forwardEmps.reduce((a,e)=>a+getBenefitsAmt(e),0)/forwardBase:0.2;
+    const avgBonusRate=forwardHC&&forwardBase?dynForward.reduce((a,e)=>a+getBonusAmt(e),0)/forwardBase:0.1;
+    const avgBenRate=forwardHC&&forwardBase?dynForward.reduce((a,e)=>a+getBenefitsAmt(e),0)/forwardBase:0.2;
     const currentTotal=currentBase+currentBonus+currentBenefits;
     const currentCapRate=currentTotal?currentCapEx/currentTotal:0;
     rows.push({year:'Current',hc:currentHC,base:currentBase,bonus:currentBonus,benefits:currentBenefits,total:currentTotal,capex:currentCapEx,opex:currentTotal-currentCapEx});
@@ -7228,13 +7268,21 @@ function renderForecastProjection(){
       const aiGear=tog.ai?fa.ai[i]:1;
       hc=Math.max(0,hc-attrLoss2+Math.round(newHires*aiGear));
       sg*=(1+(tog.merit?fa.merit[i]/100:0)+(tog.market?fa.market[i]/100:0));
-      const base=Math.round(hc*avgSalary*sg);
-      const bonus=Math.round(base*avgBonusRate);
-      const benefits=Math.round(base*avgBenRate);
+      const dynBase=Math.round(hc*avgSalary*sg);
+      const dynBonus=Math.round(dynBase*avgBonusRate);
+      const dynBenefits=Math.round(dynBase*avgBenRate);
+      // Static (unallocated) employees: costs grow with salary growth, HC frozen
+      const sBase=Math.round(stHC*stAvgSal*sg);
+      const sBonus=Math.round(sBase*stBonusRate);
+      const sBenefits=Math.round(sBase*stBenRate);
+      const base=dynBase+sBase;
+      const bonus=dynBonus+sBonus;
+      const benefits=dynBenefits+sBenefits;
       const total=base+bonus+benefits;
       const capRate=tog.capitalization?fa.capitalization[i]/100:currentCapRate;
-      const capex=Math.round(total*capRate);
-      rows.push({year:y,hc,base,bonus,benefits,total,capex,opex:total-capex});
+      const stCR=tog.capitalization?capRate:stCapRate;
+      const capex=Math.round((dynBase+dynBonus+dynBenefits)*capRate)+Math.round((sBase+sBonus+sBenefits)*stCR);
+      rows.push({year:y,hc:hc+stHC,base,bonus,benefits,total,capex,opex:total-capex});
     });
     let html;
     if(forecastSplit==='total'){
