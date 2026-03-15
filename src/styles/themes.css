@@ -1,0 +1,190 @@
+/* Color scheme body classes (lines 216-402) */
+
+/* Muted scheme -- warm editorial, dark red / cream / charcoal */
+body.cs-muted{--accent:#8b2020;--accent-light:#a83232;--danger:#b83030;--success:#3a7d44;--warning:#b8860b;--bg:#eae8e4;--panel:#f5f3ef;--panel-inset:#edebe7}
+body.cs-muted .stat-card .value{color:#8b2020!important;font-weight:700}
+body.cs-muted h3,body.cs-muted .exec-pane h3,body.cs-muted .landing-chart-title{color:#3a2020;font-weight:700}
+body.cs-muted .stat-card .label{color:#6a6a6a}
+body.cs-muted .stat-card{border:1px solid #d4c8c0;background:#f5f3ef}
+body.cs-muted .panel,body.cs-muted .card{background:#f5f3ef;border:1px solid #d4c8c0}
+body.cs-muted table th{background:#ece8e3;border-bottom:2px solid #8b2020}
+body.cs-muted table td{border-bottom:1px solid #ddd8d0}
+body.cs-muted tr:nth-child(even) td{background:#f0ece7}
+body.cs-muted header h1{color:#8b2020}
+body.cs-muted header{background:#f5f3ef}
+body.cs-muted nav button.active{background:#8b2020;border-color:#8b2020;color:#fff}
+body.cs-muted .btn.active,body.cs-muted .btn-primary{background:#8b2020;border-color:#8b2020}
+body.cs-muted .toggle-group .btn.active{background:#8b2020}
+body.cs-muted .section-title{color:#3a2020}
+body.cs-muted .forecast-section h4{color:#6b3030}
+body.cs-muted th{color:#4a3030}
+body.cs-muted .benchmark-badge{background:rgba(139,32,32,.06);border-color:#c4a0a0;color:#8b2020}
+body.cs-muted a{color:#8b2020}
+html.dark body.cs-muted{--accent:#d4524d;--accent-light:#e06560;--danger:#e06060;--success:#5ab866;--warning:#e0b840;--bg:#1a1818;--panel:#252322;--panel-inset:#1e1c1b;--text:#ccc8c4;--text-dim:#9a9692;--text-dark:#ddd8d4;--border:#3a3634;--border-light:#2f2c2a}
+html.dark body.cs-muted .stat-card .value{color:#d4524d!important;font-weight:700}
+html.dark body.cs-muted h3,html.dark body.cs-muted .exec-pane h3,html.dark body.cs-muted .landing-chart-title{color:#ddd8d4;font-weight:700}
+html.dark body.cs-muted .stat-card .label{color:#9a9692}
+html.dark body.cs-muted .stat-card{border:1px solid #3a3634;background:#252322}
+html.dark body.cs-muted table th{background:#2a2624;border-bottom:2px solid #d4524d;color:#e0d0c8}
+html.dark body.cs-muted th{color:#e0d0c8}
+html.dark body.cs-muted table td{border-bottom:1px solid #2f2c2a}
+html.dark body.cs-muted tr:nth-child(even) td{background:#222020}
+html.dark body.cs-muted header{background:#252322;border-bottom-color:#3a3634}
+html.dark body.cs-muted header h1{color:#d4524d}
+html.dark body.cs-muted nav button.active{background:#8b2020;color:#fff;border-color:#a83232}
+html.dark body.cs-muted nav button{color:#9a9692;border-color:#3a3634}
+html.dark body.cs-muted .btn{background:#2a2826;color:#ccc8c4;border-color:#3a3634}
+html.dark body.cs-muted .btn.active,html.dark body.cs-muted .btn-primary{background:#8b2020;border-color:#a83232}
+html.dark body.cs-muted .toggle-group{background:#1e1c1b;border-color:#3a3634}
+html.dark body.cs-muted .toggle-group .btn{color:#9a9692}
+html.dark body.cs-muted .toggle-group .btn.active{background:#8b2020;color:#fff}
+html.dark body.cs-muted .card,html.dark body.cs-muted .card-inset{background:#252322;border-color:#3a3634}
+html.dark body.cs-muted .exec-pane{background:#252322;border-color:#3a3634}
+html.dark body.cs-muted .table-wrap{background:#252322;border-color:#3a3634}
+html.dark body.cs-muted .section-title{color:#ddd8d4}
+html.dark body.cs-muted .forecast-section h4{color:#d4524d}
+html.dark body.cs-muted .modal{background:#252322}
+html.dark body.cs-muted .export-card{background:#252322;border-color:#3a3634}
+html.dark body.cs-muted select,html.dark body.cs-muted input,html.dark body.cs-muted textarea{background:#2a2826;border-color:#3a3634;color:#ccc8c4}
+html.dark body.cs-muted .scenario-slide-panel,html.dark body.cs-muted .data-slide-panel{background:#1a1818}
+html.dark body.cs-muted .landing-chart-card{background:#252322;border-color:#3a3634}
+html.dark body.cs-muted .forecast-group-row{background:#252322;border-color:#3a3634}
+html.dark body.cs-muted a{color:#d4524d}
+html.dark body.cs-muted tr:hover{background:rgba(212,82,77,.05)}
+html.dark body.cs-muted .controls label{color:#9a9692}
+html.dark body.cs-muted .benchmark-badge{background:rgba(212,82,77,.08);border-color:#5a3030;color:#d4524d}
+
+/* Neon scheme -- vibrant with navy/purple/grey accents */
+body.cs-neon{--accent:#2a3a6a;--accent-light:#3a4a7a;--danger:#7a2a5a;--success:#2a6a4a;--warning:#8a6a1a;--bg:#eeeef4;--panel:#f4f4fa;--panel-inset:#eaeaf2}
+body.cs-neon .stat-card .value{color:#2a3a6a!important;font-weight:700}
+body.cs-neon .stat-card .label{color:#6a6a7a}
+body.cs-neon .stat-card{border:1px solid #c8c8d8;background:#f4f4fa}
+body.cs-neon h3,body.cs-neon .exec-pane h3,body.cs-neon .landing-chart-title{color:#1a2a4a;font-weight:700}
+body.cs-neon .section-title{color:#1a2a4a}
+body.cs-neon .panel,body.cs-neon .card{background:#f4f4fa;border:1px solid #c8c8d8}
+body.cs-neon table th{background:#e8e8f0;border-bottom:2px solid #3a4a7a}
+body.cs-neon table td{border-bottom:1px solid #d4d4e0}
+body.cs-neon tr:nth-child(even) td{background:#ededf4}
+body.cs-neon nav button.active{background:linear-gradient(135deg,#3a4a7a,#2a3a6a);border-color:transparent;color:#fff}
+body.cs-neon .btn.active,body.cs-neon .btn-primary{background:linear-gradient(135deg,#3a4a7a,#2a3a6a);border-color:transparent}
+body.cs-neon .btn-danger{background:#7a2a5a;border-color:#7a2a5a}
+body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#3a4a7a,#2a3a6a);color:#fff}
+body.cs-neon header h1{color:#2a3a6a}
+body.cs-neon header{background:#f4f4fa}
+body.cs-neon th{color:#2a3a6a}
+body.cs-neon a{color:#4a3a7a}
+body.cs-neon .benchmark-badge{background:rgba(42,58,106,.06);border-color:#b0b0c8;color:#2a3a6a}
+body.cs-neon .modal h3{color:#1a2a4a}
+body.cs-neon .export-card h3{color:#2a3a6a}
+body.cs-neon .forecast-section h4{color:#3a4a7a}
+body.cs-neon .forecast-group-row{background:#f4f4fa;border-color:#c8c8d8}
+body.cs-neon .ws-list .ws-active{color:#2a6a4a}
+html.dark body.cs-neon{--accent:#7a8aff;--accent-light:#8a9aff;--danger:#ff5a8a;--success:#4aee8a;--warning:#ffe040;--bg:#08080e;--panel:#0e0e18;--panel-inset:#0a0a12;--text:#c8d0e0;--text-dim:#5a6a8a;--text-dark:#dce0f0;--border:#1a1a2e;--border-light:#141424}
+html.dark body.cs-neon .stat-card .value{color:#7a8aff!important;font-weight:700}
+html.dark body.cs-neon h3,html.dark body.cs-neon .exec-pane h3,html.dark body.cs-neon .landing-chart-title{color:#b0b8e0;font-weight:700}
+html.dark body.cs-neon .stat-card{border:1px solid #1a1a2e;background:#0e0e18}
+html.dark body.cs-neon .stat-card .label{color:#5a6a8a}
+html.dark body.cs-neon .card,html.dark body.cs-neon .card-inset{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .exec-pane{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .table-wrap{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon table th{background:#12122a;border-bottom:2px solid #5a6aaa;color:#b0b8dd}
+html.dark body.cs-neon th{color:#b0b8dd}
+html.dark body.cs-neon table td{border-bottom:1px solid #141424}
+html.dark body.cs-neon tr:nth-child(even) td{background:#0b0b14}
+html.dark body.cs-neon header{background:#0e0e18;border-bottom-color:#1a1a2e}
+html.dark body.cs-neon header h1{color:#7a8aff}
+html.dark body.cs-neon nav button.active{background:linear-gradient(135deg,#5a6aaa,#4a5a9a);border-color:transparent;color:#fff}
+html.dark body.cs-neon nav button{color:#5a6a8a;border-color:#1a1a2e}
+html.dark body.cs-neon .btn{background:#12121e;color:#c8d0e0;border-color:#1a1a2e}
+html.dark body.cs-neon .btn-danger{background:#7a2a5a;border-color:#7a2a5a}
+html.dark body.cs-neon .btn.active,html.dark body.cs-neon .btn-primary{background:linear-gradient(135deg,#5a6aaa,#4a5a9a);border-color:transparent}
+html.dark body.cs-neon .toggle-group{background:#0a0a14;border-color:#1a1a2e}
+html.dark body.cs-neon .toggle-group .btn{color:#5a6a8a}
+html.dark body.cs-neon .toggle-group .btn.active{background:linear-gradient(135deg,#5a6aaa,#4a5a9a);color:#fff}
+html.dark body.cs-neon .section-title{color:#b0b8e0}
+html.dark body.cs-neon .forecast-section h4{color:#7a8aff}
+html.dark body.cs-neon .modal{background:#0e0e18}
+html.dark body.cs-neon .modal h3{color:#b0b8e0}
+html.dark body.cs-neon .export-card{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .ws-list .ws-active{color:#4aee8a}
+html.dark body.cs-neon select,html.dark body.cs-neon input,html.dark body.cs-neon textarea{background:#12121e;border-color:#1a1a2e;color:#c8d0e0}
+html.dark body.cs-neon .scenario-slide-panel,html.dark body.cs-neon .data-slide-panel{background:#08080e}
+html.dark body.cs-neon .landing-chart-card{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .forecast-group-row{background:#0e0e18;border-color:#1a1a2e}
+html.dark body.cs-neon .pivot-adj-bar{background:#0a0a14}
+html.dark body.cs-neon .chart-container{background:transparent}
+html.dark body.cs-neon a{color:#9a8aff}
+html.dark body.cs-neon tr:hover{background:rgba(122,138,255,.05)}
+html.dark body.cs-neon .controls label{color:#5a6a8a}
+html.dark body.cs-neon .benchmark-badge{background:rgba(122,138,255,.08);border-color:#2a2a4a;color:#7a8aff}
+
+/* Crisp scheme -- sharp white/black, minimal, editorial */
+body.cs-crisp{--accent:#444;--accent-light:#555;--danger:#666;--success:#555;--warning:#777;--bg:#e0e0e0;--panel:#ebebeb;--panel-inset:#e4e4e4}
+body.cs-crisp .stat-card .value{color:#111!important;font-weight:700}
+body.cs-crisp h3,body.cs-crisp .exec-pane h3,body.cs-crisp .landing-chart-title{color:#111;font-weight:700}
+body.cs-crisp .stat-card .label{color:#666}
+body.cs-crisp .stat-card{border:1px solid #ccc;background:#f0f0f0}
+body.cs-crisp .panel,body.cs-crisp .card{background:#f0f0f0;border:1px solid #ccc}
+body.cs-crisp table th{background:#e8e8e8;border-bottom:2px solid #222}
+body.cs-crisp table td{border-bottom:1px solid #ddd}
+body.cs-crisp tr:nth-child(even) td{background:#eaeaea}
+body.cs-crisp a{color:#444}
+body.cs-crisp header h1{color:#222}
+body.cs-crisp header{background:#ebebeb}
+body.cs-crisp nav button.active{background:#333;border-color:#333;color:#f0f0f0}
+body.cs-crisp .btn-danger{background:#555;border-color:#555}
+body.cs-crisp .btn.active,body.cs-crisp .btn-primary{background:#333;border-color:#333}
+body.cs-crisp .toggle-group .btn.active{background:#333}
+body.cs-crisp th{color:#333}
+body.cs-crisp .benchmark-badge{background:rgba(0,0,0,.05);border-color:#999;color:#444}
+body.cs-crisp .section-title{color:#222}
+body.cs-crisp .forecast-section h4{color:#333}
+body.cs-crisp .modal h3{color:#222}
+body.cs-crisp .export-card h3{color:#333}
+body.cs-crisp .ws-list .ws-active{color:#555}
+html.dark body.cs-crisp{--accent:#999;--accent-light:#aaa;--danger:#999;--success:#888;--warning:#aaa;--bg:#141416;--panel:#1a1a1e;--panel-inset:#161618;--text:#b0b0b4;--text-dim:#808086;--text-dark:#c0c0c4;--border:#2a2a2e;--border-light:#222226}
+html.dark body.cs-crisp .stat-card .value{color:#b0b0b4!important;font-weight:700}
+html.dark body.cs-crisp h3,html.dark body.cs-crisp .exec-pane h3,html.dark body.cs-crisp .landing-chart-title{color:#b0b0b4;font-weight:700}
+html.dark body.cs-crisp .stat-card .label{color:#808086}
+html.dark body.cs-crisp .stat-card{border:1px solid #2a2a2e;background:#1a1a1e}
+html.dark body.cs-crisp table th{background:#1e1e22;border-bottom:2px solid #555;color:#c8c8cc}
+html.dark body.cs-crisp th{color:#c8c8cc}
+html.dark body.cs-crisp table td{border-bottom:1px solid #252529}
+html.dark body.cs-crisp tr:nth-child(even) td{background:#1c1c20}
+html.dark body.cs-crisp a{color:#888}
+html.dark body.cs-crisp header h1{color:#b0b0b4}
+html.dark body.cs-crisp header h1 span{color:#808086}
+html.dark body.cs-crisp nav button.active{background:#333338;color:#b0b0b4;border-color:#444}
+html.dark body.cs-crisp nav button{color:#808086;border-color:#2a2a2e}
+html.dark body.cs-crisp select,html.dark body.cs-crisp input,html.dark body.cs-crisp textarea{background:#1e1e22;border-color:#2a2a2e;color:#b0b0b4}
+html.dark body.cs-crisp header{background:#1a1a1e;border-bottom-color:#2a2a2e}
+html.dark body.cs-crisp .btn-danger{background:#555;border-color:#555}
+html.dark body.cs-crisp .btn.active,html.dark body.cs-crisp .btn-primary{background:#444;border-color:#444}
+html.dark body.cs-crisp .toggle-group .btn.active{background:#444}
+html.dark body.cs-crisp th{color:#999}
+html.dark body.cs-crisp .benchmark-badge{background:rgba(255,255,255,.05);border-color:#555;color:#888}
+html.dark body.cs-crisp .section-title{color:#b0b0b4}
+html.dark body.cs-crisp .forecast-section h4{color:#999}
+html.dark body.cs-crisp .modal h3{color:#b0b0b4}
+html.dark body.cs-crisp .export-card h3{color:#999}
+html.dark body.cs-crisp .ws-list .ws-active{color:#888}
+html.dark body.cs-crisp tr:hover{background:rgba(255,255,255,.02)}
+html.dark body.cs-crisp .card,html.dark body.cs-crisp .card-inset{background:#1a1a1e;border-color:#2a2a2e}
+html.dark body.cs-crisp .exec-pane{background:#1a1a1e;border-color:#2a2a2e}
+html.dark body.cs-crisp .table-wrap{background:#1a1a1e;border-color:#2a2a2e}
+html.dark body.cs-crisp .export-card{background:#1a1a1e;border-color:#2a2a2e}
+html.dark body.cs-crisp .modal{background:#1a1a1e}
+html.dark body.cs-crisp .modal-backdrop{background:rgba(0,0,0,.7)}
+html.dark body.cs-crisp .forecast-group-row{background:#1a1a1e;border-color:#2a2a2e}
+html.dark body.cs-crisp .chart-container{background:transparent}
+html.dark body.cs-crisp .toggle-group{background:#161618;border-color:#2a2a2e}
+html.dark body.cs-crisp .toggle-group .btn{color:#808086}
+html.dark body.cs-crisp .pivot-adj-bar{background:#161618}
+html.dark body.cs-crisp .btn{background:#1e1e22;color:#b0b0b4;border-color:#2a2a2e}
+html.dark body.cs-crisp .scenario-slide-panel,html.dark body.cs-crisp .data-slide-panel{background:#141416}
+html.dark body.cs-crisp .method-baseline .mb-item{background:#141416;border-color:#2a2a2e}
+html.dark body.cs-crisp .landing-chart-card{background:#1a1a1e;border-color:#2a2a2e}
+html.dark body.cs-crisp .controls label{color:#808086}
+html.dark body.cs-crisp .pivot-impact.neutral{background:#161618;border-color:#2a2a2e;color:#808086}
+html.dark body.cs-crisp #empTable tr:hover td:nth-child(1),html.dark body.cs-crisp #empTable tr:hover td:nth-child(2){background:rgba(255,255,255,.03)}
+html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-crisp #tePivotTable thead tr:first-child th{border-bottom-color:#444}

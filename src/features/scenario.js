@@ -850,7 +850,7 @@ function renderFcScenarioChart(){
   };
   scenFcChartInst=new Chart(canvas,{
     type:'bar',data:{labels,datasets},
-    plugins:[fcPlusPlugin,yoyArrowsPlugin],
+    plugins:[fcPlusPlugin,window.yoyArrowsPlugin],
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:12,font:{size:12}}},datalabels:{display:false},yoyArrows:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:gridColor}}}
     }
@@ -1282,12 +1282,12 @@ function renderExecMonthRangeBar(){
   if(!bar)return;
   bar.querySelectorAll('.month-cell').forEach(cell=>{
     const mo=parseInt(cell.dataset.mo);
-    cell.classList.toggle('active',execSelectedMonths.has(mo));
+    cell.classList.toggle('active',window.execSelectedMonths.has(mo));
   });
   const label=document.getElementById('execMonthRangeLabel');
   if(label){
-    if(!execSelectedMonths.size){label.textContent='All months (click or drag to select range)'}
-    else{const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const sorted=[...execSelectedMonths].sort((a,b)=>a-b);label.textContent=sorted.map(m=>MO_SHORT[m]).join(', ')}
+    if(!window.execSelectedMonths.size){label.textContent='All months (click or drag to select range)'}
+    else{const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const sorted=[...window.execSelectedMonths].sort((a,b)=>a-b);label.textContent=sorted.map(m=>MO_SHORT[m]).join(', ')}
   }
 }
 function initExecMonthRangeBar(){
@@ -1297,15 +1297,15 @@ function initExecMonthRangeBar(){
   function getMo(e){const cell=e.target.closest('.month-cell');return cell?parseInt(cell.dataset.mo):null}
   function selectRange(from,to){
     const lo=Math.min(from,to),hi=Math.max(from,to);
-    execSelectedMonths.clear();
-    for(let i=lo;i<=hi;i++)execSelectedMonths.add(i);
+    window.execSelectedMonths.clear();
+    for(let i=lo;i<=hi;i++)window.execSelectedMonths.add(i);
     renderExecMonthRangeBar();
   }
   function onFinish(){if(dragging){dragging=false;renderExecView()}}
   bar.addEventListener('mousedown',e=>{
     const mo=getMo(e);if(mo===null)return;
     dragging=true;startMo=mo;
-    if(execSelectedMonths.size===1&&execSelectedMonths.has(mo)){execSelectedMonths.clear();renderExecMonthRangeBar();dragging=false;renderExecView();return}
+    if(window.execSelectedMonths.size===1&&window.execSelectedMonths.has(mo)){window.execSelectedMonths.clear();renderExecMonthRangeBar();dragging=false;renderExecView();return}
     selectRange(mo,mo);
     e.preventDefault();
   });
@@ -1319,7 +1319,7 @@ function initExecMonthRangeBar(){
     const touch=e.touches[0];const el=document.elementFromPoint(touch.clientX,touch.clientY);
     if(!el||!el.classList.contains('month-cell'))return;
     const mo=parseInt(el.dataset.mo);dragging=true;startMo=mo;
-    if(execSelectedMonths.size===1&&execSelectedMonths.has(mo)){execSelectedMonths.clear();renderExecMonthRangeBar();dragging=false;renderExecView();return}
+    if(window.execSelectedMonths.size===1&&window.execSelectedMonths.has(mo)){window.execSelectedMonths.clear();renderExecMonthRangeBar();dragging=false;renderExecView();return}
     selectRange(mo,mo);e.preventDefault();
   },{passive:false});
   bar.addEventListener('touchmove',e=>{

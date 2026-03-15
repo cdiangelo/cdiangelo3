@@ -28,7 +28,7 @@ nav button.active{background:var(--accent);border-color:var(--accent);color:#fff
 .color-scheme-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
 .color-scheme-label{width:36px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
 
-/* Scenario/Data slide panels, panel close btn (lines 557-586) */
+/* Scenario/data slide panels, panel close btn (lines 557-586) */
 .scenario-toggle-btn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1100;background:rgba(58,125,68,.65);color:#fff;border:1px solid rgba(255,255,255,.15);padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:1px 1px 6px rgba(0,0,0,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,left .3s ease}
 .scenario-toggle-btn:hover{background:rgba(58,125,68,.85)}
 .scenario-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}

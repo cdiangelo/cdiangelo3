@@ -1,0 +1,170 @@
+/* Mobile Responsive (lines 403-553) */
+@media(max-width:768px){
+  .stat-cards{grid-template-columns:1fr 1fr}
+  .controls{flex-direction:column;align-items:stretch}
+  nav{display:flex;flex-direction:column;gap:6px}
+  .nav-group{width:100%}
+  .nav-group-btns{flex-wrap:wrap}
+  nav button{padding:6px 10px;font-size:.75rem}
+  .header-toggles{margin-left:0;margin-top:4px;flex-wrap:wrap}
+  header .container{flex-direction:column;align-items:flex-start}
+  header h1{font-size:1.1rem}
+  .container{padding:0 10px}
+  .tab-content{padding:12px 0}
+  .card{padding:12px}
+  .toggle-group{flex-wrap:wrap}
+  .toggle-group .btn{padding:5px 8px;font-size:.75rem}
+  .form-grid{grid-template-columns:1fr}
+  .filter-row{flex-direction:column}
+  .filter-row .form-group{min-width:100%;width:100%}
+  .chart-container{height:280px}
+  .export-grid{grid-template-columns:1fr}
+  .modal{width:95%;padding:16px;max-height:90vh}
+  .forecast-grid{grid-template-columns:1fr 1fr}
+  .table-wrap{-webkit-overflow-scrolling:touch}
+  th,td{padding:6px 8px;font-size:.78rem}
+  .stat-card .value{font-size:1rem}
+  .stat-card{padding:8px 10px}
+  .search-input{max-width:100%}
+  #tab-scratch>div{grid-template-columns:1fr!important;min-height:auto!important}
+  /* Stack all 2-col scratch/dim grids on mobile */
+  #vtab-vendor-scratch>div,#vtab-vendor-dims>div:first-child,
+  #depreciationModule main>div{grid-template-columns:1fr!important;min-height:auto!important}
+  /* Vendor/TE input widths */
+  #vendorModule input,#vendorModule select,#depreciationModule input,#depreciationModule select{max-width:100%;box-sizing:border-box}
+  #vendorNav{gap:4px}
+  #vendorNav .btn{padding:5px 8px;font-size:.72rem;flex:1;min-width:0;text-align:center}
+  .vtab-content .card{padding:10px}
+  /* Full-screen slide panels on mobile */
+  .scenario-slide-panel,.data-slide-panel{width:100vw!important;min-width:0!important}
+  body.scenario-open main,body.scenario-open header,body.scenario-open #landingPage{margin-left:0!important}
+  body.data-open main,body.data-open header,body.data-open #landingPage{margin-left:0!important}
+  body.scenario-open .scenario-toggle-btn,body.scenario-open .data-toggle-btn,body.data-open .data-toggle-btn,body.data-open .scenario-toggle-btn{display:none}
+  .panel-close-btn{display:flex!important}
+  /* Taller sparklines on mobile */
+  .stat-card canvas.sparkline{height:40px}
+  /* Better touch targets for data sheets */
+  .comp-table input,.comp-table select{min-height:32px;font-size:.82rem}
+  /* Scenario pane mobile adjustments */
+  .scenario-chart-container{height:200px}
+  .chatbot-panel{max-height:65vh;overflow-y:auto}
+  .scen-filter-section{grid-template-columns:1fr!important}
+  /* Vendor detail list mobile */
+  .vendor-row{flex-wrap:wrap}
+  .vendor-adj{width:100%}
+  .vendor-adj button{padding:4px 8px;font-size:.72rem}
+  /* Landing page mobile */
+  #landingPage{padding:16px 12px!important;overflow-x:hidden;max-width:100vw;box-sizing:border-box}
+  #landingPage h2{font-size:1.15rem}
+  #landingPage .landing-subtitle{font-size:.8rem;margin-bottom:16px}
+  .landing-modules{grid-template-columns:1fr!important;gap:14px;margin-bottom:20px}
+  .landing-module{padding:16px 14px}
+  .landing-module h3{font-size:.95rem}
+  .landing-module p{font-size:.78rem}
+  #landingPnlGrid{grid-template-columns:1fr!important;gap:14px}
+  .landing-charts{grid-template-columns:1fr!important;gap:14px}
+  .landing-chart-card{padding:10px 12px}
+  .landing-chart-card .chart-wrap{height:160px}
+  .pnl-walk{padding:12px 10px;margin-bottom:16px;overflow:hidden;max-width:100%;box-sizing:border-box}
+  .pnl-walk h3{font-size:.85rem}
+  .pnl-walk-table th,.pnl-walk-table td{padding:4px 6px;font-size:.72rem}
+  .pnl-walk-table td.label-cell{padding-left:12px;font-size:.74rem}
+  .pnl-walk-table th:first-child{position:sticky;left:0;z-index:2;background:var(--panel-inset);min-width:80px;max-width:120px;font-size:.68rem;word-break:break-word;white-space:normal}
+  .pnl-walk-table td:first-child{position:sticky;left:0;z-index:1;background:var(--panel);min-width:80px;max-width:120px;font-size:.68rem;word-break:break-word;white-space:normal}
+  .pnl-walk-table .num{font-size:.66rem;white-space:nowrap}
+  #landingSessionBox{padding:12px 14px;gap:10px;flex-direction:column!important;align-items:stretch!important}
+  #landingSessionBox>div:first-child{min-width:0!important}
+  #landingSessionBox>div:nth-child(2){flex-direction:row;display:flex;gap:8px;width:100%}
+  #landingSessionBox input[type="text"]{width:100%!important;font-size:1.1rem;letter-spacing:3px;box-sizing:border-box;flex:1;min-width:0}
+  #landingSessionBox .btn-primary{white-space:nowrap;flex-shrink:0}
+  /* Landing header: stack title and controls */
+  #landingPage>div:first-child{flex-direction:column!important;gap:8px}
+  #landingPage>div:first-child>div:last-child{margin-top:0!important;flex-wrap:wrap;gap:8px}
+  /* P&L filter row wrap */
+  .pnl-walk>div:first-child{flex-direction:column!important;gap:6px}
+  .pnl-walk>div:first-child>div:last-child{display:grid!important;grid-template-columns:1fr 1fr;gap:4px!important}
+  .pnl-walk .form-group{min-width:0;width:100%}
+  .pnl-walk .form-group select{width:100%;font-size:.7rem;box-sizing:border-box}
+  /* P&L table horizontal scroll contained within card */
+  .pnl-walk .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+  /* Slide panels: contain overflow */
+  .scenario-slide-panel,.data-slide-panel{overflow-x:hidden!important;box-sizing:border-box;padding:12px!important}
+  .chatbot-header{flex-wrap:wrap;gap:4px;padding:6px 8px;font-size:.78rem}
+  .chatbot-header>div{flex-wrap:wrap;gap:3px}
+  .chatbot-header .btn,.chatbot-header .btn-sm{font-size:.68rem!important;padding:2px 6px!important}
+  .month-cell{font-size:.55rem;padding:2px 0}
+  .scen-emp-search{width:100%;box-sizing:border-box}
+  .scen-action-pane{overflow-x:hidden}
+  /* P&L summary tables in scenario panels */
+  #scenBudgetPnl,#scenFcPnl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #scenBudgetPnl table,#scenFcPnl table{font-size:.7rem}
+  #scenBudgetPnl th,#scenBudgetPnl td,#scenFcPnl th,#scenFcPnl td{padding:3px 5px;font-size:.68rem;white-space:nowrap}
+  /* Vendor detail list contained */
+  .vendor-detail-list{overflow-x:hidden;max-width:100%}
+  /* Hide sticky notepad and teams on mobile */
+  .sticky-note-btn,.sticky-note-panel,.teams-btn,.teams-panel{display:none!important}
+  /* Quick-Adjust panels mobile */
+  .qa-panel-header{padding:8px 10px}
+  .qa-panel-header h4{font-size:.82rem}
+  .qa-panel-body{padding:10px}
+  .qa-row-item{padding:5px 6px;gap:6px}
+  .qa-row-item .qa-row-name{min-width:80px;font-size:.76rem}
+  .qa-add-form{flex-direction:column;gap:8px}
+  .qa-add-form>div{width:100%}
+  .qa-add-form input,.qa-add-form select{width:100%!important;box-sizing:border-box}
+  /* Prevent page-level horizontal scroll -- applied to html to avoid clipping fixed elements */
+  html{overflow-x:hidden}
+}
+@media(max-width:480px){
+  .stat-cards{grid-template-columns:1fr}
+  nav button{font-size:.7rem;padding:5px 8px}
+  .toggle-group .btn{font-size:.7rem;padding:4px 6px}
+  .chart-container{height:220px}
+  header h1{font-size:1rem}
+  .forecast-grid{grid-template-columns:1fr}
+  #vendorNav .btn{font-size:.68rem;padding:4px 6px}
+  .stat-card canvas.sparkline{height:44px}
+  .stat-card .value{font-size:1.1rem}
+  /* Landing page small mobile */
+  #landingPage{padding:10px 6px!important}
+  #landingPage h2{font-size:.95rem}
+  #landingPage .landing-subtitle{font-size:.74rem;margin-bottom:10px}
+  .landing-modules{gap:10px;margin-bottom:14px}
+  .landing-module{padding:10px 10px}
+  .landing-module h3{font-size:.82rem}
+  .landing-module p{font-size:.72rem}
+  .landing-module .mod-icon{font-size:1.1rem}
+  .landing-module .mod-badge{font-size:.6rem;padding:2px 6px}
+  .landing-chart-card .chart-wrap{height:130px}
+  .landing-chart-card{padding:8px 10px}
+  .pnl-walk{padding:8px 6px}
+  .pnl-walk h3{font-size:.78rem}
+  .pnl-walk-table th,.pnl-walk-table td{padding:3px 3px;font-size:.62rem}
+  .pnl-walk-table .num{font-size:.6rem}
+  .pnl-walk-table th:first-child,.pnl-walk-table td:first-child{min-width:60px;max-width:90px;font-size:.6rem}
+  .pnl-walk>div:first-child>div:last-child{grid-template-columns:1fr 1fr!important}
+  .pnl-walk .form-group label{font-size:.6rem}
+  .pnl-walk .form-group select{font-size:.64rem;padding:2px 3px}
+  #landingSessionBox{padding:10px;gap:8px}
+  #landingSessionBox input[type="text"]{font-size:.95rem;letter-spacing:2px;padding:6px 8px}
+  #landingSessionBox .btn{font-size:.8rem;padding:6px 14px}
+}
+
+/* Exec-pane mobile media query (lines 689-693) */
+@media(max-width:768px){
+  .exec-pane{padding:12px}
+  .exec-roster-person{flex-direction:column;gap:2px}
+  .exec-roster-person .person-metrics{text-align:left;font-size:.75rem}
+}
+
+/* Landing charts 900px media query (line 729) */
+@media(max-width:900px){.landing-charts{grid-template-columns:1fr}}
+
+/* Landing PnL grid 900px query (line 710) */
+@media(max-width:900px){#landingPnlGrid{grid-template-columns:1fr!important}}
+
+/* Landing modules 900px query (line 741) */
+@media(max-width:900px){.landing-modules{grid-template-columns:1fr}}
+
+/* Scenario grid 900px query (line 844) */
+@media(max-width:900px){.scenario-grid{grid-template-columns:1fr}}

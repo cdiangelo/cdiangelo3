@@ -1,4 +1,5 @@
 // ── Universal Sticky Notes ──
+
 export function initStickyNotes(){
   const btn=document.getElementById('stickyNoteBtn');
   const panel=document.getElementById('stickyNotePanel');

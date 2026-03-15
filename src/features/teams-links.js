@@ -1,4 +1,5 @@
 // ── Teams Quick-Join ──
+
 export function initTeamsLinks(){
   const btn=document.getElementById('teamsBtn');
   const panel=document.getElementById('teamsPanel');

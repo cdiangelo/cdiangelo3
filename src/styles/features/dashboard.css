@@ -1,0 +1,13 @@
+/* Exec View (lines 554-556) */
+.exec-pane{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
+.exec-pane h3{color:var(--accent);font-size:1rem;font-weight:700;margin-bottom:16px}
+
+/* Sparkline canvas, exec-pane toggle (lines 836-843) */
+.stat-card{overflow:hidden}
+.stat-card canvas.sparkline{display:block;width:100%;height:28px;margin-top:8px;box-sizing:border-box}
+.exec-pane-toggle{cursor:pointer;user-select:none}
+.exec-pane-toggle:hover{opacity:.8}
+.exec-pane.collapsed .exec-pane-body{display:none}
+.exec-pane.collapsed .toggle-icon{transform:rotate(-90deg);display:inline-block}
+.scenario-link-toggle{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--text-dim);cursor:pointer}
+.scenario-link-toggle input{cursor:pointer}

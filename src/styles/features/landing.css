@@ -1,0 +1,51 @@
+/* Landing Page (lines 694-741) */
+#landingPage{padding:40px 80px;max-width:100%;margin:0 auto}
+#landingPage h2{font-size:1.6rem;color:var(--accent);margin-bottom:8px}
+#landingPage .landing-subtitle{color:var(--text-dim);font-size:.9rem;margin-bottom:32px}
+.landing-modules{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-bottom:40px}
+.landing-module{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;cursor:pointer;transition:all .35s ease;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px}
+.landing-module h3{font-size:1.1rem;color:var(--accent);display:flex;align-items:center;gap:10px}
+.landing-module .mod-icon{font-size:1.4rem}
+.landing-module p{color:var(--text-dim);font-size:.85rem;flex:1}
+.landing-module .mod-badge{display:inline-block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;padding:3px 10px;border-radius:12px;font-weight:600;align-self:flex-start}
+.landing-module .mod-badge.active{background:rgba(58,125,68,.12);color:var(--success);border:1px solid var(--success)}
+.landing-module .mod-badge.coming{background:rgba(184,134,11,.1);color:var(--warning);border:1px solid var(--warning)}
+.landing-module:hover{transform:translateY(-4px);box-shadow:0 0 24px rgba(139,32,32,.25);border-color:var(--accent)}
+.landing-module.disabled{opacity:.65;cursor:default}
+.landing-module.disabled:hover{transform:none;box-shadow:none;border-color:var(--border)}
+.landing-charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.landing-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative}
+.landing-chart-card .chart-wrap{position:relative;width:100%;height:180px}
+.landing-chart-title{font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.chart-expand-btn{position:absolute;top:8px;right:10px;background:var(--panel);border:1px solid var(--border);color:var(--text-dim);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s,background .2s;z-index:2}
+.chart-expand-btn:hover{opacity:1;background:var(--border)}
+
+/* Undo toast (lines 716-720) */
+#undoToast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);z-index:9999;background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:.85rem;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:transform .3s ease;pointer-events:none;opacity:0}
+#undoToast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
+#undoToast button{background:var(--accent);color:#fff;border:none;padding:4px 14px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:600}
+#undoToast button:hover{filter:brightness(1.15)}
+body.scenario-open #undoToast,body.data-open #undoToast{left:calc(50% + 25vw)}
+
+/* Chart expand pane (lines 721-728) */
+#chartExpandPane{position:fixed;bottom:0;right:0;left:0;height:70vh;background:var(--bg);border-top:2px solid var(--border);z-index:1040;transform:translateY(100%);transition:transform .3s ease,left .3s ease;overflow-y:auto;padding:24px 32px;box-shadow:0 -4px 24px rgba(0,0,0,.18)}
+#chartExpandPane.open{transform:translateY(0)}
+body.scenario-open #chartExpandPane,body.data-open #chartExpandPane{left:50vw}
+#chartExpandPane .expand-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px}
+#chartExpandPane .expand-chart-card .chart-wrap{position:relative;width:100%;height:340px}
+#chartExpandPane .expand-chart-title{font-size:.88rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+#chartExpandPane .expand-close-btn{position:sticky;top:0;z-index:2;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 16px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:16px;display:inline-flex;align-items:center;gap:6px}
+#chartExpandPane .expand-close-btn:hover{background:var(--border)}
+
+/* P&L Walk (lines 730-740) */
+.pnl-walk{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:32px}
+.pnl-walk h3{color:var(--accent);font-size:1rem;margin-bottom:10px}
+.pnl-walk-table{width:100%;border-collapse:collapse}
+.pnl-walk-table.compact{width:auto;min-width:0}
+.pnl-walk-table th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);padding:5px 10px;border-bottom:2px solid var(--border);background:var(--panel-inset)}
+.pnl-walk-table td{padding:6px 10px;font-size:.82rem;border-bottom:1px solid var(--border-light)}
+.pnl-walk-table tr.subtotal td{font-weight:700;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);color:var(--accent);background:rgba(139,32,32,.04);padding:5px 10px;font-size:.82rem}
+.pnl-walk-table tr.total td{font-weight:700;border-top:3px double var(--accent);color:var(--text-dark);font-size:.84rem;background:rgba(139,32,32,.07);padding:5px 10px}
+.pnl-walk-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pnl-walk-table td.label-cell{color:var(--text-dim);padding-left:20px;font-size:.84rem}
+.pnl-walk-table td.section-label{font-weight:600;color:var(--text-dark)}

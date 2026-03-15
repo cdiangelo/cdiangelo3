@@ -1,4 +1,4 @@
-/* Card & Card Inset (lines 49-50) */
+/* Card & Card-Inset (lines 49-50) */
 .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px}
 .card-inset{background:var(--panel-inset);border:1px solid var(--border-light);border-radius:8px;padding:16px}
 
@@ -8,10 +8,8 @@
 .stat-card .label{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;line-height:1.2}
 .stat-card .value{font-size:1.15rem;font-weight:700;color:var(--accent)}
 
-/* Controls (line 55) */
+/* Controls & Button variants (lines 55-63) */
 .controls{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:center}
-
-/* Button variants (lines 56-63) */
 .btn{padding:8px 16px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-size:.85rem;transition:all .2s}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.active,.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -21,12 +19,12 @@
 .btn-success{background:var(--success);border-color:var(--success);color:#fff}
 .btn-sm{padding:5px 10px;font-size:.8rem}
 
-/* Select, Input, Textarea (lines 64-66) */
+/* Select/Input/Textarea, Label (lines 64-66) */
 select,input,textarea{background:#fff;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:.875rem;width:100%}
 select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent)}
 label{font-size:.8rem;color:var(--text-dim);margin-bottom:4px;display:block}
 
-/* Table, th, td, tr (lines 67-68, 77-79) */
+/* Table, th, td, tr, table-wrap (lines 67-79) */
 table{width:100%;border-collapse:collapse}
 th{background:var(--panel-inset);color:var(--accent);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;text-align:left;position:sticky;top:0;white-space:normal;word-break:break-word}
 .col-divider{border-left:1px solid var(--border-light)!important}
@@ -35,61 +33,45 @@ td{padding:10px 12px;border-bottom:1px solid var(--border-light);font-size:.875r
 tr:hover{background:rgba(139,32,32,.03)}
 .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);background:var(--panel)}
 
-/* Form Grid (line 104) */
+/* Form-grid, search-input, matrix-table, toggle-group (lines 104-114) */
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-
-/* Benchmark Badge (lines 105-106) */
 .benchmark-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(139,32,32,.08);border:1px solid var(--accent);color:var(--accent);padding:4px 10px;border-radius:20px;font-size:.8rem;cursor:pointer;margin-top:6px;transition:all .2s}
 .benchmark-badge:hover{background:rgba(139,32,32,.15)}
-
-/* Search Input (line 107) */
 .search-input{max-width:300px}
-
-/* Matrix Table (lines 108-111) */
 .matrix-table{font-size:.8rem}
 .matrix-table input{width:60px;text-align:center;padding:4px;font-size:.8rem}
 .matrix-table th,.matrix-table td{padding:6px 8px;text-align:center}
 .matrix-table th{white-space:nowrap}
-
-/* Toggle Group (lines 112-114) */
 .toggle-group{display:flex;gap:4px;background:var(--panel-inset);border-radius:6px;padding:3px;border:1px solid var(--border)}
 .toggle-group .btn{border:none;background:none;padding:6px 14px;color:var(--text-dim)}
 .toggle-group .btn.active{background:var(--accent);border-radius:4px;color:#fff}
 
-/* Monthly Table (lines 115-118) */
+/* Monthly table, export grid/card, inline-edit (lines 115-123) */
 .monthly-table{font-size:.85rem}
 .monthly-table td,.monthly-table th{text-align:right;padding:8px 12px}
 .monthly-table td:first-child,.monthly-table th:first-child{text-align:left}
 .monthly-table tfoot{font-weight:700;border-top:2px solid var(--accent)}
-
-/* Export Grid/Card (lines 119-122) */
 .export-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
 .export-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:12px}
 .export-card h3{color:var(--accent);font-size:1rem}
 .export-card p{color:var(--text-dim);font-size:.85rem;flex:1}
-
-/* Inline Edit (line 123) */
 .inline-edit input,.inline-edit select{padding:4px 6px;font-size:.85rem;width:100%}
 
-/* Chart Container (line 124) */
+/* Chart container (line 124) */
 .chart-container{position:relative;height:400px;margin-bottom:20px}
 
-/* Filter Row (lines 125-126) */
+/* Filter row, separator, section-title (lines 125-128) */
 .filter-row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
 .filter-row .form-group{min-width:160px}
-
-/* Separator (line 127) */
 .separator{border:none;border-top:1px solid var(--border);margin:16px 0}
-
-/* Section Title (line 128) */
 .section-title{color:var(--accent);font-size:1.05rem;font-weight:700;margin-bottom:16px}
 
-/* Alloc Flag / Override (lines 129-131) */
+/* Alloc flag/override (lines 129-131) */
 .alloc-flag{display:inline-flex;align-items:center;gap:6px;background:var(--flag-bg);border:1px solid var(--flag-border);color:#856404;padding:3px 10px;border-radius:4px;font-size:.78rem;font-weight:600}
 .alloc-flag.ok{background:#d4edda;border-color:#a3d9b1;color:#155724}
 .alloc-override{font-size:.75rem;color:var(--text-dim);cursor:pointer;text-decoration:underline;margin-left:6px}
 
-/* Forecast Section/Grid/Input/Table (lines 132-149) */
+/* Forecast section/grid/input/table (lines 132-149) */
 .forecast-section{margin-bottom:24px}
 .forecast-section h4{color:var(--accent);margin-bottom:12px;font-size:.95rem}
 .forecast-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
@@ -97,7 +79,7 @@ tr:hover{background:rgba(139,32,32,.03)}
 .forecast-input-group label{font-size:.75rem;color:var(--text-dim)}
 .forecast-input-group input{width:100%;text-align:center}
 
-/* Toggle Switch (lines 138-145) */
+/* Toggle switches (lines 138-145) */
 .toggle-switch{position:relative;display:inline-block;width:40px;height:22px}
 .toggle-switch input{opacity:0;width:0;height:0}
 .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border);border-radius:22px;transition:.3s}
@@ -107,30 +89,24 @@ tr:hover{background:rgba(139,32,32,.03)}
 .toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .toggle-row label{margin-bottom:0;font-size:.85rem;color:var(--text)}
 
-/* Forecast Table (lines 146-149) */
+/* Forecast table (lines 146-149) */
 .forecast-table{font-size:.85rem}
 .forecast-table td,.forecast-table th{text-align:right;padding:8px 10px}
 .forecast-table td:first-child,.forecast-table th:first-child{text-align:left}
 .forecast-table tfoot{font-weight:700;border-top:2px solid var(--accent)}
 
-/* Projects Table (line 150) */
+/* Projects table, expand-select, forecast-group-row (lines 150-155) */
 .projects-table input,.projects-table select{padding:4px 6px;font-size:.82rem}
-
-/* Expand Select (lines 151-153) */
 .expand-select{display:inline-block;margin-left:16px;font-size:.8rem}
 .expand-select select{width:auto;padding:4px 8px;font-size:.78rem;display:inline}
 .expand-select label{display:inline;margin-right:4px;font-size:.78rem;color:var(--text-dim)}
-
-/* Forecast Group Row (lines 154-155) */
 .forecast-group-row{margin-bottom:12px;padding:10px;background:var(--panel);border:1px solid var(--border-light);border-radius:6px}
 .forecast-group-row .group-label{font-size:.82rem;font-weight:600;color:var(--accent);margin-bottom:6px}
 
-/* Workspace Indicator (lines 156-158) */
+/* Workspace indicator, ws-list (lines 156-166) */
 .workspace-indicator{font-size:.78rem;color:var(--text-dim);margin-left:12px;display:inline-flex;align-items:center;gap:6px}
 .workspace-indicator .ws-name{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
 .workspace-indicator .ws-name:hover{color:var(--accent-light)}
-
-/* Workspace List (lines 159-166) */
 .ws-list{list-style:none;margin:0;padding:0}
 .ws-list li{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border-light);gap:12px}
 .ws-list li:last-child{border-bottom:none}
@@ -140,7 +116,7 @@ tr:hover{background:rgba(139,32,32,.03)}
 .ws-list .ws-meta{font-size:.75rem;color:var(--text-dim);margin-top:2px}
 .ws-list .ws-active{color:var(--success);font-size:.75rem;font-weight:600}
 
-/* Modal (lines 167-171) */
+/* Modal overlay & modal (lines 167-171) */
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:var(--panel);border-radius:12px;padding:24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
