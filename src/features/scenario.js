@@ -2242,6 +2242,8 @@ window.initScenarioPane = initScenarioPane;
 window.createSpendMonthRangeBar = createSpendMonthRangeBar;
 Object.defineProperty(window, 'budgetScenario', { get(){ return budgetScenario; }, configurable: true });
 Object.defineProperty(window, 'budgetScenarioDirty', { get(){ return budgetScenarioDirty; }, configurable: true });
+window.initExecMonthRangeBar = initExecMonthRangeBar;
+window.renderExecMonthRangeBar = renderExecMonthRangeBar;
 
 /* ── named exports ── */
 export {

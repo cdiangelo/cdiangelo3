@@ -68,3 +68,14 @@ export function setDisplayBaseYear(val){DISPLAY_BASE_YEAR=val}
 export const CURRENT_YEAR = 2026;
 
 export const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// Expose on window for cross-module references
+window.benchmark = benchmark;
+window.fmt = fmt;
+window.esc = esc;
+window.uid = uid;
+window.getDisplayYears = getDisplayYears;
+window.getDisplayFcLabels = getDisplayFcLabels;
+window.displayYear = displayYear;
+window.CURRENT_YEAR = CURRENT_YEAR;
+window.FORECAST_YEARS = FORECAST_YEARS;

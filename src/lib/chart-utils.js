@@ -313,3 +313,20 @@ export const yoyArrowsPlugin={
     ctx.restore();
   }
 };
+
+// Expose on window for cross-module references
+window.chartColorScheme = chartColorScheme;
+window.getChartColors = getChartColors;
+window.getCrispDatalabelColor = getCrispDatalabelColor;
+window.getSparkColor = getSparkColor;
+window.getStatValueColor = getStatValueColor;
+window.hexToRgba = hexToRgba;
+window.stackedBarDatalabels = stackedBarDatalabels;
+window.yoyArrowsPlugin = yoyArrowsPlugin;
+window.FTE_TOOLTIP = FTE_TOOLTIP;
+window.fmtShort = fmtShort;
+window.TAG_COLORS_LIGHT = TAG_COLORS_LIGHT;
+window.TAG_COLORS_DARK = TAG_COLORS_DARK;
+window.setChartColorScheme = setChartColorScheme;
+// Provide a callback registry for color scheme changes
+window.colorSchemeCallbacks = window.colorSchemeCallbacks || [];

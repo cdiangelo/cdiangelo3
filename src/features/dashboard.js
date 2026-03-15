@@ -650,3 +650,5 @@ window.currentMonth = currentMonth;
 window.syncMonthSelectors = syncMonthSelectors;
 window.TAG_COLORS_LIGHT = TAG_COLORS_LIGHT;
 window.TAG_COLORS_DARK = TAG_COLORS_DARK;
+window.getFilteredEmployees = getFilteredEmployees;
+window.renderStats = renderStats;

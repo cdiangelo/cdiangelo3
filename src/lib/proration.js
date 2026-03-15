@@ -86,3 +86,12 @@ export function getEmpPrimaryMarket(emp){
   if(primary){const p=getProjectById(primary.projId);if(p&&p.marketCode)return p.marketCode}
   return markets[0].code;
 }
+
+// Expose on window for cross-module references
+window.getEmpProject = getEmpProject;
+window.getProjectById = getProjectById;
+window.getProjectByCode = getProjectByCode;
+window.getEmpMarkets = getEmpMarkets;
+window.getEmpPrimaryMarket = getEmpPrimaryMarket;
+window.getEmpAllocTotal = getEmpAllocTotal;
+window.getAllocFlag = getAllocFlag;

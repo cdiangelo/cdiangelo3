@@ -395,6 +395,9 @@ window.closeSessionModal = closeSessionModal;
 window.leaveSession = leaveSession;
 window.enterSession = enterSession;
 window.showToast = showToast;
+window.updateSessionUI = updateSessionUI;
+window.debouncedServerSave = debouncedServerSave;
+window.broadcastStateChange = broadcastStateChange;
 
 export {
   initSessionModal,

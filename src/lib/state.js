@@ -102,6 +102,22 @@ export function ensureStateFields(){
   }
   if(!state.forecastAssumptions.expandBy)state.forecastAssumptions.expandBy={attrition:'total',hires:'total',merit:'total',market:'total',ai:'total'};
   if(!state.forecastAssumptions.capitalization)state.forecastAssumptions.capitalization=FORECAST_YEARS.map(()=>0);
+  // Ensure all forecast arrays match FORECAST_YEARS length (pad or trim as needed)
+  const fcLen=FORECAST_YEARS.length;
+  const fcDefaults={attrition:12,hires:5,merit:3,market:2,capitalization:0};
+  ['attrition','hires','merit','market','capitalization'].forEach(k=>{
+    const arr=state.forecastAssumptions[k];
+    if(!arr||!Array.isArray(arr)){state.forecastAssumptions[k]=FORECAST_YEARS.map(()=>fcDefaults[k]);return}
+    while(arr.length<fcLen)arr.push(fcDefaults[k]);
+    if(arr.length>fcLen)arr.length=fcLen;
+  });
+  if(state.forecastAssumptions.ai){
+    const ai=state.forecastAssumptions.ai;
+    while(ai.length<fcLen)ai.push(Math.max(0.7,1-ai.length*0.05));
+    if(ai.length>fcLen)ai.length=fcLen;
+  } else {
+    state.forecastAssumptions.ai=FORECAST_YEARS.map((_,i)=>Math.max(0.7,1-i*0.05));
+  }
   if(!state.forecastAssumptions.expandBy.capitalization)state.forecastAssumptions.expandBy.capitalization='total';
   if(state.forecastAssumptions.toggles.capitalization===undefined)state.forecastAssumptions.toggles.capitalization=true;
   if(!state.forecastAssumptions.overrides)state.forecastAssumptions.overrides={};

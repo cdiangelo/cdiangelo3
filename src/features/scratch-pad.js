@@ -567,3 +567,7 @@ export function initDepScratch(){
   else depScratch.resizeWbCanvas();
 }
 
+window.initScratchPad = initScratchPad;
+window.initVendorScratch = initVendorScratch;
+window.initDepScratch = initDepScratch;
+

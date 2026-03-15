@@ -569,3 +569,4 @@ window.duplicateVersionOnServer = duplicateVersionOnServer;
 window.deleteVersionFromServer = deleteVersionFromServer;
 window.saveWorkspaceAsLocal = saveWorkspaceAsLocal;
 window.currentWorkspaceName = currentWorkspaceName;
+window.renderWorkspaceList = renderWorkspaceList;

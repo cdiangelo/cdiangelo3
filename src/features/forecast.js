@@ -731,3 +731,6 @@ window.onExpandChange = onExpandChange;
 window.onModeChange = onModeChange;
 window.openForecastAssumptionsModal = openForecastAssumptionsModal;
 window.closeForecastAssumptionsModal = closeForecastAssumptionsModal;
+window.renderForecast = renderForecast;
+window.projectForecast = projectForecast;
+window.renderForecastProjection = renderForecastProjection;
