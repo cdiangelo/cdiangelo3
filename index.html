@@ -1012,6 +1012,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
+<label class="header-toggle" title="Show/hide revenue module"><input type="checkbox" id="landingToggleRevenue" checked><span class="toggle-track"></span>Revenue</label>
 <div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
 <input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="landingColorSchemeSlider">
 <span class="color-scheme-label" id="landingColorSchemeLabel">Muted</span>
@@ -14676,6 +14677,17 @@ document.getElementById('toggleRevenuePane').addEventListener('click',function()
   state.showRevenuePane=isHidden;saveState();
 });
 
+// Revenue module toggle (overview only)
+const landingToggleRevenue=document.getElementById('landingToggleRevenue');
+function setRevenueMode(on){
+  localStorage.setItem('compPlanRevenue',on?'1':'0');
+  landingToggleRevenue.checked=on;
+  document.getElementById('modRevenue').style.display=on?'':'none';
+  document.getElementById('landingRevenuePane').style.display=on?'':'none';
+}
+landingToggleRevenue.addEventListener('change',function(){setRevenueMode(this.checked)});
+if(localStorage.getItem('compPlanRevenue')==='0'){setRevenueMode(false)}
+
 // P&L mode toggle (cost vs revenue/profitability)
 document.getElementById('landingPnlModeToggle').querySelectorAll('[data-pnlmode]').forEach(btn=>{
   btn.addEventListener('click',function(){
@@ -15080,34 +15092,29 @@ function renderLandingRevForecastChart(){
 
 // ── CHART EXPAND PANE ──
 let expandBudgetInst=null,expandForecastInst=null,expandRevenueInst=null,expandRevFcInst=null;
+function deepClone(obj){
+  if(obj===null||typeof obj!=='object')return obj;
+  if(typeof obj==='function')return obj;
+  if(Array.isArray(obj))return obj.map(deepClone);
+  var out={};for(var k in obj){if(obj.hasOwnProperty(k))out[k]=typeof obj[k]==='function'?obj[k]:deepClone(obj[k])}
+  return out;
+}
+function cloneChartCfg(inst,canvasId){
+  var cfg=inst.config;
+  return{type:cfg.type,data:deepClone(cfg.data),plugins:(cfg.plugins||[]).slice(),options:deepClone(cfg.options)};
+}
 function renderExpandedCharts(){
   if(typeof Chart==='undefined')return;
-  const pane=document.getElementById('chartExpandPane');
+  var pane=document.getElementById('chartExpandPane');
   if(!pane||!pane.classList.contains('open'))return;
-  // Budget
   if(expandBudgetInst)expandBudgetInst.destroy();
-  if(landingBudgetChartInst){
-    const cfg=landingBudgetChartInst.config;
-    expandBudgetInst=new Chart(document.getElementById('expandBudgetChart'),{type:cfg.type,data:JSON.parse(JSON.stringify(cfg.data)),plugins:cfg.plugins||[],options:JSON.parse(JSON.stringify(cfg.options))});
-  }
-  // Forecast
+  if(landingBudgetChartInst)expandBudgetInst=new Chart(document.getElementById('expandBudgetChart'),cloneChartCfg(landingBudgetChartInst));
   if(expandForecastInst)expandForecastInst.destroy();
-  if(landingForecastChartInst){
-    const cfg=landingForecastChartInst.config;
-    expandForecastInst=new Chart(document.getElementById('expandForecastChart'),{type:cfg.type,data:JSON.parse(JSON.stringify(cfg.data)),plugins:cfg.plugins||[],options:JSON.parse(JSON.stringify(cfg.options))});
-  }
-  // Revenue
+  if(landingForecastChartInst)expandForecastInst=new Chart(document.getElementById('expandForecastChart'),cloneChartCfg(landingForecastChartInst));
   if(expandRevenueInst)expandRevenueInst.destroy();
-  if(landingRevenueChartInst){
-    const cfg=landingRevenueChartInst.config;
-    expandRevenueInst=new Chart(document.getElementById('expandRevenueChart'),{type:cfg.type,data:JSON.parse(JSON.stringify(cfg.data)),options:JSON.parse(JSON.stringify(cfg.options))});
-  }
-  // Revenue Forecast
+  if(landingRevenueChartInst)expandRevenueInst=new Chart(document.getElementById('expandRevenueChart'),cloneChartCfg(landingRevenueChartInst));
   if(expandRevFcInst)expandRevFcInst.destroy();
-  if(landingRevFcChartInst){
-    const cfg=landingRevFcChartInst.config;
-    expandRevFcInst=new Chart(document.getElementById('expandRevFcChart'),{type:cfg.type,data:JSON.parse(JSON.stringify(cfg.data)),options:JSON.parse(JSON.stringify(cfg.options))});
-  }
+  if(landingRevFcChartInst)expandRevFcInst=new Chart(document.getElementById('expandRevFcChart'),cloneChartCfg(landingRevFcChartInst));
 }
 function openChartExpandPane(targetId){
   const pane=document.getElementById('chartExpandPane');
@@ -15132,11 +15139,11 @@ document.querySelectorAll('.chart-expand-btn').forEach(function(btn){
 });
 // Keep expanded charts in sync when landing charts re-render
 const _origRenderLandingCharts=renderLandingCharts;
-renderLandingCharts=function(){_origRenderLandingCharts();renderExpandedCharts()};
+renderLandingCharts=function(){_origRenderLandingCharts();try{renderExpandedCharts()}catch(e){console.warn('Expand chart sync error:',e)}};
 const _origRenderLandingRevChart=renderLandingRevenueChart;
-renderLandingRevenueChart=function(){_origRenderLandingRevChart();renderExpandedCharts()};
+renderLandingRevenueChart=function(){_origRenderLandingRevChart();try{renderExpandedCharts()}catch(e){console.warn('Expand chart sync error:',e)}};
 const _origRenderLandingRevFc=renderLandingRevForecastChart;
-renderLandingRevForecastChart=function(){_origRenderLandingRevFc();renderExpandedCharts()};
+renderLandingRevForecastChart=function(){_origRenderLandingRevFc();try{renderExpandedCharts()}catch(e){console.warn('Expand chart sync error:',e)}};
 
 // ── INIT ──
 function renderAll(){
