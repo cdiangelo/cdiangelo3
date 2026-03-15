@@ -612,6 +612,24 @@ body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptions
 .qa-step-label{font-size:.68rem;color:var(--text-dim);white-space:nowrap}
 .qa-total-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--panel-inset);border-radius:6px;margin-top:8px;font-size:.82rem;font-weight:600}
 .qa-total-bar .qa-total-amt{font-size:.92rem;color:var(--accent)}
+/* D&A tab content */
+.dtab-content{display:none}.dtab-content:first-of-type{display:block}
+/* Revenue tab content */
+.rtab-content{display:none}.rtab-content:first-of-type{display:block}
+/* Revenue KPI cards */
+.rev-kpi-card{background:var(--panel-inset);border:1px solid var(--border-light);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rev-kpi-label{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.rev-kpi-value{font-size:1.1rem;font-weight:700;color:var(--accent);white-space:nowrap}
+.rev-kpi-spark{width:100%;max-height:30px}
+/* Asset year header expand */
+.asset-yr-hdr{background:var(--panel-inset);font-weight:700;text-align:center;transition:background .15s}
+.asset-yr-hdr:hover{background:var(--border-light)}
+.asset-yr-hdr.expanded{background:rgba(39,174,96,.1)}
+.asset-mo-sub{font-size:.72rem;text-align:center;background:rgba(39,174,96,.04)}
+/* Dep category header row */
+.dep-cat-row td{background:var(--panel-inset);font-weight:700;cursor:pointer}
+.dep-cat-row:hover td{background:var(--border-light)}
+.dep-entry-row.hidden{display:none}
 #forecastAssumptionsModal .modal{max-width:720px;width:95%;max-height:85vh}
 #forecastAssumptionsModal .modal-body{max-height:60vh;overflow-y:auto}
 #forecastAssumptionsModal .forecast-section{margin-bottom:8px;padding:8px 10px}
@@ -673,7 +691,7 @@ body.ops-mode .exec-roster-prod .prod-header{cursor:default}
 #landingPage{padding:40px 80px;max-width:100%;margin:0 auto}
 #landingPage h2{font-size:1.6rem;color:var(--accent);margin-bottom:8px}
 #landingPage .landing-subtitle{color:var(--text-dim);font-size:.9rem;margin-bottom:32px}
-.landing-modules{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:40px}
+.landing-modules{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-bottom:40px}
 .landing-module{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 28px;cursor:pointer;transition:all .35s ease;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px}
 .landing-module h3{font-size:1.1rem;color:var(--accent);display:flex;align-items:center;gap:10px}
 .landing-module .mod-icon{font-size:1.4rem}
@@ -1013,7 +1031,12 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="landing-module" id="modDepreciation">
 <h3><span class="mod-icon">&#9670;</span> Depreciation, CapEx &amp; Asset Summary</h3>
 <p>Depreciation schedules, capital expenditure tracking, and consolidated asset reporting.</p>
-<span class="mod-badge coming">In Development</span>
+<span class="mod-badge active">Active</span>
+</div>
+<div class="landing-module" id="modRevenue">
+<h3><span class="mod-icon">&#9734;</span> Tech Revenue</h3>
+<p>Client revenue tracking, MRR/ARR metrics, contract management, forecasting, and revenue analysis.</p>
+<span class="mod-badge active">Active</span>
 </div>
 </div>
 
@@ -1023,6 +1046,10 @@ Template Mode &mdash; changes saved in this browser only.
 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px">
 <h3 style="margin-bottom:0;font-size:.95rem">P&amp;L by Product Category</h3>
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+<div class="toggle-group" id="landingPnlModeToggle" style="font-size:.72rem;margin-right:6px">
+<button class="btn active" data-pnlmode="cost" style="padding:2px 10px;font-size:.72rem">Cost View</button>
+<button class="btn" data-pnlmode="revenue" style="padding:2px 10px;font-size:.72rem">Revenue / P&amp;L</button>
+</div>
 <div class="toggle-group" id="landingChartViewToggle" style="font-size:.72rem">
 <button class="btn active" data-lcview="pnl" style="padding:2px 10px;font-size:.72rem">P&amp;L</button>
 <button class="btn" data-lcview="total" style="padding:2px 10px;font-size:.72rem">Total Inv</button>
@@ -1045,6 +1072,34 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="landing-chart-card">
 <div class="landing-chart-title">Long-Term Forecast</div>
 <div class="chart-wrap"><canvas id="landingForecastChart"></canvas></div>
+</div>
+</div>
+</div>
+
+<!-- Toggleable Revenue Summary Pane -->
+<div id="landingRevenuePane" style="margin-bottom:24px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+<h3 style="margin:0;font-size:.95rem">Revenue Summary</h3>
+<button class="btn btn-sm" id="toggleRevenuePane" style="padding:2px 10px;font-size:.72rem">Hide</button>
+</div>
+<div id="landingRevenueContent">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px" id="landingRevKpiRow">
+<div class="rev-kpi-card"><div class="rev-kpi-label">MRR</div><div class="rev-kpi-value" id="landingRevMrr">$0</div></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">ARR</div><div class="rev-kpi-value" id="landingRevArr">$0</div></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Full Year Revenue</div><div class="rev-kpi-value" id="landingRevTotal">$0</div></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">NRR</div><div class="rev-kpi-value" id="landingRevNrr">—</div></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Renewal Rate</div><div class="rev-kpi-value" id="landingRevRenewal">—</div></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Credit Memo Risk</div><div class="rev-kpi-value" id="landingRevCreditMemo">$0</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div class="landing-chart-card">
+<div class="landing-chart-title">Monthly Revenue</div>
+<div class="chart-wrap"><canvas id="landingRevenueChart"></canvas></div>
+</div>
+<div class="landing-chart-card">
+<div class="landing-chart-title">Revenue Long-Term Forecast</div>
+<div class="chart-wrap"><canvas id="landingRevForecastChart"></canvas></div>
+</div>
 </div>
 </div>
 </div>
@@ -2362,15 +2417,323 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </main>
 </div>
 
-<!-- DEPRECIATION MODULE (placeholder) -->
+<!-- DEPRECIATION MODULE -->
 <div id="depreciationModule" style="display:none">
 <header>
-<div class="container" style="display:flex;align-items:center;gap:16px">
-<div style="display:flex;align-items:center;gap:8px"><h1 style="font-size:1.3rem;color:var(--accent)">D&amp;A<span style="color:var(--secondary)">&amp; Assets</span></h1>
-<button class="btn btn-sm" id="depBackBtn">Back to Overview</button></div>
+<div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<h1 style="font-size:1.3rem;color:var(--accent)">D&amp;A<span style="color:var(--secondary)">&amp; Assets</span></h1>
+<button class="btn btn-sm" id="depBackBtn">Back to Overview</button>
+<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="depToggleDark"><span class="toggle-track"></span>Dark</label>
+<div class="color-scheme-wrap" title="Chart color palette"><input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="depColorSchemeSlider"><span class="color-scheme-label" id="depColorSchemeLabel">Muted</span></div>
+</div>
 </div>
 </header>
 <main class="container" style="padding-top:24px">
+<!-- D&A Nav Tabs -->
+<nav style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap" id="depNav">
+<button class="btn active" data-dtab="dep-grid">Depreciation</button>
+<button class="btn" data-dtab="dep-assets">Assets &amp; CapEx</button>
+<button class="btn" data-dtab="dep-scratch">Scratch Pad</button>
+</nav>
+
+<!-- ═══ DEPRECIATION TAB ═══ -->
+<div id="dtab-dep-grid" class="dtab-content" style="display:block">
+
+<!-- Depreciation Month Range Filter -->
+<div id="depMonthRangeWrap" style="margin-bottom:10px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:2px;display:block">Month Range</label>
+<div id="depMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div><div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div><div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div><div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<div id="depMonthRangeLabel" style="font-size:.65rem;color:var(--text-dim);margin-top:2px">All months (click or drag to select range)</div>
+</div>
+
+<!-- Depreciation Quick-Adjust Panel -->
+<div class="qa-panel" id="depQaPanel">
+<div class="qa-panel-header" id="depQaToggle">
+<h4><span style="color:#e67e22">&#9654;</span> Quick Adjust — Depreciation <span class="qa-arrow">&#9654;</span></h4>
+<span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
+</div>
+<div class="qa-panel-body">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+<div><label class="qa-step-label">Month</label>
+<select id="depQaMo" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="all">All Months</option>
+<option value="jan">Jan</option><option value="feb">Feb</option><option value="mar">Mar</option>
+<option value="apr">Apr</option><option value="may">May</option><option value="jun">Jun</option>
+<option value="jul">Jul</option><option value="aug">Aug</option><option value="sep">Sep</option>
+<option value="oct">Oct</option><option value="nov">Nov</option><option value="dec">Dec</option>
+</select></div>
+<div><label class="qa-step-label">Increment</label>
+<select id="depQaStep" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="5000">$5K</option><option value="10000">$10K</option><option value="25000">$25K</option><option value="50000">$50K</option><option value="100000">$100K</option>
+</select></div>
+<div><label class="qa-step-label">Filter</label>
+<input id="depQaSearch" type="text" placeholder="Search entries..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
+<button class="btn btn-sm" id="depQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+</div>
+<div class="qa-row-list" id="depQaList"></div>
+<div class="qa-total-bar"><span>Total Depreciation</span><span class="qa-total-amt" id="depQaTotal">$0</span></div>
+<div class="qa-add-form" id="depQaAddForm">
+<div><label>Entry Name</label><input id="depQaNewName" placeholder="Depreciation entry..." style="width:140px"></div>
+<div><label>Category</label><select id="depQaNewCat" style="width:130px"><option value="">— New Category —</option></select></div>
+<div><label>Business Unit</label><select id="depQaNewBU" style="width:110px"><option value="">—</option></select></div>
+<button class="btn btn-sm" style="background:rgba(230,126,34,.1);border-color:rgba(230,126,34,.3);color:#e67e22;padding:4px 12px;font-size:.78rem" id="depQaAddBtn">+ Add Entry</button>
+</div>
+<div class="qa-history" id="depQaHistory"></div>
+</div>
+</div>
+
+<!-- Depreciation Analysis — pivot + chart -->
+<div class="card" id="depTopSpendCard" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
+<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('depAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Depreciation Analysis</h3>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Rows:</label>
+<select id="depPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="assetSource">Asset Source</option>
+<option value="name">Entry Name</option>
+<option value="_categoryId">Category</option>
+<option value="businessUnit">Business Unit</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+</select>
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Cols:</label>
+<select id="depPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="businessUnit">Business Unit</option>
+<option value="assetSource">Asset Source</option>
+<option value="name">Entry Name</option>
+<option value="_categoryId">Category</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+</select>
+<button class="btn btn-primary" id="depPivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
+</div>
+</div>
+<div id="depAnalysisBody">
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px;padding:8px 10px;background:var(--panel-inset);border-radius:6px">
+<div style="flex:0 0 auto">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Spend Range (Full Year)</label>
+<div style="display:flex;gap:3px;flex-wrap:wrap" id="depBandGroup">
+<button class="scen-pill active" data-band="all" onclick="toggleDepBand(this)">All</button>
+<button class="scen-pill" data-band="0-50000" onclick="toggleDepBand(this)">$0 – $50K</button>
+<button class="scen-pill" data-band="50000-100000" onclick="toggleDepBand(this)">$50K – $100K</button>
+<button class="scen-pill" data-band="100000-500000" onclick="toggleDepBand(this)">$100K – $500K</button>
+<button class="scen-pill" data-band="500000-1000000" onclick="toggleDepBand(this)">$500K – $1M</button>
+<button class="scen-pill" data-band="1000000-" onclick="toggleDepBand(this)">$1M+</button>
+</div>
+</div>
+<div style="flex:1;min-width:180px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Entries</label>
+<input id="depPivotNameSearch" type="text" placeholder="Search entries..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;margin-bottom:3px;box-sizing:border-box">
+<div id="depPivotNamePills" class="scen-pill-group" style="max-height:60px;overflow-y:auto"></div>
+</div>
+<div style="flex:0 0 160px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Notes Search</label>
+<input id="depPivotNotesSearch" type="text" placeholder="Filter by notes..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;box-sizing:border-box">
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div style="overflow:auto;max-height:500px;position:relative" id="depPivotWrap">
+<table class="comp-table" id="depPivotTable" style="font-size:.78rem">
+<thead id="depPivotThead"></thead>
+<tbody id="depPivotTbody"></tbody>
+</table>
+</div>
+<div style="position:relative;min-height:320px">
+<canvas id="depPivotChart"></canvas>
+</div>
+</div>
+<div id="depPivotAdjBar" class="pivot-adj-bar" style="display:none">
+<span style="font-weight:600">Adjust selected:</span>
+<label>Cut by</label><input type="number" id="depPivotAdjPct" value="10" min="1" max="100" style="width:60px">%
+<button class="btn btn-primary" id="depPivotAdjApply" style="padding:3px 12px;font-size:.78rem">Apply</button>
+<button class="btn" id="depPivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
+</div>
+<div id="depPivotImpact" style="display:none"></div>
+</div>
+</div>
+
+<!-- Depreciation Detail Grid -->
+<div class="card" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+<h3 class="section-title" style="margin:0">Depreciation Schedule</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<div class="toggle-group" id="depScaleToggle" style="margin-right:8px">
+<button class="btn active" data-dscale="1" style="padding:3px 10px;font-size:.78rem">$ Singles</button>
+<button class="btn" data-dscale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
+<button class="btn" data-dscale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
+</div>
+<button class="btn" id="depAddCategory" style="padding:4px 12px;font-size:.82rem">+ Add Category</button>
+<button class="btn" id="depAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Entry</button>
+<button class="btn" id="depClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All</button>
+<button class="btn" id="depImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
+<button class="btn" id="depExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
+<input type="file" id="depFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+</div>
+<div style="overflow-x:auto">
+<table class="comp-table" id="depTable" style="font-size:.8rem;min-width:2000px">
+<thead><tr>
+<th style="width:30px"></th>
+<th style="width:30px" title="Color tag">&#9679;</th>
+<th style="min-width:160px">Depreciation Entry</th>
+<th class="sortable" data-dsort="assetSource" style="min-width:130px">Asset Source <span class="sort-arrow"></span></th>
+<th style="min-width:90px">Method</th>
+<th style="min-width:120px">Start / End Mo</th>
+<th style="min-width:100px">Notes</th>
+<th class="sortable" data-dsort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
+<th class="sortable" data-dsort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
+<th class="sortable" data-dsort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
+<th class="sortable" data-dsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
+<th class="sortable" data-dsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
+<th style="min-width:80px">Account Code</th>
+<th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
+<th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
+<th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
+<th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
+<th class="sortable num-col-lg" data-dsort="fullYear" style="font-weight:700">Full Year <span class="sort-arrow"></span></th>
+<th style="width:40px"></th>
+</tr></thead>
+<tbody id="depTotalRow"></tbody>
+<tbody id="depTbody"></tbody>
+</table>
+</div>
+</div>
+</div><!-- /dep-grid -->
+
+<!-- ═══ ASSETS & CAPEX TAB ═══ -->
+<div id="dtab-dep-assets" class="dtab-content" style="display:none">
+
+<!-- Asset Quick-Adjust Panel -->
+<div class="qa-panel" id="assetQaPanel">
+<div class="qa-panel-header" id="assetQaToggle">
+<h4><span style="color:#27ae60">&#9654;</span> Quick Adjust — Assets &amp; CapEx <span class="qa-arrow">&#9654;</span></h4>
+<span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
+</div>
+<div class="qa-panel-body">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+<div><label class="qa-step-label">Year</label>
+<select id="assetQaYear" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="all">All Years</option>
+<option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
+</select></div>
+<div><label class="qa-step-label">Increment</label>
+<select id="assetQaStep" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="5000">$5K</option><option value="10000">$10K</option><option value="25000">$25K</option><option value="50000">$50K</option><option value="100000">$100K</option>
+</select></div>
+<div><label class="qa-step-label">Filter</label>
+<input id="assetQaSearch" type="text" placeholder="Search assets..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
+<button class="btn btn-sm" id="assetQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+</div>
+<div class="qa-row-list" id="assetQaList"></div>
+<div class="qa-total-bar"><span>Total Asset Value</span><span class="qa-total-amt" id="assetQaTotal">$0</span></div>
+<div class="qa-add-form" id="assetQaAddForm">
+<div><label>Asset Name</label><input id="assetQaNewName" placeholder="Asset name..." style="width:140px"></div>
+<div><label>Asset Type</label><select id="assetQaNewType" style="width:130px"><option value="">—</option><option value="Hardware">Hardware</option><option value="Software">Software</option><option value="Leasehold">Leasehold Improvements</option><option value="Furniture">Furniture</option><option value="Vehicles">Vehicles</option><option value="Other">Other</option></select></div>
+<div><label>Business Unit</label><select id="assetQaNewBU" style="width:110px"><option value="">—</option></select></div>
+<button class="btn btn-sm" style="background:rgba(39,174,96,.1);border-color:rgba(39,174,96,.3);color:#27ae60;padding:4px 12px;font-size:.78rem" id="assetQaAddBtn">+ Add Asset</button>
+</div>
+<div class="qa-history" id="assetQaHistory"></div>
+</div>
+</div>
+
+<!-- Asset Analysis — pivot + chart -->
+<div class="card" id="assetTopSpendCard" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
+<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('assetAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Asset &amp; CapEx Analysis</h3>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Rows:</label>
+<select id="assetPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="vendorSource">Vendor/Source</option>
+<option value="name">Asset Name</option>
+<option value="assetType">Asset Type</option>
+<option value="businessUnit">Business Unit</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+</select>
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Cols:</label>
+<select id="assetPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="assetType">Asset Type</option>
+<option value="vendorSource">Vendor/Source</option>
+<option value="name">Asset Name</option>
+<option value="businessUnit">Business Unit</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+</select>
+<button class="btn btn-primary" id="assetPivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
+</div>
+</div>
+<div id="assetAnalysisBody">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div style="overflow:auto;max-height:500px;position:relative" id="assetPivotWrap">
+<table class="comp-table" id="assetPivotTable" style="font-size:.78rem">
+<thead id="assetPivotThead"></thead>
+<tbody id="assetPivotTbody"></tbody>
+</table>
+</div>
+<div style="position:relative;min-height:320px">
+<canvas id="assetPivotChart"></canvas>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Asset Detail Grid (Yearly with Monthly Drill-Down) -->
+<div class="card" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+<h3 class="section-title" style="margin:0">Asset &amp; CapEx Detail</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<div class="toggle-group" id="assetScaleToggle" style="margin-right:8px">
+<button class="btn active" data-ascale="1" style="padding:3px 10px;font-size:.78rem">$ Singles</button>
+<button class="btn" data-ascale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
+<button class="btn" data-ascale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
+</div>
+<span style="font-size:.7rem;color:var(--text-dim)">(Click year header to expand monthly detail)</span>
+<button class="btn" id="assetAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Asset</button>
+<button class="btn" id="assetClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All</button>
+<button class="btn" id="assetImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
+<button class="btn" id="assetExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
+<input type="file" id="assetFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+</div>
+<div style="overflow-x:auto">
+<table class="comp-table" id="assetTable" style="font-size:.8rem;min-width:1600px">
+<thead id="assetThead"><tr>
+<th style="width:30px"></th>
+<th style="width:30px" title="Color tag">&#9679;</th>
+<th style="min-width:150px">Asset Name</th>
+<th class="sortable" data-asort="vendorSource" style="min-width:130px">Vendor/Source <span class="sort-arrow"></span></th>
+<th style="min-width:110px">Asset Type</th>
+<th style="min-width:100px">Acquisition Date</th>
+<th style="min-width:80px">Useful Life (Yrs)</th>
+<th style="min-width:100px">Total Cost</th>
+<th style="min-width:100px">Notes</th>
+<th class="sortable" data-asort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
+<th class="sortable" data-asort="bizLine" style="min-width:100px">Bus. Line <span class="sort-arrow"></span></th>
+<th class="sortable" data-asort="market" style="min-width:80px">Market <span class="sort-arrow"></span></th>
+<th class="sortable" data-asort="project" style="min-width:80px">Project <span class="sort-arrow"></span></th>
+<th class="sortable" data-asort="acctDesc" style="min-width:120px">Account <span class="sort-arrow"></span></th>
+<th class="v-hdr asset-yr-hdr" data-yr="2026" style="cursor:pointer;min-width:90px" title="Click to expand months">2026 &#9654;</th>
+<th class="v-hdr asset-yr-hdr" data-yr="2027" style="cursor:pointer;min-width:90px" title="Click to expand months">2027 &#9654;</th>
+<th class="v-hdr asset-yr-hdr" data-yr="2028" style="cursor:pointer;min-width:90px" title="Click to expand months">2028 &#9654;</th>
+<th class="v-hdr asset-yr-hdr" data-yr="2029" style="cursor:pointer;min-width:90px" title="Click to expand months">2029 &#9654;</th>
+<th class="v-hdr asset-yr-hdr" data-yr="2030" style="cursor:pointer;min-width:90px" title="Click to expand months">2030 &#9654;</th>
+<th class="sortable num-col-lg" data-asort="fullLifeTotal" style="font-weight:700">Full Life Total <span class="sort-arrow"></span></th>
+<th style="width:40px"></th>
+</tr></thead>
+<tbody id="assetTotalRow"></tbody>
+<tbody id="assetTbody"></tbody>
+</table>
+</div>
+</div>
+</div><!-- /dep-assets -->
+
+<!-- ═══ SCRATCH PAD TAB ═══ -->
+<div id="dtab-dep-scratch" class="dtab-content" style="display:none">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:600px">
 <div class="card" style="display:flex;flex-direction:column;overflow:hidden">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
@@ -2406,8 +2769,414 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <canvas id="dWbCanvas" style="flex:1;border:1px solid var(--border);border-radius:6px;cursor:crosshair;background:#fff"></canvas>
 </div>
 </div>
+</div><!-- /dep-scratch -->
 </main>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- TECH REVENUE MODULE -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="revenueModule" style="display:none">
+<header>
+<div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<h1 style="font-size:1.3rem;color:var(--accent)">Tech<span style="color:var(--secondary)">Revenue</span></h1>
+<button class="btn btn-sm" id="revBackBtn">Back to Overview</button>
+<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="revToggleDark"><span class="toggle-track"></span>Dark</label>
+<div class="color-scheme-wrap" title="Chart color palette"><input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="revColorSchemeSlider"><span class="color-scheme-label" id="revColorSchemeLabel">Muted</span></div>
+</div>
+</div>
+</header>
+<main class="container" style="padding-top:24px">
+<!-- Revenue Nav Tabs -->
+<nav style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap" id="revNav">
+<button class="btn active" data-rtab="rev-grid">Revenue Detail</button>
+<button class="btn" data-rtab="rev-clients">Client Detail</button>
+<button class="btn" data-rtab="rev-forecast">Long-Term Forecast</button>
+<button class="btn" data-rtab="rev-dims">Dimensions</button>
+<button class="btn" data-rtab="rev-scratch">Scratch Pad</button>
+</nav>
+
+<!-- ═══ REVENUE DETAIL TAB ═══ -->
+<div id="rtab-rev-grid" class="rtab-content" style="display:block">
+
+<!-- MRR/ARR KPI Summary -->
+<div class="card" style="margin-bottom:12px;padding:12px 16px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+<h3 class="section-title" style="margin:0;font-size:.92rem">Revenue Metrics</h3>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px" id="revKpiCards">
+<div class="rev-kpi-card"><div class="rev-kpi-label">Total MRR</div><div class="rev-kpi-value" id="revKpiMrr">$0</div><canvas class="rev-kpi-spark" id="revSparkMrr" height="30"></canvas></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">ARR</div><div class="rev-kpi-value" id="revKpiArr">$0</div><canvas class="rev-kpi-spark" id="revSparkArr" height="30"></canvas></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Total Revenue (YTD)</div><div class="rev-kpi-value" id="revKpiTotal">$0</div><canvas class="rev-kpi-spark" id="revSparkTotal" height="30"></canvas></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">NRR %</div><div class="rev-kpi-value" id="revKpiNrr">0%</div><canvas class="rev-kpi-spark" id="revSparkNrr" height="30"></canvas></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Avg Rev / Client</div><div class="rev-kpi-value" id="revKpiArpc">$0</div><canvas class="rev-kpi-spark" id="revSparkArpc" height="30"></canvas></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Renewal Rate</div><div class="rev-kpi-value" id="revKpiRenewal">0%</div><canvas class="rev-kpi-spark" id="revSparkRenewal" height="30"></canvas></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Churn Rate</div><div class="rev-kpi-value" id="revKpiChurn">0%</div><canvas class="rev-kpi-spark" id="revSparkChurn" height="30"></canvas></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Credit Memo Risk</div><div class="rev-kpi-value" id="revKpiCreditMemo">$0</div><canvas class="rev-kpi-spark" id="revSparkCreditMemo" height="30"></canvas></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">New Revenue</div><div class="rev-kpi-value" id="revKpiNew">$0</div></div>
+<div class="rev-kpi-card"><div class="rev-kpi-label">Expansion Revenue</div><div class="rev-kpi-value" id="revKpiExpansion">$0</div></div>
+</div>
+</div>
+
+<!-- Contractual Revenue Addition Tool -->
+<div class="qa-panel" id="contractualRevPanel">
+<div class="qa-panel-header" id="contractualRevToggle">
+<h4><span style="color:#2980b9">&#9654;</span> Contractual Revenue Addition <span class="qa-arrow">&#9654;</span></h4>
+<span style="font-size:.72rem;color:var(--text-dim)">Add revenue over any period &bull; click to expand</span>
+</div>
+<div class="qa-panel-body">
+<div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:10px;flex-wrap:wrap">
+<div><label class="qa-step-label">Client</label>
+<select id="contractualRevClient" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:150px"><option value="">— Select Client —</option></select></div>
+<div><label class="qa-step-label">Product/Service</label>
+<input id="contractualRevProduct" type="text" placeholder="Product name..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:130px"></div>
+<div><label class="qa-step-label">Total Amount ($)</label>
+<input id="contractualRevAmount" type="number" placeholder="e.g. 20000000" style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:130px"></div>
+<div><label class="qa-step-label">Start Date</label>
+<input id="contractualRevStart" type="date" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)"></div>
+<div><label class="qa-step-label">End Date</label>
+<input id="contractualRevEnd" type="date" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)"></div>
+<div><label class="qa-step-label">Phasing</label>
+<select id="contractualRevPhasing" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="SL">Straight-Line (default)</option>
+<option value="front">Front-Loaded</option>
+<option value="back">Back-Loaded</option>
+<option value="custom">Custom</option>
+</select></div>
+<button class="btn btn-primary" id="contractualRevAddBtn" style="padding:4px 14px;font-size:.78rem">+ Add Revenue</button>
+</div>
+<div id="contractualRevCustomGrid" style="display:none;margin-bottom:10px;padding:8px 10px;background:var(--panel-inset);border-radius:6px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:4px;display:block">Custom Monthly Phasing (edit amounts per month)</label>
+<div id="contractualRevMonthGrid" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+</div>
+<div id="contractualRevList" style="max-height:200px;overflow-y:auto"></div>
+</div>
+</div>
+
+<!-- Revenue Month Range Filter -->
+<div id="revMonthRangeWrap" style="margin-bottom:10px">
+<label style="font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:2px;display:block">Month Range</label>
+<div id="revMonthRangeBar" class="month-range-bar">
+<div class="month-cell" data-mo="0">Jan</div><div class="month-cell" data-mo="1">Feb</div><div class="month-cell" data-mo="2">Mar</div><div class="month-cell" data-mo="3">Apr</div><div class="month-cell" data-mo="4">May</div><div class="month-cell" data-mo="5">Jun</div><div class="month-cell" data-mo="6">Jul</div><div class="month-cell" data-mo="7">Aug</div><div class="month-cell" data-mo="8">Sep</div><div class="month-cell" data-mo="9">Oct</div><div class="month-cell" data-mo="10">Nov</div><div class="month-cell" data-mo="11">Dec</div>
+</div>
+<div id="revMonthRangeLabel" style="font-size:.65rem;color:var(--text-dim);margin-top:2px">All months (click or drag to select range)</div>
+</div>
+
+<!-- Revenue Quick-Adjust Panel -->
+<div class="qa-panel" id="revQaPanel">
+<div class="qa-panel-header" id="revQaToggle">
+<h4><span style="color:#2980b9">&#9654;</span> Quick Adjust — Revenue <span class="qa-arrow">&#9654;</span></h4>
+<span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
+</div>
+<div class="qa-panel-body">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+<div><label class="qa-step-label">Month</label>
+<select id="revQaMo" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="all">All Months</option>
+<option value="jan">Jan</option><option value="feb">Feb</option><option value="mar">Mar</option>
+<option value="apr">Apr</option><option value="may">May</option><option value="jun">Jun</option>
+<option value="jul">Jul</option><option value="aug">Aug</option><option value="sep">Sep</option>
+<option value="oct">Oct</option><option value="nov">Nov</option><option value="dec">Dec</option>
+</select></div>
+<div><label class="qa-step-label">Increment</label>
+<select id="revQaStep" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="5000">$5K</option><option value="10000">$10K</option><option value="25000">$25K</option><option value="50000">$50K</option><option value="100000">$100K</option>
+</select></div>
+<div><label class="qa-step-label">Filter</label>
+<input id="revQaSearch" type="text" placeholder="Search clients..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
+<button class="btn btn-sm" id="revQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+</div>
+<div class="qa-row-list" id="revQaList"></div>
+<div class="qa-total-bar"><span>Total Revenue</span><span class="qa-total-amt" id="revQaTotal">$0</span></div>
+<div class="qa-add-form" id="revQaAddForm">
+<div><label>Client</label><select id="revQaNewClient" style="width:140px"><option value="">— Select —</option></select></div>
+<div><label>Product</label><input id="revQaNewProduct" placeholder="Product/Service..." style="width:130px"></div>
+<div><label>Revenue Type</label><select id="revQaNewType" style="width:120px"><option value="MRR">MRR</option><option value="ARR">ARR</option><option value="One-Time">One-Time</option><option value="Usage">Usage-Based</option><option value="ProfServ">Professional Services</option><option value="Contractual">Contractual</option></select></div>
+<button class="btn btn-sm" style="background:rgba(41,128,185,.1);border-color:rgba(41,128,185,.3);color:#2980b9;padding:4px 12px;font-size:.78rem" id="revQaAddBtn">+ Add Revenue Row</button>
+</div>
+<div class="qa-history" id="revQaHistory"></div>
+</div>
+</div>
+
+<!-- Revenue Analysis — pivot + chart -->
+<div class="card" id="revTopSpendCard" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
+<h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('revAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Revenue Analysis</h3>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Rows:</label>
+<select id="revPivotRowDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="clientName">Client Name</option>
+<option value="productName">Product/Service</option>
+<option value="revenueType">Revenue Type</option>
+<option value="businessUnit">Business Unit</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+<option value="acctDesc">Account</option>
+</select>
+<label style="font-size:.7rem;color:var(--text-dim);white-space:nowrap">Cols:</label>
+<select id="revPivotColDim" style="padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px">
+<option value="revenueType">Revenue Type</option>
+<option value="clientName">Client Name</option>
+<option value="productName">Product/Service</option>
+<option value="businessUnit">Business Unit</option>
+<option value="bizLine">Bus. Line</option>
+<option value="market">Market</option>
+</select>
+<button class="btn btn-primary" id="revPivotRefresh" style="padding:2px 10px;font-size:.74rem">Refresh</button>
+</div>
+</div>
+<div id="revAnalysisBody">
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px;padding:8px 10px;background:var(--panel-inset);border-radius:6px">
+<div style="flex:0 0 auto">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Revenue Range (Full Year)</label>
+<div style="display:flex;gap:3px;flex-wrap:wrap" id="revBandGroup">
+<button class="scen-pill active" data-band="all" onclick="toggleRevBand(this)">All</button>
+<button class="scen-pill" data-band="0-50000" onclick="toggleRevBand(this)">$0 – $50K</button>
+<button class="scen-pill" data-band="50000-100000" onclick="toggleRevBand(this)">$50K – $100K</button>
+<button class="scen-pill" data-band="100000-500000" onclick="toggleRevBand(this)">$100K – $500K</button>
+<button class="scen-pill" data-band="500000-1000000" onclick="toggleRevBand(this)">$500K – $1M</button>
+<button class="scen-pill" data-band="1000000-" onclick="toggleRevBand(this)">$1M+</button>
+</div>
+</div>
+<div style="flex:1;min-width:180px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Clients</label>
+<input id="revPivotNameSearch" type="text" placeholder="Search clients..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;margin-bottom:3px;box-sizing:border-box">
+<div id="revPivotNamePills" class="scen-pill-group" style="max-height:60px;overflow-y:auto"></div>
+</div>
+<div style="flex:0 0 160px">
+<label style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Notes Search</label>
+<input id="revPivotNotesSearch" type="text" placeholder="Filter by notes..." style="width:100%;padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;box-sizing:border-box">
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div style="overflow:auto;max-height:500px;position:relative" id="revPivotWrap">
+<table class="comp-table" id="revPivotTable" style="font-size:.78rem">
+<thead id="revPivotThead"></thead>
+<tbody id="revPivotTbody"></tbody>
+</table>
+</div>
+<div style="position:relative;min-height:320px">
+<canvas id="revPivotChart"></canvas>
+</div>
+</div>
+<div id="revPivotAdjBar" class="pivot-adj-bar" style="display:none">
+<span style="font-weight:600">Adjust selected:</span>
+<label>Adjust by</label><input type="number" id="revPivotAdjPct" value="10" min="1" max="100" style="width:60px">%
+<button class="btn btn-primary" id="revPivotAdjApply" style="padding:3px 12px;font-size:.78rem">Apply</button>
+<button class="btn" id="revPivotAdjClear" style="padding:3px 12px;font-size:.78rem">Clear Selection</button>
+</div>
+<div id="revPivotImpact" style="display:none"></div>
+</div>
+</div>
+
+<!-- Revenue Detail Grid -->
+<div class="card" style="margin-bottom:12px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+<h3 class="section-title" style="margin:0">Revenue Detail</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<div class="toggle-group" id="revScaleToggle" style="margin-right:8px">
+<button class="btn active" data-rscale="1" style="padding:3px 10px;font-size:.78rem">$ Singles</button>
+<button class="btn" data-rscale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
+<button class="btn" data-rscale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
+</div>
+<button class="btn" id="revAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
+<button class="btn" id="revClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All Rows</button>
+<button class="btn" id="revImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
+<button class="btn" id="revExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
+<input type="file" id="revFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+</div>
+<div style="overflow-x:auto">
+<table class="comp-table" id="revTable" style="font-size:.8rem;min-width:2200px">
+<thead><tr>
+<th style="width:30px"></th>
+<th style="width:30px" title="Color tag">&#9679;</th>
+<th style="min-width:150px">Client Name</th>
+<th class="sortable" data-rsort="productName" style="min-width:130px">Product / Service <span class="sort-arrow"></span></th>
+<th style="min-width:110px">Revenue Type</th>
+<th style="min-width:120px">Start / End Mo</th>
+<th style="min-width:100px">Notes</th>
+<th class="sortable" data-rsort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
+<th class="sortable" data-rsort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
+<th class="sortable" data-rsort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
+<th class="sortable" data-rsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
+<th class="sortable" data-rsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
+<th style="min-width:80px">Account Code</th>
+<th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
+<th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
+<th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
+<th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
+<th class="sortable num-col-lg" data-rsort="fullYear" style="font-weight:700">Full Year <span class="sort-arrow"></span></th>
+<th style="width:40px"></th>
+</tr></thead>
+<tbody id="revTotalRow"></tbody>
+<tbody id="revTbody"></tbody>
+</table>
+</div>
+</div>
+</div><!-- /rev-grid -->
+
+<!-- ═══ CLIENT DETAIL TAB ═══ -->
+<div id="rtab-rev-clients" class="rtab-content" style="display:none">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<!-- Left: Client Registry -->
+<div class="card">
+<h3 class="section-title">Client Registry</h3>
+<p style="color:var(--text-dim);font-size:.75rem;margin-bottom:8px">Add clients and manage contracts. Attach contract files via upload.</p>
+<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Name</label><br><input id="revClientName" style="width:130px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Client name"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Industry</label><br><input id="revClientIndustry" style="width:100px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="e.g. SaaS"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Tier</label><br><select id="revClientTier" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option><option value="Enterprise">Enterprise</option><option value="Mid-Market">Mid-Market</option><option value="SMB">SMB</option></select></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Contract Type</label><br><select id="revClientContractType" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option><option value="MRR">MRR</option><option value="ARR">ARR</option><option value="One-Time">One-Time</option><option value="Usage">Usage-Based</option></select></div>
+<button class="btn" id="revAddClientBtn" style="padding:3px 10px;font-size:.8rem">+ Add Client</button>
+</div>
+<div style="max-height:600px;overflow-y:auto">
+<table class="comp-table" style="font-size:.8rem" id="revClientTable">
+<thead><tr>
+<th>Name</th><th>Industry</th><th>Tier</th><th>Type</th><th>Start</th><th>End</th>
+<th>Billing</th><th>MRR</th><th>Renewal %</th><th>Credit Memo %</th>
+<th>Churn Risk</th><th>NRR %</th><th>Expansion $</th><th>Contracts</th><th></th>
+</tr></thead>
+<tbody id="revClientBody"></tbody>
+</table>
+</div>
+</div>
+<!-- Right: Client → Revenue Mapping -->
+<div class="card">
+<h3 class="section-title">Client → Revenue Mapping</h3>
+<p style="color:var(--text-dim);font-size:.75rem;margin-bottom:8px">Link clients to revenue rows. Unmapped rows shown in red.</p>
+<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Client</label><br><select id="revMapClient" style="width:150px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option></select></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Revenue Row</label><br><select id="revMapRow" style="width:200px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option></select></div>
+<button class="btn" id="revMapBtn" style="padding:3px 10px;font-size:.8rem">Map</button>
+</div>
+<div style="max-height:400px;overflow-y:auto">
+<table class="comp-table" style="font-size:.8rem" id="revMappingTable">
+<thead><tr><th>Client</th><th>Revenue Row</th><th>Monthly Revenue</th><th></th></tr></thead>
+<tbody id="revMappingBody"></tbody>
+</table>
+</div>
+<div style="margin-top:12px">
+<h4 style="font-size:.82rem;color:var(--text-dim);margin-bottom:6px">Unmapped Revenue Rows</h4>
+<div id="revUnmappedList" style="font-size:.78rem;color:var(--danger,#c00)"></div>
+</div>
+</div>
+</div>
+</div><!-- /rev-clients -->
+
+<!-- ═══ LONG-TERM FORECAST TAB ═══ -->
+<div id="rtab-rev-forecast" class="rtab-content" style="display:none">
+<div class="card" style="margin-bottom:12px;padding:16px">
+<h3 class="section-title" style="margin-bottom:8px">Revenue Long-Term Forecast</h3>
+<p style="color:var(--text-dim);font-size:.75rem;margin-bottom:12px">Set growth assumptions per client or revenue line. These feed the overview long-term forecast revenue/P&amp;L view.</p>
+<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Client / Line</label><br>
+<select id="revFcClient" style="width:180px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="_all">All Clients (Blended)</option></select></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Annual Growth %</label><br>
+<input id="revFcGrowth" type="number" value="10" min="-100" max="500" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Churn % (annual)</label><br>
+<input id="revFcChurn" type="number" value="5" min="0" max="100" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Price Increase %</label><br>
+<input id="revFcPriceInc" type="number" value="3" min="-50" max="100" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">New Client Adds / Yr</label><br>
+<input id="revFcNewClients" type="number" value="0" min="0" max="1000" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Avg New Client Rev</label><br>
+<input id="revFcAvgNewRev" type="number" value="0" min="0" style="width:100px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"></div>
+<button class="btn btn-primary" id="revFcAddBtn" style="padding:3px 12px;font-size:.8rem">+ Add / Update</button>
+</div>
+<!-- Forecast assumptions table -->
+<div style="max-height:300px;overflow-y:auto;margin-bottom:16px">
+<table class="comp-table" style="font-size:.8rem" id="revFcTable">
+<thead><tr><th>Client / Line</th><th>Growth %</th><th>Churn %</th><th>Price Inc %</th><th>New Clients/Yr</th><th>Avg New Rev</th><th></th></tr></thead>
+<tbody id="revFcBody"></tbody>
+</table>
+</div>
+<!-- Forecast output chart -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div>
+<h4 style="font-size:.85rem;color:var(--accent);margin-bottom:8px">5-Year Revenue Forecast</h4>
+<table class="comp-table" style="font-size:.8rem" id="revFcOutputTable">
+<thead><tr><th>Year</th><th>Base Revenue</th><th>Growth</th><th>Churn Impact</th><th>Price Impact</th><th>New Client Rev</th><th>Total Revenue</th></tr></thead>
+<tbody id="revFcOutputBody"></tbody>
+</table>
+</div>
+<div style="position:relative;min-height:300px">
+<canvas id="revFcChart"></canvas>
+</div>
+</div>
+</div>
+</div><!-- /rev-forecast -->
+
+<!-- ═══ DIMENSIONS TAB (shared) ═══ -->
+<div id="rtab-rev-dims" class="rtab-content" style="display:none">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div class="card">
+<h3 class="section-title">Market Codes</h3>
+<p style="color:var(--text-dim);font-size:.75rem;margin-bottom:8px">Shared across all modules. Edits here apply everywhere.</p>
+<div id="revMarketsTableWrap"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Name</th></tr></thead><tbody id="revMarketsBody"></tbody></table></div>
+</div>
+<div class="card">
+<h3 class="section-title">Business Lines</h3>
+<p style="color:var(--text-dim);font-size:.75rem;margin-bottom:8px">Shared across all modules.</p>
+<div id="revBizTableWrap"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Name</th></tr></thead><tbody id="revBizBody"></tbody></table></div>
+</div>
+</div>
+<div class="card" style="margin-top:16px">
+<h3 class="section-title">Revenue Accounts</h3>
+<p style="color:var(--text-dim);font-size:.75rem;margin-bottom:8px">Revenue-specific chart of accounts.</p>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="revAcctCode" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="40000"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Description</label><br><input id="revAcctDesc" style="width:180px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="SaaS Revenue"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Category</label><br><select id="revAcctCategory" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px">
+<option value="">—</option><option value="Recurring Revenue">Recurring Revenue</option><option value="Professional Services">Professional Services</option><option value="Usage Revenue">Usage Revenue</option><option value="One-Time Revenue">One-Time Revenue</option><option value="Other Revenue">Other Revenue</option>
+</select></div>
+<button class="btn" id="revAddAcctBtn" style="padding:3px 10px;font-size:.8rem">Add</button>
+</div>
+<div style="max-height:300px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Description</th><th>Category</th><th></th></tr></thead><tbody id="revAcctTableBody"></tbody></table></div>
+</div>
+</div><!-- /rev-dims -->
+
+<!-- ═══ SCRATCH PAD TAB ═══ -->
+<div id="rtab-rev-scratch" class="rtab-content" style="display:none">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:600px">
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+<h3 class="section-title" style="margin:0">Scratch Sheet</h3>
+<div style="display:flex;gap:4px">
+<button class="btn" id="rScratchAddRow" style="padding:4px 10px;font-size:.8rem">+ Row</button>
+<button class="btn" id="rScratchAddCol" style="padding:4px 10px;font-size:.8rem">+ Col</button>
+<button class="btn" id="rScratchClear" style="padding:4px 10px;font-size:.8rem">Clear</button>
+<button class="btn" id="rScratchShowFormulas" style="padding:4px 10px;font-size:.8rem">Formulas</button>
+<button class="btn btn-primary" id="rScratchExport" title="Export to Excel" style="padding:4px 10px;font-size:.8rem">Export</button>
+</div>
+</div>
+<p style="color:var(--text-dim);font-size:.75rem;margin:0 0 6px">Double-click a cell to edit. Use <code>=A1+B2</code> formulas. Supports +, -, *, /.</p>
+<div id="rScratchGrid" style="flex:1;overflow:auto"></div>
+</div>
+<div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+<h3 class="section-title" style="margin:0">Whiteboard</h3>
+<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+<label style="font-size:.75rem;color:var(--text-dim)">Size:</label>
+<input type="range" id="rWbSize" min="1" max="20" value="3" style="width:60px">
+<span id="rWbColorSwatches" style="display:flex;gap:2px"></span>
+<label style="font-size:.75rem;color:var(--text-dim);margin-left:4px">Opacity:</label>
+<input type="range" id="rWbOpacity" min="0" max="100" value="100" step="5" style="width:50px">
+<button class="btn" id="rWbGrid" style="padding:4px 8px;font-size:.75rem">Grid</button>
+<select id="rWbShape" style="padding:2px 6px;font-size:.75rem;border-radius:4px;border:1px solid var(--border)">
+<option value="">Pen</option><option value="dot">Dot</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="line">Line</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option><option value="text">Text</option>
+</select>
+<button class="btn" id="rWbUndo" style="padding:4px 8px;font-size:.75rem">Undo</button>
+<button class="btn" id="rWbClearBtn" style="padding:4px 8px;font-size:.75rem">Clear</button>
+</div>
+</div>
+<canvas id="rWbCanvas" style="flex:1;border:1px solid var(--border);border-radius:6px;cursor:crosshair;background:#fff"></canvas>
+</div>
+</div>
+</div><!-- /rev-scratch -->
+</main>
+</div><!-- /revenueModule -->
 
 <!-- Scenario Analysis Toggle Button (always visible on left edge) -->
 <button class="scenario-toggle-btn" id="scenarioToggleBtn"><span class="arrow">&#9654;</span>S C E N A R I O</button>
@@ -3451,6 +4220,18 @@ function ensureStateFields(){
   if(!state.accounts)state.accounts=DEFAULT_ACCOUNTS.map(a=>({...a}));
   state.accounts.forEach(a=>{if(!a.group)a.group=a.category==='T&E'?'te':'vendor';});
   if(!state.contractorRows)state.contractorRows=[];
+  // Depreciation module state
+  if(!state.depreciationCategories)state.depreciationCategories=[];
+  if(!state.depreciationRows)state.depreciationRows=[];
+  if(!state.assetRows)state.assetRows=[];
+  // Tech Revenue module state
+  if(!state.revenueRows)state.revenueRows=[];
+  if(!state.revenueClients)state.revenueClients=[];
+  if(!state.revenueClientMapping)state.revenueClientMapping=[];
+  if(!state.contractualRevenue)state.contractualRevenue=[];
+  if(state.showRevenuePane===undefined)state.showRevenuePane=true;
+  if(!state.revenueForecast)state.revenueForecast=[];
+  if(state.landingPnlMode===undefined)state.landingPnlMode='cost';
   if(!state.vendorRows||!state.vendorRows.length){
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     const defProjId=genProj?genProj.id:'';
@@ -12588,44 +13369,1032 @@ function getContractorCapExByMonth(mi){
   },0);
 }
 
+// ══════════════════════════════════════════════════════════════════
+// ── DEPRECIATION MODULE ──
+// ══════════════════════════════════════════════════════════════════
+let depModuleInited=false;
+let depScale=1,depSelectedMonths=new Set();
+const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+let depExpandedCategories=new Set();
+let depSortCol='',depSortDir=1;
+let depPivotChartInst=null;
+let depBand='all',depNameFilter=new Set(),depNotesFilter='';
+
+function getDepreciationTotal(){
+  return (state.depreciationRows||[]).reduce((s,r)=>
+    s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+}
+function getDepreciationByMonth(mi){
+  return (state.depreciationRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
+}
+
+function buildDepRow(row,i){
+  const mos=moKeys;
+  const acctCode=(state.accounts||[]).find(a=>a.description===row.acctDesc);
+  const fy=mos.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
+  const isCatRow=row._isCategoryHeader;
+  const rowClass=isCatRow?'dep-cat-row':'dep-entry-row'+(row._categoryId&&!depExpandedCategories.has(row._categoryId)?' hidden':'');
+  let h='<tr class="'+rowClass+'" data-di="'+i+'">';
+  h+='<td style="width:30px;cursor:grab">&#9776;</td>';
+  h+='<td style="width:30px"><span class="color-dot" style="background:'+(row._colorTag||'transparent')+';width:12px;height:12px;display:inline-block;border-radius:50%;cursor:pointer;border:1px solid var(--border)" data-di="'+i+'"></span></td>';
+  if(isCatRow){
+    const arrow=depExpandedCategories.has(row._categoryId)?'&#9660;':'&#9654;';
+    h+='<td colspan="11" style="font-weight:700;cursor:pointer" onclick="toggleDepCategory(\''+row._categoryId+'\')"><span style="font-size:.7rem;margin-right:4px">'+arrow+'</span>'+escHtml(row.name||'Unnamed Category')+'</td>';
+    mos.forEach(m=>{
+      const catTotal=(state.depreciationRows||[]).filter(r=>r._categoryId===row._categoryId&&!r._isCategoryHeader).reduce((s,r)=>s+(parseFloat(r[m])||0),0);
+      h+='<td class="num" style="font-weight:700">'+fmtScaled(catTotal,depScale)+'</td>';
+    });
+    const catFy=(state.depreciationRows||[]).filter(r=>r._categoryId===row._categoryId&&!r._isCategoryHeader).reduce((s,r)=>s+mos.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+    h+='<td class="num" style="font-weight:700">'+fmtScaled(catFy,depScale)+'</td>';
+    h+='<td><button class="btn btn-sm" style="color:var(--danger);padding:2px 6px;font-size:.72rem" onclick="deleteDepCategory(\''+row._categoryId+'\')">&times;</button></td>';
+  } else {
+    h+='<td><input class="dep-field" data-di="'+i+'" data-f="name" value="'+escHtml(row.name||'')+'" style="width:140px;'+(row._categoryId?'padding-left:20px;':'')+'" placeholder="Entry name"></td>';
+    h+='<td><input class="dep-field" data-di="'+i+'" data-f="assetSource" value="'+escHtml(row.assetSource||'')+'" style="width:120px" placeholder="Asset source"></td>';
+    h+='<td><select class="dep-field" data-di="'+i+'" data-f="depMethod" style="width:80px"><option value="SL"'+(row.depMethod==='SL'?' selected':'')+'>Straight-Line</option><option value="DB"'+(row.depMethod==='DB'?' selected':'')+'>Declining Bal</option></select></td>';
+    h+='<td style="white-space:nowrap"><select class="dep-field" data-di="'+i+'" data-f="_startMonth" style="width:50px">'+buildMonthOptions(row._startMonth)+'</select> – <select class="dep-field" data-di="'+i+'" data-f="_endMonth" style="width:50px">'+buildMonthOptions(row._endMonth)+'</select></td>';
+    h+='<td><input class="dep-field" data-di="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" style="width:90px" placeholder="Notes"></td>';
+    h+=buildDimCells('dep-field',i,row);
+    mos.forEach(m=>{
+      const v=parseFloat(row[m])||0;
+      h+='<td class="num"><input class="dep-mo" data-di="'+i+'" data-m="'+m+'" value="'+fmtScaled(v,depScale)+'" style="width:80px;text-align:right"></td>';
+    });
+    h+='<td class="num" style="font-weight:700">'+fmtScaled(fy,depScale)+'</td>';
+    h+='<td><button class="dep-del" data-di="'+i+'" style="color:var(--danger);cursor:pointer;border:none;background:none;font-size:1rem">&times;</button></td>';
+  }
+  h+='</tr>';
+  return h;
+}
+
+function buildDimCells(cls,i,row){
+  let h='';
+  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="businessUnit" style="width:90px">'+buildBuOptions(row.businessUnit)+'</select></td>';
+  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="bizLine" style="width:100px">'+buildBizLineOptions(row.bizLine)+'</select></td>';
+  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="market" style="width:80px">'+buildMarketOptions(row.market)+'</select></td>';
+  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="project" style="width:80px">'+buildProjectOptions(row.project)+'</select></td>';
+  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="acctDesc" style="width:120px">'+buildAcctOptions(row.acctDesc)+'</select></td>';
+  const ac=(state.accounts||[]).find(a=>a.description===row.acctDesc);
+  h+='<td style="font-size:.72rem;color:var(--text-dim)">'+(ac?ac.code:'')+'</td>';
+  return h;
+}
+
+function buildBuOptions(sel){
+  const bus=[...new Set((state.employees||[]).map(e=>e.businessUnit).filter(Boolean))].sort();
+  let h='<option value="">—</option>';
+  bus.forEach(b=>{h+='<option'+(b===sel?' selected':'')+'>'+escHtml(b)+'</option>'});
+  return h;
+}
+function buildBizLineOptions(sel){
+  let h='<option value="">—</option>';
+  (state.bizLines||[]).forEach(b=>{h+='<option value="'+escHtml(b.code)+'"'+(b.code===sel?' selected':'')+'>'+escHtml(b.name||b.code)+'</option>'});
+  return h;
+}
+function buildMarketOptions(sel){
+  let h='<option value="">—</option>';
+  (state.markets||[]).forEach(m=>{h+='<option value="'+escHtml(m.code)+'"'+(m.code===sel?' selected':'')+'>'+escHtml(m.name||m.code)+'</option>'});
+  return h;
+}
+function buildProjectOptions(sel){
+  let h='<option value="">—</option>';
+  (state.projects||[]).forEach(p=>{h+='<option value="'+escHtml(p.id)+'"'+(p.id===sel?' selected':'')+'>'+escHtml(p.product||p.code)+'</option>'});
+  return h;
+}
+function buildAcctOptions(sel){
+  let h='<option value="">—</option>';
+  (state.accounts||[]).forEach(a=>{h+='<option'+(a.description===sel?' selected':'')+'>'+escHtml(a.description)+'</option>'});
+  return h;
+}
+function buildMonthOptions(sel){
+  const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let h='<option value="">—</option>';
+  ms.forEach((m,i)=>{h+='<option value="'+i+'"'+(parseInt(sel)===i?' selected':'')+'>'+m+'</option>'});
+  return h;
+}
+function fmtScaled(v,scale){
+  if(!scale||scale===1)return fmt(v);
+  const sv=v/scale;
+  return scale>=1000000?'$'+sv.toFixed(2)+'M':'$'+sv.toFixed(1)+'K';
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function renderDepreciationGrid(){
+  const tbody=document.getElementById('depTbody');
+  const totalRow=document.getElementById('depTotalRow');
+  if(!tbody)return;
+  let h='';
+  (state.depreciationRows||[]).forEach((row,i)=>{h+=buildDepRow(row,i)});
+  tbody.innerHTML=h;
+  // Footer totals
+  let ft='<tr style="font-weight:700;background:var(--panel-inset)">';
+  ft+='<td colspan="2"></td><td>TOTAL</td><td colspan="4"></td><td colspan="6"></td>';
+  moKeys.forEach(m=>{
+    const t=(state.depreciationRows||[]).filter(r=>!r._isCategoryHeader).reduce((s,r)=>s+(parseFloat(r[m])||0),0);
+    ft+='<td class="num">'+fmtScaled(t,depScale)+'</td>';
+  });
+  const fy=(state.depreciationRows||[]).filter(r=>!r._isCategoryHeader).reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+  ft+='<td class="num">'+fmtScaled(fy,depScale)+'</td><td></td></tr>';
+  totalRow.innerHTML=ft;
+  // Bind events
+  tbody.querySelectorAll('.dep-field').forEach(el=>{
+    el.addEventListener('change',function(){
+      const i=+this.dataset.di;const f=this.dataset.f;const row=state.depreciationRows[i];if(!row)return;
+      row[f]=this.value;saveState();renderDepreciationGrid();
+    });
+  });
+  tbody.querySelectorAll('.dep-mo').forEach(el=>{
+    el.addEventListener('change',function(){
+      const i=+this.dataset.di;const m=this.dataset.m;const row=state.depreciationRows[i];if(!row)return;
+      let v=parseFloat(this.value.replace(/[,$]/g,''))||0;
+      if(depScale>1)v=v*depScale;
+      row[m]=v;saveState();renderDepreciationGrid();
+    });
+  });
+  tbody.querySelectorAll('.dep-del').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const i=+this.dataset.di;state.depreciationRows.splice(i,1);saveState();renderDepreciationGrid();
+    });
+  });
+}
+
+function toggleDepCategory(catId){
+  if(depExpandedCategories.has(catId))depExpandedCategories.delete(catId);
+  else depExpandedCategories.add(catId);
+  renderDepreciationGrid();
+}
+function deleteDepCategory(catId){
+  state.depreciationRows=state.depreciationRows.filter(r=>r._categoryId!==catId);
+  saveState();renderDepreciationGrid();
+}
+function addDepCategory(){
+  const name=prompt('Category name:');
+  if(!name)return;
+  const catId='depcat_'+Date.now();
+  state.depreciationRows.push({_isCategoryHeader:true,_categoryId:catId,name:name});
+  depExpandedCategories.add(catId);
+  saveState();renderDepreciationGrid();
+}
+function addDepRow(){
+  const cats=state.depreciationRows.filter(r=>r._isCategoryHeader);
+  let catId='';
+  if(cats.length){
+    const catName=prompt('Enter category name to add to (or leave blank for uncategorized):\n'+cats.map(c=>c.name).join(', '));
+    const found=cats.find(c=>c.name.toLowerCase()===(catName||'').toLowerCase());
+    if(found)catId=found._categoryId;
+  }
+  state.depreciationRows.push({name:'',assetSource:'',depMethod:'SL',_startMonth:'',_endMonth:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',_categoryId:catId,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:''});
+  if(catId)depExpandedCategories.add(catId);
+  saveState();renderDepreciationGrid();
+}
+
+function initDepModule(){
+  if(depModuleInited)return;
+  depModuleInited=true;
+  // Tab switching
+  document.getElementById('depNav').querySelectorAll('[data-dtab]').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#depNav .btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      document.querySelectorAll('.dtab-content').forEach(c=>c.style.display='none');
+      const t=document.getElementById('dtab-'+this.dataset.dtab);
+      if(t)t.style.display='block';
+      if(this.dataset.dtab==='dep-scratch')setTimeout(initDepScratch,50);
+    });
+  });
+  // Scale toggle
+  document.getElementById('depScaleToggle').querySelectorAll('[data-dscale]').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#depScaleToggle .btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      depScale=+this.dataset.dscale;
+      renderDepreciationGrid();
+    });
+  });
+  // Add buttons
+  document.getElementById('depAddCategory').addEventListener('click',addDepCategory);
+  document.getElementById('depAddRow').addEventListener('click',addDepRow);
+  document.getElementById('depClearAllRows').addEventListener('click',function(){
+    if(confirm('Clear all depreciation entries?')){state.depreciationRows=[];saveState();renderDepreciationGrid()}
+  });
+  // QA panel toggle
+  const qaToggle=document.getElementById('depQaToggle');
+  if(qaToggle)qaToggle.addEventListener('click',function(){this.closest('.qa-panel').classList.toggle('open')});
+  // Month range bar
+  initMonthRangeBar('depMonthRangeBar','depMonthRangeLabel',depSelectedMonths,function(){renderDepreciationGrid()});
+  // Import/Export
+  document.getElementById('depExportBtn').addEventListener('click',function(){exportGridToExcel(state.depreciationRows,'Depreciation','depreciation_export.xlsx',['name','assetSource','depMethod','businessUnit','bizLine','market','project','acctDesc','notes','jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'])});
+  document.getElementById('depImportBtn').addEventListener('click',function(){document.getElementById('depFileInput').click()});
+  document.getElementById('depFileInput').addEventListener('change',function(e){importGridFromExcel(e,state.depreciationRows,'depreciationRows',renderDepreciationGrid)});
+  renderDepreciationGrid();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ── ASSETS & CAPEX MODULE ──
+// ══════════════════════════════════════════════════════════════════
+let assetScale=1;
+let assetExpandedYears=new Set();
+const ASSET_YEARS=['2026','2027','2028','2029','2030'];
+const ASSET_MO_KEYS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+function getAssetYearTotal(row,yr){
+  const md=row.monthlyDetail&&row.monthlyDetail[yr];
+  if(md)return ASSET_MO_KEYS.reduce((s,m)=>s+(parseFloat(md[m])||0),0);
+  return parseFloat(row['y'+yr])||0;
+}
+function getAssetFullLifeTotal(row){
+  return ASSET_YEARS.reduce((s,yr)=>s+getAssetYearTotal(row,yr),0);
+}
+
+function buildAssetRow(row,i){
+  let h='<tr data-ai="'+i+'">';
+  h+='<td style="width:30px;cursor:grab">&#9776;</td>';
+  h+='<td style="width:30px"><span class="color-dot" style="background:'+(row._colorTag||'transparent')+';width:12px;height:12px;display:inline-block;border-radius:50%;cursor:pointer;border:1px solid var(--border)" data-ai="'+i+'"></span></td>';
+  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="name" value="'+escHtml(row.name||'')+'" style="width:140px" placeholder="Asset name"></td>';
+  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="vendorSource" value="'+escHtml(row.vendorSource||'')+'" style="width:120px" placeholder="Vendor"></td>';
+  h+='<td><select class="asset-field" data-ai="'+i+'" data-f="assetType" style="width:100px"><option value="">—</option><option'+(row.assetType==='Hardware'?' selected':'')+'>Hardware</option><option'+(row.assetType==='Software'?' selected':'')+'>Software</option><option'+(row.assetType==='Leasehold'?' selected':'')+'>Leasehold</option><option'+(row.assetType==='Furniture'?' selected':'')+'>Furniture</option><option'+(row.assetType==='Vehicles'?' selected':'')+'>Vehicles</option><option'+(row.assetType==='Other'?' selected':'')+'>Other</option></select></td>';
+  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="acquireDate" type="date" value="'+(row.acquireDate||'')+'" style="width:90px"></td>';
+  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="usefulLifeYrs" type="number" value="'+(row.usefulLifeYrs||5)+'" min="1" max="50" style="width:60px;text-align:center"></td>';
+  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="totalCost" type="number" value="'+(row.totalCost||0)+'" style="width:90px;text-align:right"></td>';
+  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" style="width:90px" placeholder="Notes"></td>';
+  h+=buildDimCells('asset-field',i,row);
+  // Year columns
+  ASSET_YEARS.forEach(yr=>{
+    const yt=getAssetYearTotal(row,yr);
+    if(assetExpandedYears.has(yr)){
+      ASSET_MO_KEYS.forEach(m=>{
+        const md=row.monthlyDetail&&row.monthlyDetail[yr]?row.monthlyDetail[yr]:{};
+        const v=parseFloat(md[m])||0;
+        h+='<td class="asset-mo-sub"><input class="asset-mo" data-ai="'+i+'" data-yr="'+yr+'" data-m="'+m+'" value="'+fmtScaled(v,assetScale)+'" style="width:70px;text-align:right;font-size:.72rem"></td>';
+      });
+    } else {
+      h+='<td class="num" style="text-align:center">'+fmtScaled(yt,assetScale)+'</td>';
+    }
+  });
+  h+='<td class="num" style="font-weight:700">'+fmtScaled(getAssetFullLifeTotal(row),assetScale)+'</td>';
+  h+='<td><button class="asset-del" data-ai="'+i+'" style="color:var(--danger);cursor:pointer;border:none;background:none;font-size:1rem">&times;</button></td>';
+  h+='</tr>';
+  return h;
+}
+
+function renderAssetGrid(){
+  const tbody=document.getElementById('assetTbody');
+  const totalRow=document.getElementById('assetTotalRow');
+  const thead=document.getElementById('assetThead');
+  if(!tbody)return;
+  // Rebuild thead for expanded years
+  let th='<tr><th style="width:30px"></th><th style="width:30px">&#9679;</th>';
+  th+='<th style="min-width:150px">Asset Name</th><th style="min-width:130px">Vendor/Source</th>';
+  th+='<th style="min-width:110px">Asset Type</th><th style="min-width:100px">Acquisition Date</th>';
+  th+='<th style="min-width:80px">Life (Yrs)</th><th style="min-width:100px">Total Cost</th>';
+  th+='<th style="min-width:100px">Notes</th><th style="min-width:100px">BU</th><th style="min-width:100px">Bus. Line</th>';
+  th+='<th style="min-width:80px">Market</th><th style="min-width:80px">Project</th><th style="min-width:120px">Account</th><th style="min-width:80px">Code</th>';
+  ASSET_YEARS.forEach(yr=>{
+    if(assetExpandedYears.has(yr)){
+      ASSET_MO_KEYS.forEach((m,mi)=>{
+        const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        th+='<th class="asset-mo-sub" style="font-size:.68rem;min-width:70px">'+ms[mi]+'</th>';
+      });
+    } else {
+      th+='<th class="v-hdr asset-yr-hdr'+(assetExpandedYears.has(yr)?' expanded':'')+'" data-yr="'+yr+'" style="cursor:pointer;min-width:90px" title="Click to expand months">'+yr+' &#9654;</th>';
+    }
+  });
+  th+='<th style="font-weight:700;min-width:100px">Full Life Total</th><th style="width:40px"></th></tr>';
+  thead.innerHTML=th;
+  // Bind year header clicks
+  thead.querySelectorAll('.asset-yr-hdr').forEach(el=>{
+    el.addEventListener('click',function(){
+      const yr=this.dataset.yr;
+      if(assetExpandedYears.has(yr))assetExpandedYears.delete(yr);
+      else assetExpandedYears.add(yr);
+      renderAssetGrid();
+    });
+  });
+  // Render rows
+  let h='';
+  (state.assetRows||[]).forEach((row,i)=>{h+=buildAssetRow(row,i)});
+  tbody.innerHTML=h;
+  // Footer totals
+  let ft='<tr style="font-weight:700;background:var(--panel-inset)"><td colspan="2"></td><td>TOTAL</td><td colspan="12"></td>';
+  ASSET_YEARS.forEach(yr=>{
+    if(assetExpandedYears.has(yr)){
+      ASSET_MO_KEYS.forEach(m=>{
+        const t=(state.assetRows||[]).reduce((s,r)=>{
+          const md=r.monthlyDetail&&r.monthlyDetail[yr]?r.monthlyDetail[yr]:{};
+          return s+(parseFloat(md[m])||0);
+        },0);
+        ft+='<td class="num asset-mo-sub">'+fmtScaled(t,assetScale)+'</td>';
+      });
+    } else {
+      const t=(state.assetRows||[]).reduce((s,r)=>s+getAssetYearTotal(r,yr),0);
+      ft+='<td class="num">'+fmtScaled(t,assetScale)+'</td>';
+    }
+  });
+  const fullTotal=(state.assetRows||[]).reduce((s,r)=>s+getAssetFullLifeTotal(r),0);
+  ft+='<td class="num">'+fmtScaled(fullTotal,assetScale)+'</td><td></td></tr>';
+  totalRow.innerHTML=ft;
+  // Bind events
+  tbody.querySelectorAll('.asset-field').forEach(el=>{
+    el.addEventListener('change',function(){
+      const i=+this.dataset.ai;const f=this.dataset.f;const row=state.assetRows[i];if(!row)return;
+      row[f]=f==='usefulLifeYrs'||f==='totalCost'?(parseFloat(this.value)||0):this.value;
+      saveState();renderAssetGrid();
+    });
+  });
+  tbody.querySelectorAll('.asset-mo').forEach(el=>{
+    el.addEventListener('change',function(){
+      const i=+this.dataset.ai;const yr=this.dataset.yr;const m=this.dataset.m;
+      const row=state.assetRows[i];if(!row)return;
+      if(!row.monthlyDetail)row.monthlyDetail={};
+      if(!row.monthlyDetail[yr])row.monthlyDetail[yr]={jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+      let v=parseFloat(this.value.replace(/[,$]/g,''))||0;
+      if(assetScale>1)v=v*assetScale;
+      row.monthlyDetail[yr][m]=v;
+      saveState();renderAssetGrid();
+    });
+  });
+  tbody.querySelectorAll('.asset-del').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const i=+this.dataset.ai;state.assetRows.splice(i,1);saveState();renderAssetGrid();
+    });
+  });
+}
+
+function addAssetRow(){
+  state.assetRows.push({name:'',vendorSource:'',assetType:'',acquireDate:'',usefulLifeYrs:5,totalCost:0,businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',monthlyDetail:{},_colorTag:''});
+  saveState();renderAssetGrid();
+}
+
+function initAssetTab(){
+  document.getElementById('assetAddRow').addEventListener('click',addAssetRow);
+  document.getElementById('assetClearAllRows').addEventListener('click',function(){
+    if(confirm('Clear all asset entries?')){state.assetRows=[];saveState();renderAssetGrid()}
+  });
+  const qaToggle=document.getElementById('assetQaToggle');
+  if(qaToggle)qaToggle.addEventListener('click',function(){this.closest('.qa-panel').classList.toggle('open')});
+  // Scale toggle
+  document.getElementById('assetScaleToggle').querySelectorAll('[data-ascale]').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#assetScaleToggle .btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      assetScale=+this.dataset.ascale;
+      renderAssetGrid();
+    });
+  });
+  // Import/Export
+  document.getElementById('assetExportBtn').addEventListener('click',function(){
+    exportGridToExcel(state.assetRows,'Assets','assets_export.xlsx',['name','vendorSource','assetType','acquireDate','usefulLifeYrs','totalCost','businessUnit','bizLine','market','project','acctDesc','notes']);
+  });
+  document.getElementById('assetImportBtn').addEventListener('click',function(){document.getElementById('assetFileInput').click()});
+  document.getElementById('assetFileInput').addEventListener('change',function(e){importGridFromExcel(e,state.assetRows,'assetRows',renderAssetGrid)});
+  renderAssetGrid();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ── TECH REVENUE MODULE ──
+// ══════════════════════════════════════════════════════════════════
+let revenueModuleInited=false;
+let revScale=1,revSelectedMonths=new Set();
+let revSortCol='',revSortDir=1;
+let revPivotChartInst=null,revFcChartInst=null;
+let landingRevenueChartInst=null,landingRevFcChartInst=null;
+
+function getRevenueTotal(){
+  return (state.revenueRows||[]).reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+}
+function getRevenueByMonth(mi){
+  return (state.revenueRows||[]).reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
+}
+function getRevenueMrr(){
+  // MRR = current month's sum for MRR-type rows (use latest non-zero month as proxy)
+  const rows=(state.revenueRows||[]).filter(r=>r.revenueType==='MRR'||r.revenueType==='ARR');
+  for(let mi=11;mi>=0;mi--){
+    const v=rows.reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
+    if(v>0)return v;
+  }
+  return rows.reduce((s,r)=>s+(parseFloat(r[moKeys[0]])||0),0);
+}
+
+function buildRevenueRow(row,i){
+  const fy=moKeys.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
+  let h='<tr data-ri="'+i+'">';
+  h+='<td style="width:30px;cursor:grab">&#9776;</td>';
+  h+='<td style="width:30px"><span class="color-dot" style="background:'+(row._colorTag||'transparent')+';width:12px;height:12px;display:inline-block;border-radius:50%;cursor:pointer;border:1px solid var(--border)" data-ri="'+i+'"></span></td>';
+  // Client name - linked to clients
+  h+='<td><select class="rev-field" data-ri="'+i+'" data-f="clientName" style="width:140px"><option value="">— Select Client —</option>';
+  (state.revenueClients||[]).forEach(c=>{h+='<option value="'+escHtml(c.name)+'"'+(c.name===row.clientName?' selected':'')+'>'+escHtml(c.name)+'</option>'});
+  h+='<option value="_custom"'+(row.clientName&&!(state.revenueClients||[]).find(c=>c.name===row.clientName)?' selected':'')+'>Custom: '+escHtml(row.clientName||'')+'</option>';
+  h+='</select></td>';
+  h+='<td><input class="rev-field" data-ri="'+i+'" data-f="productName" value="'+escHtml(row.productName||'')+'" style="width:120px" placeholder="Product/Service"></td>';
+  h+='<td><select class="rev-field" data-ri="'+i+'" data-f="revenueType" style="width:100px"><option value="MRR"'+(row.revenueType==='MRR'?' selected':'')+'>MRR</option><option value="ARR"'+(row.revenueType==='ARR'?' selected':'')+'>ARR</option><option value="One-Time"'+(row.revenueType==='One-Time'?' selected':'')+'>One-Time</option><option value="Usage"'+(row.revenueType==='Usage'?' selected':'')+'>Usage-Based</option><option value="ProfServ"'+(row.revenueType==='ProfServ'?' selected':'')+'>Prof. Services</option><option value="Contractual"'+(row.revenueType==='Contractual'?' selected':'')+'>Contractual</option></select></td>';
+  h+='<td style="white-space:nowrap"><select class="rev-field" data-ri="'+i+'" data-f="_startMonth" style="width:50px">'+buildMonthOptions(row._startMonth)+'</select> – <select class="rev-field" data-ri="'+i+'" data-f="_endMonth" style="width:50px">'+buildMonthOptions(row._endMonth)+'</select></td>';
+  h+='<td><input class="rev-field" data-ri="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" style="width:90px" placeholder="Notes"></td>';
+  h+=buildDimCells('rev-field',i,row);
+  moKeys.forEach(m=>{
+    const v=parseFloat(row[m])||0;
+    h+='<td class="num"><input class="rev-mo" data-ri="'+i+'" data-m="'+m+'" value="'+fmtScaled(v,revScale)+'" style="width:80px;text-align:right"></td>';
+  });
+  h+='<td class="num" style="font-weight:700">'+fmtScaled(fy,revScale)+'</td>';
+  h+='<td><button class="rev-del" data-ri="'+i+'" style="color:var(--danger);cursor:pointer;border:none;background:none;font-size:1rem">&times;</button></td>';
+  h+='</tr>';
+  return h;
+}
+
+function renderRevenueGrid(){
+  const tbody=document.getElementById('revTbody');
+  const totalRow=document.getElementById('revTotalRow');
+  if(!tbody)return;
+  let h='';
+  (state.revenueRows||[]).forEach((row,i)=>{h+=buildRevenueRow(row,i)});
+  tbody.innerHTML=h;
+  // Footer
+  let ft='<tr style="font-weight:700;background:var(--panel-inset)"><td colspan="2"></td><td>TOTAL</td><td colspan="4"></td><td colspan="6"></td>';
+  moKeys.forEach(m=>{
+    const t=(state.revenueRows||[]).reduce((s,r)=>s+(parseFloat(r[m])||0),0);
+    ft+='<td class="num">'+fmtScaled(t,revScale)+'</td>';
+  });
+  const fy=(state.revenueRows||[]).reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+  ft+='<td class="num">'+fmtScaled(fy,revScale)+'</td><td></td></tr>';
+  totalRow.innerHTML=ft;
+  // Bind events
+  tbody.querySelectorAll('.rev-field').forEach(el=>{
+    el.addEventListener('change',function(){
+      const i=+this.dataset.ri;const f=this.dataset.f;const row=state.revenueRows[i];if(!row)return;
+      row[f]=this.value;saveState();renderRevenueGrid();renderRevenueKpis();
+    });
+  });
+  tbody.querySelectorAll('.rev-mo').forEach(el=>{
+    el.addEventListener('change',function(){
+      const i=+this.dataset.ri;const m=this.dataset.m;const row=state.revenueRows[i];if(!row)return;
+      let v=parseFloat(this.value.replace(/[,$]/g,''))||0;
+      if(revScale>1)v=v*revScale;
+      row[m]=v;saveState();renderRevenueGrid();renderRevenueKpis();
+    });
+  });
+  tbody.querySelectorAll('.rev-del').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const i=+this.dataset.ri;state.revenueRows.splice(i,1);saveState();renderRevenueGrid();renderRevenueKpis();
+    });
+  });
+}
+
+function renderRevenueKpis(){
+  const mrr=getRevenueMrr();
+  const arr=mrr*12;
+  const totalRev=getRevenueTotal();
+  const clients=(state.revenueClients||[]);
+  const mappedClients=new Set((state.revenueClientMapping||[]).map(m=>m.clientId));
+  const uniqueClients=mappedClients.size||1;
+  const arpc=totalRev/uniqueClients;
+  // Renewal rate: weighted avg
+  let renewalNum=0,renewalDen=0;
+  clients.forEach(c=>{
+    const cRev=getClientRevenue(c.id);
+    renewalNum+=(parseFloat(c.renewalRate)||90)*cRev;
+    renewalDen+=cRev;
+  });
+  const renewalRate=renewalDen>0?renewalNum/renewalDen:0;
+  // NRR
+  let nrrNum=0,nrrDen=0;
+  clients.forEach(c=>{
+    const cRev=getClientRevenue(c.id);
+    nrrNum+=(parseFloat(c.nrrPct)||100)*cRev;
+    nrrDen+=cRev;
+  });
+  const nrr=nrrDen>0?nrrNum/nrrDen:0;
+  // Churn
+  const highRisk=clients.filter(c=>c.churnRisk==='high').length;
+  const churnRate=clients.length>0?(highRisk/clients.length*100):0;
+  // Credit memo
+  let creditMemo=0;
+  clients.forEach(c=>{
+    const cRev=getClientRevenue(c.id);
+    creditMemo+=cRev*(parseFloat(c.creditMemoRiskPct)||2)/100;
+  });
+  // Update KPI cards
+  const el=id=>document.getElementById(id);
+  if(el('revKpiMrr'))el('revKpiMrr').textContent=fmt(mrr);
+  if(el('revKpiArr'))el('revKpiArr').textContent=fmt(arr);
+  if(el('revKpiTotal'))el('revKpiTotal').textContent=fmt(totalRev);
+  if(el('revKpiNrr'))el('revKpiNrr').textContent=nrr>0?nrr.toFixed(1)+'%':'—';
+  if(el('revKpiArpc'))el('revKpiArpc').textContent=fmt(arpc);
+  if(el('revKpiRenewal'))el('revKpiRenewal').textContent=renewalRate>0?renewalRate.toFixed(1)+'%':'—';
+  if(el('revKpiChurn'))el('revKpiChurn').textContent=churnRate.toFixed(1)+'%';
+  if(el('revKpiCreditMemo'))el('revKpiCreditMemo').textContent=fmt(creditMemo);
+  // New vs expansion
+  const thisYear=new Date().getFullYear();
+  let newRev=0,expRev=0;
+  clients.forEach(c=>{
+    const cRev=getClientRevenue(c.id);
+    const startYr=c.contractStart?new Date(c.contractStart).getFullYear():0;
+    if(startYr>=thisYear)newRev+=cRev;else expRev+=cRev;
+  });
+  if(el('revKpiNew'))el('revKpiNew').textContent=fmt(newRev);
+  if(el('revKpiExpansion'))el('revKpiExpansion').textContent=fmt(expRev);
+  // Sparklines
+  renderRevSparklines();
+}
+
+function getClientRevenue(clientId){
+  const client=(state.revenueClients||[]).find(c=>c.id===clientId);
+  if(!client)return 0;
+  const mappings=(state.revenueClientMapping||[]).filter(m=>m.clientId===clientId);
+  let total=0;
+  mappings.forEach(m=>{
+    const row=(state.revenueRows||[])[m.revenueRowIdx];
+    if(row)total+=moKeys.reduce((s,k)=>s+(parseFloat(row[k])||0),0);
+  });
+  return total;
+}
+
+function renderRevSparklines(){
+  if(typeof Chart==='undefined')return;
+  const data=moKeys.map((_,mi)=>getRevenueByMonth(mi));
+  const sparkIds=['revSparkMrr','revSparkArr','revSparkTotal'];
+  sparkIds.forEach(id=>{
+    const canvas=document.getElementById(id);
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    const existing=Chart.getChart(canvas);
+    if(existing)existing.destroy();
+    new Chart(ctx,{type:'line',data:{labels:moKeys.map(m=>m.charAt(0).toUpperCase()+m.slice(1,3)),datasets:[{data:data,borderColor:'var(--accent)',borderWidth:1.5,fill:false,pointRadius:0,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+  });
+}
+
+function addRevenueRow(){
+  state.revenueRows.push({clientName:'',productName:'',revenueType:'MRR',_startMonth:'',_endMonth:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:''});
+  saveState();renderRevenueGrid();
+}
+
+// Client Detail functions
+function renderClientTable(){
+  const tbody=document.getElementById('revClientBody');
+  if(!tbody)return;
+  let h='';
+  (state.revenueClients||[]).forEach((c,i)=>{
+    const cRev=getClientRevenue(c.id);
+    const mrrVal=cRev/12;
+    h+='<tr>';
+    h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="name" value="'+escHtml(c.name||'')+'" style="width:100px"></td>';
+    h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="industry" value="'+escHtml(c.industry||'')+'" style="width:70px"></td>';
+    h+='<td><select class="rclient-f" data-ci="'+i+'" data-f="tier" style="width:80px"><option value="">—</option><option'+(c.tier==='Enterprise'?' selected':'')+'>Enterprise</option><option'+(c.tier==='Mid-Market'?' selected':'')+'>Mid-Market</option><option'+(c.tier==='SMB'?' selected':'')+'>SMB</option></select></td>';
+    h+='<td><select class="rclient-f" data-ci="'+i+'" data-f="contractType" style="width:70px"><option value="">—</option><option'+(c.contractType==='MRR'?' selected':'')+'>MRR</option><option'+(c.contractType==='ARR'?' selected':'')+'>ARR</option><option'+(c.contractType==='One-Time'?' selected':'')+'>One-Time</option><option'+(c.contractType==='Usage'?' selected':'')+'>Usage</option></select></td>';
+    h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="contractStart" type="date" value="'+(c.contractStart||'')+'" style="width:90px"></td>';
+    h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="contractEnd" type="date" value="'+(c.contractEnd||'')+'" style="width:90px"></td>';
+    h+='<td><select class="rclient-f" data-ci="'+i+'" data-f="billingFreq" style="width:70px"><option value="">—</option><option'+(c.billingFreq==='Monthly'?' selected':'')+'>Monthly</option><option'+(c.billingFreq==='Quarterly'?' selected':'')+'>Quarterly</option><option'+(c.billingFreq==='Annual'?' selected':'')+'>Annual</option></select></td>';
+    h+='<td class="num" style="font-size:.72rem">'+fmt(mrrVal)+'</td>';
+    h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="renewalRate" type="number" value="'+(c.renewalRate||90)+'" min="0" max="100" style="width:50px;text-align:center">%</td>';
+    h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="creditMemoRiskPct" type="number" value="'+(c.creditMemoRiskPct||2)+'" min="0" max="100" style="width:50px;text-align:center">%</td>';
+    h+='<td><select class="rclient-f" data-ci="'+i+'" data-f="churnRisk" style="width:70px"><option value="low"'+(c.churnRisk==='low'?' selected':'')+'>Low</option><option value="medium"'+(c.churnRisk==='medium'?' selected':'')+'>Medium</option><option value="high"'+(c.churnRisk==='high'?' selected':'')+'>High</option></select></td>';
+    h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="nrrPct" type="number" value="'+(c.nrrPct||100)+'" min="0" max="300" style="width:50px;text-align:center">%</td>';
+    h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="expansionPipeline" type="number" value="'+(c.expansionPipeline||0)+'" style="width:80px;text-align:right"></td>';
+    // Contract attachments
+    h+='<td style="font-size:.72rem">';
+    const atts=c._attachments||[];
+    atts.forEach((a,ai)=>{
+      h+='<div style="display:flex;gap:3px;align-items:center;margin-bottom:2px"><a href="#" onclick="downloadAttachment('+i+','+ai+');return false" style="color:var(--accent);text-decoration:underline">'+escHtml(a.fileName)+'</a><button onclick="removeAttachment('+i+','+ai+')" style="border:none;background:none;color:var(--danger);cursor:pointer;font-size:.7rem">&times;</button></div>';
+    });
+    h+='<label style="cursor:pointer;color:var(--accent);font-size:.7rem"><input type="file" style="display:none" onchange="handleContractUpload('+i+',this.files[0])">+ Attach</label>';
+    h+='</td>';
+    h+='<td><button class="btn btn-sm" style="color:var(--danger);padding:1px 6px;font-size:.72rem" onclick="deleteClient('+i+')">&times;</button></td>';
+    h+='</tr>';
+  });
+  tbody.innerHTML=h;
+  // Bind field changes
+  tbody.querySelectorAll('.rclient-f').forEach(el=>{
+    el.addEventListener('change',function(){
+      const i=+this.dataset.ci;const f=this.dataset.f;const c=state.revenueClients[i];if(!c)return;
+      if(f==='renewalRate'||f==='creditMemoRiskPct'||f==='nrrPct'||f==='expansionPipeline')c[f]=parseFloat(this.value)||0;
+      else c[f]=this.value;
+      saveState();renderClientTable();renderRevenueKpis();
+    });
+  });
+}
+
+function handleContractUpload(clientIdx,file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const c=state.revenueClients[clientIdx];if(!c)return;
+    if(!c._attachments)c._attachments=[];
+    c._attachments.push({fileName:file.name,fileData:e.target.result,uploadDate:new Date().toISOString()});
+    saveState();renderClientTable();
+  };
+  reader.readAsDataURL(file);
+}
+function downloadAttachment(clientIdx,attIdx){
+  const c=state.revenueClients[clientIdx];if(!c||!c._attachments||!c._attachments[attIdx])return;
+  const att=c._attachments[attIdx];
+  const a=document.createElement('a');a.href=att.fileData;a.download=att.fileName;document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+function removeAttachment(clientIdx,attIdx){
+  const c=state.revenueClients[clientIdx];if(!c||!c._attachments)return;
+  c._attachments.splice(attIdx,1);saveState();renderClientTable();
+}
+function deleteClient(i){
+  state.revenueClients.splice(i,1);
+  // Clean up mappings
+  state.revenueClientMapping=(state.revenueClientMapping||[]).filter(m=>m.clientId!==(state.revenueClients[i]||{}).id);
+  saveState();renderClientTable();renderRevenueKpis();renderClientMapping();
+}
+
+function renderClientMapping(){
+  const tbody=document.getElementById('revMappingBody');
+  if(!tbody)return;
+  let h='';
+  (state.revenueClientMapping||[]).forEach((m,i)=>{
+    const client=(state.revenueClients||[]).find(c=>c.id===m.clientId);
+    const row=(state.revenueRows||[])[m.revenueRowIdx];
+    const mRev=row?moKeys.reduce((s,k)=>s+(parseFloat(row[k])||0),0)/12:0;
+    h+='<tr><td>'+(client?escHtml(client.name):'Unknown')+'</td>';
+    h+='<td>'+(row?escHtml(row.clientName||'')+' — '+escHtml(row.productName||''):'Row #'+m.revenueRowIdx)+'</td>';
+    h+='<td class="num">'+fmt(mRev)+'/mo</td>';
+    h+='<td><button class="btn btn-sm" style="color:var(--danger);padding:1px 6px;font-size:.72rem" onclick="unmapRevenue('+i+')">&times;</button></td></tr>';
+  });
+  tbody.innerHTML=h;
+  // Unmapped rows
+  const mappedIdxs=new Set((state.revenueClientMapping||[]).map(m=>m.revenueRowIdx));
+  const unmapped=(state.revenueRows||[]).map((r,i)=>({r,i})).filter(x=>!mappedIdxs.has(x.i));
+  const unmappedDiv=document.getElementById('revUnmappedList');
+  if(unmappedDiv){
+    unmappedDiv.innerHTML=unmapped.length?unmapped.map(x=>'<div style="margin-bottom:2px">Row #'+(x.i+1)+': '+escHtml(x.r.clientName||'Unnamed')+' — '+escHtml(x.r.productName||'')+'</div>').join(''):'<span style="color:var(--text-dim)">All rows mapped.</span>';
+  }
+  // Populate mapping selects
+  const clientSel=document.getElementById('revMapClient');
+  const rowSel=document.getElementById('revMapRow');
+  if(clientSel){
+    clientSel.innerHTML='<option value="">—</option>';
+    (state.revenueClients||[]).forEach(c=>{clientSel.innerHTML+='<option value="'+c.id+'">'+escHtml(c.name)+'</option>'});
+  }
+  if(rowSel){
+    rowSel.innerHTML='<option value="">—</option>';
+    (state.revenueRows||[]).forEach((r,i)=>{rowSel.innerHTML+='<option value="'+i+'">Row #'+(i+1)+': '+escHtml(r.clientName||'Unnamed')+'</option>'});
+  }
+}
+function unmapRevenue(i){
+  state.revenueClientMapping.splice(i,1);saveState();renderClientMapping();
+}
+
+// Contractual Revenue Addition
+function addContractualRevenue(){
+  const clientSel=document.getElementById('contractualRevClient');
+  const amount=parseFloat(document.getElementById('contractualRevAmount').value)||0;
+  const start=document.getElementById('contractualRevStart').value;
+  const end=document.getElementById('contractualRevEnd').value;
+  const phasing=document.getElementById('contractualRevPhasing').value;
+  const product=document.getElementById('contractualRevProduct').value;
+  if(!amount||!start||!end){alert('Please fill in amount, start date, and end date');return}
+  const startD=new Date(start),endD=new Date(end);
+  if(endD<=startD){alert('End date must be after start date');return}
+  // Calculate months
+  const months=[];
+  let d=new Date(startD.getFullYear(),startD.getMonth(),1);
+  while(d<=endD){months.push({yr:d.getFullYear(),mo:d.getMonth()});d.setMonth(d.getMonth()+1)}
+  if(!months.length)return;
+  // Distribute amount
+  let monthlyAmounts;
+  if(phasing==='SL'){
+    const perMonth=amount/months.length;
+    monthlyAmounts=months.map(()=>Math.round(perMonth));
+  } else if(phasing==='front'){
+    // 60% in first half, 40% in second half
+    const half=Math.ceil(months.length/2);
+    const first=amount*0.6/half,second=amount*0.4/(months.length-half);
+    monthlyAmounts=months.map((_,i)=>Math.round(i<half?first:second));
+  } else if(phasing==='back'){
+    const half=Math.ceil(months.length/2);
+    const first=amount*0.4/half,second=amount*0.6/(months.length-half);
+    monthlyAmounts=months.map((_,i)=>Math.round(i<half?first:second));
+  } else {
+    // Custom - SL default, user edits later
+    const perMonth=amount/months.length;
+    monthlyAmounts=months.map(()=>Math.round(perMonth));
+  }
+  // Store contractual revenue
+  const id='cr_'+Date.now();
+  state.contractualRevenue.push({id,clientId:clientSel.value,totalAmount:amount,startDate:start,endDate:end,phasingMethod:phasing,product,monthlyAmounts});
+  // Create revenue rows for current year months
+  const currentYear=new Date().getFullYear();
+  const currentYearMonths=months.filter(m=>m.yr===currentYear);
+  if(currentYearMonths.length){
+    const row={clientName:(state.revenueClients||[]).find(c=>c.id===clientSel.value)?.name||'',productName:product,revenueType:'Contractual',_startMonth:currentYearMonths[0].mo,_endMonth:currentYearMonths[currentYearMonths.length-1].mo,businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'Contract: '+fmt(amount)+' over '+months.length+' months',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:'',_contractualId:id};
+    currentYearMonths.forEach((m,mi)=>{
+      const moIdx=months.findIndex(x=>x.yr===m.yr&&x.mo===m.mo);
+      row[moKeys[m.mo]]=monthlyAmounts[moIdx]||0;
+    });
+    state.revenueRows.push(row);
+  }
+  saveState();renderRevenueGrid();renderRevenueKpis();renderContractualList();
+}
+
+function renderContractualList(){
+  const list=document.getElementById('contractualRevList');
+  if(!list)return;
+  let h='';
+  (state.contractualRevenue||[]).forEach((cr,i)=>{
+    const client=(state.revenueClients||[]).find(c=>c.id===cr.clientId);
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;border-bottom:1px solid var(--border-light);font-size:.78rem">';
+    h+='<span style="font-weight:600">'+(client?escHtml(client.name):'—')+'</span>';
+    h+='<span>'+escHtml(cr.product||'')+'</span>';
+    h+='<span>'+fmt(cr.totalAmount)+'</span>';
+    h+='<span style="color:var(--text-dim)">'+cr.startDate+' → '+cr.endDate+'</span>';
+    h+='<span style="color:var(--text-dim)">['+cr.phasingMethod+']</span>';
+    h+='<button onclick="deleteContractualRevenue('+i+')" style="margin-left:auto;border:none;background:none;color:var(--danger);cursor:pointer">&times;</button>';
+    h+='</div>';
+  });
+  list.innerHTML=h||'<div style="padding:8px;color:var(--text-dim);font-size:.78rem">No contractual revenue entries yet.</div>';
+}
+function deleteContractualRevenue(i){
+  const cr=state.contractualRevenue[i];if(!cr)return;
+  // Remove associated revenue rows
+  state.revenueRows=(state.revenueRows||[]).filter(r=>r._contractualId!==cr.id);
+  state.contractualRevenue.splice(i,1);
+  saveState();renderRevenueGrid();renderRevenueKpis();renderContractualList();
+}
+
+// Revenue Forecast
+function renderRevenueForecast(){
+  const tbody=document.getElementById('revFcBody');
+  const outputBody=document.getElementById('revFcOutputBody');
+  if(!tbody)return;
+  // Render assumptions table
+  let h='';
+  (state.revenueForecast||[]).forEach((f,i)=>{
+    const clientLabel=f.clientId==='_all'?'All Clients (Blended)':(state.revenueClients||[]).find(c=>c.id===f.clientId)?.name||f.clientId;
+    h+='<tr><td>'+escHtml(clientLabel)+'</td>';
+    h+='<td><input type="number" value="'+(f.growthPct||0)+'" data-fi="'+i+'" data-ff="growthPct" class="revfc-f" style="width:60px;text-align:center">%</td>';
+    h+='<td><input type="number" value="'+(f.churnPct||0)+'" data-fi="'+i+'" data-ff="churnPct" class="revfc-f" style="width:60px;text-align:center">%</td>';
+    h+='<td><input type="number" value="'+(f.priceIncPct||0)+'" data-fi="'+i+'" data-ff="priceIncPct" class="revfc-f" style="width:60px;text-align:center">%</td>';
+    h+='<td><input type="number" value="'+(f.newClientsPerYr||0)+'" data-fi="'+i+'" data-ff="newClientsPerYr" class="revfc-f" style="width:60px;text-align:center"></td>';
+    h+='<td><input type="number" value="'+(f.avgNewRev||0)+'" data-fi="'+i+'" data-ff="avgNewRev" class="revfc-f" style="width:80px;text-align:right"></td>';
+    h+='<td><button onclick="state.revenueForecast.splice('+i+',1);saveState();renderRevenueForecast()" style="border:none;background:none;color:var(--danger);cursor:pointer">&times;</button></td></tr>';
+  });
+  tbody.innerHTML=h;
+  // Bind
+  tbody.querySelectorAll('.revfc-f').forEach(el=>{
+    el.addEventListener('change',function(){
+      const i=+this.dataset.fi;const f=this.dataset.ff;
+      state.revenueForecast[i][f]=parseFloat(this.value)||0;
+      saveState();renderRevenueForecast();
+    });
+  });
+  // Compute 5-year forecast output
+  const baseRev=getRevenueTotal();
+  const forecasts=state.revenueForecast||[];
+  // Use blended assumptions (first entry or defaults)
+  const blended=forecasts.find(f=>f.clientId==='_all')||{growthPct:10,churnPct:5,priceIncPct:3,newClientsPerYr:0,avgNewRev:0};
+  let oh='';
+  const years=[];
+  let prevRev=baseRev;
+  for(let y=0;y<5;y++){
+    const yr=new Date().getFullYear()+y;
+    const growth=y===0?0:Math.round(prevRev*(blended.growthPct||0)/100);
+    const churn=y===0?0:-Math.round(prevRev*(blended.churnPct||0)/100);
+    const priceImp=y===0?0:Math.round(prevRev*(blended.priceIncPct||0)/100);
+    const newRev=y===0?0:(blended.newClientsPerYr||0)*(blended.avgNewRev||0);
+    const totalYr=y===0?baseRev:prevRev+growth+churn+priceImp+newRev;
+    years.push({yr,base:prevRev,growth,churn,priceImp,newRev,total:totalYr});
+    oh+='<tr><td>'+yr+'</td><td class="num">'+fmt(prevRev)+'</td><td class="num" style="color:#27ae60">'+fmt(growth)+'</td>';
+    oh+='<td class="num" style="color:var(--danger)">'+fmt(churn)+'</td><td class="num">'+fmt(priceImp)+'</td>';
+    oh+='<td class="num">'+fmt(newRev)+'</td><td class="num" style="font-weight:700">'+fmt(totalYr)+'</td></tr>';
+    prevRev=totalYr;
+  }
+  if(outputBody)outputBody.innerHTML=oh;
+  // Chart
+  renderRevFcChart(years);
+}
+function renderRevFcChart(years){
+  if(typeof Chart==='undefined')return;
+  const canvas=document.getElementById('revFcChart');
+  if(!canvas)return;
+  if(revFcChartInst)revFcChartInst.destroy();
+  const lcc=getChartColors();
+  revFcChartInst=new Chart(canvas,{
+    type:'bar',
+    data:{labels:years.map(y=>y.yr),datasets:[{label:'Revenue',data:years.map(y=>y.total),backgroundColor:lcc[2]||'#27ae60'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}
+  });
+}
+
+function initRevenueModule(){
+  if(revenueModuleInited)return;
+  revenueModuleInited=true;
+  // Tab switching
+  document.getElementById('revNav').querySelectorAll('[data-rtab]').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#revNav .btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      document.querySelectorAll('.rtab-content').forEach(c=>c.style.display='none');
+      const t=document.getElementById('rtab-'+this.dataset.rtab);
+      if(t)t.style.display='block';
+      if(this.dataset.rtab==='rev-clients'){renderClientTable();renderClientMapping()}
+      if(this.dataset.rtab==='rev-forecast')renderRevenueForecast();
+    });
+  });
+  // Scale toggle
+  document.getElementById('revScaleToggle').querySelectorAll('[data-rscale]').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#revScaleToggle .btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      revScale=+this.dataset.rscale;
+      renderRevenueGrid();
+    });
+  });
+  // Add row
+  document.getElementById('revAddRow').addEventListener('click',addRevenueRow);
+  document.getElementById('revClearAllRows').addEventListener('click',function(){
+    if(confirm('Clear all revenue rows?')){state.revenueRows=[];saveState();renderRevenueGrid();renderRevenueKpis()}
+  });
+  // QA panel toggle
+  ['revQaToggle','contractualRevToggle'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('click',function(){this.closest('.qa-panel').classList.toggle('open')});
+  });
+  // Month range bar
+  initMonthRangeBar('revMonthRangeBar','revMonthRangeLabel',revSelectedMonths,function(){renderRevenueGrid()});
+  // Add client
+  document.getElementById('revAddClientBtn').addEventListener('click',function(){
+    const name=document.getElementById('revClientName').value.trim();
+    if(!name){alert('Enter a client name');return}
+    state.revenueClients.push({id:'rc_'+Date.now(),name,industry:document.getElementById('revClientIndustry').value,tier:document.getElementById('revClientTier').value,contractType:document.getElementById('revClientContractType').value,contractStart:'',contractEnd:'',billingFreq:'',churnRisk:'low',nrrPct:100,renewalRate:90,creditMemoRiskPct:2,expansionPipeline:0,notes:'',_attachments:[]});
+    document.getElementById('revClientName').value='';
+    saveState();renderClientTable();renderRevenueKpis();renderClientMapping();
+  });
+  // Map button
+  document.getElementById('revMapBtn').addEventListener('click',function(){
+    const clientId=document.getElementById('revMapClient').value;
+    const rowIdx=parseInt(document.getElementById('revMapRow').value);
+    if(!clientId||isNaN(rowIdx)){alert('Select both a client and a revenue row');return}
+    state.revenueClientMapping.push({clientId,revenueRowIdx:rowIdx});
+    saveState();renderClientMapping();renderRevenueKpis();
+  });
+  // Contractual revenue
+  document.getElementById('contractualRevAddBtn').addEventListener('click',addContractualRevenue);
+  // Populate client selects
+  const revClientSelects=['contractualRevClient','revQaNewClient'];
+  revClientSelects.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.innerHTML='<option value="">— Select —</option>';
+    (state.revenueClients||[]).forEach(c=>{el.innerHTML+='<option value="'+c.id+'">'+escHtml(c.name)+'</option>'});
+  });
+  // Revenue forecast add
+  document.getElementById('revFcAddBtn').addEventListener('click',function(){
+    const clientId=document.getElementById('revFcClient').value;
+    // Replace existing entry for same client
+    state.revenueForecast=(state.revenueForecast||[]).filter(f=>f.clientId!==clientId);
+    state.revenueForecast.push({
+      clientId,
+      growthPct:parseFloat(document.getElementById('revFcGrowth').value)||0,
+      churnPct:parseFloat(document.getElementById('revFcChurn').value)||0,
+      priceIncPct:parseFloat(document.getElementById('revFcPriceInc').value)||0,
+      newClientsPerYr:parseInt(document.getElementById('revFcNewClients').value)||0,
+      avgNewRev:parseFloat(document.getElementById('revFcAvgNewRev').value)||0
+    });
+    saveState();renderRevenueForecast();
+  });
+  // Populate forecast client select
+  const fcSel=document.getElementById('revFcClient');
+  if(fcSel){
+    (state.revenueClients||[]).forEach(c=>{fcSel.innerHTML+='<option value="'+c.id+'">'+escHtml(c.name)+'</option>'});
+    // Also add individual revenue rows
+    (state.revenueRows||[]).forEach((r,i)=>{
+      if(r.clientName)fcSel.innerHTML+='<option value="row_'+i+'">Row: '+escHtml(r.clientName)+'</option>';
+    });
+  }
+  // Import/Export
+  document.getElementById('revExportBtn').addEventListener('click',function(){exportGridToExcel(state.revenueRows,'Revenue','revenue_export.xlsx',['clientName','productName','revenueType','businessUnit','bizLine','market','project','acctDesc','notes','jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'])});
+  document.getElementById('revImportBtn').addEventListener('click',function(){document.getElementById('revFileInput').click()});
+  document.getElementById('revFileInput').addEventListener('change',function(e){importGridFromExcel(e,state.revenueRows,'revenueRows',function(){renderRevenueGrid();renderRevenueKpis()})});
+  // Phasing toggle for custom
+  document.getElementById('contractualRevPhasing').addEventListener('change',function(){
+    document.getElementById('contractualRevCustomGrid').style.display=this.value==='custom'?'block':'none';
+  });
+  renderRevenueGrid();
+  renderRevenueKpis();
+  renderContractualList();
+}
+
+// Generic helpers for month range bars and import/export
+function initMonthRangeBar(barId,labelId,selectedSet,callback){
+  const bar=document.getElementById(barId);
+  if(!bar)return;
+  bar.querySelectorAll('.month-cell').forEach(cell=>{
+    cell.addEventListener('click',function(){
+      const mo=+this.dataset.mo;
+      if(selectedSet.has(mo))selectedSet.delete(mo);else selectedSet.add(mo);
+      bar.querySelectorAll('.month-cell').forEach(c=>{c.classList.toggle('active',selectedSet.has(+c.dataset.mo))});
+      const label=document.getElementById(labelId);
+      if(label)label.textContent=selectedSet.size===0?'All months':''+selectedSet.size+' months selected';
+      if(callback)callback();
+    });
+  });
+}
+
+function exportGridToExcel(rows,sheetName,fileName,fields){
+  if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}
+  const headers=fields.map(f=>f.charAt(0).toUpperCase()+f.slice(1).replace(/([A-Z])/g,' $1'));
+  const data=rows.filter(r=>!r._isCategoryHeader).map(r=>fields.map(f=>r[f]||''));
+  const ws=XLSX.utils.aoa_to_sheet([headers,...data]);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  XLSX.writeFile(wb,fileName);
+}
+
+function importGridFromExcel(e,targetArray,stateKey,callback){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}
+    const wb=XLSX.read(ev.target.result,{type:'binary'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const data=XLSX.utils.sheet_to_json(ws);
+    data.forEach(row=>{
+      const entry={};
+      Object.keys(row).forEach(k=>{
+        const lk=k.toLowerCase().replace(/[^a-z]/g,'');
+        if(moKeys.includes(lk))entry[lk]=parseFloat(row[k])||0;
+        else entry[lk.replace(/\s/g,'')]=row[k];
+      });
+      targetArray.push(entry);
+    });
+    saveState();if(callback)callback();
+  };
+  reader.readAsBinaryString(file);
+  e.target.value='';
+}
+
+// Band filter toggles for dep/rev analysis sections
+function toggleDepBand(btn){toggleBandFilter(btn,'depBandGroup')}
+function toggleRevBand(btn){toggleBandFilter(btn,'revBandGroup')}
+function toggleBandFilter(btn,groupId){
+  const group=document.getElementById(groupId);if(!group)return;
+  if(btn.dataset.band==='all'){group.querySelectorAll('.scen-pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');}
+  else{group.querySelector('[data-band="all"]').classList.remove('active');btn.classList.toggle('active');}
+}
+
 // ── LANDING PAGE ──
 let pnlFilterProduct='',pnlFilterCategory='';
 
-function showLanding(){
-  document.getElementById('landingPage').style.display='';
+function hideAllModules(){
+  document.getElementById('landingPage').style.display='none';
   document.getElementById('appShell').style.display='none';
   document.getElementById('vendorModule').style.display='none';
   document.getElementById('depreciationModule').style.display='none';
-  renderPnlWalk();renderLandingCharts();
+  document.getElementById('revenueModule').style.display='none';
+}
+function showLanding(){
+  hideAllModules();
+  document.getElementById('landingPage').style.display='';
+  renderPnlWalk();renderLandingCharts();renderLandingRevenue();
 }
 function showApp(){
-  document.getElementById('landingPage').style.display='none';
+  hideAllModules();
   document.getElementById('appShell').style.display='';
-  document.getElementById('vendorModule').style.display='none';
-  document.getElementById('depreciationModule').style.display='none';
   renderAll();
 }
 function showVendor(){
-  document.getElementById('landingPage').style.display='none';
-  document.getElementById('appShell').style.display='none';
+  hideAllModules();
   document.getElementById('vendorModule').style.display='';
-  document.getElementById('depreciationModule').style.display='none';
   if(!vendorModuleInited){vendorModuleInited=true;initVendorModule()}
   else{renderVendorGridPublic()}
 }
 function showDepreciation(){
-  document.getElementById('landingPage').style.display='none';
-  document.getElementById('appShell').style.display='none';
-  document.getElementById('vendorModule').style.display='none';
+  hideAllModules();
   document.getElementById('depreciationModule').style.display='';
+  initDepModule();
+  initAssetTab();
   setTimeout(initDepScratch,50);
+}
+function showRevenue(){
+  hideAllModules();
+  document.getElementById('revenueModule').style.display='';
+  initRevenueModule();
 }
 
 document.getElementById('modCompPlan').addEventListener('click',showApp);
 document.getElementById('modVendor').addEventListener('click',showVendor);
 document.getElementById('modDepreciation').addEventListener('click',showDepreciation);
+document.getElementById('modRevenue').addEventListener('click',showRevenue);
 document.getElementById('vendorBackBtn').addEventListener('click',showLanding);
 document.getElementById('depBackBtn').addEventListener('click',showLanding);
+document.getElementById('revBackBtn').addEventListener('click',showLanding);
+
+// Revenue pane toggle
+document.getElementById('toggleRevenuePane').addEventListener('click',function(){
+  const content=document.getElementById('landingRevenueContent');
+  const isHidden=content.style.display==='none';
+  content.style.display=isHidden?'':'none';
+  this.textContent=isHidden?'Hide':'Show';
+  state.showRevenuePane=isHidden;saveState();
+});
+
+// P&L mode toggle (cost vs revenue/profitability)
+document.getElementById('landingPnlModeToggle').querySelectorAll('[data-pnlmode]').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('#landingPnlModeToggle .btn').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+    state.landingPnlMode=this.dataset.pnlmode;
+    saveState();renderPnlWalk();renderLandingCharts();
+  });
+});
 
 
 // P&L filter dropdowns
@@ -12722,32 +14491,59 @@ function renderPnlWalk(){
   // Distribute vendor/T&E/contractor OAO across categories/products proportionally by HC
   // Note: contractor CapEx is NOT included in the comp plan P&L — only in landing page summaries
   const oaoTotal=getVendorOaoTotal();
+  const daTotal=getDepreciationTotal();
+  const revenueTotal=getRevenueTotal();
+  const isRevMode=(state.landingPnlMode||'cost')==='revenue';
   function enrichWithOao(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
     d.oao=Math.round(oaoTotal*share);
     d.adjEbitda=d.cbOpex+d.oao;
-    d.da=0;
-    d.totalOpex=d.adjEbitda;
+    d.da=Math.round(daTotal*share);
+    d.totalOpex=d.adjEbitda+d.da;
     d.totInv=d.totalOpex+d.capex;
+    if(isRevMode){
+      d.revenue=Math.round(revenueTotal*share);
+      // In revenue mode: revenue positive, costs negative = profitability
+      d.cbOpex=-Math.abs(d.cbOpex);
+      d.oao=-Math.abs(d.oao);
+      d.adjEbitda=d.revenue+d.cbOpex+d.oao;
+      d.da=-Math.abs(d.da);
+      d.totalOpex=d.adjEbitda+d.da;
+      d.capex=-Math.abs(d.capex);
+      d.totInv=d.totalOpex+d.capex;
+    }
   }
   catKeys.forEach(cat=>{
     enrichWithOao(catData[cat],totals.hc);
     Object.keys(prodData[cat]).forEach(prod=>enrichWithOao(prodData[cat][prod],totals.hc));
   });
-  totals.oao=oaoTotal;totals.adjEbitda=totals.cbOpex+oaoTotal;totals.da=0;
-  totals.totalOpex=totals.adjEbitda;totals.totInv=totals.totalOpex+totals.capex;
+  if(isRevMode){
+    totals.revenue=revenueTotal;
+    totals.cbOpex=-Math.abs(totals.cbOpex);
+    totals.oao=-Math.abs(oaoTotal);
+    totals.adjEbitda=revenueTotal+totals.cbOpex+totals.oao;
+    totals.da=-Math.abs(daTotal);
+    totals.totalOpex=totals.adjEbitda+totals.da;
+    totals.capex=-Math.abs(totals.capex);
+    totals.totInv=totals.totalOpex+totals.capex;
+  } else {
+    totals.oao=oaoTotal;totals.adjEbitda=totals.cbOpex+oaoTotal;totals.da=daTotal;
+    totals.totalOpex=totals.adjEbitda+totals.da;totals.totInv=totals.totalOpex+totals.capex;
+  }
 
   // Columns = P&L line items
-  const cols=[
+  const cols=[];
+  if(isRevMode)cols.push({key:'revenue',label:'Revenue',isCurrency:true,cls:'revenue'});
+  cols.push(
     {key:'hc',label:'HC',isCurrency:false},
     {key:'cbOpex',label:'C&B',isCurrency:true},
     {key:'oao',label:'OAO',isCurrency:true},
-    {key:'adjEbitda',label:'Adj EBITDA',isCurrency:true,cls:'subtotal'},
+    {key:'adjEbitda',label:isRevMode?'Gross Margin':'Adj EBITDA',isCurrency:true,cls:'subtotal'},
     {key:'da',label:'D&A',isCurrency:true},
-    {key:'totalOpex',label:'OpEx',isCurrency:true,cls:'subtotal'},
+    {key:'totalOpex',label:isRevMode?'EBITDA':'OpEx',isCurrency:true,cls:'subtotal'},
     {key:'capex',label:'CapEx',isCurrency:true},
-    {key:'totInv',label:'Tot Inv',isCurrency:true,cls:'total'}
-  ];
+    {key:'totInv',label:isRevMode?'Net Income':'Tot Inv',isCurrency:true,cls:'total'}
+  );
 
   function fmtCell(c,v){
     const style=c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':'';
@@ -12921,6 +14717,76 @@ function renderLandingCharts(){
   });
 }
 
+
+// ── LANDING REVENUE PANE ──
+function renderLandingRevenue(){
+  // Update KPIs on landing
+  const mrr=getRevenueMrr();
+  const totalRev=getRevenueTotal();
+  const clients=state.revenueClients||[];
+  const el=id=>document.getElementById(id);
+  if(el('landingRevMrr'))el('landingRevMrr').textContent=fmt(mrr);
+  if(el('landingRevArr'))el('landingRevArr').textContent=fmt(mrr*12);
+  if(el('landingRevTotal'))el('landingRevTotal').textContent=fmt(totalRev);
+  // NRR
+  let nrrNum=0,nrrDen=0;
+  clients.forEach(c=>{const r=getClientRevenue(c.id);nrrNum+=(parseFloat(c.nrrPct)||100)*r;nrrDen+=r});
+  if(el('landingRevNrr'))el('landingRevNrr').textContent=nrrDen>0?(nrrNum/nrrDen).toFixed(1)+'%':'—';
+  // Renewal
+  let renNum=0,renDen=0;
+  clients.forEach(c=>{const r=getClientRevenue(c.id);renNum+=(parseFloat(c.renewalRate)||90)*r;renDen+=r});
+  if(el('landingRevRenewal'))el('landingRevRenewal').textContent=renDen>0?(renNum/renDen).toFixed(1)+'%':'—';
+  // Credit memo
+  let cm=0;
+  clients.forEach(c=>{cm+=getClientRevenue(c.id)*(parseFloat(c.creditMemoRiskPct)||2)/100});
+  if(el('landingRevCreditMemo'))el('landingRevCreditMemo').textContent=fmt(cm);
+  // Toggle visibility
+  const content=el('landingRevenueContent');
+  const btn=el('toggleRevenuePane');
+  if(content&&state.showRevenuePane===false){content.style.display='none';if(btn)btn.textContent='Show'}
+  // Revenue chart
+  renderLandingRevenueChart();
+  renderLandingRevForecastChart();
+}
+
+function renderLandingRevenueChart(){
+  if(typeof Chart==='undefined')return;
+  const canvas=document.getElementById('landingRevenueChart');
+  if(!canvas)return;
+  if(landingRevenueChartInst)landingRevenueChartInst.destroy();
+  const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const data=MO.map((_,mi)=>getRevenueByMonth(mi));
+  const lcc=getChartColors();
+  landingRevenueChartInst=new Chart(canvas,{
+    type:'bar',data:{labels:MO,datasets:[{label:'Revenue',data:data,backgroundColor:lcc[2]||'#27ae60'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}
+  });
+}
+
+function renderLandingRevForecastChart(){
+  if(typeof Chart==='undefined')return;
+  const canvas=document.getElementById('landingRevForecastChart');
+  if(!canvas)return;
+  if(landingRevFcChartInst)landingRevFcChartInst.destroy();
+  const baseRev=getRevenueTotal();
+  const blended=(state.revenueForecast||[]).find(f=>f.clientId==='_all')||{growthPct:10,churnPct:5,priceIncPct:3,newClientsPerYr:0,avgNewRev:0};
+  const years=[];let prev=baseRev;
+  for(let y=0;y<5;y++){
+    const yr=new Date().getFullYear()+y;
+    if(y===0){years.push({yr,total:baseRev});continue}
+    const g=Math.round(prev*(blended.growthPct||0)/100);
+    const c=-Math.round(prev*(blended.churnPct||0)/100);
+    const p=Math.round(prev*(blended.priceIncPct||0)/100);
+    const n=(blended.newClientsPerYr||0)*(blended.avgNewRev||0);
+    const t=prev+g+c+p+n;
+    years.push({yr,total:t});prev=t;
+  }
+  const lcc=getChartColors();
+  landingRevFcChartInst=new Chart(canvas,{
+    type:'bar',data:{labels:years.map(y=>y.yr),datasets:[{label:'Revenue Forecast',data:years.map(y=>y.total),backgroundColor:lcc[2]||'#27ae60'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}
+  });
+}
 
 // ── INIT ──
 function renderAll(){
