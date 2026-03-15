@@ -12715,19 +12715,7 @@ function initVendorModule(){
     document.querySelectorAll('#teBandGroup .scen-pill').forEach(b=>b.classList.toggle('active',b.dataset.band===tePivotBand));
     refreshTePivot();
   };
-  // ── Collapsible spend analysis sections ──
-  window.toggleAnalysisSection=function(bodyId,headerEl){
-    const body=document.getElementById(bodyId);
-    if(!body)return;
-    const arrow=headerEl.querySelector('.analysis-arrow');
-    if(body.style.display==='none'){
-      body.style.display='';
-      if(arrow)arrow.style.transform='rotate(90deg)';
-    } else {
-      body.style.display='none';
-      if(arrow)arrow.style.transform='rotate(0deg)';
-    }
-  };
+  // ── Collapsible spend analysis sections (moved to global scope) ──
 
   window.toggleCrBand=function(btn){
     crPivotBand=btn.dataset.band;
@@ -14747,6 +14735,20 @@ function importGridFromExcel(e,targetArray,stateKey,callback){
   };
   reader.readAsBinaryString(file);
   e.target.value='';
+}
+
+// ── Collapsible spend analysis sections (global) ──
+function toggleAnalysisSection(bodyId,headerEl){
+  const body=document.getElementById(bodyId);
+  if(!body)return;
+  const arrow=headerEl.querySelector('.analysis-arrow');
+  if(body.style.display==='none'){
+    body.style.display='';
+    if(arrow)arrow.style.transform='rotate(90deg)';
+  } else {
+    body.style.display='none';
+    if(arrow)arrow.style.transform='rotate(0deg)';
+  }
 }
 
 // Band filter toggles for dep/rev analysis sections
