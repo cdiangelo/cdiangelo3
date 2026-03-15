@@ -5803,20 +5803,28 @@ function renderEmpPivot(){
   const rowTotals={};rowVals.forEach(rv=>{rowTotals[rv]=colVals.reduce((s,cv)=>s+pivot[rv][cv],0)});
   const sortedRows=[...rowVals].sort((a,b)=>rowTotals[b]-rowTotals[a]);
 
+  // Column totals (needed by both chart and table)
+  const colTotals={};colVals.forEach(cv=>{colTotals[cv]=sortedRows.reduce((s,rv)=>s+pivot[rv][cv],0)});
+  const grandTotal=Object.values(colTotals).reduce((s,v)=>s+v,0);
+
   // Stacked bar chart: x = columns, stacks = rows
+  const showBreakout=metric!=='comp';
   if(typeof Chart!=='undefined'){
     const canvas=document.getElementById('empPivotChart');
     if(empPivotChartInst)empPivotChartInst.destroy();
     const pivotColors=getChartColors();
     const chartLabels=colVals.map(v=>v.length>14?v.slice(0,12)+'…':v).concat(['Total']);
-    // Build datasets in reverse so first table row (largest) is at top of stack
-    const datasets=[...sortedRows].reverse().map((rv,i)=>{
+    // Build datasets – for total comp show only aggregate, otherwise stacked breakout
+    const datasets=showBreakout?[...sortedRows].reverse().map((rv,i)=>{
       const ri=sortedRows.length-1-i; // original index for consistent color
       return {label:rv.length>20?rv.slice(0,18)+'…':rv,
         data:colVals.map(cv=>pivot[rv][cv]).concat([rowTotals[rv]]),
         backgroundColor:pivotColors[ri%pivotColors.length],
         stack:'s0'};
-    });
+    }):[{label:'Total Comp',
+      data:colVals.map(cv=>colTotals[cv]).concat([grandTotal]),
+      backgroundColor:pivotColors[0],
+      stack:'s0'}];
     const _epDk=document.documentElement.classList.contains('dark');
     const _epTc=_epDk?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
     const _epGc=_epDk?'rgba(255,255,255,.08)':'#ddd';
@@ -5831,8 +5839,6 @@ function renderEmpPivot(){
 
   // Matrix table
   const tbl=document.getElementById('empPivotTable');
-  const colTotals={};colVals.forEach(cv=>{colTotals[cv]=sortedRows.reduce((s,rv)=>s+pivot[rv][cv],0)});
-  const grandTotal=Object.values(colTotals).reduce((s,v)=>s+v,0);
   const nDataCols=colVals.length+1; // +1 for Total
   const datColW=Math.floor(100/(nDataCols+1))+'%'; // +1 accounts for row label col
   const truncCol=v=>v.length>14?v.slice(0,12)+'…':v;
@@ -5843,8 +5849,8 @@ function renderEmpPivot(){
     const pivotColors=getChartColors();
     const dotColor=pivotColors[ri%pivotColors.length];
     h+=`<tr><td style="font-weight:600;font-size:.74rem;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${dotColor};margin-right:4px"></span>${rv}</td>`;
-    colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;text-align:center;${v===0?'color:var(--text-dim)':''}">${v===0?'—':isCurrency?fmt(v):v}</td>`});
-    h+=`<td class="num" style="font-size:.74rem;font-weight:700;text-align:center">${isCurrency?fmt(rowTotals[rv]):rowTotals[rv]}</td></tr>`;
+    colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;text-align:center;${v===0||!showBreakout?'color:var(--text-dim)':''}">${!showBreakout?'—':v===0?'—':isCurrency?fmt(v):v}</td>`});
+    h+=`<td class="num" style="font-size:.74rem;font-weight:700;text-align:center">${!showBreakout?'—':isCurrency?fmt(rowTotals[rv]):rowTotals[rv]}</td></tr>`;
   });
   h+=`<tr style="font-weight:700;border-top:2px solid var(--accent)"><td style="position:sticky;left:0;background:var(--panel);z-index:1;font-size:.74rem">Total</td>`;
   colVals.forEach(cv=>h+=`<td class="num" style="font-size:.74rem;text-align:center">${isCurrency?fmt(colTotals[cv]):colTotals[cv]}</td>`);
