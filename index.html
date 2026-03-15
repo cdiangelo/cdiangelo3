@@ -931,6 +931,45 @@ body.session-active header{top:30px}
 .save-indicator.saving{color:var(--warning)}
 .save-indicator.saved{color:var(--success)}
 .save-indicator.error{color:var(--danger)}
+
+/* Milestones Component */
+.milestones-wrap{display:inline-flex;align-items:center;gap:8px;margin-left:16px;position:relative;vertical-align:middle}
+.milestones-btn{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-size:.78rem;font-weight:600;transition:all .2s}
+.milestones-btn:hover{border-color:var(--accent);color:var(--accent)}
+.milestones-btn .ms-icon{font-size:.9rem}
+.milestones-bubbles{display:flex;align-items:center;gap:5px}
+.ms-bubble{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);background:var(--panel);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.ms-bubble.done{border-color:var(--success);background:var(--success)}
+.ms-bubble.done::after{content:'';display:block;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-1px}
+.ms-bubble:hover{transform:scale(1.2);border-color:var(--accent)}
+.ms-bubble.done:hover{border-color:#2e6b36}
+.ms-bubble-add{width:18px;height:18px;border-radius:50%;border:2px dashed var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;opacity:0;flex-shrink:0;font-size:.75rem;color:var(--text-dim);line-height:1}
+.milestones-bubbles:hover .ms-bubble-add{opacity:1}
+.ms-bubble-add:hover{border-color:var(--accent);color:var(--accent);transform:scale(1.15)}
+
+/* Milestone Tooltip */
+.ms-tooltip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:220px;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;font-size:.78rem;pointer-events:none;opacity:0;transition:opacity .15s}
+.ms-tooltip.visible{opacity:1;pointer-events:auto}
+.ms-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--border)}
+.ms-tooltip::before{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--panel);z-index:1}
+.ms-tooltip .ms-tt-goal{font-weight:700;color:var(--text-dark);margin-bottom:4px;word-break:break-word}
+.ms-tooltip .ms-tt-date{color:var(--text-dim);font-size:.72rem}
+.ms-tooltip .ms-tt-days{font-size:.72rem;margin-top:2px;font-weight:600}
+.ms-tooltip .ms-tt-days.overdue{color:var(--danger)}
+.ms-tooltip .ms-tt-days.upcoming{color:var(--success)}
+.ms-tooltip .ms-tt-done{color:var(--success);font-weight:600;margin-top:2px;font-size:.72rem}
+
+/* Milestone Edit Modal */
+.ms-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.ms-modal-overlay.show{opacity:1;pointer-events:auto}
+.ms-modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;width:360px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.ms-modal h3{font-size:1rem;color:var(--accent);margin-bottom:16px}
+.ms-modal .form-group{margin-bottom:12px}
+.ms-modal .form-group label{font-size:.78rem;color:var(--text-dim);margin-bottom:4px;display:block}
+.ms-modal .form-group input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:.85rem;background:var(--bg);color:var(--text)}
+.ms-modal .form-group input:focus{outline:none;border-color:var(--accent)}
+.ms-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.ms-modal-actions .btn{padding:6px 16px;font-size:.82rem}
 </style>
 </head>
 <body>
@@ -1058,6 +1097,13 @@ Template Mode &mdash; changes saved in this browser only.
 <p class="landing-subtitle">Select a module to begin, or review the consolidated P&amp;L summary below.</p>
 </div>
 <span class="workspace-indicator" id="landingWsIndicator" style="margin-left:4px"></span>
+
+<!-- Milestones Pane -->
+<div class="milestones-wrap" id="milestonesWrap">
+<button class="milestones-btn" id="milestonesToggle" title="Milestones"><span class="ms-icon">&#9679;</span> Milestones</button>
+<div class="milestones-bubbles" id="milestonesBubbles"></div>
+</div>
+
 </div>
 <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
@@ -15927,6 +15973,226 @@ function renderAll(){
   });
 }catch(e){console.warn('Fun mode error:',e)}})();
 
+</script>
+
+<!-- Milestone Edit/Add Modal -->
+<div class="ms-modal-overlay" id="msModalOverlay">
+<div class="ms-modal">
+<h3 id="msModalTitle">Add Milestone</h3>
+<div class="form-group">
+<label for="msGoalInput">Goal</label>
+<input type="text" id="msGoalInput" placeholder="e.g. Finalize Q3 Budget" maxlength="120">
+</div>
+<div class="form-group">
+<label for="msDateInput">Expected Completion Date</label>
+<input type="date" id="msDateInput">
+</div>
+<div class="ms-modal-actions">
+<button class="btn" id="msDeleteBtn" style="margin-right:auto;color:var(--danger);border-color:var(--danger);display:none">Delete</button>
+<button class="btn" id="msCancelBtn">Cancel</button>
+<button class="btn btn-primary" id="msSaveBtn">Save</button>
+</div>
+</div>
+</div>
+
+<script>
+/* ── Milestones Feature ── */
+(function(){
+  const KEY='milestones_data';
+  let milestones=[];
+  let editIndex=-1;
+  let tooltipTimer=null;
+  let activeTooltip=null;
+
+  function load(){
+    try{const d=localStorage.getItem(KEY);if(d)milestones=JSON.parse(d);}catch(e){milestones=[];}
+    if(!milestones.length){
+      milestones=[
+        {goal:'',date:'',done:false},
+        {goal:'',date:'',done:false},
+        {goal:'',date:'',done:false}
+      ];
+      save();
+    }
+  }
+  function save(){localStorage.setItem(KEY,JSON.stringify(milestones));}
+
+  function daysRemaining(dateStr){
+    if(!dateStr)return null;
+    const target=new Date(dateStr+'T00:00:00');
+    const now=new Date();
+    now.setHours(0,0,0,0);
+    return Math.ceil((target-now)/(1000*60*60*24));
+  }
+
+  function formatDate(dateStr){
+    if(!dateStr)return 'No date set';
+    const d=new Date(dateStr+'T00:00:00');
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  }
+
+  function removeTooltip(){
+    if(activeTooltip){activeTooltip.remove();activeTooltip=null;}
+    if(tooltipTimer){clearTimeout(tooltipTimer);tooltipTimer=null;}
+  }
+
+  function showTooltip(bubble,ms){
+    removeTooltip();
+    const tip=document.createElement('div');
+    tip.className='ms-tooltip';
+    const goalText=ms.goal||'(No goal set — click to edit)';
+    let html='<div class="ms-tt-goal">'+goalText.replace(/</g,'&lt;')+'</div>';
+    html+='<div class="ms-tt-date">'+formatDate(ms.date)+'</div>';
+    if(ms.done){
+      html+='<div class="ms-tt-done">Completed</div>';
+    }else if(ms.date){
+      const days=daysRemaining(ms.date);
+      if(days<0){
+        html+='<div class="ms-tt-days overdue">'+Math.abs(days)+' day'+(Math.abs(days)!==1?'s':'')+' overdue</div>';
+      }else if(days===0){
+        html+='<div class="ms-tt-days overdue">Due today</div>';
+      }else{
+        html+='<div class="ms-tt-days upcoming">'+days+' day'+(days!==1?'s':'')+' remaining</div>';
+      }
+    }
+    tip.innerHTML=html;
+    bubble.style.position='relative';
+    bubble.appendChild(tip);
+    requestAnimationFrame(()=>{tip.classList.add('visible');});
+    activeTooltip=tip;
+  }
+
+  function render(){
+    const container=document.getElementById('milestonesBubbles');
+    if(!container)return;
+    container.innerHTML='';
+
+    milestones.forEach((ms,i)=>{
+      const b=document.createElement('div');
+      b.className='ms-bubble'+(ms.done?' done':'');
+      b.title='';
+
+      // Hover tooltip
+      b.addEventListener('mouseenter',()=>{
+        tooltipTimer=setTimeout(()=>showTooltip(b,ms),250);
+      });
+      b.addEventListener('mouseleave',()=>{removeTooltip();});
+
+      // Click to toggle done
+      b.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        removeTooltip();
+        ms.done=!ms.done;
+        save();
+        render();
+      });
+
+      // Right-click to edit
+      b.addEventListener('contextmenu',(e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        removeTooltip();
+        openModal(i);
+      });
+
+      // Double-click to edit
+      b.addEventListener('dblclick',(e)=>{
+        e.stopPropagation();
+        removeTooltip();
+        openModal(i);
+      });
+
+      container.appendChild(b);
+    });
+
+    // Add button (always present but only visible on hover via CSS)
+    const addBtn=document.createElement('div');
+    addBtn.className='ms-bubble-add';
+    addBtn.textContent='+';
+    addBtn.title='Add milestone';
+    addBtn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      milestones.push({goal:'',date:'',done:false});
+      save();
+      render();
+      // Open modal for the new one
+      openModal(milestones.length-1);
+    });
+    container.appendChild(addBtn);
+  }
+
+  function openModal(index){
+    editIndex=index;
+    const overlay=document.getElementById('msModalOverlay');
+    const titleEl=document.getElementById('msModalTitle');
+    const goalInput=document.getElementById('msGoalInput');
+    const dateInput=document.getElementById('msDateInput');
+    const delBtn=document.getElementById('msDeleteBtn');
+
+    const ms=milestones[index];
+    if(ms.goal||ms.date){
+      titleEl.textContent='Edit Milestone';
+      delBtn.style.display='inline-block';
+    }else{
+      titleEl.textContent='Add Milestone';
+      delBtn.style.display=milestones.length>1?'inline-block':'none';
+    }
+    goalInput.value=ms.goal||'';
+    dateInput.value=ms.date||'';
+    overlay.classList.add('show');
+    setTimeout(()=>goalInput.focus(),100);
+  }
+
+  function closeModal(){
+    document.getElementById('msModalOverlay').classList.remove('show');
+    editIndex=-1;
+  }
+
+  // Modal events
+  document.getElementById('msCancelBtn').addEventListener('click',closeModal);
+  document.getElementById('msModalOverlay').addEventListener('click',(e)=>{
+    if(e.target===e.currentTarget)closeModal();
+  });
+
+  document.getElementById('msSaveBtn').addEventListener('click',()=>{
+    if(editIndex<0||editIndex>=milestones.length)return;
+    milestones[editIndex].goal=document.getElementById('msGoalInput').value.trim();
+    milestones[editIndex].date=document.getElementById('msDateInput').value;
+    save();
+    closeModal();
+    render();
+  });
+
+  document.getElementById('msDeleteBtn').addEventListener('click',()=>{
+    if(editIndex<0||editIndex>=milestones.length)return;
+    if(milestones.length<=1)return;
+    milestones.splice(editIndex,1);
+    save();
+    closeModal();
+    render();
+  });
+
+  // Toggle button shows/hides bubbles
+  document.getElementById('milestonesToggle').addEventListener('click',()=>{
+    const bubbles=document.getElementById('milestonesBubbles');
+    if(bubbles.style.display==='none'){
+      bubbles.style.display='flex';
+    }else{
+      bubbles.style.display='';
+    }
+  });
+
+  // Keyboard: Escape closes modal
+  document.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape'&&document.getElementById('msModalOverlay').classList.contains('show')){
+      closeModal();
+    }
+  });
+
+  // Init
+  load();
+  render();
+})();
 </script>
 </body>
 </html>
