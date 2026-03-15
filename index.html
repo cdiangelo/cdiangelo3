@@ -500,8 +500,8 @@ html.dark body.cs-crisp #vPivotTable thead tr:first-child th,html.dark body.cs-c
   #scenBudgetPnl th,#scenBudgetPnl td,#scenFcPnl th,#scenFcPnl td{padding:3px 5px;font-size:.68rem;white-space:nowrap}
   /* Vendor detail list contained */
   .vendor-detail-list{overflow-x:hidden;max-width:100%}
-  /* Hide sticky notepad on mobile */
-  .sticky-note-btn,.sticky-note-panel{display:none!important}
+  /* Hide sticky notepad and teams on mobile */
+  .sticky-note-btn,.sticky-note-panel,.teams-btn,.teams-panel{display:none!important}
   /* Quick-Adjust panels mobile */
   .qa-panel-header{padding:8px 10px}
   .qa-panel-header h4{font-size:.82rem}
@@ -857,6 +857,31 @@ body.session-active .sticky-note-panel{top:86px}
 .sn-color-swatch:hover{transform:scale(1.2);border-color:rgba(0,0,0,.3)}
 .sticky-note-panel .sn-body:empty::before{content:'';display:inline-block;width:2px;height:1.1em;background:var(--accent);vertical-align:text-bottom;animation:snCursorBounce 1s ease-in-out infinite}
 @keyframes snCursorBounce{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.3;transform:translateY(-3px)}}
+/* Teams quick-join button */
+.teams-btn{position:fixed;top:12px;right:58px;z-index:10000;background:var(--panel);border:1px solid var(--border);color:var(--accent);font-size:1.1rem;width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .2s}
+body.session-active .teams-btn{top:42px}
+body.session-active .teams-panel{top:86px}
+.teams-btn:hover{background:var(--accent);color:#fff;transform:scale(1.08)}
+.teams-btn svg{width:18px;height:18px;fill:currentColor}
+.teams-panel{position:fixed;top:56px;right:58px;width:340px;max-height:70vh;z-index:10000;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);display:none;flex-direction:column;overflow:hidden}
+.teams-panel.open{display:flex}
+.teams-panel .tp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--panel-inset)}
+.teams-panel .tp-header h4{margin:0;font-size:.85rem;color:var(--accent);font-weight:600}
+.teams-panel .tp-body{flex:1;overflow-y:auto;padding:12px 14px}
+.teams-panel .tp-add-form{display:flex;flex-direction:column;gap:8px;padding:10px 14px;border-top:1px solid var(--border)}
+.teams-panel .tp-add-form input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:.82rem;background:var(--panel-inset);color:var(--text);font-family:inherit}
+.teams-panel .tp-add-form button{padding:6px 10px;border:none;border-radius:6px;font-size:.82rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;transition:opacity .15s}
+.teams-panel .tp-add-form button:hover{opacity:.85}
+.teams-link-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .15s;border:1px solid transparent}
+.teams-link-item:hover{background:var(--panel-inset);border-color:var(--border-light)}
+.teams-link-item .tl-icon{width:32px;height:32px;border-radius:6px;background:linear-gradient(135deg,#5b5fc7,#7b83eb);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;flex-shrink:0}
+.teams-link-item .tl-info{flex:1;min-width:0}
+.teams-link-item .tl-name{font-size:.82rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.teams-link-item .tl-desc{font-size:.7rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.teams-link-item .tl-remove{border:none;background:none;cursor:pointer;color:var(--text-dim);font-size:.9rem;padding:2px 4px;border-radius:4px;opacity:0;transition:opacity .15s}
+.teams-link-item:hover .tl-remove{opacity:1}
+.teams-link-item .tl-remove:hover{color:var(--danger,#c0392b)}
+.teams-empty{text-align:center;padding:20px 10px;color:var(--text-dim);font-size:.8rem;line-height:1.5}
 /* Session modal */
 .session-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .session-modal-overlay.show{opacity:1;pointer-events:auto}
@@ -960,6 +985,18 @@ body.session-active header{top:30px}
 Template Mode &mdash; changes saved in this browser only.
 <button class="btn btn-primary" onclick="openSessionModal()">Join a Session</button>
 <button class="btn" onclick="document.getElementById('templateBanner').style.display='none'" title="Dismiss">&times;</button>
+</div>
+
+<!-- Teams Quick-Join -->
+<button class="teams-btn" id="teamsBtn" title="Teams"><svg viewBox="0 0 24 24"><path d="M19.2 6.4a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm2.4 1.2h-4.8c-.66 0-1.2.54-1.2 1.2v4.8c0 .66.54 1.2 1.2 1.2h.6v3.6c0 .33.27.6.6.6h2.4c.33 0 .6-.27.6-.6v-3.6h.6c.66 0 1.2-.54 1.2-1.2V8.8c0-.66-.54-1.2-1.2-1.2zM12.8 5.6a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6zm2 1.6h-.43a3.85 3.85 0 0 1-3.14 0H10.8c-1.33 0-2.4 1.07-2.4 2.4v4.4c0 .44.36.8.8.8h.4v4.4c0 .44.36.8.8.8h4.8c.44 0 .8-.36.8-.8v-4.4h.4c.44 0 .8-.36.8-.8V9.6c0-1.33-1.07-2.4-2.4-2.4z"/></svg></button>
+<div class="teams-panel" id="teamsPanel">
+<div class="tp-header"><h4>Teams Links</h4><div style="display:flex;gap:6px;align-items:center"><button id="teamsMinimize" title="Minimize" style="border:none;background:none;cursor:pointer;font-size:1.1rem;color:var(--text-dim);line-height:1">&minus;</button></div></div>
+<div class="tp-body" id="teamsBody"></div>
+<div class="tp-add-form" id="teamsAddForm">
+<input type="text" id="teamsLinkName" placeholder="Link name (e.g. Daily Standup)" maxlength="60">
+<input type="url" id="teamsLinkUrl" placeholder="Teams meeting or channel URL">
+<button id="teamsAddBtn">Add Link</button>
+</div>
 </div>
 
 <!-- Universal Sticky Note -->
@@ -15356,6 +15393,76 @@ function renderAll(){
 
   body.addEventListener('input',saveNote);
   body.addEventListener('blur',saveNote);
+})();
+
+// ── Teams Quick-Join ──
+(function(){
+  const btn=document.getElementById('teamsBtn');
+  const panel=document.getElementById('teamsPanel');
+  const bodyEl=document.getElementById('teamsBody');
+  const STORE_KEY='compPlanTeamsLinks';
+
+  function loadLinks(){return JSON.parse(localStorage.getItem(STORE_KEY)||'[]');}
+  function saveLinks(links){localStorage.setItem(STORE_KEY,JSON.stringify(links));}
+
+  function renderLinks(){
+    const links=loadLinks();
+    if(!links.length){
+      bodyEl.innerHTML='<div class="teams-empty">No Teams links yet.<br>Add a meeting or channel link below to quick-join from here.</div>';
+      return;
+    }
+    bodyEl.innerHTML='';
+    links.forEach((lnk,i)=>{
+      const item=document.createElement('div');
+      item.className='teams-link-item';
+      const isChannel=lnk.url&&lnk.url.includes('/channel/');
+      const iconChar=isChannel?'#':'\u25B6';
+      item.innerHTML='<div class="tl-icon">'+iconChar+'</div>'
+        +'<div class="tl-info"><div class="tl-name">'+escHtml(lnk.name)+'</div>'
+        +'<div class="tl-desc">'+(isChannel?'Channel':'Meeting / Call')+'</div></div>'
+        +'<button class="tl-remove" title="Remove">&times;</button>';
+      item.querySelector('.tl-info').addEventListener('click',()=>{
+        window.open(lnk.url,'_teams_popup','width=520,height=720,menubar=no,toolbar=no,location=no,status=no');
+      });
+      item.querySelector('.tl-remove').addEventListener('click',(e)=>{
+        e.stopPropagation();
+        const all=loadLinks();all.splice(i,1);saveLinks(all);renderLinks();
+      });
+      bodyEl.appendChild(item);
+    });
+  }
+
+  function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+  btn.addEventListener('click',()=>{
+    const opening=!panel.classList.contains('open');
+    panel.classList.toggle('open');
+    if(opening)renderLinks();
+  });
+
+  document.getElementById('teamsMinimize').addEventListener('click',()=>{
+    panel.classList.remove('open');
+  });
+
+  document.getElementById('teamsAddBtn').addEventListener('click',()=>{
+    const nameEl=document.getElementById('teamsLinkName');
+    const urlEl=document.getElementById('teamsLinkUrl');
+    const name=nameEl.value.trim();
+    const url=urlEl.value.trim();
+    if(!name||!url){return;}
+    const links=loadLinks();
+    links.push({name,url});
+    saveLinks(links);
+    nameEl.value='';urlEl.value='';
+    renderLinks();
+  });
+
+  // Allow Enter key to add
+  document.getElementById('teamsLinkUrl').addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){e.preventDefault();document.getElementById('teamsAddBtn').click();}
+  });
+
+  renderLinks();
 })();
 
 // ── Fun Mode — Scenic Video PiP ──
