@@ -6987,7 +6987,9 @@ function projectForecast(emps,groupKey){
   const isGenGroup=groupKey&&genId&&groupKey===genId;
   function isFullyUnallocated(e){
     if(!genId)return false;
-    return e.allocations&&e.allocations.length&&e.allocations.every(a=>a.projId===genId);
+    // Employees with empty allocations or only GEN-000 allocations are unallocated
+    if(!e.allocations||!e.allocations.length)return true;
+    return e.allocations.every(a=>a.projId===genId);
   }
   // In total view (no groupKey), separate unallocated employees so they don't inflate
   // attrition or consume hires — their costs still grow with merit/market but HC is stable.
@@ -7007,8 +7009,14 @@ function projectForecast(emps,groupKey){
   const currentTotal=currentBase+currentBonus+currentBenefits;
   const currentCapEx=activeEmps.reduce((a,e)=>a+getProratedCapEx(e),0);
   // For projecting forward, use full annual rates of active employees (those not terminated in current year)
-  const forwardEmps=dynamicActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
-  const staticForward=staticActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+  let forwardEmps=dynamicActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+  let staticForward=staticActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+  // If ALL forward pools are empty but we have current HC, fall back to using all active
+  // employees as forward basis — prevents forecast cliff from current year to $0
+  if(forwardEmps.length===0&&staticForward.length===0&&activeEmps.length>0){
+    forwardEmps=dynamicActive.length?dynamicActive:activeEmps;
+    staticForward=dynamicActive.length?staticActive:[];
+  }
   const forwardHC=forwardEmps.length;
   const staticHC=staticForward.length;
   const forwardBase=forwardEmps.reduce((a,e)=>a+e.salary,0);
@@ -7236,7 +7244,11 @@ function renderForecastProjection(){
     // Separate GEN-000 (unallocated) employees — they don't drive HC dynamics
     const _genP=state.projects.find(p=>p.code==='GEN-000');
     const _genId=_genP?_genP.id:null;
-    const _isUnalloc=e=>_genId&&e.allocations&&e.allocations.length&&e.allocations.every(a=>a.projId===_genId);
+    const _isUnalloc=e=>{
+      if(!_genId)return false;
+      if(!e.allocations||!e.allocations.length)return true;
+      return e.allocations.every(a=>a.projId===_genId);
+    };
     let dynActive=activeEmps.filter(e=>!_isUnalloc(e));
     let stActive=activeEmps.filter(e=>_isUnalloc(e));
     // If ALL employees are unallocated, treat them all as dynamic so forecast isn't frozen
@@ -7246,8 +7258,13 @@ function renderForecastProjection(){
     const currentBonus=activeEmps.reduce((a,e)=>a+getProratedBonus(e),0);
     const currentBenefits=activeEmps.reduce((a,e)=>a+getProratedBenefits(e),0);
     const currentCapEx=activeEmps.reduce((a,e)=>a+getProratedCapEx(e),0);
-    const dynForward=dynActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
-    const stForward=stActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+    let dynForward=dynActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+    let stForward=stActive.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>CURRENT_YEAR);
+    // If ALL forward pools are empty but we have current HC, fall back to using all active
+    if(dynForward.length===0&&stForward.length===0&&activeEmps.length>0){
+      dynForward=dynActive.length?dynActive:activeEmps;
+      stForward=dynActive.length?stActive:[];
+    }
     const forwardHC=dynForward.length;
     const stHC=stForward.length;
     const forwardBase=dynForward.reduce((a,e)=>a+e.salary,0);
@@ -7417,7 +7434,7 @@ function renderForecastProjection(){
   // ── Forecast FTE sparkline ──
   if(typeof Chart!=='undefined'){
     const isDark2=document.documentElement.classList.contains('dark');
-    const tickColor2=isDark2?(chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+    const tickColor2=isDark2?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#006680':'#5a5a5a');
     const gridColor2=isDark2?'rgba(255,255,255,.08)':'#ddd';
     if(window._forecastFteChart)window._forecastFteChart.destroy();
     const fteLabels=totalRows.map(r=>displayYear(r.year));
@@ -8624,6 +8641,10 @@ function renderExecFcSparkline(){
   const labels=getDisplayFcLabels();
   if(execFcSparkChart)execFcSparkChart.destroy();
   const colors=getChartColors();
+  const isDarkSpark=document.documentElement.classList.contains('dark');
+  const sparkTickColor=isDarkSpark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#006680':'var(--text-dim)');
+  // Neon gradient fill: create gradient from line color to transparent
+  const sparkFillAlpha=chartColorScheme==='neon'?0.18:0.25;
   // Compute Y/Y % change labels
   const yoyLabels=vals.map((v,i)=>{
     if(i===0)return '';
@@ -8632,11 +8653,12 @@ function renderExecFcSparkline(){
     const pct=((v-prev)/Math.abs(prev))*100;
     return (pct>=0?'+':'')+pct.toFixed(1)+'%';
   });
+  const sparkDlColor=getCrispDatalabelColor('sparkline')||(chartColorScheme==='neon'?(isDarkSpark?'#88ccdd':'#006680'):hexToRgba(colors[0],0.85));
   execFcSparkChart=new Chart(document.getElementById('execFcSparkline'),{
     type:'line',
     data:{labels,datasets:[{
       data:vals,fill:true,
-      backgroundColor:hexToRgba(colors[0],0.25),
+      backgroundColor:hexToRgba(colors[0],sparkFillAlpha),
       borderColor:colors[0],borderWidth:2,
       pointRadius:3,pointBackgroundColor:colors[0],
       tension:0.3,
@@ -8644,7 +8666,7 @@ function renderExecFcSparkline(){
         display:ctx=>yoyLabels[ctx.dataIndex]!=='',
         align:'top',anchor:'end',z:10,
         font:{size:chartColorScheme==='crisp'?14:12,weight:'bold'},
-        color:getCrispDatalabelColor('sparkline')||hexToRgba(colors[0],0.85),
+        color:sparkDlColor,
         formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]
       }
     }]},
@@ -8652,7 +8674,7 @@ function renderExecFcSparkline(){
       plugins:{legend:{display:false},datalabels:{},
         tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
       scales:{
-        x:{ticks:{font:{size:12,weight:'600'},color:document.documentElement.classList.contains('dark')?'#ffffff':'var(--text-dim)'},grid:{display:false}},
+        x:{ticks:{font:{size:12,weight:'600'},color:sparkTickColor},grid:{display:false}},
         y:{display:false}
       }
     }
