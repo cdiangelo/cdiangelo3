@@ -13477,7 +13477,7 @@ function buildDepRow(row,i){
     const imp=row._impairments||[];
     const impSum=imp.reduce((s,im)=>s+(parseFloat(im.amount)||0),0);
     h+='<td style="white-space:nowrap;font-size:.72rem">';
-    if(imp.length){h+='<span style="color:var(--danger);font-weight:600" title="'+imp.map(im=>moKeys[im.month].toUpperCase()+': '+fmt(im.amount)).join(', ')+'">'+fmt(impSum)+'</span> '}
+    if(imp.length){h+='<span style="color:var(--danger);font-weight:600" title="'+imp.map(im=>moKeys[im.month].toUpperCase()+': '+fmt(im.amount)).join(', ')+'">'+fmt(impSum)+'</span> <button class="dep-impair-clear btn btn-sm" data-di="'+i+'" style="padding:1px 5px;font-size:.62rem;color:var(--text-dim);border-color:var(--border)" title="Clear impairments">&times;</button> '}
     h+='<button class="dep-impair-btn btn btn-sm" data-di="'+i+'" style="padding:1px 6px;font-size:.68rem;color:var(--danger);border-color:var(--danger)">+Impair</button></td>';
     h+=buildDimCells('dep-field',i,row);
     mos.forEach(m=>{
@@ -13600,6 +13600,14 @@ function renderDepreciationGrid(){
       if(amt===0)return;
       if(!row._impairments)row._impairments=[];
       row._impairments.push({month:mi,amount:amt});
+      spreadDepAmount(row);saveState();renderDepreciationGrid();
+    });
+  });
+  tbody.querySelectorAll('.dep-impair-clear').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const i=+this.dataset.di;const row=state.depreciationRows[i];if(!row)return;
+      if(!confirm('Clear all impairments for this entry?'))return;
+      row._impairments=[];
       spreadDepAmount(row);saveState();renderDepreciationGrid();
     });
   });
