@@ -7,6 +7,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="window._chartFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="window._xlsxFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2" onerror="window._datalabelsFailed=true"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;600;700&family=DM+Sans:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@400;600;700&family=Sora:wght@400;600;700&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=Fira+Code:wght@400;600;700&family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,400;0,700;1,400&family=Nunito:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@400;600;700&family=Raleway:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;600;700&family=Caveat:wght@400;600;700&family=Kalam:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -1073,6 +1076,40 @@ Template Mode &mdash; changes saved in this browser only.
 <option value="3" selected>Normal</option>
 <option value="4">Large</option>
 <option value="5">XL</option>
+</select>
+<select data-cmd="fontName" title="Font" style="max-width:110px">
+<option value="" style="font-family:inherit">Default</option>
+<optgroup label="Sans Serif">
+<option value="Inter" style="font-family:'Inter'">Inter</option>
+<option value="DM Sans" style="font-family:'DM Sans'">DM Sans</option>
+<option value="Space Grotesk" style="font-family:'Space Grotesk'">Space Grotesk</option>
+<option value="Sora" style="font-family:'Sora'">Sora</option>
+<option value="Nunito" style="font-family:'Nunito'">Nunito</option>
+<option value="Quicksand" style="font-family:'Quicksand'">Quicksand</option>
+<option value="Raleway" style="font-family:'Raleway'">Raleway</option>
+<option value="Outfit" style="font-family:'Outfit'">Outfit</option>
+</optgroup>
+<optgroup label="Serif">
+<option value="Playfair Display" style="font-family:'Playfair Display'">Playfair Display</option>
+<option value="Merriweather" style="font-family:'Merriweather'">Merriweather</option>
+<option value="Lora" style="font-family:'Lora'">Lora</option>
+<option value="Crimson Text" style="font-family:'Crimson Text'">Crimson Text</option>
+<option value="Cormorant Garamond" style="font-family:'Cormorant Garamond'">Cormorant Garamond</option>
+<option value="Libre Baskerville" style="font-family:'Libre Baskerville'">Libre Baskerville</option>
+<option value="Spectral" style="font-family:'Spectral'">Spectral</option>
+</optgroup>
+<optgroup label="Monospace">
+<option value="JetBrains Mono" style="font-family:'JetBrains Mono'">JetBrains Mono</option>
+<option value="Fira Code" style="font-family:'Fira Code'">Fira Code</option>
+<option value="Source Code Pro" style="font-family:'Source Code Pro'">Source Code Pro</option>
+<option value="IBM Plex Mono" style="font-family:'IBM Plex Mono'">IBM Plex Mono</option>
+</optgroup>
+<optgroup label="Handwriting">
+<option value="Caveat" style="font-family:'Caveat'">Caveat</option>
+<option value="Kalam" style="font-family:'Kalam'">Kalam</option>
+<option value="Dancing Script" style="font-family:'Dancing Script'">Dancing Script</option>
+<option value="Pacifico" style="font-family:'Pacifico'">Pacifico</option>
+</optgroup>
 </select>
 <span style="width:1px;background:var(--border);margin:0 4px"></span>
 <button data-cmd="justifyLeft" title="Left">&#8676;</button>
@@ -15394,6 +15431,8 @@ function renderAll(){
       const val=sel.value;
       if(cmd==='formatBlock'&&val)document.execCommand(cmd,false,'<'+val+'>');
       else if(cmd==='fontSize')document.execCommand(cmd,false,val);
+      else if(cmd==='fontName'&&val)document.execCommand(cmd,false,val);
+      else if(cmd==='fontName'&&!val)document.execCommand('removeFormat',false,null);
       body.focus();saveNote();
     });
   });
