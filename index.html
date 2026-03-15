@@ -6993,8 +6993,12 @@ function projectForecast(emps,groupKey){
   // attrition or consume hires — their costs still grow with merit/market but HC is stable.
   // For GEN-000 split group, same treatment: costs project forward, no attrition/hires.
   const excludeUnalloc=!groupKey||isGenGroup;
-  const dynamicActive=excludeUnalloc?activeEmps.filter(e=>!isFullyUnallocated(e)):activeEmps;
-  const staticActive=excludeUnalloc?activeEmps.filter(e=>isFullyUnallocated(e)):[];
+  let dynamicActive=excludeUnalloc?activeEmps.filter(e=>!isFullyUnallocated(e)):activeEmps;
+  let staticActive=excludeUnalloc?activeEmps.filter(e=>isFullyUnallocated(e)):[];
+  // If ALL employees are unallocated, treat them all as dynamic so the forecast isn't frozen
+  if(excludeUnalloc&&dynamicActive.length===0&&staticActive.length>0){
+    dynamicActive=staticActive;staticActive=[];
+  }
   // Current year uses prorated values (all employees)
   const currentHC=activeEmps.length;
   const currentBase=activeEmps.reduce((a,e)=>a+getProratedBase(e),0);
@@ -7233,8 +7237,10 @@ function renderForecastProjection(){
     const _genP=state.projects.find(p=>p.code==='GEN-000');
     const _genId=_genP?_genP.id:null;
     const _isUnalloc=e=>_genId&&e.allocations&&e.allocations.length&&e.allocations.every(a=>a.projId===_genId);
-    const dynActive=activeEmps.filter(e=>!_isUnalloc(e));
-    const stActive=activeEmps.filter(e=>_isUnalloc(e));
+    let dynActive=activeEmps.filter(e=>!_isUnalloc(e));
+    let stActive=activeEmps.filter(e=>_isUnalloc(e));
+    // If ALL employees are unallocated, treat them all as dynamic so forecast isn't frozen
+    if(dynActive.length===0&&stActive.length>0){dynActive=stActive;stActive=[];}
     const currentHC=activeEmps.length;
     const currentBase=activeEmps.reduce((a,e)=>a+getProratedBase(e),0);
     const currentBonus=activeEmps.reduce((a,e)=>a+getProratedBonus(e),0);
