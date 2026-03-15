@@ -14215,7 +14215,19 @@ function initRevenueModule(){
     if(!name){alert('Enter a client name');return}
     state.revenueClients.push({id:'rc_'+Date.now(),name,industry:document.getElementById('revClientIndustry').value,tier:document.getElementById('revClientTier').value,contractType:document.getElementById('revClientContractType').value,contractStart:'',contractEnd:'',billingFreq:'',churnRisk:'low',nrrPct:100,renewalRate:90,creditMemoRiskPct:2,expansionPipeline:0,notes:'',_attachments:[]});
     document.getElementById('revClientName').value='';
-    saveState();renderClientTable();renderRevenueKpis();renderClientMapping();
+    saveState();renderClientTable();renderRevenueKpis();renderClientMapping();renderRevenueGrid();
+    // Refresh client dropdowns so new client appears in contractual rev, forecast, etc.
+    ['contractualRevClient','revQaNewClient'].forEach(function(id){
+      var el=document.getElementById(id);if(!el)return;
+      el.innerHTML='<option value="">— Select —</option>';
+      (state.revenueClients||[]).forEach(function(c){el.innerHTML+='<option value="'+c.id+'">'+escHtml(c.name)+'</option>'});
+    });
+    var fcSel=document.getElementById('revFcClient');
+    if(fcSel){
+      fcSel.innerHTML='<option value="">— Select —</option>';
+      (state.revenueClients||[]).forEach(function(c){fcSel.innerHTML+='<option value="'+c.id+'">'+escHtml(c.name)+'</option>'});
+      (state.revenueRows||[]).forEach(function(r,i){if(r.clientName)fcSel.innerHTML+='<option value="row_'+i+'">Row: '+escHtml(r.clientName)+'</option>'});
+    }
   });
   // Map button
   document.getElementById('revMapBtn').addEventListener('click',function(){
