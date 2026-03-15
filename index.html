@@ -3627,6 +3627,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="uploadResultBox" style="display:none" class="card-inset"><pre id="uploadResultText" style="white-space:pre-wrap;font-size:.82rem;max-height:300px;overflow:auto"></pre></div>
 </div>
 
+<div id="undoToast"><span id="undoToastMsg"></span><button id="undoToastBtn">Undo</button></div>
+
 <script>
 // Register datalabels plugin
 if(typeof Chart!=='undefined'&&typeof ChartDataLabels!=='undefined'){Chart.register(ChartDataLabels);Chart.defaults.plugins.datalabels={display:false}}
@@ -15667,6 +15669,5 @@ function renderAll(){
 }catch(e){console.warn('Fun mode error:',e)}})();
 
 </script>
-<div id="undoToast"><span id="undoToastMsg"></span><button id="undoToastBtn">Undo</button></div>
 </body>
 </html>
