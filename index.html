@@ -2515,6 +2515,23 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div><label>Business Unit</label><select id="depQaNewBU" style="width:110px"><option value="">—</option></select></div>
 <button class="btn btn-sm" style="background:rgba(230,126,34,.1);border-color:rgba(230,126,34,.3);color:#e67e22;padding:4px 12px;font-size:.78rem" id="depQaAddBtn">+ Add Entry</button>
 </div>
+<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px">
+<h5 style="margin:0 0 6px;font-size:.78rem;color:var(--danger)">Add Impairment</h5>
+<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+<div><label class="qa-step-label">Entry</label>
+<select id="depQaImpairEntry" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></select></div>
+<div><label class="qa-step-label">Month</label>
+<select id="depQaImpairMo" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+<option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
+<option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+<option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+</select></div>
+<div><label class="qa-step-label">Amount</label>
+<input id="depQaImpairAmt" type="text" placeholder="$0" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:100px"></div>
+<button class="btn btn-sm" style="background:rgba(220,53,69,.1);border-color:rgba(220,53,69,.3);color:var(--danger);padding:4px 12px;font-size:.78rem" id="depQaImpairBtn">+ Impairment</button>
+</div>
+</div>
 <div class="qa-history" id="depQaHistory"></div>
 </div>
 </div>
@@ -2620,6 +2637,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th style="min-width:120px">Start / End Mo</th>
 <th style="min-width:100px">Notes</th>
 <th style="min-width:110px">Amount</th>
+<th style="min-width:90px">Impairment</th>
 <th class="sortable" data-dsort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
 <th class="sortable" data-dsort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
 <th class="sortable" data-dsort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
@@ -13440,7 +13458,7 @@ function buildDepRow(row,i){
   h+='<td style="width:30px"><span class="color-dot" style="background:'+(row._colorTag||'transparent')+';width:12px;height:12px;display:inline-block;border-radius:50%;cursor:pointer;border:1px solid var(--border)" data-di="'+i+'"></span></td>';
   if(isCatRow){
     const arrow=depExpandedCategories.has(row._categoryId)?'&#9660;':'&#9654;';
-    h+='<td colspan="12" style="font-weight:700;cursor:pointer" onclick="toggleDepCategory(\''+row._categoryId+'\')"><span style="font-size:.7rem;margin-right:4px">'+arrow+'</span>'+escHtml(row.name||'Unnamed Category')+'</td>';
+    h+='<td colspan="13" style="font-weight:700;cursor:pointer" onclick="toggleDepCategory(\''+row._categoryId+'\')"><span style="font-size:.7rem;margin-right:4px">'+arrow+'</span>'+escHtml(row.name||'Unnamed Category')+'</td>';
     mos.forEach(m=>{
       const catTotal=(state.depreciationRows||[]).filter(r=>r._categoryId===row._categoryId&&!r._isCategoryHeader).reduce((s,r)=>s+(parseFloat(r[m])||0),0);
       h+='<td class="num" style="font-weight:700">'+fmtScaled(catTotal,depScale)+'</td>';
@@ -13451,10 +13469,16 @@ function buildDepRow(row,i){
   } else {
     h+='<td><input class="dep-field" data-di="'+i+'" data-f="name" value="'+escHtml(row.name||'')+'" style="width:140px;'+(row._categoryId?'padding-left:20px;':'')+'" placeholder="Entry name"></td>';
     h+='<td><input class="dep-field" data-di="'+i+'" data-f="assetSource" value="'+escHtml(row.assetSource||'')+'" style="width:120px" placeholder="Asset source"></td>';
-    h+='<td><select class="dep-field" data-di="'+i+'" data-f="depMethod" style="width:80px"><option value="SL"'+(row.depMethod==='SL'?' selected':'')+'>Straight-Line</option><option value="DB"'+(row.depMethod==='DB'?' selected':'')+'>Declining Bal</option></select></td>';
+    h+='<td><select class="dep-field" data-di="'+i+'" data-f="depMethod" style="width:100px"><option value="SL"'+(row.depMethod==='SL'?' selected':'')+'>Straight-Line</option><option value="SW36"'+(row.depMethod==='SW36'?' selected':'')+'>SW Dev 36mo</option><option value="SW48"'+(row.depMethod==='SW48'?' selected':'')+'>SW Dev 48mo</option><option value="SW60"'+(row.depMethod==='SW60'?' selected':'')+'>SW Dev 60mo</option></select></td>';
     h+='<td style="white-space:nowrap"><select class="dep-field" data-di="'+i+'" data-f="_startMonth" style="width:50px">'+buildMonthOptions(row._startMonth)+'</select> – <select class="dep-field" data-di="'+i+'" data-f="_endMonth" style="width:50px">'+buildMonthOptions(row._endMonth)+'</select></td>';
     h+='<td><input class="dep-field" data-di="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" style="width:90px" placeholder="Notes"></td>';
     h+='<td><input class="dep-amount" data-di="'+i+'" value="'+fmtScaled(parseFloat(row._amount)||0,depScale)+'" style="width:100px;text-align:right" placeholder="Total amount"></td>';
+    // Impairment inline
+    const imp=row._impairments||[];
+    const impSum=imp.reduce((s,im)=>s+(parseFloat(im.amount)||0),0);
+    h+='<td style="white-space:nowrap;font-size:.72rem">';
+    if(imp.length){h+='<span style="color:var(--danger);font-weight:600" title="'+imp.map(im=>moKeys[im.month].toUpperCase()+': '+fmt(im.amount)).join(', ')+'">'+fmt(impSum)+'</span> '}
+    h+='<button class="dep-impair-btn btn btn-sm" data-di="'+i+'" style="padding:1px 6px;font-size:.68rem;color:var(--danger);border-color:var(--danger)">+Impair</button></td>';
     h+=buildDimCells('dep-field',i,row);
     mos.forEach(m=>{
       const v=parseFloat(row[m])||0;
@@ -13528,7 +13552,7 @@ function renderDepreciationGrid(){
   tbody.innerHTML=h;
   // Footer totals
   let ft='<tr style="font-weight:700;background:var(--panel-inset)">';
-  ft+='<td colspan="2"></td><td>TOTAL</td><td colspan="5"></td><td colspan="6"></td>';
+  ft+='<td colspan="2"></td><td>TOTAL</td><td colspan="6"></td><td colspan="6"></td>';
   moKeys.forEach(m=>{
     const t=(state.depreciationRows||[]).filter(r=>!r._isCategoryHeader).reduce((s,r)=>s+(parseFloat(r[m])||0),0);
     ft+='<td class="num">'+fmtScaled(t,depScale)+'</td>';
@@ -13562,6 +13586,23 @@ function renderDepreciationGrid(){
       row._amount=v;spreadDepAmount(row);saveState();renderDepreciationGrid();
     });
   });
+  tbody.querySelectorAll('.dep-impair-btn').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const i=+this.dataset.di;const row=state.depreciationRows[i];if(!row)return;
+      const moLabel=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const moStr=prompt('Impairment month (Jan-Dec):');
+      if(!moStr)return;
+      const mi=moLabel.findIndex(m=>m.toLowerCase()===moStr.trim().toLowerCase().slice(0,3));
+      if(mi<0){alert('Invalid month');return}
+      const amtStr=prompt('Impairment amount ($):');
+      if(!amtStr)return;
+      const amt=parseFloat(amtStr.replace(/[,$]/g,''))||0;
+      if(amt===0)return;
+      if(!row._impairments)row._impairments=[];
+      row._impairments.push({month:mi,amount:amt});
+      spreadDepAmount(row);saveState();renderDepreciationGrid();
+    });
+  });
   tbody.querySelectorAll('.dep-del').forEach(btn=>{
     btn.addEventListener('click',function(){
       const i=+this.dataset.di;state.depreciationRows.splice(i,1);saveState();renderDepreciationGrid();
@@ -13586,24 +13627,28 @@ function spreadDepAmount(row){
   const span=end-start+1;
   const method=row.depMethod||'SL';
   moKeys.forEach((m,mi)=>{row[m]=0});
-  if(amt===0)return;
-  if(method==='SL'){
-    const monthly=amt/span;
-    for(let mi=start;mi<=end;mi++){row[moKeys[mi]]=Math.round(monthly*100)/100}
-    // Adjust rounding on last month
-    const allocated=moKeys.reduce((s,m)=>s+(row[m]||0),0);
+  if(amt===0&&!(row._impairments||[]).length)return;
+  // Determine monthly depreciation rate
+  let monthlyRate;
+  if(method==='SW36')monthlyRate=amt/36;
+  else if(method==='SW48')monthlyRate=amt/48;
+  else if(method==='SW60')monthlyRate=amt/60;
+  else monthlyRate=span>0?amt/span:0; // SL: spread over start-end range
+  // Apply monthly rate across active months
+  for(let mi=start;mi<=end;mi++){
+    row[moKeys[mi]]=Math.round(monthlyRate*100)/100;
+  }
+  // Adjust rounding on last active month for SL
+  if(method==='SL'&&amt!==0){
+    const allocated=moKeys.reduce((sm,m)=>sm+(row[m]||0),0);
     row[moKeys[end]]+=(amt-allocated);
     row[moKeys[end]]=Math.round(row[moKeys[end]]*100)/100;
-  } else {
-    // Declining balance: apply double the straight-line rate each month on remaining balance
-    const rate=2/span;
-    let remaining=amt;
-    for(let mi=start;mi<=end;mi++){
-      if(mi===end){row[moKeys[mi]]=Math.round(remaining*100)/100;break}
-      const dep=Math.round(remaining*rate*100)/100;
-      row[moKeys[mi]]=dep;remaining-=dep;
-    }
   }
+  // Apply impairments
+  (row._impairments||[]).forEach(function(imp){
+    const mi=parseInt(imp.month);
+    if(mi>=0&&mi<=11)row[moKeys[mi]]+=(parseFloat(imp.amount)||0);
+  });
 }
 function addDepCategory(){
   const name=prompt('Category name:');
@@ -13621,7 +13666,7 @@ function addDepRow(){
     const found=cats.find(c=>c.name.toLowerCase()===(catName||'').toLowerCase());
     if(found)catId=found._categoryId;
   }
-  state.depreciationRows.push({name:'',assetSource:'',depMethod:'SL',_startMonth:'',_endMonth:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',_categoryId:catId,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:''});
+  state.depreciationRows.push({name:'',assetSource:'',depMethod:'SL',_startMonth:'',_endMonth:'',_amount:0,_impairments:[],businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',_categoryId:catId,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:''});
   if(catId)depExpandedCategories.add(catId);
   saveState();renderDepreciationGrid();
 }
@@ -13664,6 +13709,87 @@ function initDepModule(){
   document.getElementById('depExportBtn').addEventListener('click',function(){exportGridToExcel(state.depreciationRows,'Depreciation','depreciation_export.xlsx',['name','assetSource','depMethod','businessUnit','bizLine','market','project','acctDesc','notes','jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'])});
   document.getElementById('depImportBtn').addEventListener('click',function(){document.getElementById('depFileInput').click()});
   document.getElementById('depFileInput').addEventListener('change',function(e){importGridFromExcel(e,state.depreciationRows,'depreciationRows',renderDepreciationGrid)});
+  // ── Dep QA panel functionality ──
+  function renderDepQaList(){
+    const list=document.getElementById('depQaList');
+    const mo=document.getElementById('depQaMo').value;
+    const step=parseFloat(document.getElementById('depQaStep').value)||5000;
+    const search=(document.getElementById('depQaSearch').value||'').toLowerCase();
+    if(!list)return;
+    let h='';
+    (state.depreciationRows||[]).forEach(function(row,i){
+      if(row._isCategoryHeader)return;
+      const name=row.name||'Entry '+(i+1);
+      if(search&&name.toLowerCase().indexOf(search)<0)return;
+      let val;
+      if(mo==='all'){val=moKeys.reduce(function(s,m){return s+(parseFloat(row[m])||0)},0)}
+      else{val=parseFloat(row[mo])||0}
+      h+='<div class="qa-row">';
+      h+='<span class="qa-row-name" title="'+escHtml(name)+'">'+escHtml(name.length>22?name.slice(0,20)+'…':name)+'</span>';
+      h+='<span class="qa-row-amt">'+fmt(val)+'</span>';
+      h+='<span class="qa-row-btns">';
+      h+='<button class="qa-minus" data-qi="'+i+'">−</button>';
+      h+='<button class="qa-plus" data-qi="'+i+'">+</button>';
+      h+='</span></div>';
+    });
+    list.innerHTML=h;
+    // Bind +/- buttons
+    list.querySelectorAll('.qa-minus,.qa-plus').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        const i=+this.dataset.qi;const row=state.depreciationRows[i];if(!row)return;
+        const dir=this.classList.contains('qa-plus')?1:-1;
+        if(mo==='all'){moKeys.forEach(function(m){row[m]=(parseFloat(row[m])||0)+dir*step})}
+        else{row[mo]=(parseFloat(row[mo])||0)+dir*step}
+        saveState();renderDepQaList();updateDepQaTotal();renderDepreciationGrid();
+      });
+    });
+  }
+  function updateDepQaTotal(){
+    const el=document.getElementById('depQaTotal');
+    if(el)el.textContent=fmt(getDepreciationTotal());
+  }
+  function populateDepQaImpairEntries(){
+    const sel=document.getElementById('depQaImpairEntry');
+    if(!sel)return;
+    sel.innerHTML='<option value="">— Select Entry —</option>';
+    (state.depreciationRows||[]).forEach(function(row,i){
+      if(row._isCategoryHeader)return;
+      sel.innerHTML+='<option value="'+i+'">'+escHtml(row.name||'Entry '+(i+1))+'</option>';
+    });
+  }
+  document.getElementById('depQaMo').addEventListener('change',function(){renderDepQaList();updateDepQaTotal()});
+  document.getElementById('depQaStep').addEventListener('change',function(){renderDepQaList()});
+  document.getElementById('depQaSearch').addEventListener('input',function(){renderDepQaList()});
+  // Add entry from QA
+  document.getElementById('depQaAddBtn').addEventListener('click',function(){
+    const name=document.getElementById('depQaNewName').value.trim();
+    if(!name){alert('Enter an entry name');return}
+    const catSel=document.getElementById('depQaNewCat');
+    const catId=catSel?catSel.value:'';
+    const buSel=document.getElementById('depQaNewBU');
+    const bu=buSel?buSel.value:'';
+    state.depreciationRows.push({name:name,assetSource:'',depMethod:'SL',_startMonth:'',_endMonth:'',_amount:0,_impairments:[],businessUnit:bu,bizLine:'',market:'',project:'',acctDesc:'',notes:'',_categoryId:catId,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:''});
+    document.getElementById('depQaNewName').value='';
+    saveState();renderDepQaList();updateDepQaTotal();populateDepQaImpairEntries();renderDepreciationGrid();
+  });
+  // Impairment from QA
+  document.getElementById('depQaImpairBtn').addEventListener('click',function(){
+    const entryIdx=document.getElementById('depQaImpairEntry').value;
+    if(entryIdx===''){alert('Select a depreciation entry');return}
+    const row=state.depreciationRows[+entryIdx];
+    if(!row)return;
+    const mi=parseInt(document.getElementById('depQaImpairMo').value);
+    const amtStr=document.getElementById('depQaImpairAmt').value;
+    const amt=parseFloat(amtStr.replace(/[,$]/g,''))||0;
+    if(amt===0){alert('Enter an impairment amount');return}
+    if(!row._impairments)row._impairments=[];
+    row._impairments.push({month:mi,amount:amt});
+    // Apply impairment directly to the month (one-time, not affecting run rate)
+    row[moKeys[mi]]=(parseFloat(row[moKeys[mi]])||0)+amt;
+    document.getElementById('depQaImpairAmt').value='';
+    saveState();renderDepQaList();updateDepQaTotal();renderDepreciationGrid();
+  });
+  renderDepQaList();updateDepQaTotal();populateDepQaImpairEntries();
   renderDepreciationGrid();
 }
 
@@ -14287,6 +14413,16 @@ function initRevenueModule(){
   ['revQaToggle','contractualRevToggle'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.addEventListener('click',function(){this.closest('.qa-panel').classList.toggle('open')});
+  });
+  // Revenue QA add row
+  document.getElementById('revQaAddBtn').addEventListener('click',function(){
+    const clientId=document.getElementById('revQaNewClient').value;
+    const product=document.getElementById('revQaNewProduct').value.trim();
+    const revType=document.getElementById('revQaNewType').value;
+    const clientName=(state.revenueClients||[]).find(function(c){return c.id===clientId});
+    state.revenueRows.push({clientName:clientName?clientName.name:'',productName:product,revenueType:revType,_startMonth:'',_endMonth:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:''});
+    document.getElementById('revQaNewProduct').value='';
+    saveState();renderRevenueGrid();renderRevenueKpis();
   });
   // Month range bar
   initMonthRangeBar('revMonthRangeBar','revMonthRangeLabel',revSelectedMonths,function(){renderRevenueGrid()});
