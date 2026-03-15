@@ -630,11 +630,12 @@ body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptions
 .dep-cat-row td{background:var(--panel-inset);font-weight:700;cursor:pointer}
 .dep-cat-row:hover td{background:var(--border-light)}
 .dep-entry-row.hidden{display:none}
-#forecastAssumptionsModal .modal{max-width:720px;width:95%;max-height:85vh}
+#forecastAssumptionsModal .modal{max-width:960px;width:95%;max-height:85vh}
 #forecastAssumptionsModal .modal-body{max-height:60vh;overflow-y:auto}
 #forecastAssumptionsModal .forecast-section{margin-bottom:8px;padding:8px 10px}
 #forecastAssumptionsModal .forecast-section p{font-size:.72rem;margin-bottom:6px}
 #forecastAssumptionsModal .forecast-section input{padding:4px 6px}
+#forecastAssumptionsModal .forecast-grid{grid-template-columns:repeat(5,1fr)}
 /* Forecast Methodology Panel */
 .method-section h5{font-size:.8rem;font-weight:700;color:var(--text-dark);margin:0 0 8px;text-transform:uppercase;letter-spacing:.03em}
 .method-baseline{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
@@ -1006,9 +1007,12 @@ Template Mode &mdash; changes saved in this browser only.
 <!-- LANDING PAGE -->
 <div id="landingPage">
 <div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
 <div>
 <h2>Budgeting &amp; Long Term Planning</h2>
 <p class="landing-subtitle">Select a module to begin, or review the consolidated P&amp;L summary below.</p>
+</div>
+<span class="workspace-indicator" id="landingWsIndicator" style="margin-left:4px"></span>
 </div>
 <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
@@ -1641,7 +1645,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Configure assumptions to project compensation costs over the next 5 years. Toggle each factor on/off.</p>
 <div class="modal-body">
 
-<div class="card-inset forecast-section">
+<div class="card-inset forecast-section" id="fcSection-attrition">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togAttrition" checked><span class="toggle-slider"></span></label>
 <label><strong>Annual Attrition</strong></label>
@@ -1651,7 +1655,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="attritionInputs"></div>
 </div>
 
-<div class="card-inset forecast-section">
+<div class="card-inset forecast-section" id="fcSection-hires">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togHires" checked><span class="toggle-slider"></span></label>
 <label><strong>Annual New Hires</strong></label>
@@ -1661,7 +1665,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="hiresInputs"></div>
 </div>
 
-<div class="card-inset forecast-section">
+<div class="card-inset forecast-section" id="fcSection-merit">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togMerit" checked><span class="toggle-slider"></span></label>
 <label><strong>Annual Merit Increase (%)</strong></label>
@@ -1670,7 +1674,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="meritInputs"></div>
 </div>
 
-<div class="card-inset forecast-section">
+<div class="card-inset forecast-section" id="fcSection-market">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togMarket" checked><span class="toggle-slider"></span></label>
 <label><strong>Market Rate Growth (%)</strong></label>
@@ -1679,7 +1683,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="marketInputs"></div>
 </div>
 
-<div class="card-inset forecast-section">
+<div class="card-inset forecast-section" id="fcSection-ai">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togAI" checked><span class="toggle-slider"></span></label>
 <label><strong>AI Productivity Gearing Factor</strong></label>
@@ -1689,7 +1693,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="aiInputs"></div>
 </div>
 
-<div class="card-inset forecast-section">
+<div class="card-inset forecast-section" id="fcSection-capitalization">
 <div class="toggle-row">
 <label class="toggle-switch"><input type="checkbox" id="togCapitalization" checked><span class="toggle-slider"></span></label>
 <label><strong>Capitalization Rate (%)</strong></label>
@@ -1805,6 +1809,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <h1 style="font-size:1.3rem;color:var(--accent)">Vendor<span style="color:var(--secondary)">Spend</span></h1>
 <button class="btn btn-sm" id="vendorBackBtn">Back to Overview</button>
+<span class="workspace-indicator" id="vendorWsIndicator" style="margin-left:4px"></span>
 <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="vendorToggleDark"><span class="toggle-track"></span>Dark</label>
 <div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
@@ -2463,6 +2468,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <h1 style="font-size:1.3rem;color:var(--accent)">D&amp;A<span style="color:var(--secondary)">&amp; Assets</span></h1>
 <button class="btn btn-sm" id="depBackBtn">Back to Overview</button>
+<span class="workspace-indicator" id="depWsIndicator" style="margin-left:4px"></span>
 <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="depToggleDark"><span class="toggle-track"></span>Dark</label>
 <div class="color-scheme-wrap" title="Chart color palette"><input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="depColorSchemeSlider"><span class="color-scheme-label" id="depColorSchemeLabel">Muted</span></div>
@@ -2751,7 +2757,9 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" data-ascale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
 <button class="btn" data-ascale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
 </div>
-<span style="font-size:.7rem;color:var(--text-dim)">(Click year header to expand monthly detail)</span>
+<span style="font-size:.7rem;color:var(--text-dim)">(Click year header to expand/collapse months)</span>
+<button class="btn" id="assetExpandAllYears" style="padding:2px 8px;font-size:.72rem">Expand All Years</button>
+<button class="btn" id="assetCollapseAllYears" style="padding:2px 8px;font-size:.72rem">Collapse All Years</button>
 <button class="btn" id="assetAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Asset</button>
 <button class="btn" id="assetClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All</button>
 <button class="btn" id="assetImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
@@ -2840,6 +2848,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <h1 style="font-size:1.3rem;color:var(--accent)">Tech<span style="color:var(--secondary)">Revenue</span></h1>
 <button class="btn btn-sm" id="revBackBtn">Back to Overview</button>
+<span class="workspace-indicator" id="revWsIndicator" style="margin-left:4px"></span>
 <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="revToggleDark"><span class="toggle-track"></span>Dark</label>
 <div class="color-scheme-wrap" title="Chart color palette"><input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="revColorSchemeSlider"><span class="color-scheme-label" id="revColorSchemeLabel">Muted</span></div>
@@ -4084,18 +4093,22 @@ function updateSessionUI(){
   const topBar=document.getElementById('sessionTopBar');
   const stbSession=document.getElementById('stbSession');
   const stbUsers=document.getElementById('stbUsers');
+  // Extra workspace indicators on landing, vendor, dep, revenue pages
+  const extraWsIds=['landingWsIndicator','vendorWsIndicator','depWsIndicator','revWsIndicator'];
   if(persistenceMode==='session'&&sessionContext){
     banner.style.display='none';
     if(landingBox)landingBox.style.display='none';
     // Hide wsIndicator in session mode — everything is in top bar
     indicator.style.display='none';
+    // Hide extra workspace indicators in session mode (top bar handles it)
+    extraWsIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
     // Populate the persistent top bar
     topBar.className='active';
     topBar.id='sessionTopBar';
     stbSession.innerHTML=
       `<span style="font-weight:600;color:var(--accent)">Session: ${sessionContext.sessionName||'Active'}</span>`+
       `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel-inset);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code||''}</span>`+
-      `<span style="font-size:.72rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">v: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage versions" style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px">${sessionContext.versionName||'Default'}</span></span>`+
+      `<span style="font-size:.72rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">v: <span class="ws-name" onclick="openWorkspaceModal()" title="Click to manage versions" style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px">${sessionContext.versionName||'Default'}</span></span>`+
       `<span class="save-indicator" id="saveIndicator" style="display:none"></span>`+
       `<span id="lastSaveTime" style="font-size:.68rem;color:var(--text-dim);margin-left:6px">${lastSaveTime?'Saved '+formatSaveTime(lastSaveTime):''}</span>`+
       ` <span style="font-size:.75rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">${sessionContext.userName}</span>`+
@@ -4112,8 +4125,10 @@ function updateSessionUI(){
     banner.style.display='flex';
     if(landingBox)landingBox.style.display='flex';
     indicator.style.display='';
-    indicator.innerHTML='Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">'+currentWorkspaceName+'</span>'+
-      '<span class="save-indicator" id="saveIndicator" style="display:none"></span>';
+    const wsHtml='Workspace: <span class="ws-name" onclick="openWorkspaceModal()" title="Click to manage workspaces">'+currentWorkspaceName+'</span>';
+    indicator.innerHTML=wsHtml+'<span class="save-indicator" id="saveIndicator" style="display:none"></span>';
+    // Show workspace indicator on all module pages
+    extraWsIds.forEach(id=>{const el=document.getElementById(id);if(el){el.style.display='';el.innerHTML=wsHtml}});
     // Hide top bar and old presence bar
     topBar.className='';topBar.id='sessionTopBar';
     stbSession.innerHTML='';stbUsers.innerHTML='';
@@ -7269,12 +7284,23 @@ function renderForecastFactorPills(){
     const off=tog[f.key]===false;
     return `<span class="factor-pill${off?' disabled':''}" data-factor="${f.key}">${f.label}: ${f.val}${f.suffix}</span>`;
   }).join('')+' <button class="btn btn-sm" id="openForecastAssumptions" style="font-size:.72rem;padding:2px 10px">Customize</button>';
-  el.querySelectorAll('.factor-pill').forEach(p=>p.addEventListener('click',()=>openForecastAssumptionsModal()));
+  el.querySelectorAll('.factor-pill').forEach(p=>p.addEventListener('click',()=>openForecastAssumptionsModal(p.dataset.factor)));
   document.getElementById('openForecastAssumptions').addEventListener('click',openForecastAssumptionsModal);
 }
 
-function openForecastAssumptionsModal(){
+function openForecastAssumptionsModal(scrollToKey){
   document.getElementById('forecastAssumptionsModal').classList.add('show');
+  if(scrollToKey){
+    setTimeout(()=>{
+      const section=document.getElementById('fcSection-'+scrollToKey);
+      if(section){
+        section.scrollIntoView({behavior:'smooth',block:'center'});
+        section.style.outline='2px solid var(--accent)';
+        section.style.outlineOffset='2px';
+        setTimeout(()=>{section.style.outline='';section.style.outlineOffset=''},1500);
+      }
+    },100);
+  }
 }
 function closeForecastAssumptionsModal(){
   document.getElementById('forecastAssumptionsModal').classList.remove('show');
@@ -13909,17 +13935,30 @@ function renderAssetGrid(){
   th+='<th style="min-width:80px">Life (Yrs)</th><th style="min-width:100px">Total Cost</th>';
   th+='<th style="min-width:100px">Notes</th><th style="min-width:100px">BU</th><th style="min-width:100px">Bus. Line</th>';
   th+='<th style="min-width:80px">Market</th><th style="min-width:80px">Project</th><th style="min-width:120px">Account</th><th style="min-width:80px">Code</th>';
+  let hasExpanded=false;
   ASSET_YEARS.forEach(yr=>{
     if(assetExpandedYears.has(yr)){
-      ASSET_MO_KEYS.forEach((m,mi)=>{
-        const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        th+='<th class="asset-mo-sub" style="font-size:.68rem;min-width:70px">'+ms[mi]+'</th>';
-      });
+      hasExpanded=true;
+      th+='<th class="v-hdr asset-yr-hdr expanded" data-yr="'+yr+'" style="cursor:pointer;min-width:70px;text-align:center;background:var(--accent);color:#fff;font-size:.72rem" title="Click to collapse months" colspan="12">'+yr+' &#9660;</th>';
     } else {
-      th+='<th class="v-hdr asset-yr-hdr'+(assetExpandedYears.has(yr)?' expanded':'')+'" data-yr="'+yr+'" style="cursor:pointer;min-width:90px" title="Click to expand months">'+yr+' &#9654;</th>';
+      th+='<th class="v-hdr asset-yr-hdr" data-yr="'+yr+'" style="cursor:pointer;min-width:90px" title="Click to expand months">'+yr+' &#9654;</th>';
     }
   });
   th+='<th style="font-weight:700;min-width:100px">Full Life Total</th><th style="width:40px"></th></tr>';
+  // Add month sub-header row if any year is expanded
+  if(hasExpanded){
+    th+='<tr>';
+    th+='<th colspan="15" style="border:none"></th>';
+    ASSET_YEARS.forEach(yr=>{
+      if(assetExpandedYears.has(yr)){
+        const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        ms.forEach(m=>{th+='<th class="asset-mo-sub" style="font-size:.68rem;min-width:70px;text-align:center">'+m+'</th>'});
+      } else {
+        th+='<th style="border:none"></th>';
+      }
+    });
+    th+='<th style="border:none" colspan="2"></th></tr>';
+  }
   thead.innerHTML=th;
   // Bind year header clicks
   thead.querySelectorAll('.asset-yr-hdr').forEach(el=>{
@@ -13993,6 +14032,12 @@ function initAssetTab(){
   document.getElementById('assetAddRow').addEventListener('click',addAssetRow);
   document.getElementById('assetClearAllRows').addEventListener('click',function(){
     if(confirm('Clear all asset entries?')){state.assetRows=[];saveState();renderAssetGrid()}
+  });
+  document.getElementById('assetExpandAllYears').addEventListener('click',function(){
+    ASSET_YEARS.forEach(yr=>assetExpandedYears.add(yr));renderAssetGrid();
+  });
+  document.getElementById('assetCollapseAllYears').addEventListener('click',function(){
+    assetExpandedYears.clear();renderAssetGrid();
   });
   const qaToggle=document.getElementById('assetQaToggle');
   if(qaToggle)qaToggle.addEventListener('click',function(){this.closest('.qa-panel').classList.toggle('open')});
@@ -14687,8 +14732,28 @@ function setRevenueMode(on){
   document.getElementById('modRevenue').style.display=on?'':'none';
   document.getElementById('landingRevenuePane').style.display=on?'':'none';
 }
-landingToggleRevenue.addEventListener('change',function(){setRevenueMode(this.checked)});
+landingToggleRevenue.addEventListener('change',function(){
+  setRevenueMode(this.checked);
+  // Hide/show the Revenue/P&L toggle in PnL table when revenue is toggled
+  const pnlModeToggle=document.getElementById('landingPnlModeToggle');
+  if(pnlModeToggle){
+    const revBtn=pnlModeToggle.querySelector('[data-pnlmode="revenue"]');
+    if(revBtn)revBtn.style.display=this.checked?'':'none';
+    // Force cost mode when revenue is turned off
+    if(!this.checked&&(state.landingPnlMode||'cost')==='revenue'){
+      state.landingPnlMode='cost';saveState();
+      pnlModeToggle.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+      pnlModeToggle.querySelector('[data-pnlmode="cost"]').classList.add('active');
+    }
+  }
+  renderPnlWalk();renderLandingCharts();
+});
 if(localStorage.getItem('compPlanRevenue')==='0'){setRevenueMode(false)}
+// Hide Revenue/P&L toggle button on initial load if revenue is off
+if(localStorage.getItem('compPlanRevenue')==='0'){
+  const revBtn=document.querySelector('#landingPnlModeToggle [data-pnlmode="revenue"]');
+  if(revBtn)revBtn.style.display='none';
+}
 
 // P&L mode toggle (cost vs revenue/profitability)
 document.getElementById('landingPnlModeToggle').querySelectorAll('[data-pnlmode]').forEach(btn=>{
@@ -14797,7 +14862,8 @@ function renderPnlWalk(){
   const oaoTotal=getVendorOaoTotal();
   const daTotal=getDepreciationTotal();
   const revenueTotal=getRevenueTotal();
-  const isRevMode=(state.landingPnlMode||'cost')==='revenue';
+  const revenueEnabled=localStorage.getItem('compPlanRevenue')!=='0';
+  const isRevMode=revenueEnabled&&(state.landingPnlMode||'cost')==='revenue';
   function enrichWithOao(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
     d.oao=Math.round(oaoTotal*share);
