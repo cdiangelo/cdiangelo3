@@ -952,6 +952,9 @@ body.session-active header{top:30px}
 .ms-tooltip.visible{opacity:1;pointer-events:auto}
 .ms-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--border)}
 .ms-tooltip::before{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--panel);z-index:1}
+.ms-tooltip.below{bottom:auto;top:calc(100% + 10px)}
+.ms-tooltip.below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--border)}
+.ms-tooltip.below::before{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--panel)}
 .ms-tooltip .ms-tt-goal{font-weight:700;color:var(--text-dark);margin-bottom:4px;word-break:break-word}
 .ms-tooltip .ms-tt-date{color:var(--text-dim);font-size:.72rem}
 .ms-tooltip .ms-tt-days{font-size:.72rem;margin-top:2px;font-weight:600}
@@ -16059,7 +16062,18 @@ function renderAll(){
     tip.innerHTML=html;
     bubble.style.position='relative';
     bubble.appendChild(tip);
-    requestAnimationFrame(()=>{tip.classList.add('visible');});
+    requestAnimationFrame(()=>{
+      const rect=tip.getBoundingClientRect();
+      if(rect.top<0){
+        tip.classList.add('below');
+      }
+      if(rect.left<0){
+        tip.style.left='0';tip.style.transform='translateX(0)';
+      }else if(rect.right>window.innerWidth){
+        tip.style.left='auto';tip.style.right='0';tip.style.transform='translateX(0)';
+      }
+      tip.classList.add('visible');
+    });
     activeTooltip=tip;
   }
 
