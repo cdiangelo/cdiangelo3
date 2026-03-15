@@ -1,0 +1,79 @@
+/* Container, Header, Nav, Tabs (lines 35-48) */
+.container{max-width:100%;margin:0 auto;padding:0 80px}
+header{background:var(--panel);border-bottom:2px solid var(--border);padding:16px 0;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+header .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+header h1{font-size:1.3rem;color:var(--accent)}
+header h1 span{color:var(--secondary)}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.nav-group{display:flex;flex-direction:column;gap:4px}
+.nav-group-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);font-weight:600;padding:0 4px;margin-bottom:2px}
+.nav-group-btns{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .2s}
+nav button:hover{border-color:var(--accent);color:var(--text-dark)}
+nav button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab-content{display:none;padding:24px 0}
+.tab-content.active{display:block}
+
+/* Header toggles, color scheme slider/wrap (lines 202-215) */
+.header-toggles{display:flex;gap:12px;align-items:center;margin-left:auto}
+.header-toggle{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-dim);cursor:pointer;white-space:nowrap}
+.header-toggle input[type=checkbox]{display:none}
+.toggle-track{width:36px;height:20px;background:var(--border);border-radius:10px;position:relative;transition:background .2s;flex-shrink:0}
+.toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s}
+.header-toggle input:checked+.toggle-track{background:var(--accent)}
+.header-toggle input:checked+.toggle-track::after{transform:translateX(16px)}
+.color-scheme-wrap{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text-dim)}
+.color-scheme-slider{-webkit-appearance:none;appearance:none;width:96px;height:14px;background:var(--border);border-radius:7px;outline:none;cursor:pointer}
+.color-scheme-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer}
+.color-scheme-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+.color-scheme-label{width:36px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
+
+/* Scenario/Data slide panels, panel close btn (lines 557-586) */
+.scenario-toggle-btn{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1100;background:rgba(58,125,68,.65);color:#fff;border:1px solid rgba(255,255,255,.15);padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:1px 1px 6px rgba(0,0,0,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,left .3s ease}
+.scenario-toggle-btn:hover{background:rgba(58,125,68,.85)}
+.scenario-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
+.scenario-slide-panel{position:fixed;left:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+.scenario-slide-panel.open{transform:translateX(0)}
+body.scenario-open main,body.scenario-open header,body.scenario-open #landingPage{margin-left:50vw;transition:margin-left .3s ease}
+body:not(.scenario-open) main,body:not(.scenario-open) header,body:not(.scenario-open) #landingPage{transition:margin-left .3s ease}
+body.scenario-open .scenario-toggle-btn{left:50vw}
+body.scenario-open .data-toggle-btn{left:50vw}
+body.scenario-open .section-title,body.data-open .section-title{font-size:.88rem}
+body.scenario-open header h1,body.data-open header h1{font-size:1rem}
+body.scenario-open nav button,body.data-open nav button{font-size:.72rem;padding:4px 8px}
+body.scenario-open #landingPage,body.data-open #landingPage{max-width:100%;padding:20px}
+body.scenario-open .landing-modules,body.data-open .landing-modules{grid-template-columns:1fr}
+body.scenario-open .landing-charts,body.data-open .landing-charts{grid-template-columns:1fr}
+body.scenario-open #landingPnlGrid,body.data-open #landingPnlGrid{grid-template-columns:1fr}
+body.scenario-open .pnl-walk .table-wrap,body.data-open .pnl-walk .table-wrap{overflow-x:auto}
+.data-toggle-btn{position:fixed;left:0;top:calc(50% + 90px);transform:translateY(-50%);z-index:1100;background:rgba(123,31,162,.55);color:#fff;border:1px solid rgba(255,255,255,.15);padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:1px 1px 6px rgba(0,0,0,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,left .3s ease}
+.data-toggle-btn:hover{background:rgba(123,31,162,.75)}
+.data-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
+.data-slide-panel{position:fixed;left:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+.data-slide-panel.open{transform:translateX(0)}
+body.data-open main,body.data-open header,body.data-open #landingPage{margin-left:50vw;transition:margin-left .3s ease}
+body.data-open .data-toggle-btn{left:50vw}
+body.data-open .scenario-toggle-btn{left:50vw}
+body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptionsModal{padding-left:50vw;transition:padding-left .3s ease}
+.panel-close-btn{display:none;align-items:center;gap:4px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:10px}
+.panel-close-btn:hover{background:var(--border)}
+
+/* Template banner, presence bar, session top bar, save indicator (lines 916-936) */
+.template-banner{background:var(--flag-bg);border-bottom:1px solid var(--flag-border);color:#856404;padding:8px 20px;text-align:center;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:12px}
+.template-banner .btn{font-size:.78rem;padding:4px 12px}
+.presence-bar{display:none;padding:4px 20px;background:var(--panel-inset);border-top:1px solid var(--border-light);font-size:.78rem;align-items:center;justify-content:space-between}
+.presence-bar.active{display:flex}
+.presence-left,.presence-right{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.presence-right{justify-content:flex-end}
+.presence-dot{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05);font-weight:500}
+.presence-dot::before{content:'';width:7px;height:7px;border-radius:50%;display:inline-block}
+.presence-dot.muted{opacity:.5;font-style:italic}
+#sessionTopBar{display:none;position:sticky;top:0;z-index:200;padding:5px 20px;background:var(--panel);border-bottom:2px solid var(--accent);font-size:.78rem;align-items:center;justify-content:space-between;gap:12px}
+#sessionTopBar.active{display:flex}
+#sessionTopBar .stb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#sessionTopBar .stb-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+body.session-active header{top:30px}
+.save-indicator{font-size:.72rem;padding:2px 8px;border-radius:10px;font-weight:500;margin-left:8px}
+.save-indicator.saving{color:var(--warning)}
+.save-indicator.saved{color:var(--success)}
+.save-indicator.error{color:var(--danger)}
