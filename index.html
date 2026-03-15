@@ -882,6 +882,13 @@ body.session-active .teams-panel{top:86px}
 .teams-link-item:hover .tl-remove{opacity:1}
 .teams-link-item .tl-remove:hover{color:var(--danger,#c0392b)}
 .teams-empty{text-align:center;padding:20px 10px;color:var(--text-dim);font-size:.8rem;line-height:1.5}
+.tp-add-form input.tp-url-valid{border-color:#27ae60;background:rgba(39,174,96,.06)}
+.tp-add-form input.tp-url-invalid{border-color:var(--danger,#c0392b)}
+.tp-add-form button:disabled{cursor:default}
+.tp-add-form button:not(:disabled){animation:tpPulse .4s ease}
+@keyframes tpPulse{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+.teams-link-item .tl-join{border:none;background:linear-gradient(135deg,#5b5fc7,#7b83eb);color:#fff;cursor:pointer;font-size:.7rem;font-weight:600;padding:4px 10px;border-radius:5px;white-space:nowrap;transition:opacity .15s}
+.teams-link-item .tl-join:hover{opacity:.85}
 /* Session modal */
 .session-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .session-modal-overlay.show{opacity:1;pointer-events:auto}
@@ -993,9 +1000,10 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="tp-header"><h4>Teams Links</h4><div style="display:flex;gap:6px;align-items:center"><button id="teamsMinimize" title="Minimize" style="border:none;background:none;cursor:pointer;font-size:1.1rem;color:var(--text-dim);line-height:1">&minus;</button></div></div>
 <div class="tp-body" id="teamsBody"></div>
 <div class="tp-add-form" id="teamsAddForm">
-<input type="text" id="teamsLinkName" placeholder="Link name (e.g. Daily Standup)" maxlength="60">
-<input type="url" id="teamsLinkUrl" placeholder="Teams meeting or channel URL">
-<button id="teamsAddBtn">Add Link</button>
+<input type="text" id="teamsLinkUrl" placeholder="Paste a Teams link here..." autocomplete="off" spellcheck="false">
+<div id="teamsLinkDetected" style="display:none;font-size:.75rem;padding:2px 0;color:var(--text-dim)"></div>
+<input type="text" id="teamsLinkName" placeholder="Name (optional — auto-detected)" maxlength="60">
+<button id="teamsAddBtn" disabled style="opacity:.5">Paste a Teams link above</button>
 </div>
 </div>
 
@@ -15400,7 +15408,80 @@ function renderAll(){
   const btn=document.getElementById('teamsBtn');
   const panel=document.getElementById('teamsPanel');
   const bodyEl=document.getElementById('teamsBody');
+  const urlInput=document.getElementById('teamsLinkUrl');
+  const nameInput=document.getElementById('teamsLinkName');
+  const addBtn=document.getElementById('teamsAddBtn');
+  const detectedEl=document.getElementById('teamsLinkDetected');
   const STORE_KEY='compPlanTeamsLinks';
+
+  // Teams URL patterns
+  const TEAMS_PATTERNS=[
+    {re:/teams\.microsoft\.com\/l\/meetup-join\//i, type:'meeting', label:'Teams Meeting'},
+    {re:/teams\.microsoft\.com\/meet\//i, type:'meeting', label:'Teams Meeting'},
+    {re:/teams\.live\.com/i, type:'meeting', label:'Teams Meeting'},
+    {re:/teams\.microsoft\.com\/l\/channel\//i, type:'channel', label:'Teams Channel'},
+    {re:/teams\.microsoft\.com\/.*\/channel\//i, type:'channel', label:'Teams Channel'},
+    {re:/teams\.microsoft\.com\/l\/chat\//i, type:'chat', label:'Teams Chat'},
+    {re:/teams\.microsoft\.com\/l\/call\//i, type:'call', label:'Teams Call'},
+    {re:/teams\.microsoft\.com/i, type:'general', label:'Teams Link'}
+  ];
+
+  function detectTeamsUrl(raw){
+    const s=raw.trim();
+    if(!s)return null;
+    // Try to normalise — add https if missing
+    let url=s;
+    if(!/^https?:\/\//i.test(url)&&/teams/i.test(url))url='https://'+url;
+    for(const p of TEAMS_PATTERNS){
+      if(p.re.test(url))return{url,type:p.type,label:p.label};
+    }
+    return null;
+  }
+
+  function autoName(det){
+    // Try to extract a readable name from the URL
+    try{
+      const u=new URL(det.url);
+      const ctx=u.searchParams.get('context');
+      if(ctx){const j=JSON.parse(decodeURIComponent(ctx));if(j.Tid)return det.label;}
+      // Channel name from path
+      const chMatch=det.url.match(/\/channel\/[^/]+\/([^?/]+)/);
+      if(chMatch)return decodeURIComponent(chMatch[1]).replace(/\+/g,' ');
+    }catch(e){/* ignore */}
+    return det.label;
+  }
+
+  let currentDetection=null;
+
+  function validateUrl(){
+    const raw=urlInput.value;
+    const det=detectTeamsUrl(raw);
+    currentDetection=det;
+    urlInput.classList.remove('tp-url-valid','tp-url-invalid');
+    if(!raw.trim()){
+      detectedEl.style.display='none';
+      addBtn.disabled=true;addBtn.style.opacity='.5';
+      addBtn.textContent='Paste a Teams link above';
+      return;
+    }
+    if(det){
+      urlInput.classList.add('tp-url-valid');
+      detectedEl.style.display='block';
+      detectedEl.innerHTML='\u2705 Detected: <strong>'+det.label+'</strong>';
+      if(!nameInput.value.trim()){nameInput.placeholder=autoName(det)+' (auto)';}
+      addBtn.disabled=false;addBtn.style.opacity='1';
+      addBtn.textContent='Add '+det.label;
+    }else{
+      urlInput.classList.add('tp-url-invalid');
+      detectedEl.style.display='block';
+      detectedEl.innerHTML='\u26A0 Not recognized as a Teams link';
+      addBtn.disabled=true;addBtn.style.opacity='.5';
+      addBtn.textContent='Paste a Teams link above';
+    }
+  }
+
+  urlInput.addEventListener('input',validateUrl);
+  urlInput.addEventListener('paste',()=>setTimeout(validateUrl,0));
 
   function loadLinks(){return JSON.parse(localStorage.getItem(STORE_KEY)||'[]');}
   function saveLinks(links){localStorage.setItem(STORE_KEY,JSON.stringify(links));}
@@ -15408,20 +15489,21 @@ function renderAll(){
   function renderLinks(){
     const links=loadLinks();
     if(!links.length){
-      bodyEl.innerHTML='<div class="teams-empty">No Teams links yet.<br>Add a meeting or channel link below to quick-join from here.</div>';
+      bodyEl.innerHTML='<div class="teams-empty">No Teams links yet.<br>Paste a Teams meeting or channel link below to save it for quick-join.</div>';
       return;
     }
     bodyEl.innerHTML='';
     links.forEach((lnk,i)=>{
       const item=document.createElement('div');
       item.className='teams-link-item';
-      const isChannel=lnk.url&&lnk.url.includes('/channel/');
-      const iconChar=isChannel?'#':'\u25B6';
+      const iconChar=lnk.type==='channel'?'#':lnk.type==='chat'?'\u{1F4AC}':'\u{1F4F9}';
+      const typeLabel=lnk.type==='channel'?'Channel':lnk.type==='chat'?'Chat':'Meeting / Call';
       item.innerHTML='<div class="tl-icon">'+iconChar+'</div>'
         +'<div class="tl-info"><div class="tl-name">'+escHtml(lnk.name)+'</div>'
-        +'<div class="tl-desc">'+(isChannel?'Channel':'Meeting / Call')+'</div></div>'
+        +'<div class="tl-desc">'+typeLabel+'</div></div>'
+        +'<button class="tl-join">Join</button>'
         +'<button class="tl-remove" title="Remove">&times;</button>';
-      item.querySelector('.tl-info').addEventListener('click',()=>{
+      item.querySelector('.tl-join').addEventListener('click',()=>{
         window.open(lnk.url,'_teams_popup','width=520,height=720,menubar=no,toolbar=no,location=no,status=no');
       });
       item.querySelector('.tl-remove').addEventListener('click',(e)=>{
@@ -15444,22 +15526,26 @@ function renderAll(){
     panel.classList.remove('open');
   });
 
-  document.getElementById('teamsAddBtn').addEventListener('click',()=>{
-    const nameEl=document.getElementById('teamsLinkName');
-    const urlEl=document.getElementById('teamsLinkUrl');
-    const name=nameEl.value.trim();
-    const url=urlEl.value.trim();
-    if(!name||!url){return;}
+  addBtn.addEventListener('click',()=>{
+    if(!currentDetection)return;
+    const name=nameInput.value.trim()||autoName(currentDetection);
     const links=loadLinks();
-    links.push({name,url});
+    links.push({name,url:currentDetection.url,type:currentDetection.type});
     saveLinks(links);
-    nameEl.value='';urlEl.value='';
+    nameInput.value='';urlInput.value='';nameInput.placeholder='Name (optional \u2014 auto-detected)';
+    currentDetection=null;
+    detectedEl.style.display='none';
+    addBtn.disabled=true;addBtn.style.opacity='.5';
+    addBtn.textContent='Paste a Teams link above';
     renderLinks();
   });
 
   // Allow Enter key to add
-  document.getElementById('teamsLinkUrl').addEventListener('keydown',(e)=>{
-    if(e.key==='Enter'){e.preventDefault();document.getElementById('teamsAddBtn').click();}
+  urlInput.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){e.preventDefault();addBtn.click();}
+  });
+  nameInput.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){e.preventDefault();addBtn.click();}
   });
 
   renderLinks();
