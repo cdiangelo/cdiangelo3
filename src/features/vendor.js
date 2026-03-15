@@ -13,6 +13,10 @@ const renderLandingCharts    = (...a) => window.renderLandingCharts(...a);
 function initVendorScratch() { if(window.initVendorScratch) window.initVendorScratch(); }
 function refreshProjectDropdown() { if(window.refreshProjectDropdown) window.refreshProjectDropdown(); }
 
+/* ── CDN globals (loaded externally, accessed via window) ── */
+const XLSX = window.XLSX;
+const Chart = window.Chart;
+
 // ── VENDOR MODULE ──
 let vendorModuleInited=false;
 function initVendorModule(){
@@ -2017,6 +2021,13 @@ function getContractorCapExByMonth(mi){
   },0);
 }
 
+
+/* ── window assignments for cross-module access ── */
+window.initVendorModule = initVendorModule;
+window.getVendorOaoTotal = getVendorOaoTotal;
+window.getVendorOaoByMonth = getVendorOaoByMonth;
+window.getContractorCapExTotal = getContractorCapExTotal;
+window.getContractorCapExByMonth = getContractorCapExByMonth;
 
 /* ── named exports ── */
 export {

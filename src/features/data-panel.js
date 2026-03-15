@@ -19,6 +19,9 @@ const executeWsMerge         = (...a) => window.executeWsMerge(...a);
 const loadVersionFromServer  = (...a) => window.loadVersionFromServer(...a);
 const deleteVersionFromServer= (...a) => window.deleteVersionFromServer(...a);
 
+/* ── CDN globals (loaded externally, accessed via window) ── */
+const XLSX = window.XLSX;
+
 // ── DATA MANAGEMENT PANEL ──
 function initDataPanel(){
   const dataPanel=document.getElementById('dataSlidePanel');
@@ -375,6 +378,7 @@ function renderDataPanelWsList(){
 
 /* ── window assignments for inline onclick handlers ── */
 window.renderDataPanelWsList = renderDataPanelWsList;
+window.initDataPanel = initDataPanel;
 
 /* ── named exports ── */
 export { initDataPanel, renderDataPanelWsList };

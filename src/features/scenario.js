@@ -2233,6 +2233,15 @@ window.loadSavedScenario = loadSavedScenario;
 window.deleteSavedScenario = deleteSavedScenario;
 window.renderVendorDetailList = renderVendorDetailList;
 window.renderFcVendorDetailList = renderFcVendorDetailList;
+window.initBudgetScenario = initBudgetScenario;
+window.initForecastScenario = initForecastScenario;
+window.renderBudgetScenarioChart = renderBudgetScenarioChart;
+window.renderFcScenarioChart = renderFcScenarioChart;
+window.renderScenarioPnlSummary = renderScenarioPnlSummary;
+window.initScenarioPane = initScenarioPane;
+window.createSpendMonthRangeBar = createSpendMonthRangeBar;
+Object.defineProperty(window, 'budgetScenario', { get(){ return budgetScenario; }, configurable: true });
+Object.defineProperty(window, 'budgetScenarioDirty', { get(){ return budgetScenarioDirty; }, configurable: true });
 
 /* ── named exports ── */
 export {

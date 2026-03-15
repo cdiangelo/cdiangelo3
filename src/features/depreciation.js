@@ -388,6 +388,9 @@ window.toggleDepCategory = toggleDepCategory;
 window.deleteDepCategory = deleteDepCategory;
 window.addDepCategory = addDepCategory;
 window.addDepRow = addDepRow;
+window.initDepModule = initDepModule;
+window.getDepreciationTotal = getDepreciationTotal;
+window.getDepreciationByMonth = getDepreciationByMonth;
 
 /* ── named exports ── */
 export {

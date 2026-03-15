@@ -622,10 +622,14 @@ window.unmapRevenue = unmapRevenue;
 window.deleteContractualRevenue = deleteContractualRevenue;
 window.addContractualRevenue = addContractualRevenue;
 
-/* ── also expose generic helpers used by other modules ── */
+/* ── also expose on window for cross-module access ── */
 window.initMonthRangeBar = initMonthRangeBar;
 window.exportGridToExcel = exportGridToExcel;
 window.importGridFromExcel = importGridFromExcel;
+window.initRevenueModule = initRevenueModule;
+window.getRevenueTotal = getRevenueTotal;
+window.getRevenueByMonth = getRevenueByMonth;
+window.getRevenueMrr = getRevenueMrr;
 
 /* ── named exports ── */
 export {

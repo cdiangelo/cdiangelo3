@@ -200,6 +200,7 @@ function initAssetTab(){
 
 /* ── window assignments for inline onclick handlers ── */
 window.addAssetRow = addAssetRow;
+window.initAssetTab = initAssetTab;
 
 /* ── named exports ── */
 export {
