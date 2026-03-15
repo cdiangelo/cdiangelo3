@@ -18,6 +18,10 @@ function refreshVendorPivot(){ if(window.refreshVendorPivot) window.refreshVendo
 function refreshTePivot(){ if(window.refreshTePivot) window.refreshTePivot(); }
 function refreshContractorPivot(){ if(window.refreshContractorPivot) window.refreshContractorPivot(); }
 
+/* ── CDN globals (loaded externally, accessed via window) ── */
+const XLSX = window.XLSX;
+const Chart = window.Chart;
+
 
 // ── SCENARIO ANALYSIS ──
 let budgetScenario=null,forecastScenario=null;
