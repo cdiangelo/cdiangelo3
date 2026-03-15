@@ -709,6 +709,11 @@ body.ops-mode .exec-roster-prod .prod-header{cursor:default}
 .landing-chart-title{font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
 .chart-expand-btn{position:absolute;top:8px;right:10px;background:var(--panel);border:1px solid var(--border);color:var(--text-dim);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s,background .2s;z-index:2}
 .chart-expand-btn:hover{opacity:1;background:var(--border)}
+#undoToast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);z-index:9999;background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:.85rem;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:transform .3s ease;pointer-events:none;opacity:0}
+#undoToast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
+#undoToast button{background:var(--accent);color:#fff;border:none;padding:4px 14px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:600}
+#undoToast button:hover{filter:brightness(1.15)}
+body.scenario-open #undoToast,body.data-open #undoToast{left:calc(50% + 25vw)}
 #chartExpandPane{position:fixed;bottom:0;right:0;left:0;height:70vh;background:var(--bg);border-top:2px solid var(--border);z-index:1040;transform:translateY(100%);transition:transform .3s ease,left .3s ease;overflow-y:auto;padding:24px 32px;box-shadow:0 -4px 24px rgba(0,0,0,.18)}
 #chartExpandPane.open{transform:translateY(0)}
 body.scenario-open #chartExpandPane,body.data-open #chartExpandPane{left:50vw}
@@ -1833,7 +1838,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Vendor Quick-Adjust Panel -->
 <div class="qa-panel" id="vendorQaPanel">
 <div class="qa-panel-header" id="vendorQaToggle">
-<h4><span style="color:#3a7d44">&#9654;</span> Quick Adjust — Vendor Spend <span class="qa-arrow">&#9654;</span></h4>
+<h4><span style="color:var(--accent)">&#9654;</span> Quick Adjust — Vendor Spend <span class="qa-arrow">&#9654;</span></h4>
 <span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
@@ -2016,7 +2021,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- T&E Quick-Adjust Panel -->
 <div class="qa-panel" id="teQaPanel">
 <div class="qa-panel-header" id="teQaToggle">
-<h4><span style="color:#ea580c">&#9654;</span> Quick Adjust — T&amp;E Spend <span class="qa-arrow">&#9654;</span></h4>
+<h4><span style="color:var(--accent)">&#9654;</span> Quick Adjust — T&amp;E Spend <span class="qa-arrow">&#9654;</span></h4>
 <span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
@@ -2194,7 +2199,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Contractor Quick-Adjust Panel -->
 <div class="qa-panel" id="contractorQaPanel">
 <div class="qa-panel-header" id="contractorQaToggle">
-<h4><span style="color:#6366f1">&#9654;</span> Quick Adjust — Contractors <span class="qa-arrow">&#9654;</span></h4>
+<h4><span style="color:var(--accent)">&#9654;</span> Quick Adjust — Contractors <span class="qa-arrow">&#9654;</span></h4>
 <span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
@@ -2486,7 +2491,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Depreciation Quick-Adjust Panel -->
 <div class="qa-panel" id="depQaPanel">
 <div class="qa-panel-header" id="depQaToggle">
-<h4><span style="color:#e67e22">&#9654;</span> Quick Adjust — Depreciation <span class="qa-arrow">&#9654;</span></h4>
+<h4><span style="color:var(--accent)">&#9654;</span> Quick Adjust — Depreciation <span class="qa-arrow">&#9654;</span></h4>
 <span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
@@ -2664,7 +2669,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Asset Quick-Adjust Panel -->
 <div class="qa-panel" id="assetQaPanel">
 <div class="qa-panel-header" id="assetQaToggle">
-<h4><span style="color:#27ae60">&#9654;</span> Quick Adjust — Assets &amp; CapEx <span class="qa-arrow">&#9654;</span></h4>
+<h4><span style="color:var(--accent)">&#9654;</span> Quick Adjust — Assets &amp; CapEx <span class="qa-arrow">&#9654;</span></h4>
 <span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
@@ -2875,7 +2880,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Contractual Revenue Addition Tool -->
 <div class="qa-panel" id="contractualRevPanel">
 <div class="qa-panel-header" id="contractualRevToggle">
-<h4><span style="color:#2980b9">&#9654;</span> Contractual Revenue Addition <span class="qa-arrow">&#9654;</span></h4>
+<h4><span style="color:var(--accent)">&#9654;</span> Contractual Revenue Addition <span class="qa-arrow">&#9654;</span></h4>
 <span style="font-size:.72rem;color:var(--text-dim)">Add revenue over any period &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
@@ -2919,7 +2924,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Revenue Quick-Adjust Panel -->
 <div class="qa-panel" id="revQaPanel">
 <div class="qa-panel-header" id="revQaToggle">
-<h4><span style="color:#2980b9">&#9654;</span> Quick Adjust — Revenue <span class="qa-arrow">&#9654;</span></h4>
+<h4><span style="color:var(--accent)">&#9654;</span> Quick Adjust — Revenue <span class="qa-arrow">&#9654;</span></h4>
 <span style="font-size:.72rem;color:var(--text-dim)">$5K increments &bull; click to expand</span>
 </div>
 <div class="qa-panel-body">
@@ -4113,6 +4118,29 @@ function updateSessionUI(){
     document.body.classList.remove('session-active');
   }
 }
+
+// ── UNDO DELETE ──
+let _undoDeleteData=null;
+let _undoDeleteTimer=null;
+function showUndoToast(label,arr,idx,item,restoreFn){
+  _undoDeleteData={arr:arr,idx:idx,item:item,restoreFn:restoreFn};
+  const msg=document.getElementById('undoToastMsg');
+  const toast=document.getElementById('undoToast');
+  msg.textContent='Deleted '+label;
+  toast.classList.add('show');
+  if(_undoDeleteTimer)clearTimeout(_undoDeleteTimer);
+  _undoDeleteTimer=setTimeout(function(){toast.classList.remove('show');_undoDeleteData=null},8000);
+}
+document.getElementById('undoToastBtn').addEventListener('click',function(){
+  if(!_undoDeleteData)return;
+  const d=_undoDeleteData;
+  d.arr.splice(d.idx,0,d.item);
+  saveState();
+  if(d.restoreFn)d.restoreFn();
+  document.getElementById('undoToast').classList.remove('show');
+  if(_undoDeleteTimer)clearTimeout(_undoDeleteTimer);
+  _undoDeleteData=null;
+});
 
 // ── DATA ──
 const COUNTRIES = ['United States','United Kingdom','Canada','Germany','India','Australia','Singapore','Netherlands','Brazil','Poland'];
@@ -5330,7 +5358,13 @@ function startEdit(id){
   updateBenchmarkBadge();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function deleteEmp(id){if(confirm('Delete this employee?')){state.employees=state.employees.filter(e=>e.id!==id);delete state.allocOverrides[id];saveState();renderAll()}}
+function deleteEmp(id){
+  const idx=state.employees.findIndex(e=>e.id===id);if(idx<0)return;
+  const item=state.employees[idx];
+  const name=item.name||item.role||'employee';
+  state.employees.splice(idx,1);delete state.allocOverrides[id];saveState();renderAll();
+  showUndoToast(name,state.employees,idx,item,renderAll);
+}
 document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('Remove all employees? This cannot be undone.')){state.employees=[];state.allocOverrides={};saveState();renderAll()}});
 document.getElementById('btnImportRoster').addEventListener('click',()=>document.getElementById('empInlineRosterFile').click());
 document.getElementById('empInlineRosterFile').addEventListener('change',function(){
@@ -11549,8 +11583,12 @@ function initVendorModule(){
     });
     tbodyEl.querySelectorAll(`.${prefix}-del`).forEach(btn=>{
       btn.addEventListener('click',()=>{
-        dataArr.splice(+btn.dataset.vi,1);
+        const idx=+btn.dataset.vi;
+        const item=dataArr[idx];
+        const label=(item&&(item.vendorName||item.category||item.name))||prefix+' row';
+        dataArr.splice(idx,1);
         saveState();renderFn();
+        showUndoToast(label,dataArr,idx,item,renderFn);
       });
     });
     // Drag-to-reorder rows
@@ -12249,8 +12287,11 @@ function initVendorModule(){
     tbody.querySelectorAll('.cr-del').forEach(btn=>{
       btn.addEventListener('click',()=>{
         const i=+btn.dataset.ci;
+        const item=state.contractorRows[i];
+        const label=(item&&(item.name||item.vendorName))||'contractor row';
         state.contractorRows.splice(i,1);
         saveState();renderContractorGrid();refreshContractorPivot();renderPnlWalk();renderLandingCharts();
+        showUndoToast(label,state.contractorRows,i,item,function(){renderContractorGrid();refreshContractorPivot();renderPnlWalk();renderLandingCharts()});
       });
     });
     // Color tags
@@ -13613,7 +13654,11 @@ function renderDepreciationGrid(){
   });
   tbody.querySelectorAll('.dep-del').forEach(btn=>{
     btn.addEventListener('click',function(){
-      const i=+this.dataset.di;state.depreciationRows.splice(i,1);saveState();renderDepreciationGrid();
+      const i=+this.dataset.di;
+      const item=state.depreciationRows[i];
+      const label=(item&&item.name)||'depreciation entry';
+      state.depreciationRows.splice(i,1);saveState();renderDepreciationGrid();
+      showUndoToast(label,state.depreciationRows,i,item,renderDepreciationGrid);
     });
   });
 }
@@ -13927,7 +13972,11 @@ function renderAssetGrid(){
   });
   tbody.querySelectorAll('.asset-del').forEach(btn=>{
     btn.addEventListener('click',function(){
-      const i=+this.dataset.ai;state.assetRows.splice(i,1);saveState();renderAssetGrid();
+      const i=+this.dataset.ai;
+      const item=state.assetRows[i];
+      const label=(item&&item.name)||'asset row';
+      state.assetRows.splice(i,1);saveState();renderAssetGrid();
+      showUndoToast(label,state.assetRows,i,item,renderAssetGrid);
     });
   });
 }
@@ -14045,7 +14094,11 @@ function renderRevenueGrid(){
   });
   tbody.querySelectorAll('.rev-del').forEach(btn=>{
     btn.addEventListener('click',function(){
-      const i=+this.dataset.ri;state.revenueRows.splice(i,1);saveState();renderRevenueGrid();renderRevenueKpis();
+      const i=+this.dataset.ri;
+      const item=state.revenueRows[i];
+      const label=(item&&(item.clientName||item.productName))||'revenue row';
+      state.revenueRows.splice(i,1);saveState();renderRevenueGrid();renderRevenueKpis();
+      showUndoToast(label,state.revenueRows,i,item,function(){renderRevenueGrid();renderRevenueKpis()});
     });
   });
 }
@@ -15607,5 +15660,6 @@ function renderAll(){
 }catch(e){console.warn('Fun mode error:',e)}})();
 
 </script>
+<div id="undoToast"><span id="undoToastMsg"></span><button id="undoToastBtn">Undo</button></div>
 </body>
 </html>
