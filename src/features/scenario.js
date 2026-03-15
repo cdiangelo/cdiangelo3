@@ -1,7 +1,7 @@
 // ── scenario.js — ES module extracted from index.html lines 9166–11345 ──
-import { state, saveState } from '../lib/state.js';
+import { state, saveState, getTotalComp, getBonusPct, getBonusAmt, getBenefitsPct, getBenefitsAmt } from '../lib/state.js';
 import { fmt, esc, uid, CURRENT_YEAR, FUNCTIONS, COUNTRIES, SENIORITY, COUNTRY_BU, FORECAST_YEARS, VENDOR_TYPES, EXPENSE_TYPES } from '../lib/constants.js';
-import { getMonthlyComp, getMonthlyCapEx, getTotalComp, getBonusPct, getBonusAmt, getBenefitsPct, getBenefitsAmt } from '../lib/proration.js';
+import { getMonthlyComp, getMonthlyCapEx } from '../lib/proration.js';
 
 /* ── globals accessed via window (not yet modularised) ── */
 const benchmark       = (...a) => window.benchmark(...a);

@@ -1,15 +1,14 @@
 // ── LONG TERM FORECAST ── ES Module
 // Extracted from index.html lines 6824–7539
 
-import { state, saveState } from '../lib/state.js';
+import { state, saveState, getBonusAmt, getBenefitsAmt } from '../lib/state.js';
 import {
   FUNCTIONS, COUNTRIES, FORECAST_YEARS, CURRENT_YEAR,
   DISPLAY_BASE_YEAR,
   getDisplayYears, getDisplayFcLabels, displayYear, fmt
 } from '../lib/constants.js';
 import {
-  getProratedBase, getProratedBonus, getProratedBenefits, getProratedCapEx, getProratedComp,
-  getBonusAmt, getBenefitsAmt
+  getProratedBase, getProratedBonus, getProratedBenefits, getProratedCapEx, getProratedComp
 } from '../lib/proration.js';
 
 let forecastChart=null;

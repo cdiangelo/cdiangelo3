@@ -1,6 +1,7 @@
 // ── vendor.js — ES module extracted from index.html lines 11699–13702 ──
 import { state, saveState } from '../lib/state.js';
-import { fmt, esc, uid, VENDOR_TYPES, EXPENSE_TYPES, TAG_COLORS_DARK, TAG_COLORS_LIGHT, COUNTRY_BU } from '../lib/constants.js';
+import { fmt, esc, uid, VENDOR_TYPES, EXPENSE_TYPES, COUNTRY_BU } from '../lib/constants.js';
+import { TAG_COLORS_DARK, TAG_COLORS_LIGHT } from '../lib/chart-utils.js';
 
 /* ── globals accessed via window (not yet modularised) ── */
 const getChartColors         = (...a) => window.getChartColors(...a);

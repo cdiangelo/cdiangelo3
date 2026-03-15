@@ -7,6 +7,10 @@ import {
 
 export let state;
 
+export function replaceState(newState){
+  state=newState;
+}
+
 export function loadState(){
   const raw=localStorage.getItem('compPlanState_v2');
   if(raw){state=JSON.parse(raw);ensureStateFields();return}

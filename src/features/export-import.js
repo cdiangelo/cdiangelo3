@@ -1,7 +1,7 @@
 // ── EXPORT / MASS UPLOAD / Templates ── ES Module
 // Extracted from index.html lines 7540–7926
 
-import { state, saveState, ensureStateFields } from '../lib/state.js';
+import { state, saveState, ensureStateFields, getBonusPct, getBonusAmt, getBenefitsAmt, getTotalComp } from '../lib/state.js';
 import {
   COUNTRIES, SENIORITY, FUNCTIONS, FUNC_SHORT, MONTHS,
   DEFAULT_BONUS, DEFAULT_BENEFITS, BENEFITS_COUNTRY_MULT,
@@ -9,7 +9,6 @@ import {
   fmt, uid, benchmark
 } from '../lib/constants.js';
 import {
-  getBonusPct, getBonusAmt, getBenefitsAmt, getTotalComp,
   getOpEx, getCapEx, getCapPct
 } from '../lib/proration.js';
 

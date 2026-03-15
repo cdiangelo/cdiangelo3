@@ -1,5 +1,5 @@
 // ── data-panel.js — ES module extracted from index.html lines 11346–11698 ──
-import { state, saveState, ensureStateFields } from '../lib/state.js';
+import { state, saveState, ensureStateFields, replaceState } from '../lib/state.js';
 import { esc } from '../lib/constants.js';
 
 /* ── globals accessed via window (not yet modularised) ── */
@@ -170,7 +170,7 @@ function initDataPanel(){
     const file=this.files[0];if(!file)return;
     this.value='';
     const reader=new FileReader();
-    reader.onload=ev=>{try{state=JSON.parse(ev.target.result);ensureStateFields();saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
+    reader.onload=ev=>{try{replaceState(JSON.parse(ev.target.result));ensureStateFields();saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
     reader.readAsText(file);
   });
   // Backup: Share HTML
