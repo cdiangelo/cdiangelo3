@@ -704,9 +704,19 @@ body.ops-mode .exec-roster-prod .prod-header{cursor:default}
 .landing-module.disabled:hover{transform:none;box-shadow:none;border-color:var(--border)}
 .landing-charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
 @media(max-width:900px){#landingPnlGrid{grid-template-columns:1fr!important}}
-.landing-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.landing-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative}
 .landing-chart-card .chart-wrap{position:relative;width:100%;height:180px}
 .landing-chart-title{font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.chart-expand-btn{position:absolute;top:8px;right:10px;background:var(--panel);border:1px solid var(--border);color:var(--text-dim);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s,background .2s;z-index:2}
+.chart-expand-btn:hover{opacity:1;background:var(--border)}
+#chartExpandPane{position:fixed;bottom:0;right:0;left:0;height:70vh;background:var(--bg);border-top:2px solid var(--border);z-index:1040;transform:translateY(100%);transition:transform .3s ease,left .3s ease;overflow-y:auto;padding:24px 32px;box-shadow:0 -4px 24px rgba(0,0,0,.18)}
+#chartExpandPane.open{transform:translateY(0)}
+body.scenario-open #chartExpandPane,body.data-open #chartExpandPane{left:50vw}
+#chartExpandPane .expand-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px}
+#chartExpandPane .expand-chart-card .chart-wrap{position:relative;width:100%;height:340px}
+#chartExpandPane .expand-chart-title{font-size:.88rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+#chartExpandPane .expand-close-btn{position:sticky;top:0;z-index:2;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 16px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:16px;display:inline-flex;align-items:center;gap:6px}
+#chartExpandPane .expand-close-btn:hover{background:var(--border)}
 @media(max-width:900px){.landing-charts{grid-template-columns:1fr}}
 .pnl-walk{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:32px}
 .pnl-walk h3{color:var(--accent);font-size:1rem;margin-bottom:10px}
@@ -1066,10 +1076,12 @@ Template Mode &mdash; changes saved in this browser only.
 <!-- Right: Charts stacked vertically -->
 <div style="display:flex;flex-direction:column;gap:16px">
 <div class="landing-chart-card">
+<button class="chart-expand-btn" data-expand-target="expandBudget" title="Expand">&#x26F6;</button>
 <div class="landing-chart-title">Monthly Budget</div>
 <div class="chart-wrap"><canvas id="landingBudgetChart"></canvas></div>
 </div>
 <div class="landing-chart-card">
+<button class="chart-expand-btn" data-expand-target="expandForecast" title="Expand">&#x26F6;</button>
 <div class="landing-chart-title">Long-Term Forecast</div>
 <div class="chart-wrap"><canvas id="landingForecastChart"></canvas></div>
 </div>
@@ -1093,15 +1105,37 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
 <div class="landing-chart-card">
+<button class="chart-expand-btn" data-expand-target="expandRevenue" title="Expand">&#x26F6;</button>
 <div class="landing-chart-title">Monthly Revenue</div>
 <div class="chart-wrap"><canvas id="landingRevenueChart"></canvas></div>
 </div>
 <div class="landing-chart-card">
+<button class="chart-expand-btn" data-expand-target="expandRevForecast" title="Expand">&#x26F6;</button>
 <div class="landing-chart-title">Revenue Long-Term Forecast</div>
 <div class="chart-wrap"><canvas id="landingRevForecastChart"></canvas></div>
 </div>
 </div>
 </div>
+</div>
+</div>
+
+<div id="chartExpandPane">
+<button class="expand-close-btn" id="chartExpandClose">&#x2715; Close</button>
+<div class="expand-chart-card" id="expandBudget">
+<div class="expand-chart-title">Monthly Budget</div>
+<div class="chart-wrap"><canvas id="expandBudgetChart"></canvas></div>
+</div>
+<div class="expand-chart-card" id="expandForecast">
+<div class="expand-chart-title">Long-Term Forecast</div>
+<div class="chart-wrap"><canvas id="expandForecastChart"></canvas></div>
+</div>
+<div class="expand-chart-card" id="expandRevenue">
+<div class="expand-chart-title">Monthly Revenue</div>
+<div class="chart-wrap"><canvas id="expandRevenueChart"></canvas></div>
+</div>
+<div class="expand-chart-card" id="expandRevForecast">
+<div class="expand-chart-title">Revenue Long-Term Forecast</div>
+<div class="chart-wrap"><canvas id="expandRevFcChart"></canvas></div>
 </div>
 </div>
 
@@ -14846,6 +14880,66 @@ function renderLandingRevForecastChart(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}
   });
 }
+
+// ── CHART EXPAND PANE ──
+let expandBudgetInst=null,expandForecastInst=null,expandRevenueInst=null,expandRevFcInst=null;
+function renderExpandedCharts(){
+  if(typeof Chart==='undefined')return;
+  const pane=document.getElementById('chartExpandPane');
+  if(!pane||!pane.classList.contains('open'))return;
+  // Budget
+  if(expandBudgetInst)expandBudgetInst.destroy();
+  if(landingBudgetChartInst){
+    const cfg=landingBudgetChartInst.config;
+    expandBudgetInst=new Chart(document.getElementById('expandBudgetChart'),{type:cfg.type,data:JSON.parse(JSON.stringify(cfg.data)),plugins:cfg.plugins||[],options:JSON.parse(JSON.stringify(cfg.options))});
+  }
+  // Forecast
+  if(expandForecastInst)expandForecastInst.destroy();
+  if(landingForecastChartInst){
+    const cfg=landingForecastChartInst.config;
+    expandForecastInst=new Chart(document.getElementById('expandForecastChart'),{type:cfg.type,data:JSON.parse(JSON.stringify(cfg.data)),plugins:cfg.plugins||[],options:JSON.parse(JSON.stringify(cfg.options))});
+  }
+  // Revenue
+  if(expandRevenueInst)expandRevenueInst.destroy();
+  if(landingRevenueChartInst){
+    const cfg=landingRevenueChartInst.config;
+    expandRevenueInst=new Chart(document.getElementById('expandRevenueChart'),{type:cfg.type,data:JSON.parse(JSON.stringify(cfg.data)),options:JSON.parse(JSON.stringify(cfg.options))});
+  }
+  // Revenue Forecast
+  if(expandRevFcInst)expandRevFcInst.destroy();
+  if(landingRevFcChartInst){
+    const cfg=landingRevFcChartInst.config;
+    expandRevFcInst=new Chart(document.getElementById('expandRevFcChart'),{type:cfg.type,data:JSON.parse(JSON.stringify(cfg.data)),options:JSON.parse(JSON.stringify(cfg.options))});
+  }
+}
+function openChartExpandPane(targetId){
+  const pane=document.getElementById('chartExpandPane');
+  pane.classList.add('open');
+  renderExpandedCharts();
+  setTimeout(function(){
+    const el=document.getElementById(targetId);
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },350);
+}
+function closeChartExpandPane(){
+  const pane=document.getElementById('chartExpandPane');
+  pane.classList.remove('open');
+  if(expandBudgetInst){expandBudgetInst.destroy();expandBudgetInst=null}
+  if(expandForecastInst){expandForecastInst.destroy();expandForecastInst=null}
+  if(expandRevenueInst){expandRevenueInst.destroy();expandRevenueInst=null}
+  if(expandRevFcInst){expandRevFcInst.destroy();expandRevFcInst=null}
+}
+document.getElementById('chartExpandClose').addEventListener('click',closeChartExpandPane);
+document.querySelectorAll('.chart-expand-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){openChartExpandPane(this.dataset.expandTarget)});
+});
+// Keep expanded charts in sync when landing charts re-render
+const _origRenderLandingCharts=renderLandingCharts;
+renderLandingCharts=function(){_origRenderLandingCharts();renderExpandedCharts()};
+const _origRenderLandingRevChart=renderLandingRevenueChart;
+renderLandingRevenueChart=function(){_origRenderLandingRevChart();renderExpandedCharts()};
+const _origRenderLandingRevFc=renderLandingRevForecastChart;
+renderLandingRevForecastChart=function(){_origRenderLandingRevFc();renderExpandedCharts()};
 
 // ── INIT ──
 function renderAll(){
