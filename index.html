@@ -1045,7 +1045,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="landing-module" id="modRevenue">
 <h3><span class="mod-icon">&#9734;</span> Tech Revenue</h3>
-<p>Client revenue tracking, MRR/ARR metrics, contract management, forecasting, and revenue analysis.</p>
+<p>Client revenue tracking, subscription metrics, contract management, forecasting, and revenue analysis.</p>
 <span class="mod-badge active">Active</span>
 </div>
 </div>
@@ -2927,7 +2927,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div class="qa-add-form" id="revQaAddForm">
 <div><label>Client</label><select id="revQaNewClient" style="width:140px"><option value="">— Select —</option></select></div>
 <div><label>Product</label><input id="revQaNewProduct" placeholder="Product/Service..." style="width:130px"></div>
-<div><label>Revenue Type</label><select id="revQaNewType" style="width:120px"><option value="MRR">MRR</option><option value="ARR">ARR</option><option value="One-Time">One-Time</option><option value="Usage">Usage-Based</option><option value="ProfServ">Professional Services</option><option value="Contractual">Contractual</option></select></div>
+<div><label>Revenue Type</label><select id="revQaNewType" style="width:120px"><option value="Subscription">Subscription</option><option value="One-Time">One-Time</option><option value="Usage">Usage-Based</option><option value="ProfServ">Professional Services</option><option value="Contractual">Contractual</option></select></div>
 <button class="btn btn-sm" style="background:rgba(41,128,185,.1);border-color:rgba(41,128,185,.3);color:#2980b9;padding:4px 12px;font-size:.78rem" id="revQaAddBtn">+ Add Revenue Row</button>
 </div>
 <div class="qa-history" id="revQaHistory"></div>
@@ -3063,7 +3063,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div><label style="font-size:.7rem;color:var(--text-dim)">Name</label><br><input id="revClientName" style="width:130px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Client name"></div>
 <div><label style="font-size:.7rem;color:var(--text-dim)">Industry</label><br><input id="revClientIndustry" style="width:100px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="e.g. SaaS"></div>
 <div><label style="font-size:.7rem;color:var(--text-dim)">Tier</label><br><select id="revClientTier" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option><option value="Enterprise">Enterprise</option><option value="Mid-Market">Mid-Market</option><option value="SMB">SMB</option></select></div>
-<div><label style="font-size:.7rem;color:var(--text-dim)">Contract Type</label><br><select id="revClientContractType" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option><option value="MRR">MRR</option><option value="ARR">ARR</option><option value="One-Time">One-Time</option><option value="Usage">Usage-Based</option></select></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Contract Type</label><br><select id="revClientContractType" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option><option value="Subscription">Subscription</option><option value="One-Time">One-Time</option><option value="Usage">Usage-Based</option></select></div>
 <button class="btn" id="revAddClientBtn" style="padding:3px 10px;font-size:.8rem">+ Add Client</button>
 </div>
 <div style="max-height:600px;overflow-y:auto">
@@ -13845,7 +13845,7 @@ function getRevenueByMonth(mi){
 }
 function getRevenueMrr(){
   // MRR = current month's sum for MRR-type rows (use latest non-zero month as proxy)
-  const rows=(state.revenueRows||[]).filter(r=>r.revenueType==='MRR'||r.revenueType==='ARR');
+  const rows=(state.revenueRows||[]).filter(r=>r.revenueType==='Subscription'||r.revenueType==='MRR'||r.revenueType==='ARR');
   for(let mi=11;mi>=0;mi--){
     const v=rows.reduce((s,r)=>s+(parseFloat(r[moKeys[mi]])||0),0);
     if(v>0)return v;
@@ -13864,7 +13864,7 @@ function buildRevenueRow(row,i){
   h+='<option value="_custom"'+(row.clientName&&!(state.revenueClients||[]).find(c=>c.name===row.clientName)?' selected':'')+'>Custom: '+escHtml(row.clientName||'')+'</option>';
   h+='</select></td>';
   h+='<td><input class="rev-field" data-ri="'+i+'" data-f="productName" value="'+escHtml(row.productName||'')+'" style="width:120px" placeholder="Product/Service"></td>';
-  h+='<td><select class="rev-field" data-ri="'+i+'" data-f="revenueType" style="width:100px"><option value="MRR"'+(row.revenueType==='MRR'?' selected':'')+'>MRR</option><option value="ARR"'+(row.revenueType==='ARR'?' selected':'')+'>ARR</option><option value="One-Time"'+(row.revenueType==='One-Time'?' selected':'')+'>One-Time</option><option value="Usage"'+(row.revenueType==='Usage'?' selected':'')+'>Usage-Based</option><option value="ProfServ"'+(row.revenueType==='ProfServ'?' selected':'')+'>Prof. Services</option><option value="Contractual"'+(row.revenueType==='Contractual'?' selected':'')+'>Contractual</option></select></td>';
+  h+='<td><select class="rev-field" data-ri="'+i+'" data-f="revenueType" style="width:100px"><option value="Subscription"'+(row.revenueType==='Subscription'||row.revenueType==='MRR'||row.revenueType==='ARR'?' selected':'')+'>Subscription</option><option value="One-Time"'+(row.revenueType==='One-Time'?' selected':'')+'>One-Time</option><option value="Usage"'+(row.revenueType==='Usage'?' selected':'')+'>Usage-Based</option><option value="ProfServ"'+(row.revenueType==='ProfServ'?' selected':'')+'>Prof. Services</option><option value="Contractual"'+(row.revenueType==='Contractual'?' selected':'')+'>Contractual</option></select></td>';
   h+='<td style="white-space:nowrap"><select class="rev-field" data-ri="'+i+'" data-f="_startMonth" style="width:50px">'+buildMonthOptions(row._startMonth)+'</select> – <select class="rev-field" data-ri="'+i+'" data-f="_endMonth" style="width:50px">'+buildMonthOptions(row._endMonth)+'</select></td>';
   h+='<td><input class="rev-field" data-ri="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" style="width:90px" placeholder="Notes"></td>';
   h+=buildDimCells('rev-field',i,row);
@@ -14000,7 +14000,7 @@ function renderRevSparklines(){
 }
 
 function addRevenueRow(){
-  state.revenueRows.push({clientName:'',productName:'',revenueType:'MRR',_startMonth:'',_endMonth:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:''});
+  state.revenueRows.push({clientName:'',productName:'',revenueType:'Subscription',_startMonth:'',_endMonth:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0,_colorTag:''});
   saveState();renderRevenueGrid();
 }
 
@@ -14016,7 +14016,7 @@ function renderClientTable(){
     h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="name" value="'+escHtml(c.name||'')+'" style="width:100px"></td>';
     h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="industry" value="'+escHtml(c.industry||'')+'" style="width:70px"></td>';
     h+='<td><select class="rclient-f" data-ci="'+i+'" data-f="tier" style="width:80px"><option value="">—</option><option'+(c.tier==='Enterprise'?' selected':'')+'>Enterprise</option><option'+(c.tier==='Mid-Market'?' selected':'')+'>Mid-Market</option><option'+(c.tier==='SMB'?' selected':'')+'>SMB</option></select></td>';
-    h+='<td><select class="rclient-f" data-ci="'+i+'" data-f="contractType" style="width:70px"><option value="">—</option><option'+(c.contractType==='MRR'?' selected':'')+'>MRR</option><option'+(c.contractType==='ARR'?' selected':'')+'>ARR</option><option'+(c.contractType==='One-Time'?' selected':'')+'>One-Time</option><option'+(c.contractType==='Usage'?' selected':'')+'>Usage</option></select></td>';
+    h+='<td><select class="rclient-f" data-ci="'+i+'" data-f="contractType" style="width:70px"><option value="">—</option><option value="Subscription"'+(c.contractType==='Subscription'||c.contractType==='MRR'||c.contractType==='ARR'?' selected':'')+'>Subscription</option><option'+(c.contractType==='One-Time'?' selected':'')+'>One-Time</option><option'+(c.contractType==='Usage'?' selected':'')+'>Usage</option></select></td>';
     h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="contractStart" type="date" value="'+(c.contractStart||'')+'" style="width:90px"></td>';
     h+='<td><input class="rclient-f" data-ci="'+i+'" data-f="contractEnd" type="date" value="'+(c.contractEnd||'')+'" style="width:90px"></td>';
     h+='<td><select class="rclient-f" data-ci="'+i+'" data-f="billingFreq" style="width:70px"><option value="">—</option><option'+(c.billingFreq==='Monthly'?' selected':'')+'>Monthly</option><option'+(c.billingFreq==='Quarterly'?' selected':'')+'>Quarterly</option><option'+(c.billingFreq==='Annual'?' selected':'')+'>Annual</option></select></td>';
