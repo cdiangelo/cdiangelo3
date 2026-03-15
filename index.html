@@ -933,19 +933,19 @@ body.session-active header{top:30px}
 .save-indicator.error{color:var(--danger)}
 
 /* Milestones Component */
-.milestones-wrap{display:inline-flex;align-items:center;gap:8px;margin-left:16px;position:relative;vertical-align:middle}
-.milestones-btn{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-size:.78rem;font-weight:600;transition:all .2s}
-.milestones-btn:hover{border-color:var(--accent);color:var(--accent)}
-.milestones-btn .ms-icon{font-size:.9rem}
-.milestones-bubbles{display:flex;align-items:center;gap:5px}
-.ms-bubble{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);background:var(--panel);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.milestones-wrap{display:inline-flex;align-items:center;margin-left:18px;position:relative;vertical-align:middle}
+.milestones-bubbles{display:flex;align-items:center;gap:10px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:10px;padding:6px 12px}
+.ms-bubble{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:var(--panel);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.ms-bubble .ms-check{width:14px;height:14px;opacity:.18;transition:opacity .18s;pointer-events:none}
+.ms-bubble .ms-check path{fill:none;stroke:var(--text-dim);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 .ms-bubble.done{border-color:var(--success);background:var(--success)}
-.ms-bubble.done::after{content:'';display:block;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-1px}
-.ms-bubble:hover{transform:scale(1.2);border-color:var(--accent)}
+.ms-bubble.done .ms-check{opacity:1}
+.ms-bubble.done .ms-check path{stroke:#fff}
+.ms-bubble:hover{transform:scale(1.12);border-color:var(--accent)}
 .ms-bubble.done:hover{border-color:#2e6b36}
-.ms-bubble-add{width:18px;height:18px;border-radius:50%;border:2px dashed var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;opacity:0;flex-shrink:0;font-size:.75rem;color:var(--text-dim);line-height:1}
+.ms-bubble-add{width:30px;height:30px;border-radius:50%;border:2px dashed var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;opacity:0;flex-shrink:0;font-size:1rem;color:var(--text-dim);line-height:1}
 .milestones-bubbles:hover .ms-bubble-add{opacity:1}
-.ms-bubble-add:hover{border-color:var(--accent);color:var(--accent);transform:scale(1.15)}
+.ms-bubble-add:hover{border-color:var(--accent);color:var(--accent);transform:scale(1.12)}
 
 /* Milestone Tooltip */
 .ms-tooltip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:220px;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;font-size:.78rem;pointer-events:none;opacity:0;transition:opacity .15s}
@@ -1100,7 +1100,6 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- Milestones Pane -->
 <div class="milestones-wrap" id="milestonesWrap">
-<button class="milestones-btn" id="milestonesToggle" title="Milestones"><span class="ms-icon">&#9679;</span> Milestones</button>
 <div class="milestones-bubbles" id="milestonesBubbles"></div>
 </div>
 
@@ -16062,6 +16061,16 @@ function renderAll(){
     activeTooltip=tip;
   }
 
+  function makeCheckSvg(){
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('class','ms-check');
+    svg.setAttribute('viewBox','0 0 16 16');
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d','M3.5 8.5 L6.5 11.5 L12.5 4.5');
+    svg.appendChild(path);
+    return svg;
+  }
+
   function render(){
     const container=document.getElementById('milestonesBubbles');
     if(!container)return;
@@ -16070,7 +16079,7 @@ function renderAll(){
     milestones.forEach((ms,i)=>{
       const b=document.createElement('div');
       b.className='ms-bubble'+(ms.done?' done':'');
-      b.title='';
+      b.appendChild(makeCheckSvg());
 
       // Hover tooltip
       b.addEventListener('mouseenter',()=>{
@@ -16115,7 +16124,6 @@ function renderAll(){
       milestones.push({goal:'',date:'',done:false});
       save();
       render();
-      // Open modal for the new one
       openModal(milestones.length-1);
     });
     container.appendChild(addBtn);
@@ -16170,16 +16178,6 @@ function renderAll(){
     save();
     closeModal();
     render();
-  });
-
-  // Toggle button shows/hides bubbles
-  document.getElementById('milestonesToggle').addEventListener('click',()=>{
-    const bubbles=document.getElementById('milestonesBubbles');
-    if(bubbles.style.display==='none'){
-      bubbles.style.display='flex';
-    }else{
-      bubbles.style.display='';
-    }
   });
 
   // Keyboard: Escape closes modal
