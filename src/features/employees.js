@@ -446,11 +446,179 @@ document.querySelectorAll('#empTable th.sortable').forEach(th=>{
   });
 });
 
+// ── MASS CHANGE ──
+function openMassChange(){
+  document.getElementById('massChangeOverlay').style.display='block';
+  document.getElementById('massChangeModal').style.display='block';
+  document.getElementById('mcField').value='';
+  document.getElementById('mcFrom').innerHTML='<option value="">Select field first</option>';
+  document.getElementById('mcTo').innerHTML='<option value="">Select field first</option>';
+  document.getElementById('mcFilteredOnly').checked=false;
+  document.getElementById('mcPreview').style.display='none';
+  document.getElementById('btnApplyMassChange').disabled=true;
+}
+function closeMassChange(){
+  document.getElementById('massChangeOverlay').style.display='none';
+  document.getElementById('massChangeModal').style.display='none';
+}
+function getMassChangeOptions(field){
+  if(field==='project'){
+    return state.projects.map(p=>({value:p.id,label:p.code+(p.product?' — '+p.product:'')}));
+  }
+  if(field==='function')return FUNCTIONS.map(f=>({value:f,label:f}));
+  if(field==='seniority')return SENIORITY.map(s=>({value:s,label:s}));
+  if(field==='country')return COUNTRIES.map(c=>({value:c,label:c}));
+  if(field==='businessLine')return state.bizLines.map(b=>({value:b.code,label:b.code+' — '+b.name}));
+  if(field==='capPct'){
+    const vals=[...new Set(state.employees.map(e=>e.capPct||0))].sort((a,b)=>a-b);
+    return vals.map(v=>({value:String(v),label:v+'%'}));
+  }
+  return [];
+}
+function populateMcDropdowns(){
+  const field=document.getElementById('mcField').value;
+  const fromSel=document.getElementById('mcFrom');
+  const toSel=document.getElementById('mcTo');
+  if(!field){
+    fromSel.innerHTML='<option value="">Select field first</option>';
+    toSel.innerHTML='<option value="">Select field first</option>';
+    document.getElementById('mcPreview').style.display='none';
+    document.getElementById('btnApplyMassChange').disabled=true;
+    return;
+  }
+  const opts=getMassChangeOptions(field);
+  if(field==='capPct'){
+    // From: dropdown of existing values; To: free numeric input
+    fromSel.outerHTML=`<select id="mcFrom" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"><option value="">Any value</option>${opts.map(o=>`<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('')}</select>`;
+    toSel.outerHTML=`<input id="mcTo" type="number" min="0" max="100" placeholder="New CapEx %" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px">`;
+    document.getElementById('mcFrom').addEventListener('change',updateMcPreview);
+    document.getElementById('mcTo').addEventListener('input',updateMcPreview);
+  } else {
+    // Restore selects if they were replaced by inputs
+    const fromEl=document.getElementById('mcFrom');
+    if(fromEl.tagName!=='SELECT'){
+      fromEl.outerHTML=`<select id="mcFrom" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></select>`;
+    }
+    const toEl=document.getElementById('mcTo');
+    if(toEl.tagName!=='SELECT'){
+      toEl.outerHTML=`<select id="mcTo" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px"></select>`;
+    }
+    const fromSelect=document.getElementById('mcFrom');
+    const toSelect=document.getElementById('mcTo');
+    fromSelect.innerHTML='<option value="">Select…</option>'+opts.map(o=>`<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('');
+    toSelect.innerHTML='<option value="">Select…</option>'+opts.map(o=>`<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('');
+    fromSelect.addEventListener('change',updateMcPreview);
+    toSelect.addEventListener('change',updateMcPreview);
+  }
+  updateMcPreview();
+}
+function getFilteredEmployees(){
+  const fName=(document.getElementById('empFilterName').value||'').toLowerCase();
+  const fCountry=document.getElementById('empFilterCountry').value;
+  const fSeniority=document.getElementById('empFilterSeniority').value;
+  const fFunction=document.getElementById('empFilterFunction').value;
+  const fMarket=document.getElementById('empFilterMarket').value;
+  const fBizLine=document.getElementById('empFilterBizLine').value;
+  const fProject=document.getElementById('empFilterProject').value;
+  let emps=state.employees;
+  if(fName)emps=emps.filter(e=>e.name.toLowerCase().includes(fName));
+  if(fCountry)emps=emps.filter(e=>e.country===fCountry);
+  if(fSeniority)emps=emps.filter(e=>e.seniority===fSeniority);
+  if(fFunction)emps=emps.filter(e=>e.function===fFunction);
+  if(fMarket)emps=emps.filter(e=>getEmpMarkets(e).some(m=>m.code===fMarket));
+  if(fBizLine)emps=emps.filter(e=>e.businessLine===fBizLine);
+  if(fProject)emps=emps.filter(e=>(e.allocations||[]).some(a=>a.projId===fProject));
+  return emps;
+}
+function getMcMatchingEmps(){
+  const field=document.getElementById('mcField').value;
+  const fromVal=document.getElementById('mcFrom').value;
+  const filteredOnly=document.getElementById('mcFilteredOnly').checked;
+  let emps=filteredOnly?getFilteredEmployees():state.employees;
+  if(!field)return [];
+  if(field==='project'){
+    if(!fromVal)return emps.filter(e=>(e.allocations||[]).length>0);
+    return emps.filter(e=>(e.allocations||[]).some(a=>a.projId===fromVal));
+  }
+  if(field==='capPct'){
+    if(!fromVal)return emps;
+    return emps.filter(e=>String(e.capPct||0)===fromVal);
+  }
+  if(!fromVal)return emps;
+  if(field==='function')return emps.filter(e=>e.function===fromVal);
+  if(field==='seniority')return emps.filter(e=>e.seniority===fromVal);
+  if(field==='country')return emps.filter(e=>e.country===fromVal);
+  if(field==='businessLine')return emps.filter(e=>e.businessLine===fromVal);
+  return [];
+}
+function updateMcPreview(){
+  const field=document.getElementById('mcField').value;
+  const toVal=document.getElementById('mcTo').value;
+  const preview=document.getElementById('mcPreview');
+  const btn=document.getElementById('btnApplyMassChange');
+  if(!field||!toVal){
+    preview.style.display='none';
+    btn.disabled=true;
+    return;
+  }
+  const matches=getMcMatchingEmps();
+  preview.style.display='block';
+  const fieldLabel={project:'Project',function:'Function',seniority:'Seniority',capPct:'CapEx %',country:'Country',businessLine:'Business Line'}[field];
+  if(matches.length===0){
+    preview.innerHTML=`No employees match the selected criteria.`;
+    btn.disabled=true;
+  } else {
+    preview.innerHTML=`<strong>${matches.length}</strong> employee${matches.length!==1?'s':''} will have their <strong>${fieldLabel}</strong> updated.`;
+    btn.disabled=false;
+  }
+}
+function applyMassChange(){
+  const field=document.getElementById('mcField').value;
+  const fromVal=document.getElementById('mcFrom').value;
+  const toVal=document.getElementById('mcTo').value;
+  if(!field||!toVal)return;
+  const matches=getMcMatchingEmps();
+  if(!matches.length)return;
+  const fieldLabel={project:'Project',function:'Function',seniority:'Seniority',capPct:'CapEx %',country:'Country',businessLine:'Business Line'}[field];
+  if(!confirm(`Update ${fieldLabel} for ${matches.length} employee${matches.length!==1?'s':''}?`))return;
+  matches.forEach(emp=>{
+    if(field==='project'){
+      if(fromVal){
+        // Replace specific project allocation
+        (emp.allocations||[]).forEach(a=>{if(a.projId===fromVal)a.projId=toVal});
+      } else {
+        // Replace primary project
+        const primary=(emp.allocations||[]).find(a=>a.primary);
+        if(primary)primary.projId=toVal;
+      }
+    } else if(field==='capPct'){
+      emp.capPct=parseFloat(toVal)||0;
+    } else if(field==='function'){
+      emp.function=toVal;
+    } else if(field==='seniority'){
+      emp.seniority=toVal;
+    } else if(field==='country'){
+      emp.country=toVal;
+      emp.businessUnit=COUNTRY_BU[toVal]||'';
+    } else if(field==='businessLine'){
+      emp.businessLine=toVal;
+    }
+  });
+  saveState();
+  closeMassChange();
+  renderEmployees();
+}
+document.getElementById('btnMassChange').addEventListener('click',openMassChange);
+document.getElementById('mcField').addEventListener('change',populateMcDropdowns);
+document.getElementById('mcFilteredOnly').addEventListener('change',updateMcPreview);
+document.getElementById('btnApplyMassChange').addEventListener('click',applyMassChange);
+
 // Exports
 export { renderEmployees, startEdit, deleteEmp, startInlineEdit, saveInlineEdit, cancelInlineEdit,
   setInlinePrimary, addInlineAlloc, removeInlineAlloc,
   setFormPrimary, onFormAllocProjChange, onFormAllocPctChange, removeFormAlloc,
-  clearForm, renderFormAllocations, getFormAllocations };
+  clearForm, renderFormAllocations, getFormAllocations,
+  openMassChange, closeMassChange, applyMassChange };
 
 // Assign to window for onclick handlers
 window.startEdit = startEdit;
@@ -466,3 +634,6 @@ window.onFormAllocProjChange = onFormAllocProjChange;
 window.onFormAllocPctChange = onFormAllocPctChange;
 window.removeFormAlloc = removeFormAlloc;
 window.renderEmployees = renderEmployees;
+window.openMassChange = openMassChange;
+window.closeMassChange = closeMassChange;
+window.applyMassChange = applyMassChange;
