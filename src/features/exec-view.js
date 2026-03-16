@@ -99,7 +99,18 @@ function renderExecFcSparkline(){
   const isDarkSpark=document.documentElement.classList.contains('dark');
   const sparkTickColor=isDarkSpark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'var(--text-dim)');
   // Neon gradient fill: create gradient from line color to transparent
-  const sparkFillAlpha=window.chartColorScheme==='neon'?0.18:0.25;
+  const isNeonSpark=window.chartColorScheme==='neon';
+  const sparkCanvas=document.getElementById('execFcSparkline');
+  let sparkFillBg;
+  if(isNeonSpark&&sparkCanvas){
+    const sparkCtx=sparkCanvas.getContext('2d');
+    const grad=sparkCtx.createLinearGradient(0,0,0,sparkCanvas.clientHeight||80);
+    grad.addColorStop(0,window.hexToRgba(colors[0],isDarkSpark?0.38:0.28));
+    grad.addColorStop(1,window.hexToRgba(colors[0],0));
+    sparkFillBg=grad;
+  } else {
+    sparkFillBg=window.hexToRgba(colors[0],0.25);
+  }
   // Compute Y/Y % change labels
   const yoyLabels=vals.map((v,i)=>{
     if(i===0)return '';
@@ -108,12 +119,12 @@ function renderExecFcSparkline(){
     const pct=((v-prev)/Math.abs(prev))*100;
     return (pct>=0?'+':'')+pct.toFixed(1)+'%';
   });
-  const sparkDlColor=window.getCrispDatalabelColor('sparkline')||(window.chartColorScheme==='neon'?(isDarkSpark?'#88ccdd':'#006680'):window.hexToRgba(colors[0],0.85));
-  execFcSparkChart=new Chart(document.getElementById('execFcSparkline'),{
+  const sparkDlColor=window.getCrispDatalabelColor('sparkline')||(isNeonSpark?(isDarkSpark?'#88ccdd':'#006680'):window.hexToRgba(colors[0],0.85));
+  execFcSparkChart=new Chart(sparkCanvas,{
     type:'line',
     data:{labels,datasets:[{
       data:vals,fill:true,
-      backgroundColor:window.hexToRgba(colors[0],sparkFillAlpha),
+      backgroundColor:sparkFillBg,
       borderColor:colors[0],borderWidth:2,
       pointRadius:3,pointBackgroundColor:colors[0],
       tension:0.3,
@@ -181,19 +192,30 @@ function renderSparkline(canvasId,data,color){
     const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);return `rgba(${r},${g},${b},${a})`
   }
   const isDarkSp=document.documentElement.classList.contains('dark');
-  // Area fill
+  const isNeon=window.chartColorScheme==='neon';
+  // Area fill — use vertical gradient for neon mode
   ctx.beginPath();ctx.moveTo(pts[0].x,h);
   pts.forEach(p=>ctx.lineTo(p.x,p.y));
   ctx.lineTo(pts[pts.length-1].x,h);ctx.closePath();
-  ctx.fillStyle=hexA(color,isDarkSp?0.12:0.08);ctx.fill();
+  if(isNeon){
+    const grad=ctx.createLinearGradient(0,Math.min(...pts.map(p=>p.y)),0,h);
+    grad.addColorStop(0,hexA(color,isDarkSp?0.38:0.28));
+    grad.addColorStop(1,hexA(color,0));
+    ctx.fillStyle=grad;
+  } else {
+    ctx.fillStyle=hexA(color,isDarkSp?0.12:0.08);
+  }
+  ctx.fill();
   // Line
   ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
   pts.forEach(p=>ctx.lineTo(p.x,p.y));
-  ctx.strokeStyle=hexA(color,isDarkSp?0.7:0.45);ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
+  ctx.strokeStyle=hexA(color,isNeon?0.9:(isDarkSp?0.7:0.45));ctx.lineWidth=isNeon?2:1.5;ctx.lineJoin='round';ctx.stroke();
+  // Neon glow
+  if(isNeon){ctx.save();ctx.shadowColor=color;ctx.shadowBlur=6;ctx.stroke();ctx.restore()}
   // Dots
   pts.forEach(p=>{
     ctx.beginPath();ctx.arc(p.x,p.y,dotR,0,Math.PI*2);
-    ctx.fillStyle=hexA(color,isDarkSp?0.8:0.55);ctx.fill();
+    ctx.fillStyle=hexA(color,isNeon?1:(isDarkSp?0.8:0.55));ctx.fill();
   });
 }
 
