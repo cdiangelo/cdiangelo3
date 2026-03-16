@@ -63,7 +63,9 @@ export function initMilestones(){
     bubble.appendChild(tip);
     requestAnimationFrame(()=>{
       const rect=tip.getBoundingClientRect();
-      if(rect.top<0){
+      const hdr=document.querySelector('header');
+      const minTop=hdr?hdr.getBoundingClientRect().bottom+4:0;
+      if(rect.top<minTop){
         tip.classList.add('below');
       }
       if(rect.left<0){
