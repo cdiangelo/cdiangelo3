@@ -14,6 +14,7 @@ const getDepreciationTotal    = (...a) => window.getDepreciationTotal(...a);
 const getRevenueTotal         = (...a) => window.getRevenueTotal(...a);
 const getRevenueByMonth       = (...a) => window.getRevenueByMonth(...a);
 const getRevenueMrr           = (...a) => window.getRevenueMrr(...a);
+const getClientRevenue        = (...a) => window.getClientRevenue(...a);
 const initScenarioPane        = (...a) => window.initScenarioPane(...a);
 const initDataPanel           = (...a) => window.initDataPanel(...a);
 const initVendorModule        = (...a) => window.initVendorModule(...a);
@@ -620,7 +621,7 @@ renderLandingRevForecastChart=function(){_origRenderLandingRevFc();try{renderExp
 
 // ── INIT ──
 function renderAll(){
-  const fns=[renderExecView,renderDashboard,renderEmployees,renderProjects,renderMarkets,renderBizLines,renderBonusMatrix,renderBenefitsMatrix,renderMonthly,renderForecast,renderWorkspaceList,renderPnlWalk,renderLandingCharts,
+  const fns=[renderExecView,renderDashboard,renderEmployees,renderProjects,renderMarkets,renderBizLines,renderBonusMatrix,renderBenefitsMatrix,renderMonthly,renderForecast,renderWorkspaceList,renderPnlWalk,renderLandingCharts,renderLandingRevenue,
     function(){if(window.budgetScenario&&!window.budgetScenarioDirty){if(window.initBudgetScenario)window.initBudgetScenario();if(window.initForecastScenario)window.initForecastScenario();}},
     renderBudgetScenarioChart,renderFcScenarioChart,renderScenarioPnlSummary];
   fns.forEach(fn=>{try{fn()}catch(e){console.error('Render error in '+fn.name+':',e)}});
@@ -643,7 +644,7 @@ function renderAll(){
           { const _d=JSON.parse(v.state_data);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,_d); }ensureStateFields();
           loadUserColorScheme();
           updateSessionUI();initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-          initSessionModal();renderPnlWalk();renderLandingCharts();connectWebSocket();
+          initSessionModal();renderPnlWalk();renderLandingCharts();renderLandingRevenue();connectWebSocket();
           return;
         }
       }
@@ -656,7 +657,7 @@ function renderAll(){
   window.currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
   updateWsDisplay();updateSessionUI();
   initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-  initSessionModal();renderPnlWalk();renderLandingCharts();
+  initSessionModal();renderPnlWalk();renderLandingCharts();renderLandingRevenue();
 })();
 
 /* ── window assignments for inline onclick / HTML-referenced functions ── */

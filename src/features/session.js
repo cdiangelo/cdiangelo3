@@ -233,6 +233,9 @@ function initSessionModal() {
       document.getElementById('sessionStepCode').classList.add('active');
     } catch (e) { console.error('Session create error:', e); errEl.textContent = 'Connection error: ' + e.message; errEl.style.display = 'block' }
   });
+  ['adminSessionCode', 'adminSessionName', 'adminPassword'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btnCreateSession').click() });
+  });
   document.getElementById('btnBackFromAdmin').addEventListener('click', () => {
     document.getElementById('sessionModal').querySelectorAll('.step').forEach(s => s.classList.remove('active'));
     document.getElementById('sessionStep1').classList.add('active');

@@ -630,6 +630,7 @@ window.initRevenueModule = initRevenueModule;
 window.getRevenueTotal = getRevenueTotal;
 window.getRevenueByMonth = getRevenueByMonth;
 window.getRevenueMrr = getRevenueMrr;
+window.getClientRevenue = getClientRevenue;
 
 /* ── named exports ── */
 export {
