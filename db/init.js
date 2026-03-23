@@ -15,7 +15,7 @@ function pgify(sql) {
 function wrapPool(p) {
   return {
     exec(sql) {
-      return p.query(sql).catch(e => console.error('DB exec error:', e));
+      return p.query(sql);
     },
     prepare(sql) {
       const pgSql = pgify(sql);
