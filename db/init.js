@@ -4,7 +4,7 @@ const fs = require('fs');
 
 let pool = null;
 let db = null;
-let dbReady = null;
+let initPromise = null;
 
 // Convert ? placeholders to $1, $2, ...
 function pgify(sql) {
@@ -47,32 +47,33 @@ function wrapPool(p) {
 }
 
 async function initDb() {
-  if (db) return db;
+  if (initPromise) return initPromise;
 
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-  });
+  initPromise = (async () => {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
 
-  db = wrapPool(pool);
-  console.log('Connected to PostgreSQL');
+    db = wrapPool(pool);
+    console.log('Connected to PostgreSQL');
 
-  // Run schema
-  const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-  await db.exec(schema);
+    // Run schema
+    const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+    await db.exec(schema);
 
-  // Clean stale presence rows on startup
-  await db.exec('DELETE FROM presence');
+    // Clean stale presence rows on startup
+    await db.exec('DELETE FROM presence');
 
-  return db;
+    return db;
+  })();
+
+  return initPromise;
 }
-
-// Start initialization immediately
-dbReady = initDb();
 
 function getDb() {
   if (!db) throw new Error('Database not initialized yet. Await initDb() first.');
   return db;
 }
 
-module.exports = { getDb, initDb, dbReady };
+module.exports = { getDb, initDb };
