@@ -374,3 +374,4 @@ export function initFunMode(){try{
     if(funState>=0) funOff();
   });
 }catch(e){console.warn('Fun mode error:',e)}}
+initFunMode();

@@ -134,3 +134,4 @@ export { renderEmpPivot, initPivotHook };
 
 window.renderEmpPivot = renderEmpPivot;
 window.initPivotHook = initPivotHook;
+initPivotHook();

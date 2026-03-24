@@ -146,3 +146,4 @@ export function initTeamsLinks(){
 
   renderLinks();
 }
+initTeamsLinks();

@@ -104,3 +104,4 @@ export function initStickyNotes(){
   body.addEventListener('input',saveNote);
   body.addEventListener('blur',saveNote);
 }
+initStickyNotes();

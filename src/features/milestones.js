@@ -208,3 +208,4 @@ export function initMilestones(){
   load();
   render();
 }
+initMilestones();
