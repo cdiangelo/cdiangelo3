@@ -905,6 +905,25 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="capitalizationInputs"></div>
 </div>
 
+<div class="card-inset forecast-section" id="fcSection-oaoGrowth">
+<div class="toggle-row">
+<label><strong>OAO Y/Y Growth (%)</strong></label>
+</div>
+<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Year-over-year growth rate applied to current OAO (Vendor Spend + T&amp;E + Contractor OpEx). Independent of HC modeling.</p>
+<div id="oaoGrowthInputs"></div>
+</div>
+
+<div class="card-inset forecast-section" id="fcSection-daLife">
+<div class="toggle-row">
+<label><strong>D&amp;A — Asset Lifecycle (Years)</strong></label>
+</div>
+<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">CapEx placed in service the following year, depreciated straight-line over this lifecycle. Current year D&amp;A from depreciation module; out-years accumulate new vintages.</p>
+<div id="daLifeInputs" style="display:flex;align-items:center;gap:8px;margin-top:6px">
+<input type="number" id="daLifeInput" min="1" step="1" value="5" style="width:60px;padding:4px 6px;font-size:.82rem;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<span style="font-size:.78rem;color:var(--text-dim)">years</span>
+</div>
+</div>
+
 </div>
 <div class="modal-actions"><button class="btn btn-primary" id="closeForecastModalBtn">Done</button></div>
 </div>
@@ -2469,8 +2488,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div class="card" style="margin-bottom:20px">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
 <div>
-<h3 class="section-title" style="margin-bottom:4px">5-Year P&amp;L Forecast</h3>
-<p style="color:var(--text-dim);font-size:.78rem;margin:0">C&amp;B driven by HC assumptions &middot; OAO &amp; D&amp;A modeled independently via Y/Y growth</p>
+<h3 class="section-title" style="margin-bottom:4px">5-Year Projection</h3>
 </div>
 <div style="display:flex;gap:8px;align-items:center">
 <div class="toggle-group" id="ltfViewToggle">
@@ -2479,17 +2497,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 </div>
-<!-- Growth rate input rows -->
-<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-radius:8px">
-<div style="display:flex;flex-direction:column;gap:4px">
-<label style="font-size:.7rem;font-weight:600;color:var(--text-dim)">OAO Y/Y Growth %</label>
-<div style="display:flex;gap:4px" id="ltfOaoInputs"></div>
-</div>
-<div style="display:flex;flex-direction:column;gap:4px">
-<label style="font-size:.7rem;font-weight:600;color:var(--text-dim)">D&amp;A Y/Y Growth %</label>
-<div style="display:flex;gap:4px" id="ltfDaInputs"></div>
-</div>
-</div>
+<div id="ltfFactorPills" class="factor-pills"></div>
 <div class="chart-container" style="height:380px"><canvas id="ltfChart"></canvas></div>
 <div style="margin-top:12px">
 <button class="btn btn-sm" id="ltfTableToggle" style="font-size:.76rem">&#9654; Show Details</button>

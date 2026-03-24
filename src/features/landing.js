@@ -121,6 +121,7 @@ function showLtf(){
   hideAllModules();
   document.getElementById('ltfModule').style.display='';
   if(!ltfModuleInited){initLtfModule();ltfModuleInited=true}
+  if(window.renderForecastFactorPills)window.renderForecastFactorPills();
   renderLtfChart();
 }
 
@@ -653,27 +654,8 @@ const ltfYoyPlugin={
 };
 
 function initLtfModule(){
-  // Build growth rate inputs
-  const years=window.getDisplayYears();
-  const oaoWrap=document.getElementById('ltfOaoInputs');
-  const daWrap=document.getElementById('ltfDaInputs');
-  if(!oaoWrap||!daWrap)return;
-  years.forEach((yr,i)=>{
-    // OAO growth % input
-    const oInp=document.createElement('input');
-    oInp.type='number';oInp.step='1';
-    oInp.style.cssText='width:52px;padding:3px 4px;font-size:.76rem;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)';
-    oInp.value=state.oaoGrowthPct[i]||0;oInp.title=String(yr);oInp.placeholder=String(yr);
-    oInp.addEventListener('change',()=>{state.oaoGrowthPct[i]=parseFloat(oInp.value)||0;saveState();renderLtfChart()});
-    oaoWrap.appendChild(oInp);
-    // D&A growth % input
-    const dInp=document.createElement('input');
-    dInp.type='number';dInp.step='1';
-    dInp.style.cssText='width:52px;padding:3px 4px;font-size:.76rem;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)';
-    dInp.value=state.daGrowthPct[i]||0;dInp.title=String(yr);dInp.placeholder=String(yr);
-    dInp.addEventListener('change',()=>{state.daGrowthPct[i]=parseFloat(dInp.value)||0;saveState();renderLtfChart()});
-    daWrap.appendChild(dInp);
-  });
+  // Render factor pills (shared with C&B forecast)
+  if(window.renderForecastFactorPills)window.renderForecastFactorPills();
   // View toggle
   document.querySelectorAll('#ltfViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
     document.querySelectorAll('#ltfViewToggle .btn').forEach(x=>x.classList.remove('active'));
@@ -713,14 +695,30 @@ function renderLtfChart(){
   const oaoYears=[oaoBase];
   for(let i=0;i<5;i++)oaoYears.push(Math.round(oaoYears[i]*(1+(oaoGrowth[i]||0)/100)));
 
-  // Compute D&A (Y/Y growth)
-  const daBase=getDepreciationTotal();
-  const daGrowth=state.daGrowthPct||[3,3,3,3,3];
-  const daYears=[daBase];
-  for(let i=0;i<5;i++)daYears.push(Math.round(daYears[i]*(1+(daGrowth[i]||0)/100)));
-
   // Contractor CapEx (carry flat)
   const cCapEx=getContractorCapExTotal();
+
+  // Compute D&A from CapEx depreciation schedule
+  // Each year's total CapEx placed in service 1/1 next year, straight-line over asset life
+  const assetLife=state.daAssetLifeYrs||5;
+  const daBase=getDepreciationTotal();
+  const daYears=[daBase];
+  const totalCapexByYear=cbCapex.map(cb=>cb+cCapEx);
+  for(let yr=1;yr<=5;yr++){
+    let yearDa=0;
+    // Each vintage v (year 0=current, 1=year1, etc.) placed in service at start of year v+1
+    for(let v=0;v<yr;v++){
+      const yearsInService=yr-v; // years since placed in service (1-based)
+      if(yearsInService<=assetLife){
+        // Full year of depreciation = CapEx / assetLife
+        yearDa+=Math.round(totalCapexByYear[v]/assetLife);
+      }
+    }
+    // Existing D&A base rolls off linearly over asset life
+    const baseRemaining=Math.max(0,Math.round(daBase*(1-yr/assetLife)));
+    yearDa+=baseRemaining;
+    daYears.push(yearDa);
+  }
 
   const lcc=getChartColors();
   if(ltfChartInst)ltfChartInst.destroy();

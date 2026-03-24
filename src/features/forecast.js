@@ -143,6 +143,30 @@ function renderForecastInputs(){
   document.querySelectorAll('.forecast-override').forEach(inp=>inp.addEventListener('change',()=>{
     setOverrideVal(inp.dataset.key,inp.dataset.group,parseInt(inp.dataset.idx),parseFloat(inp.value)||0);
   }));
+  // OAO growth inputs in modal
+  const oaoContainer=document.getElementById('oaoGrowthInputs');
+  if(oaoContainer){
+    const dYears=getDisplayYears();
+    oaoContainer.innerHTML='<div class="forecast-grid">'+FORECAST_YEARS.map((y,i)=>`
+      <div class="forecast-input-group">
+        <label>${dYears[i]}</label>
+        <input type="number" step="1" value="${state.oaoGrowthPct[i]}" data-idx="${i}" class="oao-growth-param">%
+      </div>
+    `).join('')+'</div>';
+    oaoContainer.querySelectorAll('.oao-growth-param').forEach(inp=>inp.addEventListener('change',()=>{
+      state.oaoGrowthPct[parseInt(inp.dataset.idx)]=parseFloat(inp.value)||0;
+      saveState();renderForecastFactorPills();if(window.renderLtfChart)window.renderLtfChart();
+    }));
+  }
+  // D&A asset life input in modal
+  const daLifeInp=document.getElementById('daLifeInput');
+  if(daLifeInp){
+    daLifeInp.value=state.daAssetLifeYrs||5;
+    daLifeInp.addEventListener('change',()=>{
+      state.daAssetLifeYrs=Math.max(1,parseInt(daLifeInp.value)||5);
+      saveState();renderForecastFactorPills();if(window.renderLtfChart)window.renderLtfChart();
+    });
+  }
   ['Attrition','Hires','Merit','Market','AI','Capitalization'].forEach(label=>{
     const key=label.toLowerCase();
     const tog=document.getElementById('tog'+label);
@@ -674,16 +698,21 @@ function renderForecastFactorPills(){
     {key:'merit',label:'Merit',val:fa.merit[0],suffix:'%'},
     {key:'market',label:'Market',val:fa.market[0],suffix:'%'},
     {key:'ai',label:'AI Prod',val:fa.ai[0],suffix:'x'},
-    {key:'capitalization',label:'Cap Rate',val:fa.capitalization[0],suffix:'%'}
+    {key:'capitalization',label:'Cap Rate',val:fa.capitalization[0],suffix:'%'},
+    {key:'oaoGrowth',label:'OAO Growth',val:state.oaoGrowthPct[0],suffix:'%'},
+    {key:'daLife',label:'Asset Life',val:state.daAssetLifeYrs||5,suffix:'yr'}
   ];
-  const el=document.getElementById('forecastFactorPills');
-  if(!el)return;
-  el.innerHTML=factors.map(f=>{
-    const off=tog[f.key]===false;
-    return `<span class="factor-pill${off?' disabled':''}" data-factor="${f.key}">${f.label}: ${f.val}${f.suffix}</span>`;
-  }).join('')+' <button class="btn btn-sm" id="openForecastAssumptions" style="font-size:.72rem;padding:2px 10px">Customize</button>';
-  el.querySelectorAll('.factor-pill').forEach(p=>p.addEventListener('click',()=>openForecastAssumptionsModal(p.dataset.factor)));
-  document.getElementById('openForecastAssumptions').addEventListener('click',openForecastAssumptionsModal);
+  // Render pills into both the forecast tab and the LTF module
+  ['forecastFactorPills','ltfFactorPills'].forEach(elId=>{
+    const el=document.getElementById(elId);
+    if(!el)return;
+    el.innerHTML=factors.map(f=>{
+      const off=tog[f.key]===false;
+      return `<span class="factor-pill${off?' disabled':''}" data-factor="${f.key}">${f.label}: ${f.val}${f.suffix}</span>`;
+    }).join('')+' <button class="btn btn-sm ltf-customize-btn" style="font-size:.72rem;padding:2px 10px">Customize</button>';
+    el.querySelectorAll('.factor-pill').forEach(p=>p.addEventListener('click',()=>openForecastAssumptionsModal(p.dataset.factor)));
+    el.querySelector('.ltf-customize-btn').addEventListener('click',openForecastAssumptionsModal);
+  });
 }
 
 export function openForecastAssumptionsModal(scrollToKey){
@@ -703,6 +732,7 @@ export function openForecastAssumptionsModal(scrollToKey){
 export function closeForecastAssumptionsModal(){
   document.getElementById('forecastAssumptionsModal').classList.remove('show');
   renderForecastFactorPills();
+  if(window.renderLtfChart)window.renderLtfChart();
 }
 
 // Forecast table toggle
@@ -732,5 +762,6 @@ window.onModeChange = onModeChange;
 window.openForecastAssumptionsModal = openForecastAssumptionsModal;
 window.closeForecastAssumptionsModal = closeForecastAssumptionsModal;
 window.renderForecast = renderForecast;
+window.renderForecastFactorPills = renderForecastFactorPills;
 window.projectForecast = projectForecast;
 window.renderForecastProjection = renderForecastProjection;
