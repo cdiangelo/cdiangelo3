@@ -86,6 +86,9 @@ function renderEmpPivot(){
   const nDataCols=colVals.length+1;
   const datColW=Math.floor(100/(nDataCols+1))+'%';
   const truncCol=v=>v.length>14?v.slice(0,12)+'…':v;
+  const isOps=document.body.classList.contains('ops-mode');
+  // In ops mode, hide breakout $ values (comp/opex/capex) but keep totals and headcount visible
+  const hideBreakoutCells=isOps&&isCurrency;
   let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);font-size:.72rem;width:auto"></th>';
   colVals.forEach(cv=>h+=`<th style="text-align:center;font-size:.72rem;white-space:nowrap;width:${datColW}" title="${cv}">${truncCol(cv)}</th>`);
   h+=`<th style="text-align:center;font-size:.72rem;font-weight:700;width:${datColW}">Total</th></tr></thead><tbody>`;
@@ -93,9 +96,10 @@ function renderEmpPivot(){
     const pivotColors=window.getChartColors();
     const dotColor=pivotColors[ri%pivotColors.length];
     h+=`<tr><td style="font-weight:600;font-size:.74rem;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${dotColor};margin-right:4px"></span>${rv}</td>`;
-    colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;text-align:center;${v===0||!showBreakout?'color:var(--text-dim)':''}">${!showBreakout?'—':v===0?'—':isCurrency?fmt(v):v}</td>`});
-    h+=`<td class="num" style="font-size:.74rem;font-weight:700;text-align:center">${!showBreakout?'—':isCurrency?fmt(rowTotals[rv]):rowTotals[rv]}</td></tr>`;
+    colVals.forEach(cv=>{const v=pivot[rv][cv];h+=`<td class="num" style="font-size:.74rem;text-align:center;${v===0||!showBreakout||hideBreakoutCells?'color:var(--text-dim)':''}">${!showBreakout||hideBreakoutCells?'—':v===0?'—':isCurrency?fmt(v):v}</td>`});
+    h+=`<td class="num" style="font-size:.74rem;font-weight:700;text-align:center">${!showBreakout||hideBreakoutCells?'—':isCurrency?fmt(rowTotals[rv]):rowTotals[rv]}</td></tr>`;
   });
+  // Total row — always visible even in ops mode
   h+=`<tr style="font-weight:700;border-top:2px solid var(--accent)"><td style="position:sticky;left:0;background:var(--panel);z-index:1;font-size:.74rem">Total</td>`;
   colVals.forEach(cv=>h+=`<td class="num" style="font-size:.74rem;text-align:center">${isCurrency?fmt(colTotals[cv]):colTotals[cv]}</td>`);
   h+=`<td class="num" style="font-size:.74rem;font-weight:800;text-align:center">${isCurrency?fmt(grandTotal):grandTotal}</td></tr></tbody>`;
