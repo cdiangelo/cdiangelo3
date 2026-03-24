@@ -216,6 +216,11 @@ Template Mode &mdash; changes saved in this browser only.
 <p>Depreciation schedules, capital expenditure tracking, and consolidated asset reporting.</p>
 <span class="mod-badge coming">In Development</span>
 </div>
+<div class="landing-module" id="modLtf">
+<h3><span class="mod-icon">&#9670;</span> Long-Term Forecast</h3>
+<p>Multi-year P&amp;L projection with C&amp;B, OAO, and D&amp;A forecasting, independent growth modeling, and Y/Y analysis.</p>
+<span class="mod-badge active">Active</span>
+</div>
 <div class="landing-module" id="modRevenue" style="display:none">
 <h3><span class="mod-icon">&#9734;</span> Tech Revenue</h3>
 <p>Client revenue tracking, subscription metrics, contract management, forecasting, and revenue analysis.</p>
@@ -288,33 +293,6 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="chart-wrap"><canvas id="landingRevForecastChart"></canvas></div>
 </div>
 </div>
-</div>
-</div>
-</div>
-
-<!-- Long-Term Forecast Pane -->
-<div id="ltfPane" style="margin-bottom:24px">
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-<h3 style="margin:0;font-size:.95rem">Long-Term P&amp;L Forecast</h3>
-<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-<div style="display:flex;flex-direction:column;gap:2px">
-<label style="font-size:.65rem;font-weight:600;color:var(--text-dim)">OAO Y/Y Growth %</label>
-<div style="display:flex;gap:3px" id="ltfOaoInputs"></div>
-</div>
-<div style="display:flex;flex-direction:column;gap:2px">
-<label style="font-size:.65rem;font-weight:600;color:var(--text-dim)">Asset Life (months)</label>
-<div style="display:flex;gap:3px" id="ltfDaInputs"></div>
-</div>
-</div>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-<div class="landing-chart-card">
-<div class="landing-chart-title">P&amp;L Forecast — C&amp;B / OAO / D&amp;A</div>
-<div class="chart-wrap"><canvas id="ltfPnlChart"></canvas></div>
-</div>
-<div class="landing-chart-card">
-<div class="landing-chart-title">Total Investment Forecast</div>
-<div class="chart-wrap"><canvas id="ltfTotInvChart"></canvas></div>
 </div>
 </div>
 </div>
@@ -2471,6 +2449,55 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div><!-- /rev-scratch -->
 </main>
 </div><!-- /revenueModule -->
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- LONG-TERM FORECAST MODULE -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="ltfModule" style="display:none">
+<header>
+<div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<h1 style="font-size:1.3rem;color:var(--accent)">Long-Term<span style="color:var(--secondary)">Forecast</span></h1>
+<button class="btn btn-sm" id="ltfBackBtn">Back to Overview</button>
+<span class="workspace-indicator" id="ltfWsIndicator" style="margin-left:4px"></span>
+<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="ltfToggleDark"><span class="toggle-track"></span>Dark</label>
+<div class="color-scheme-wrap" title="Chart color palette"><input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="ltfColorSchemeSlider"><span class="color-scheme-label" id="ltfColorSchemeLabel">Muted</span></div>
+</div>
+</div>
+</header>
+<main class="container" style="padding:24px 40px">
+<div class="card" style="margin-bottom:20px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+<div>
+<h3 class="section-title" style="margin-bottom:4px">5-Year P&amp;L Forecast</h3>
+<p style="color:var(--text-dim);font-size:.78rem;margin:0">C&amp;B driven by HC assumptions &middot; OAO &amp; D&amp;A modeled independently via Y/Y growth</p>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<div class="toggle-group" id="ltfViewToggle">
+<button class="btn active" data-ltfview="pnl" style="padding:3px 12px;font-size:.76rem">P&amp;L (OpEx)</button>
+<button class="btn" data-ltfview="total" style="padding:3px 12px;font-size:.76rem">Total Investment</button>
+</div>
+</div>
+</div>
+<!-- Growth rate input rows -->
+<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-radius:8px">
+<div style="display:flex;flex-direction:column;gap:4px">
+<label style="font-size:.7rem;font-weight:600;color:var(--text-dim)">OAO Y/Y Growth %</label>
+<div style="display:flex;gap:4px" id="ltfOaoInputs"></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:4px">
+<label style="font-size:.7rem;font-weight:600;color:var(--text-dim)">D&amp;A Y/Y Growth %</label>
+<div style="display:flex;gap:4px" id="ltfDaInputs"></div>
+</div>
+</div>
+<div class="chart-container" style="height:380px"><canvas id="ltfChart"></canvas></div>
+<div style="margin-top:12px">
+<button class="btn btn-sm" id="ltfTableToggle" style="font-size:.76rem">&#9654; Show Details</button>
+<div id="ltfTableWrap" class="table-wrap" style="display:none;margin-top:8px"><table class="forecast-table" id="ltfTable"></table></div>
+</div>
+</div>
+</main>
+</div><!-- /ltfModule -->
 
 <!-- Scenario Analysis Toggle Button (always visible on left edge) -->
 <button class="scenario-toggle-btn" id="scenarioToggleBtn"><span class="arrow">&#9654;</span>S C E N A R I O</button>

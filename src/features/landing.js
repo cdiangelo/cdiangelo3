@@ -84,6 +84,7 @@ function hideAllModules(){
   document.getElementById('vendorModule').style.display='none';
   document.getElementById('depreciationModule').style.display='none';
   document.getElementById('revenueModule').style.display='none';
+  document.getElementById('ltfModule').style.display='none';
 }
 function showLanding(){
   hideAllModules();
@@ -115,13 +116,23 @@ function showRevenue(){
   initRevenueModule();
 }
 
+let ltfModuleInited=false;
+function showLtf(){
+  hideAllModules();
+  document.getElementById('ltfModule').style.display='';
+  if(!ltfModuleInited){initLtfModule();ltfModuleInited=true}
+  renderLtfChart();
+}
+
 document.getElementById('modCompPlan').addEventListener('click',showApp);
 document.getElementById('modVendor').addEventListener('click',showVendor);
 document.getElementById('modDepreciation').addEventListener('click',showDepreciation);
+document.getElementById('modLtf').addEventListener('click',showLtf);
 document.getElementById('modRevenue').addEventListener('click',showRevenue);
 document.getElementById('vendorBackBtn').addEventListener('click',showLanding);
 document.getElementById('depBackBtn').addEventListener('click',showLanding);
 document.getElementById('revBackBtn').addEventListener('click',showLanding);
+document.getElementById('ltfBackBtn').addEventListener('click',showLanding);
 
 // Revenue pane toggle
 document.getElementById('toggleRevenuePane').addEventListener('click',function(){
@@ -374,7 +385,6 @@ function renderPnlWalk(){
 }
 
 let landingBudgetChartInst=null,landingForecastChartInst=null,landingChartView='pnl';
-let ltfPnlChartInst=null,ltfTotInvChartInst=null;
 
 document.querySelectorAll('#landingChartViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#landingChartViewToggle .btn').forEach(x=>x.classList.remove('active'));
@@ -567,130 +577,216 @@ function renderLandingRevForecastChart(){
   });
 }
 
-// ── LONG-TERM P&L FORECAST PANE ──
-function renderLtfPane(){
+// ── LONG-TERM FORECAST MODULE ──
+let ltfChartInst=null;
+let ltfView='pnl';
+
+// Per-account Y/Y bubbles plugin — shows C&B / OAO / D&A growth in differently shaded pills
+const ltfYoyPlugin={
+  id:'ltfYoy',
+  afterDraw(chart){
+    if(!chart.options.plugins.ltfYoy)return;
+    const opts=chart.options.plugins.ltfYoy;
+    const acctData=opts.accountData; // [{label, data:[], color}]
+    if(!acctData||!acctData.length)return;
+    const ctx=chart.ctx;const area=chart.chartArea;
+    const nLabels=chart.data.labels.length;if(nLabels<2)return;
+    const isDark=document.documentElement.classList.contains('dark');
+    // Find first visible dataset for bar x-positions
+    let visIdx=0;
+    for(let di=0;di<chart.data.datasets.length;di++){if(!chart.getDatasetMeta(di).hidden){visIdx=di;break}}
+    const meta0=chart.getDatasetMeta(visIdx);
+    const yScale=chart.scales.y;
+    const chartW=area.right-area.left;
+    const fontSize=Math.max(7,Math.min(10,chartW/(nLabels*8)));
+    ctx.save();
+    for(let i=0;i<nLabels-1;i++){
+      if(!meta0.data[i]||!meta0.data[i+1])continue;
+      const barL=meta0.data[i],barR=meta0.data[i+1];
+      const halfW=barL.width?barL.width/2:12;
+      const x1=barL.x+halfW+2,x2=barR.x-halfW-2;
+      const midX=(x1+x2)/2;
+      // Compute total for arrow line positioning
+      let sumPrev=0,sumCur=0;
+      acctData.forEach(a=>{sumPrev+=a.data[i]||0;sumCur+=a.data[i+1]||0});
+      const y1=yScale.getPixelForValue(sumPrev),y2=yScale.getPixelForValue(sumCur);
+      // Draw dashed arrow line
+      const arrowColor=isDark?'rgba(255,255,255,.35)':'rgba(0,0,0,.25)';
+      ctx.beginPath();ctx.strokeStyle=arrowColor;ctx.lineWidth=1;ctx.setLineDash([3,2]);
+      ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);
+      const angle=Math.atan2(y2-y1,x2-x1);
+      ctx.beginPath();ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-5*Math.cos(angle-0.4),y2-5*Math.sin(angle-0.4));
+      ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-5*Math.cos(angle+0.4),y2-5*Math.sin(angle+0.4));
+      ctx.strokeStyle=arrowColor;ctx.lineWidth=1.2;ctx.stroke();
+      // Draw per-account bubbles stacked vertically
+      const midY=(y1+y2)/2;
+      const pillH=fontSize+4;
+      const totalH=acctData.length*pillH+((acctData.length-1)*2);
+      let pillY=midY-totalH/2;
+      ctx.font=`600 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
+      acctData.forEach(acct=>{
+        const prev=acct.data[i]||0,cur=acct.data[i+1]||0;
+        if(!prev){pillY+=pillH+2;return}
+        const pct=((cur-prev)/Math.abs(prev))*100;
+        const pctStr=acct.label+' '+(pct>=0?'+':'')+pct.toFixed(1)+'%';
+        const tw=ctx.measureText(pctStr).width;
+        const pad=3;
+        // Use account color with transparency for background
+        const baseColor=acct.color||'#888';
+        const bgAlpha=isDark?0.45:0.15;
+        const textAlpha=isDark?0.9:0.85;
+        ctx.fillStyle=hexToRgba(baseColor,bgAlpha);
+        const rx=midX-tw/2-pad,ry=pillY-1,rw=tw+pad*2,rh=pillH;
+        ctx.beginPath();
+        ctx.roundRect?ctx.roundRect(rx,ry,rw,rh,3):ctx.rect(rx,ry,rw,rh);
+        ctx.fill();
+        ctx.fillStyle=hexToRgba(baseColor,textAlpha);
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(pctStr,midX,pillY+pillH/2-1);
+        pillY+=pillH+2;
+      });
+    }
+    ctx.restore();
+  }
+};
+
+function initLtfModule(){
+  // Build growth rate inputs
+  const years=window.getDisplayYears();
+  const oaoWrap=document.getElementById('ltfOaoInputs');
+  const daWrap=document.getElementById('ltfDaInputs');
+  if(!oaoWrap||!daWrap)return;
+  years.forEach((yr,i)=>{
+    // OAO growth % input
+    const oInp=document.createElement('input');
+    oInp.type='number';oInp.step='1';
+    oInp.style.cssText='width:52px;padding:3px 4px;font-size:.76rem;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)';
+    oInp.value=state.oaoGrowthPct[i]||0;oInp.title=String(yr);oInp.placeholder=String(yr);
+    oInp.addEventListener('change',()=>{state.oaoGrowthPct[i]=parseFloat(oInp.value)||0;saveState();renderLtfChart()});
+    oaoWrap.appendChild(oInp);
+    // D&A growth % input
+    const dInp=document.createElement('input');
+    dInp.type='number';dInp.step='1';
+    dInp.style.cssText='width:52px;padding:3px 4px;font-size:.76rem;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)';
+    dInp.value=state.daGrowthPct[i]||0;dInp.title=String(yr);dInp.placeholder=String(yr);
+    dInp.addEventListener('change',()=>{state.daGrowthPct[i]=parseFloat(dInp.value)||0;saveState();renderLtfChart()});
+    daWrap.appendChild(dInp);
+  });
+  // View toggle
+  document.querySelectorAll('#ltfViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#ltfViewToggle .btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');ltfView=b.dataset.ltfview;renderLtfChart();
+  }));
+  // Table toggle
+  const tblToggle=document.getElementById('ltfTableToggle');
+  const tblWrap=document.getElementById('ltfTableWrap');
+  if(tblToggle)tblToggle.addEventListener('click',()=>{
+    const show=tblWrap.style.display==='none';
+    tblWrap.style.display=show?'':'none';
+    tblToggle.innerHTML=(show?'&#9660;':'&#9654;')+' '+(show?'Hide':'Show')+' Details';
+  });
+}
+
+function renderLtfChart(){
   if(typeof Chart==='undefined')return;
+  const canvas=document.getElementById('ltfChart');
+  if(!canvas)return;
   const emps=getPnlFilteredEmps();
   const yearLabels=window.getDisplayFcLabels();
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+'$'+(a>=1e6?(a/1e6).toFixed(1)+'M':(a/1000).toFixed(0)+'K')};
+  const isPnl=ltfView==='pnl';
 
-  // ── Build growth rate inputs ──
-  const oaoWrap=document.getElementById('ltfOaoInputs');
-  const daWrap=document.getElementById('ltfDaInputs');
-  if(oaoWrap&&!oaoWrap.children.length){
-    const years=window.getDisplayYears();
-    years.forEach((yr,i)=>{
-      // OAO growth % inputs
-      const oInp=document.createElement('input');
-      oInp.type='number';oInp.step='1';oInp.style.cssText='width:48px;padding:2px 4px;font-size:.72rem;text-align:center;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)';
-      oInp.value=state.oaoGrowthPct[i]||0;
-      oInp.title=String(yr);oInp.placeholder=String(yr);
-      oInp.addEventListener('change',()=>{state.oaoGrowthPct[i]=parseFloat(oInp.value)||0;saveState();renderLtfPane()});
-      oaoWrap.appendChild(oInp);
-      // Asset life (months) inputs
-      const dInp=document.createElement('input');
-      dInp.type='number';dInp.step='12';dInp.min='12';dInp.style.cssText='width:48px;padding:2px 4px;font-size:.72rem;text-align:center;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)';
-      dInp.value=state.daAssetLifeMonths[i]||60;
-      dInp.title=String(yr);dInp.placeholder=String(yr);
-      dInp.addEventListener('change',()=>{state.daAssetLifeMonths[i]=Math.max(12,parseInt(dInp.value)||60);saveState();renderLtfPane()});
-      daWrap.appendChild(dInp);
-    });
-  }
+  // Compute C&B via projectForecast
+  const cbRows=projectForecast(emps);
+  const cbOpex=cbRows.map(r=>r.opex);
+  const cbCapex=cbRows.map(r=>r.capex);
+  const cbGross=cbRows.map(r=>r.total);
 
-  // ── Compute C&B forecast (use projectForecast) ──
-  const cbRows=projectForecast(emps);  // [{year, hc, total, capex, opex}]
-  const cbOpex=cbRows.map(r=>r.opex);    // C&B net of CapEx
-  const cbCapex=cbRows.map(r=>r.capex);  // C&B CapEx portion
-  const cbGross=cbRows.map(r=>r.total);  // C&B gross (opex+capex)
-
-  // ── Compute OAO forecast (Y/Y growth from current actuals) ──
+  // Compute OAO (Y/Y growth)
   const oaoBase=getVendorOaoTotal();
   const oaoGrowth=state.oaoGrowthPct||[5,5,5,5,5];
   const oaoYears=[oaoBase];
-  for(let i=0;i<5;i++){oaoYears.push(Math.round(oaoYears[i]*(1+(oaoGrowth[i]||0)/100)))}
+  for(let i=0;i<5;i++)oaoYears.push(Math.round(oaoYears[i]*(1+(oaoGrowth[i]||0)/100)));
 
-  // ── Contractor CapEx forecast (carry flat) ──
-  const cCapEx=getContractorCapExTotal();
-  const cCapexYears=yearLabels.map(()=>cCapEx);
-
-  // ── Compute D&A forecast from CapEx depreciation schedule ──
-  // Each year's total CapEx (C&B CapEx + Contractor CapEx) placed in service 1/1 next year
-  // Depreciates straight-line over asset life months
-  const assetLife=state.daAssetLifeMonths||[60,60,60,60,60];
+  // Compute D&A (Y/Y growth)
   const daBase=getDepreciationTotal();
-  // Current year D&A = actual from depreciation module
+  const daGrowth=state.daGrowthPct||[3,3,3,3,3];
   const daYears=[daBase];
-  // For out-years, accumulate depreciation from each vintage of CapEx
-  // Vintages: year 0 (current) CapEx starts depreciating year 1, etc.
-  const totalCapexByYear=cbCapex.map((cb,i)=>cb+cCapexYears[i]); // total CapEx per year
-  for(let yr=1;yr<=5;yr++){
-    let yearDa=0;
-    // Existing D&A base decays: assume current D&A represents assets with remaining life
-    // Simplification: carry base D&A forward, it naturally rolls off over time
-    // More accurate: each prior vintage contributes 12 months of depreciation if still in life
-    for(let v=0;v<yr;v++){
-      // Vintage v placed in service 1/1 of year v+1, depreciating over assetLife[v] months
-      const life=assetLife[v]||60;
-      const yearsInService=yr-(v+1); // 0-based: year after placement
-      const monthsElapsed=yearsInService*12+12; // through end of yr
-      if(monthsElapsed<=life){
-        // Full year of depreciation
-        yearDa+=Math.round(totalCapexByYear[v]/(life/12));
-      } else if(monthsElapsed-12<life){
-        // Partial year — only months still in service
-        const remainingMonths=life-(monthsElapsed-12);
-        yearDa+=Math.round(totalCapexByYear[v]*remainingMonths/(life));
-      }
-      // else: fully depreciated, contributes 0
-    }
-    // Add base D&A (existing assets still depreciating — simplification: carry flat, roll off after 5yr)
-    const baseRemaining=Math.max(0,daBase-Math.round(daBase*yr/5));
-    yearDa+=baseRemaining;
-    daYears.push(yearDa);
+  for(let i=0;i<5;i++)daYears.push(Math.round(daYears[i]*(1+(daGrowth[i]||0)/100)));
+
+  // Contractor CapEx (carry flat)
+  const cCapEx=getContractorCapExTotal();
+
+  const lcc=getChartColors();
+  if(ltfChartInst)ltfChartInst.destroy();
+
+  // Account data for per-account Y/Y bubbles
+  const acctColors={cb:lcc[0],oao:lcc[1],da:lcc[2]};
+
+  let datasets=[];
+  let acctData=[];
+  if(isPnl){
+    // P&L: stacked C&B/OAO/D&A positive, CapEx negative
+    datasets=[
+      {label:'C&B',data:cbOpex.slice(),backgroundColor:lcc[0],stack:'pos'},
+      {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'pos'},
+      {label:'D&A',data:daYears.slice(),backgroundColor:lcc[2],stack:'pos'},
+      {label:'CapEx',data:cbCapex.map((v,i)=>-(v+(i===0?cCapEx:cCapEx))),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
+    ];
+    acctData=[
+      {label:'C&B',data:cbOpex,color:acctColors.cb},
+      {label:'OAO',data:oaoYears,color:acctColors.oao},
+      {label:'D&A',data:daYears,color:acctColors.da}
+    ];
+  } else {
+    // Total Investment: C&B gross + OAO (no D&A, no CapEx offset)
+    datasets=[
+      {label:'C&B',data:cbGross.slice(),backgroundColor:lcc[0],stack:'s0'},
+      {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'s0'}
+    ];
+    acctData=[
+      {label:'C&B',data:cbGross,color:acctColors.cb},
+      {label:'OAO',data:oaoYears,color:acctColors.oao}
+    ];
   }
 
-  // ── P&L Chart: stacked C&B / OAO / D&A with CapEx negative ──
-  const lcc=getChartColors();
-  if(ltfPnlChartInst)ltfPnlChartInst.destroy();
-  const pnlDS=[
-    {label:'C&B',data:cbOpex.map(v=>v),backgroundColor:lcc[0],stack:'pos'},
-    {label:'OAO',data:oaoYears,backgroundColor:lcc[1],stack:'pos'},
-    {label:'D&A',data:daYears,backgroundColor:lcc[2],stack:'pos'},
-    {label:'CapEx (C&B)',data:cbCapex.map(v=>-v),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'},
-    {label:'CapEx (Contractor)',data:cCapexYears.map(v=>-v),backgroundColor:hexToRgba(lcc[1],0.35),stack:'neg'}
-  ];
-  window.stackedBarDatalabels(pnlDS,tickColor,8,'landing');
-  pnlDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
-  ltfPnlChartInst=new Chart(document.getElementById('ltfPnlChart'),{
-    type:'bar',data:{labels:yearLabels,datasets:pnlDS},
-    plugins:[window.yoyArrowsPlugin],
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},
-      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{},yoyArrows:{}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}
+  window.stackedBarDatalabels(datasets,tickColor,8,'ltf');
+  if(isPnl)datasets.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
+
+  ltfChartInst=new Chart(canvas,{
+    type:'bar',data:{labels:yearLabels,datasets},
+    plugins:[ltfYoyPlugin],
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},
+      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{},ltfYoy:{accountData:acctData}},
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}
     }
   });
 
-  // ── Total Investment Chart: C&B gross + OAO (no D&A, no CapEx offset) ──
-  if(ltfTotInvChartInst)ltfTotInvChartInst.destroy();
-  const totInvData=yearLabels.map((_,i)=>cbGross[i]+oaoYears[i]);
-  const totInvDS=[
-    {label:'C&B',data:cbGross,backgroundColor:lcc[0],stack:'s0'},
-    {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'s0'}
-  ];
-  window.stackedBarDatalabels(totInvDS,tickColor,8,'landing');
-  ltfTotInvChartInst=new Chart(document.getElementById('ltfTotInvChart'),{
-    type:'bar',data:{labels:yearLabels,datasets:totInvDS},
-    plugins:[window.yoyArrowsPlugin],
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},
-      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11}}},datalabels:{},yoyArrows:{}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}
-    }
-  });
+  // Detail table
+  const tbl=document.getElementById('ltfTable');
+  if(tbl){
+    const hdr=isPnl?'<thead><tr><th>Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>D&A</th><th>CapEx</th><th>OpEx</th></tr></thead>':'<thead><tr><th>Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>Tot Inv</th></tr></thead>';
+    let body='<tbody>';
+    yearLabels.forEach((yr,i)=>{
+      const hc=cbRows[i]?cbRows[i].hc:0;
+      if(isPnl){
+        const opex=cbOpex[i]+oaoYears[i]+daYears[i];
+        body+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td><td>${fmt(cbOpex[i])}</td><td>${fmt(oaoYears[i])}</td><td>${fmt(daYears[i])}</td><td>${fmt(cbCapex[i]+cCapEx)}</td><td style="font-weight:600;color:var(--success)">${fmt(opex)}</td></tr>`;
+      } else {
+        const totInv=cbGross[i]+oaoYears[i];
+        body+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td><td>${fmt(cbGross[i])}</td><td>${fmt(oaoYears[i])}</td><td style="font-weight:600;color:var(--accent)">${fmt(totInv)}</td></tr>`;
+      }
+    });
+    body+='</tbody>';
+    tbl.innerHTML=hdr+body;
+  }
 }
-window.renderLtfPane=renderLtfPane;
+window.renderLtfChart=renderLtfChart;
 
 // ── CHART EXPAND PANE ──
 let expandBudgetInst=null,expandForecastInst=null,expandRevenueInst=null,expandRevFcInst=null;
@@ -749,7 +845,7 @@ renderLandingRevForecastChart=function(){_origRenderLandingRevFc();try{renderExp
 
 // ── INIT ──
 function renderAll(){
-  const fns=[renderExecView,renderDashboard,renderEmployees,renderProjects,renderMarkets,renderBizLines,renderBonusMatrix,renderBenefitsMatrix,renderMonthly,renderForecast,renderWorkspaceList,renderPnlWalk,renderLandingCharts,renderLandingRevenue,renderLtfPane,
+  const fns=[renderExecView,renderDashboard,renderEmployees,renderProjects,renderMarkets,renderBizLines,renderBonusMatrix,renderBenefitsMatrix,renderMonthly,renderForecast,renderWorkspaceList,renderPnlWalk,renderLandingCharts,renderLandingRevenue,
     function(){if(window.budgetScenario&&!window.budgetScenarioDirty){if(window.initBudgetScenario)window.initBudgetScenario();if(window.initForecastScenario)window.initForecastScenario();}},
     renderBudgetScenarioChart,renderFcScenarioChart,renderScenarioPnlSummary];
   fns.forEach(fn=>{try{fn()}catch(e){console.error('Render error in '+fn.name+':',e)}});
@@ -768,7 +864,6 @@ function runInitSequence(){
   safeRun('renderPnlWalk',()=>renderPnlWalk());
   safeRun('renderLandingCharts',()=>renderLandingCharts());
   safeRun('renderLandingRevenue',()=>renderLandingRevenue());
-  safeRun('renderLtfPane',()=>renderLtfPane());
 }
 
 // Check for session auto-reconnect
