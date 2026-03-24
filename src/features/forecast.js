@@ -716,6 +716,8 @@ function renderForecastFactorPills(){
 }
 
 export function openForecastAssumptionsModal(scrollToKey){
+  // Ensure modal inputs are populated (may not have run if opened from LTF module)
+  renderForecastInputs();
   document.getElementById('forecastAssumptionsModal').classList.add('show');
   if(scrollToKey){
     setTimeout(()=>{

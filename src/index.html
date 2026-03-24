@@ -839,97 +839,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 
-<!-- Forecast Assumptions Modal -->
-<div class="modal-overlay" id="forecastAssumptionsModal">
-<div class="modal">
-<button class="close-btn" id="closeForecastModal" style="position:absolute;right:12px;top:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-dim)">&times;</button>
-<h3 style="color:var(--accent);margin-bottom:12px">Forecast Assumptions</h3>
-<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Configure assumptions to project compensation costs over the next 5 years. Toggle each factor on/off.</p>
-<div class="modal-body">
-
-<div class="card-inset forecast-section" id="fcSection-attrition">
-<div class="toggle-row">
-<label class="toggle-switch"><input type="checkbox" id="togAttrition" checked><span class="toggle-slider"></span></label>
-<label><strong>Annual Attrition</strong></label>
-<span class="expand-select" style="margin-left:8px"><label>Mode:</label><select id="attritionMode" onchange="onModeChange('attrition',this.value)"><option value="pct">% of HC</option><option value="num"># Headcount</option></select></span>
-<span class="expand-select"><label>Expand:</label><select id="expandAttrition" onchange="onExpandChange('attrition',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
-</div>
-<div id="attritionInputs"></div>
-</div>
-
-<div class="card-inset forecast-section" id="fcSection-hires">
-<div class="toggle-row">
-<label class="toggle-switch"><input type="checkbox" id="togHires" checked><span class="toggle-slider"></span></label>
-<label><strong>Annual New Hires</strong></label>
-<span class="expand-select" style="margin-left:8px"><label>Mode:</label><select id="hiresMode" onchange="onModeChange('hires',this.value)"><option value="num"># Headcount</option><option value="pct">% of HC</option></select></span>
-<span class="expand-select"><label>Expand:</label><select id="expandHires" onchange="onExpandChange('hires',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
-</div>
-<div id="hiresInputs"></div>
-</div>
-
-<div class="card-inset forecast-section" id="fcSection-merit">
-<div class="toggle-row">
-<label class="toggle-switch"><input type="checkbox" id="togMerit" checked><span class="toggle-slider"></span></label>
-<label><strong>Annual Merit Increase (%)</strong></label>
-<span class="expand-select"><label>Expand:</label><select id="expandMerit" onchange="onExpandChange('merit',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
-</div>
-<div id="meritInputs"></div>
-</div>
-
-<div class="card-inset forecast-section" id="fcSection-market">
-<div class="toggle-row">
-<label class="toggle-switch"><input type="checkbox" id="togMarket" checked><span class="toggle-slider"></span></label>
-<label><strong>Market Rate Growth (%)</strong></label>
-<span class="expand-select"><label>Expand:</label><select id="expandMarket" onchange="onExpandChange('market',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
-</div>
-<div id="marketInputs"></div>
-</div>
-
-<div class="card-inset forecast-section" id="fcSection-ai">
-<div class="toggle-row">
-<label class="toggle-switch"><input type="checkbox" id="togAI" checked><span class="toggle-slider"></span></label>
-<label><strong>AI Productivity Gearing Factor</strong></label>
-<span class="expand-select"><label>Expand:</label><select id="expandAI" onchange="onExpandChange('ai',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
-</div>
-<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Tiered multiplier: reduces required headcount growth by this factor (1.0 = no effect, 0.8 = 20% fewer hires needed)</p>
-<div id="aiInputs"></div>
-</div>
-
-<div class="card-inset forecast-section" id="fcSection-capitalization">
-<div class="toggle-row">
-<label class="toggle-switch"><input type="checkbox" id="togCapitalization" checked><span class="toggle-slider"></span></label>
-<label><strong>Capitalization Rate (%)</strong></label>
-<span class="expand-select"><label>Expand:</label><select id="expandCapitalization" onchange="onExpandChange('capitalization',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
-</div>
-<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Projected capitalization rate applied to total comp to derive CapEx offsets in the forecast.</p>
-<div id="capitalizationInputs"></div>
-</div>
-
-<div class="card-inset forecast-section" id="fcSection-oaoGrowth">
-<div class="toggle-row">
-<label><strong>OAO Y/Y Growth (%)</strong></label>
-</div>
-<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Year-over-year growth rate applied to current OAO (Vendor Spend + T&amp;E + Contractor OpEx). Independent of HC modeling.</p>
-<div id="oaoGrowthInputs"></div>
-</div>
-
-<div class="card-inset forecast-section" id="fcSection-daLife">
-<div class="toggle-row">
-<label><strong>D&amp;A — Asset Lifecycle (Years)</strong></label>
-</div>
-<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">CapEx placed in service the following year, depreciated straight-line over this lifecycle. Current year D&amp;A from depreciation module; out-years accumulate new vintages.</p>
-<div id="daLifeInputs" style="display:flex;align-items:center;gap:8px;margin-top:6px">
-<input type="number" id="daLifeInput" min="1" step="1" value="5" style="width:60px;padding:4px 6px;font-size:.82rem;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
-<span style="font-size:.78rem;color:var(--text-dim)">years</span>
-</div>
-</div>
-
-</div>
-<div class="modal-actions"><button class="btn btn-primary" id="closeForecastModalBtn">Done</button></div>
-</div>
-</div>
-</div>
-
 <!-- Export/Import/Workspaces (hidden — accessible from data panel) -->
 <div id="tab-export" class="tab-content" style="display:none">
 <div class="export-grid">
@@ -1023,6 +932,97 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </main>
 </div><!-- /appShell -->
+
+<!-- Forecast Assumptions Modal (top-level so accessible from any module) -->
+<div class="modal-overlay" id="forecastAssumptionsModal">
+<div class="modal">
+<button class="close-btn" id="closeForecastModal" style="position:absolute;right:12px;top:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-dim)">&times;</button>
+<h3 style="color:var(--accent);margin-bottom:12px">Forecast Assumptions</h3>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Configure assumptions to project compensation costs over the next 5 years. Toggle each factor on/off.</p>
+<div class="modal-body">
+
+<div class="card-inset forecast-section" id="fcSection-attrition">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togAttrition" checked><span class="toggle-slider"></span></label>
+<label><strong>Annual Attrition</strong></label>
+<span class="expand-select" style="margin-left:8px"><label>Mode:</label><select id="attritionMode" onchange="onModeChange('attrition',this.value)"><option value="pct">% of HC</option><option value="num"># Headcount</option></select></span>
+<span class="expand-select"><label>Expand:</label><select id="expandAttrition" onchange="onExpandChange('attrition',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
+</div>
+<div id="attritionInputs"></div>
+</div>
+
+<div class="card-inset forecast-section" id="fcSection-hires">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togHires" checked><span class="toggle-slider"></span></label>
+<label><strong>Annual New Hires</strong></label>
+<span class="expand-select" style="margin-left:8px"><label>Mode:</label><select id="hiresMode" onchange="onModeChange('hires',this.value)"><option value="num"># Headcount</option><option value="pct">% of HC</option></select></span>
+<span class="expand-select"><label>Expand:</label><select id="expandHires" onchange="onExpandChange('hires',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
+</div>
+<div id="hiresInputs"></div>
+</div>
+
+<div class="card-inset forecast-section" id="fcSection-merit">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togMerit" checked><span class="toggle-slider"></span></label>
+<label><strong>Annual Merit Increase (%)</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandMerit" onchange="onExpandChange('merit',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
+</div>
+<div id="meritInputs"></div>
+</div>
+
+<div class="card-inset forecast-section" id="fcSection-market">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togMarket" checked><span class="toggle-slider"></span></label>
+<label><strong>Market Rate Growth (%)</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandMarket" onchange="onExpandChange('market',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
+</div>
+<div id="marketInputs"></div>
+</div>
+
+<div class="card-inset forecast-section" id="fcSection-ai">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togAI" checked><span class="toggle-slider"></span></label>
+<label><strong>AI Productivity Gearing Factor</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandAI" onchange="onExpandChange('ai',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
+</div>
+<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Tiered multiplier: reduces required headcount growth by this factor (1.0 = no effect, 0.8 = 20% fewer hires needed)</p>
+<div id="aiInputs"></div>
+</div>
+
+<div class="card-inset forecast-section" id="fcSection-capitalization">
+<div class="toggle-row">
+<label class="toggle-switch"><input type="checkbox" id="togCapitalization" checked><span class="toggle-slider"></span></label>
+<label><strong>Capitalization Rate (%)</strong></label>
+<span class="expand-select"><label>Expand:</label><select id="expandCapitalization" onchange="onExpandChange('capitalization',this.value)"><option value="total">Total</option><option value="project">By Project</option><option value="function">By Function</option><option value="country">By Country</option></select></span>
+</div>
+<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Projected capitalization rate applied to total comp to derive CapEx offsets in the forecast.</p>
+<div id="capitalizationInputs"></div>
+</div>
+
+<div class="card-inset forecast-section" id="fcSection-oaoGrowth">
+<div class="toggle-row">
+<label><strong>OAO Y/Y Growth (%)</strong></label>
+</div>
+<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">Year-over-year growth rate applied to current OAO (Vendor Spend + T&amp;E + Contractor OpEx). Independent of HC modeling.</p>
+<div id="oaoGrowthInputs"></div>
+</div>
+
+<div class="card-inset forecast-section" id="fcSection-daLife">
+<div class="toggle-row">
+<label><strong>D&amp;A — Asset Lifecycle (Years)</strong></label>
+</div>
+<p style="color:var(--text-dim);font-size:.72rem;margin-bottom:6px">CapEx placed in service the following year, depreciated straight-line over this lifecycle. Current year D&amp;A from depreciation module; out-years accumulate new vintages.</p>
+<div id="daLifeInputs" style="display:flex;align-items:center;gap:8px;margin-top:6px">
+<input type="number" id="daLifeInput" min="1" step="1" value="5" style="width:60px;padding:4px 6px;font-size:.82rem;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">
+<span style="font-size:.78rem;color:var(--text-dim)">years</span>
+</div>
+</div>
+
+</div>
+<div class="modal-actions"><button class="btn btn-primary" id="closeForecastModalBtn">Done</button></div>
+</div>
+</div>
+</div>
 
 <!-- VENDOR MODULE -->
 <div id="vendorModule" style="display:none">
