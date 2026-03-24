@@ -292,6 +292,33 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 
+<!-- Long-Term Forecast Pane -->
+<div id="ltfPane" style="margin-bottom:24px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+<h3 style="margin:0;font-size:.95rem">Long-Term P&amp;L Forecast</h3>
+<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;gap:2px">
+<label style="font-size:.65rem;font-weight:600;color:var(--text-dim)">OAO Y/Y Growth %</label>
+<div style="display:flex;gap:3px" id="ltfOaoInputs"></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:2px">
+<label style="font-size:.65rem;font-weight:600;color:var(--text-dim)">Asset Life (months)</label>
+<div style="display:flex;gap:3px" id="ltfDaInputs"></div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div class="landing-chart-card">
+<div class="landing-chart-title">P&amp;L Forecast — C&amp;B / OAO / D&amp;A</div>
+<div class="chart-wrap"><canvas id="ltfPnlChart"></canvas></div>
+</div>
+<div class="landing-chart-card">
+<div class="landing-chart-title">Total Investment Forecast</div>
+<div class="chart-wrap"><canvas id="ltfTotInvChart"></canvas></div>
+</div>
+</div>
+</div>
+
 <div id="chartExpandPane">
 <button class="expand-close-btn" id="chartExpandClose">&#x2715; Close</button>
 <div class="expand-chart-card" id="expandBudget">

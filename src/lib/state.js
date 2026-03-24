@@ -140,6 +140,9 @@ export function ensureStateFields(){
   if(state.showRevenuePane===undefined)state.showRevenuePane=true;
   if(!state.revenueForecast)state.revenueForecast=[];
   if(state.landingPnlMode===undefined)state.landingPnlMode='cost';
+  // Long-term forecast: OAO Y/Y growth and D&A asset life assumptions
+  if(!state.oaoGrowthPct)state.oaoGrowthPct=[5,5,5,5,5];
+  if(!state.daAssetLifeMonths)state.daAssetLifeMonths=[60,60,60,60,60];
   if(!state.vendorRows||!state.vendorRows.length){
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     const defProjId=genProj?genProj.id:'';
