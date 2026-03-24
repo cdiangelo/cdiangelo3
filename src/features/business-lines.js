@@ -56,5 +56,6 @@ function refreshAllDropdowns(){
   if(vendorModuleInited&&typeof renderVendorGridPublic==='function'){renderVendorGridPublic()}
 }
 window.refreshAllDropdowns = refreshAllDropdowns;
+window.initBizLines = initBizLines;
 
 export { renderBizLines, initBizLines };

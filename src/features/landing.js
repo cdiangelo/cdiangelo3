@@ -22,6 +22,7 @@ const initDepModule           = (...a) => window.initDepModule(...a);
 const initRevenueModule       = (...a) => window.initRevenueModule(...a);
 const initAssetTab            = (...a) => window.initAssetTab(...a);
 const initDropdowns           = (...a) => window.initDropdowns(...a);
+const initBizLines            = (...a) => window.initBizLines(...a);
 const initSessionModal        = (...a) => window.initSessionModal(...a);
 const connectWebSocket        = (...a) => window.connectWebSocket(...a);
 const loadUserColorScheme     = (...a) => window.loadUserColorScheme(...a);
@@ -633,6 +634,7 @@ function safeRun(label,fn){try{fn()}catch(e){console.error('Init error in '+labe
 function runInitSequence(){
   safeRun('updateSessionUI',()=>updateSessionUI());
   safeRun('initDropdowns',()=>initDropdowns());
+  safeRun('initBizLines',()=>initBizLines());
   safeRun('renderAll',()=>renderAll());
   safeRun('initScenarioPane',()=>{initScenarioPane();initDataPanel();window._scenInited=true});
   safeRun('initSessionModal',()=>initSessionModal());
