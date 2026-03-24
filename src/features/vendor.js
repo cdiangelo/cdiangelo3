@@ -768,8 +768,9 @@ function initVendorModule(){
     });
     const hasFilter=contractorSelectedMonths.size>0&&contractorSelectedMonths.size<12;
     const fyTotal=hasFilter?moTotals.filter((_,i)=>contractorSelectedMonths.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
-    const colSpan=12;// name,vendorName,rate,startEndMo,cap%,notes,BU,BL,market,proj,acctDesc,acctCode (drag+tag are separate <td>s)
-    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL${hasFilter?' (filtered)':''}${contractorView!=='expense'?' — '+contractorView.toUpperCase():''}</td>`;
+    // Use individual <td>s instead of colspan to prevent column misalignment with data rows
+    const totalLabel=`TOTAL${hasFilter?' (filtered)':''}${contractorView!=='expense'?' — '+contractorView.toUpperCase():''}`;
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${totalLabel}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>`;
     moTotals.forEach((t,mi)=>{
       const dim=hasFilter&&!contractorSelectedMonths.has(mi)?'opacity:.35;':'';
       const sv=contractorAmtScale===1?t:Math.round((t/contractorAmtScale)*100)/100;
@@ -808,7 +809,7 @@ function initVendorModule(){
         const f=el.dataset.f;const row=state.contractorRows[i];if(!row)return;
         if(MO.includes(f)){
           if(contractorView!=='expense')return;// readonly in capex/opex view
-          row[f]=Math.round(unscaleVal(parseFloat(el.value)||0));
+          row[f]=Math.round((parseFloat(el.value)||0)*contractorAmtScale);
           // Recalc footer
           renderContractorFooter();
         } else if(f==='capPct'){
