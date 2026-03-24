@@ -54,163 +54,12 @@ function renderStats(emps){
     <div class="stat-card"><div class="label">CapEx Offset</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>
     <div class="stat-card"><div class="label">C&B OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmt(totalOpEx)}</div></div>`;
 }
-const CHART_COLORS=['#8b5e5e','#6b8da3','#a38b5e','#7a6b8d','#5e8b6b','#8d6b7a','#5e7a8b','#8b7a5e','#6b8b7a','#7a8b5e'];
-const CHART_COLORS_MUTED_DARK=['#c4a0a0','#a0b8c8','#c8b8a0','#b0a0c0','#a0c0a0','#c0a0b0','#a0b0c0','#c0b0a0','#a0c0b0','#b0c0a0'];
-const CHART_COLORS_NEON=['#ff2a6d','#00fff0','#ffe600','#00b4ff','#39ff14','#ff6b00','#e040fb','#00ddff','#ff4444','#c8ff00'];
-const CHART_COLORS_CRISP=['#222222','#888888','#bbbbbb','#555555','#999999','#333333','#aaaaaa','#666666','#cccccc','#444444'];
-const CHART_COLORS_CRISP_DARK=['#8a8a8a','#6a6a6a','#555555','#7a7a7a','#606060','#909090','#505050','#6e6e6e','#484848','#858585'];
-// Unified tag/label color palette
-const TAG_COLORS_LIGHT=['#1a1a1a','#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#a38b5e','#2a3a6a','#b83030','#5e8b6b','#8d6b7a','#555555','#0088aa'];
-const TAG_COLORS_DARK=['#ffffff','#c4a0a0','#a0b8c8','#5ab866','#b0a0c0','#c8b8a0','#7a8aff','#e06060','#a0c0a0','#c0a0b0','#999999','#00b4cc'];
-let chartColorScheme='crisp';
-// Crisp pattern helpers
-function drawCrispPattern(ctx,px,py,pw,ph,patIdx,fg){
-  ctx.save();ctx.beginPath();ctx.rect(px,py,pw,ph);ctx.clip();
-  ctx.strokeStyle=fg;ctx.fillStyle=fg;ctx.lineWidth=0.8;
-  const pt=patIdx%6;
-  if(pt===0){for(let y2=py+4;y2<py+ph;y2+=8){ctx.beginPath();ctx.moveTo(px,y2);ctx.lineTo(px+pw,y2);ctx.stroke()}}
-  else if(pt===1){for(let y2=py+5;y2<py+ph;y2+=8)for(let x2=px+5;x2<px+pw;x2+=8){ctx.beginPath();ctx.arc(x2,y2,0.9,0,Math.PI*2);ctx.fill()}}
-  else if(pt===2){for(let x2=px+4;x2<px+pw;x2+=8){ctx.beginPath();ctx.moveTo(x2,py);ctx.lineTo(x2,py+ph);ctx.stroke()}}
-  else if(pt===3){for(let i=-ph;i<pw+ph;i+=10){ctx.beginPath();ctx.moveTo(px+i,py+ph);ctx.lineTo(px+i+ph,py);ctx.stroke()}}
-  else if(pt===4){for(let y2=py+6;y2<py+ph;y2+=10)for(let x2=px+6;x2<px+pw;x2+=10){ctx.beginPath();ctx.arc(x2,y2,0.7,0,Math.PI*2);ctx.fill()}}
-  else{ctx.setLineDash([3,4]);for(let y2=py+4;y2<py+ph;y2+=8){ctx.beginPath();ctx.moveTo(px,y2);ctx.lineTo(px+pw,y2);ctx.stroke()}ctx.setLineDash([])}
-  ctx.restore();
-}
-const crispPatternPlugin={
-  id:'crispPatterns',
-  _patternMode(chart){
-    if(chartColorScheme!=='crisp')return null;
-    let barCount=0,filledLineCount=0;
-    chart.data.datasets.forEach((ds,i)=>{const m=chart.getDatasetMeta(i);if(m.hidden)return;if(m.type!=='line')barCount++;else if(ds.fill!=null&&ds.fill!==false)filledLineCount++});
-    if(barCount>3)return 'bar';
-    if(filledLineCount>1)return 'area';
-    return null;
-  },
-  afterDatasetsDraw(chart){
-    const mode=this._patternMode(chart);
-    if(!mode)return;
-    const isDark=document.documentElement.classList.contains('dark');
-    const ctx=chart.ctx;
-    if(mode==='bar'){
-      const fg=isDark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.12)';
-      chart.data.datasets.forEach((ds,dsi)=>{
-        const meta=chart.getDatasetMeta(dsi);
-        if(meta.hidden||meta.type==='line')return;
-        meta.data.forEach(el=>{
-          const{x,y,width,height,base}=el.getProps(['x','y','width','height','base']);
-          if(width===undefined||base===undefined)return;
-          const bY=Math.min(y,base),bH=Math.abs(base-y),bW=width;
-          if(bH<2||bW<2)return;
-          drawCrispPattern(ctx,x-bW/2,bY,bW,bH,dsi,fg);
-        });
-      });
-    } else if(mode==='area'){
-      const fg=isDark?'rgba(255,255,255,0.10)':'rgba(0,0,0,0.07)';
-      const yScale=chart.scales.y;
-      const baseline=yScale?yScale.getPixelForValue(0):chart.chartArea.bottom;
-      let prevPoints=null;
-      chart.data.datasets.forEach((ds,dsi)=>{
-        const meta=chart.getDatasetMeta(dsi);
-        if(meta.hidden||meta.type!=='line'||ds.fill==null||ds.fill===false){return}
-        const points=meta.data.map(pt=>({x:pt.x,y:pt.y}));
-        if(!points.length){prevPoints=points;return}
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(points[0].x,points[0].y);
-        for(let j=1;j<points.length;j++)ctx.lineTo(points[j].x,points[j].y);
-        if(prevPoints&&prevPoints.length===points.length){
-          for(let j=points.length-1;j>=0;j--)ctx.lineTo(prevPoints[j].x,prevPoints[j].y);
-        } else {
-          ctx.lineTo(points[points.length-1].x,baseline);
-          ctx.lineTo(points[0].x,baseline);
-        }
-        ctx.closePath();
-        ctx.clip();
-        const xs=points.map(p=>p.x);
-        const allY=points.map(p=>p.y).concat(prevPoints?prevPoints.map(p=>p.y):[baseline]);
-        const minX=Math.min(...xs),maxX=Math.max(...xs);
-        const minY=Math.min(...allY),maxY=Math.max(...allY);
-        if(maxX-minX>2&&maxY-minY>2)drawCrispPattern(ctx,minX,minY,maxX-minX,maxY-minY,dsi,fg);
-        ctx.restore();
-        prevPoints=points;
-      });
-    }
-  },
-  afterDraw(chart){
-    const mode=this._patternMode(chart);
-    if(!mode)return;
-    const isDark=document.documentElement.classList.contains('dark');
-    const fg=isDark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.15)';
-    const legend=chart.legend;
-    if(!legend||!legend.legendItems)return;
-    const ctx=chart.ctx;
-    const chartArea=chart.chartArea;
-    legend.legendItems.forEach((item,i)=>{
-      if(item.hidden)return;
-      const dsi=item.datasetIndex!=null?item.datasetIndex:i;
-      const meta=chart.getDatasetMeta(dsi);
-      if(mode==='bar'&&meta.type==='line')return;
-      if(mode==='area'&&meta.type!=='line')return;
-      const bw=legend.options.labels.boxWidth||40;
-      const bh=legend.options.labels.boxHeight||Math.min((item.height||12),12);
-      const bx=item.left;
-      const by=item.top;
-      if(bx==null||by==null)return;
-      if(bx<0||by<0||bx>chart.width||by>chart.height)return;
-      if(bw>0&&bh>0)drawCrispPattern(ctx,bx,by,bw,bh,dsi,fg);
-    });
-  }
-};
-if(typeof Chart!=='undefined')Chart.register(crispPatternPlugin);
-// Soft-bar plugin
-const softBarPlugin={id:'softBar',beforeUpdate(chart){
-  if(chart.config.type!=='bar')return;
-  const isNeon=(typeof chartColorScheme!=='undefined'&&chartColorScheme==='neon');
-  const isCrisp=(typeof chartColorScheme!=='undefined'&&chartColorScheme==='crisp');
-  const alpha=isCrisp?0.82:isNeon?0.55:0.72;
-  chart.data.datasets.forEach(ds=>{
-    if(ds._softBarApplied)return;
-    const bg=ds.backgroundColor;
-    if(typeof bg==='string'&&bg.charAt(0)==='#'){
-      ds.backgroundColor=hexToRgba(bg,alpha);
-      ds.borderColor=isCrisp?(document.documentElement.classList.contains('dark')?'#555':'#ccc'):bg;
-      ds.borderWidth=isCrisp?1:(ds.borderWidth||1);
-    } else if(typeof bg==='string'&&bg.startsWith('rgba')){
-      const m=bg.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
-      if(m){const curA=parseFloat(m[4]);if(curA>alpha)ds.backgroundColor=`rgba(${m[1]},${m[2]},${m[3]},${Math.round(curA*alpha*100)/100})`}
-    }
-    ds._softBarApplied=true;
-  });
-}};
-if(typeof Chart!=='undefined')Chart.register(softBarPlugin);
-function getChartColors(){
-  const isDark=document.documentElement.classList.contains('dark');
-  if(chartColorScheme==='neon')return CHART_COLORS_NEON;
-  if(chartColorScheme==='crisp')return isDark?CHART_COLORS_CRISP_DARK:CHART_COLORS_CRISP;
-  return isDark?CHART_COLORS_MUTED_DARK:CHART_COLORS;
-}
-function getCrispDatalabelColor(section){
-  if(chartColorScheme!=='crisp')return null;
-  const dk=document.documentElement.classList.contains('dark');
-  return dk?'#ffffff':'#111111';
-}
-function getSparkColor(type){
-  const isDark=document.documentElement.classList.contains('dark');
-  if(chartColorScheme==='neon')return type==='danger'?'#ff2a6d':'#00fff0';
-  if(chartColorScheme==='crisp')return isDark?'#a0a0a0':'#222222';
-  if(isDark)return type==='danger'?'#e0a8a8':'#a0c8b0';
-  return type==='danger'?'#8b2020':'#3a7d44';
-}
-function getStatValueColor(){
-  const isDark=document.documentElement.classList.contains('dark');
-  if(chartColorScheme==='neon')return isDark?'#00fff0':'#0088aa';
-  if(chartColorScheme==='crisp')return isDark?'#c0c0c0':'#111111';
-  return isDark?'#c8b0b0':'var(--accent)';
-}
-function hexToRgba(hex,alpha){
-  if(hex.startsWith('rgba'))return hex.replace(/,[\d.]+\)$/,','+alpha+')');
-  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${alpha})`
-}
+// Use shared chart utilities from chart-utils.js via window
+const getChartColors=(...a)=>window.getChartColors(...a);
+const getCrispDatalabelColor=(...a)=>window.getCrispDatalabelColor(...a);
+const getSparkColor=(...a)=>window.getSparkColor(...a);
+const getStatValueColor=(...a)=>window.getStatValueColor(...a);
+const hexToRgba=(...a)=>window.hexToRgba(...a);
 const FTE_TOOLTIP={
   mode:'index',intersect:false,
   callbacks:{
@@ -227,7 +76,7 @@ const FTE_TOOLTIP={
 };
 function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return fmt(n)}
 function stackedBarDatalabels(datasets,tickColor,fontSize,crispSection){
-  const isCrispDl=chartColorScheme==='crisp';
+  const isCrispDl=window.chartColorScheme==='crisp';
   const fs=fontSize||(isCrispDl?13:11);
   const dlColor=getCrispDatalabelColor(crispSection)||tickColor;
   const posStacks=datasets.filter(d=>!d.stack||d.stack==='pos');
@@ -358,7 +207,7 @@ function renderDashboard(){
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?(chartColorScheme==='crisp'?'#c0c0c0':chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(chartColorScheme==='crisp'?'#333333':chartColorScheme==='neon'?'#006680':'#5a5a5a');
+  const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   let labels,groups;
   if(groupBy==='month'){
@@ -535,7 +384,7 @@ function renderDashboard(){
     }
     fteDatasets.forEach((ds,i)=>{
       if(i===fteDatasets.length-1){
-        ds.datalabels={display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('fte')||tickColor,font:{size:chartColorScheme==='crisp'?13:11,weight:'bold'},
+        ds.datalabels={display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('fte')||tickColor,font:{size:window.chartColorScheme==='crisp'?13:11,weight:'bold'},
           formatter:(_,ctx)=>{
             let sum=0;fteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});
             return sum?Math.round(sum*10)/10:'';
@@ -566,7 +415,7 @@ function renderDashBreakdownCharts(labels,groups,isMonth,baseVal,bonusVal,benVal
   const cc=getChartColors();
   const shortLabels=labels.map(l=>l.length>10?l.slice(0,8)+'…':l);
   const chartOpts=(title)=>({responsive:true,maintainAspectRatio:false,layout:{padding:{top:14}},
-    plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('breakdown')||tickColor,font:{size:chartColorScheme==='crisp'?12:10,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}},
+    plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('breakdown')||tickColor,font:{size:window.chartColorScheme==='crisp'?12:10,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}},
     scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},y:{beginAtZero:true,ticks:{color:tickColor,font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}}
   });
   function makeData(valFn){
@@ -624,23 +473,13 @@ syncMonthSelectors();
 
 // Exports
 export {
-  renderDashboard, renderStats, getFilteredEmployees, getChartColors, hexToRgba,
-  getStatValueColor, getSparkColor, getCrispDatalabelColor,
-  chartColorScheme, fmtShort, stackedBarDatalabels, yoyArrowsPlugin, FTE_TOOLTIP,
-  CHART_COLORS, CHART_COLORS_MUTED_DARK, CHART_COLORS_NEON, CHART_COLORS_CRISP, CHART_COLORS_CRISP_DARK,
-  TAG_COLORS_LIGHT, TAG_COLORS_DARK,
-  periodMode, currentMonth, syncMonthSelectors,
-  crispPatternPlugin, softBarPlugin, drawCrispPattern
+  renderDashboard, renderStats, getFilteredEmployees,
+  fmtShort, stackedBarDatalabels, yoyArrowsPlugin, FTE_TOOLTIP,
+  periodMode, currentMonth, syncMonthSelectors
 };
 
 // Assign to window for onclick handlers and cross-module access
 window.renderDashboard = renderDashboard;
-window.chartColorScheme = chartColorScheme;
-window.getChartColors = getChartColors;
-window.hexToRgba = hexToRgba;
-window.getStatValueColor = getStatValueColor;
-window.getSparkColor = getSparkColor;
-window.getCrispDatalabelColor = getCrispDatalabelColor;
 window.fmtShort = fmtShort;
 window.stackedBarDatalabels = stackedBarDatalabels;
 window.yoyArrowsPlugin = yoyArrowsPlugin;
@@ -648,7 +487,5 @@ window.FTE_TOOLTIP = FTE_TOOLTIP;
 window.periodMode = periodMode;
 window.currentMonth = currentMonth;
 window.syncMonthSelectors = syncMonthSelectors;
-window.TAG_COLORS_LIGHT = TAG_COLORS_LIGHT;
-window.TAG_COLORS_DARK = TAG_COLORS_DARK;
 window.getFilteredEmployees = getFilteredEmployees;
 window.renderStats = renderStats;
