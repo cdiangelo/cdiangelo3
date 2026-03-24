@@ -285,7 +285,10 @@ function initVendorModule(){
     const moTotals=MO.map(m=>dataArr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
     const hasFilter=monthFilter&&monthFilter.size>0&&monthFilter.size<12;
     const fyTotal=hasFilter?moTotals.filter((_,i)=>monthFilter.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
-    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td colspan="${colSpan}" style="font-size:.8rem">TOTAL${hasFilter?' (filtered)':''}</td>`;
+    // Use individual <td>s instead of colspan to prevent column misalignment
+    const label=`TOTAL${hasFilter?' (filtered)':''}`;
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${label}</td>`;
+    for(let c=1;c<colSpan;c++)ft+='<td></td>';
     moTotals.forEach((t,mi)=>{
       const dim=hasFilter&&!monthFilter.has(mi)?'opacity:.35;':'';
       ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;${dim}">${fmtScaled(t)}</td>`;
