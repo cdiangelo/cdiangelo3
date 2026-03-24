@@ -78,9 +78,10 @@ async function handleAuth(ws, msg, db) {
          session_id = EXCLUDED.session_id,
          active_version_id = EXCLUDED.active_version_id,
          connected_at = CURRENT_TIMESTAMP,
-         last_ping = CURRENT_TIMESTAMP`
+         last_ping = CURRENT_TIMESTAMP
+       RETURNING user_id`
     ).run(userId, sessionId, versionId);
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.error('WS DB error:', e.message) }
 
   // Broadcast presence to entire session
   await broadcastPresence(sessionId, db);
@@ -121,7 +122,7 @@ function handleStateUpdate(ws, msg, db) {
       await db.prepare(
         "UPDATE versions SET state_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND session_id = ?"
       ).run(stateData, client.versionId, client.sessionId);
-    } catch (e) { /* ignore */ }
+    } catch (e) { console.error('WS DB error:', e.message) }
   }, 300));
 }
 
@@ -153,7 +154,7 @@ async function handleSwitchVersion(ws, msg, db) {
     await db.prepare(
       "UPDATE presence SET active_version_id = ?, last_ping = CURRENT_TIMESTAMP WHERE user_id = ?"
     ).run(versionId, client.userId);
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.error('WS DB error:', e.message) }
 
   await broadcastPresence(client.sessionId, db);
 }
@@ -163,7 +164,7 @@ async function handlePing(ws, db) {
   if (!client) return;
   try {
     await db.prepare("UPDATE presence SET last_ping = CURRENT_TIMESTAMP WHERE user_id = ?").run(client.userId);
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.error('WS DB error:', e.message) }
 }
 
 function handleCursor(ws, msg) {
@@ -205,7 +206,7 @@ async function handleDisconnect(ws, db) {
   // Remove presence
   try {
     await db.prepare('DELETE FROM presence WHERE user_id = ?').run(client.userId);
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.error('WS DB error:', e.message) }
 
   const sessionId = client.sessionId;
   clients.delete(ws);
@@ -225,7 +226,7 @@ async function broadcastPresence(sessionId, db) {
        LEFT JOIN versions v ON v.id = p.active_version_id
        WHERE p.session_id = ?`
     ).all(sessionId);
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.error('WS DB error:', e.message) }
 
   const outMsg = JSON.stringify({ type: 'presence', users });
 
