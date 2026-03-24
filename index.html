@@ -4121,6 +4121,9 @@ function initSessionModal(){
       document.getElementById('sessionStepCode').classList.add('active');
     }catch(e){console.error('Session create error:',e);errEl.textContent='Connection error: '+e.message;errEl.style.display='block'}
   });
+  ['adminSessionCode','adminSessionName','adminPassword'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btnCreateSession').click()});
+  });
   document.getElementById('btnBackFromAdmin').addEventListener('click',()=>{
     document.getElementById('sessionModal').querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
     document.getElementById('sessionStep1').classList.add('active');
@@ -15461,7 +15464,7 @@ renderLandingRevForecastChart=function(){_origRenderLandingRevFc();try{renderExp
 
 // ── INIT ──
 function renderAll(){
-  const fns=[renderExecView,renderDashboard,renderEmployees,renderProjects,renderMarkets,renderBizLines,renderBonusMatrix,renderBenefitsMatrix,renderMonthly,renderForecast,renderWorkspaceList,renderPnlWalk,renderLandingCharts,
+  const fns=[renderExecView,renderDashboard,renderEmployees,renderProjects,renderMarkets,renderBizLines,renderBonusMatrix,renderBenefitsMatrix,renderMonthly,renderForecast,renderWorkspaceList,renderPnlWalk,renderLandingCharts,renderLandingRevenue,
     function(){if(budgetScenario&&!budgetScenarioDirty){initBudgetScenario();initForecastScenario()}},
     renderBudgetScenarioChart,renderFcScenarioChart,renderScenarioPnlSummary];
   fns.forEach(fn=>{try{fn()}catch(e){console.error('Render error in '+fn.name+':',e)}});
@@ -15484,7 +15487,7 @@ function renderAll(){
           state=JSON.parse(v.state_data);ensureStateFields();
           loadUserColorScheme();
           updateSessionUI();initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-          initSessionModal();renderPnlWalk();renderLandingCharts();connectWebSocket();
+          initSessionModal();renderPnlWalk();renderLandingCharts();renderLandingRevenue();connectWebSocket();
           return;
         }
       }
@@ -15497,7 +15500,7 @@ function renderAll(){
   currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
   updateWsDisplay();updateSessionUI();
   initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-  initSessionModal();renderPnlWalk();renderLandingCharts();
+  initSessionModal();renderPnlWalk();renderLandingCharts();renderLandingRevenue();
 })();
 
 // ── Universal Sticky Notes ──

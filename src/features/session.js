@@ -401,6 +401,8 @@ window.showToast = showToast;
 window.updateSessionUI = updateSessionUI;
 window.debouncedServerSave = debouncedServerSave;
 window.broadcastStateChange = broadcastStateChange;
+window.initSessionModal = initSessionModal;
+window.connectWebSocket = connectWebSocket;
 
 export {
   initSessionModal,

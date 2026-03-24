@@ -570,3 +570,4 @@ window.deleteVersionFromServer = deleteVersionFromServer;
 window.saveWorkspaceAsLocal = saveWorkspaceAsLocal;
 window.currentWorkspaceName = currentWorkspaceName;
 window.renderWorkspaceList = renderWorkspaceList;
+window.updateWsDisplay = updateWsDisplay;
