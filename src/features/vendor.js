@@ -1981,6 +1981,9 @@ function initVendorModule(){
   refreshVendorPivot();
   refreshContractorPivot();
   window.renderVendorGridPublic=function(){renderVendorGrid();renderTeGrid();renderContractorGrid();refreshVendorPivot();refreshTePivot();refreshContractorPivot()};
+  window.refreshVendorPivot=refreshVendorPivot;
+  window.refreshTePivot=refreshTePivot;
+  window.refreshContractorPivot=refreshContractorPivot;
   // Re-render vendor/T&E/contractor pivot charts on color scheme or dark mode change
   if(typeof colorSchemeCallbacks!=='undefined')colorSchemeCallbacks.push(function(){refreshVendorPivot();refreshTePivot();refreshContractorPivot()});
 }

@@ -403,6 +403,7 @@ window.debouncedServerSave = debouncedServerSave;
 window.broadcastStateChange = broadcastStateChange;
 window.initSessionModal = initSessionModal;
 window.connectWebSocket = connectWebSocket;
+Object.defineProperty(window,'ws',{get(){return ws},set(v){ws=v}});
 
 export {
   initSessionModal,

@@ -571,3 +571,6 @@ window.saveWorkspaceAsLocal = saveWorkspaceAsLocal;
 window.currentWorkspaceName = currentWorkspaceName;
 window.renderWorkspaceList = renderWorkspaceList;
 window.updateWsDisplay = updateWsDisplay;
+window.getWorkspaceIndex = getWorkspaceIndex;
+Object.defineProperty(window,'wsMergeMode',{get(){return wsMergeMode},set(v){wsMergeMode=v}});
+window.wsMergeSelected = wsMergeSelected;

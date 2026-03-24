@@ -24,12 +24,14 @@ app.use('/api/sessions/:code/versions', versionsRouter);
 // Serve the app — must come AFTER API routes
 const fs = require('fs');
 const distDir = path.join(__dirname, 'dist');
-const isProd = process.env.NODE_ENV === 'production' && fs.existsSync(distDir);
 
-if (isProd) {
+if (fs.existsSync(distDir)) {
   app.use(express.static(distDir));
-  app.get('/', (req, res) => res.sendFile(path.join(distDir, 'index.html')));
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) res.sendFile(path.join(distDir, 'index.html'));
+  });
 } else {
+  console.warn('WARNING: dist/ not found — run "npm run build" first');
   app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 }
 

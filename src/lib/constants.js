@@ -79,3 +79,6 @@ window.getDisplayFcLabels = getDisplayFcLabels;
 window.displayYear = displayYear;
 window.CURRENT_YEAR = CURRENT_YEAR;
 window.FORECAST_YEARS = FORECAST_YEARS;
+window.COUNTRIES = COUNTRIES;
+window.SENIORITY = SENIORITY;
+window.FUNCTIONS = FUNCTIONS;
