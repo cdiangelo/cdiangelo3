@@ -63,6 +63,7 @@ export function initDarkMode(){
     const saved=localStorage.getItem(key);
     if(saved&&COLOR_SCHEME_KEYS.includes(saved)){
       window.chartColorScheme=saved;
+      if(window.setChartColorScheme)window.setChartColorScheme(saved);
       const idx=COLOR_SCHEME_KEYS.indexOf(saved);
       syncColorSchemeSliders(idx);
       applyColorSchemeClass();
@@ -71,6 +72,7 @@ export function initDarkMode(){
   window.loadUserColorScheme=loadUserColorScheme;
   function onColorSchemeChange(v){
     window.chartColorScheme=COLOR_SCHEME_KEYS[v];
+    if(window.setChartColorScheme)window.setChartColorScheme(COLOR_SCHEME_KEYS[v]);
     syncColorSchemeSliders(v);
     localStorage.setItem(getColorSchemeKey(),window.chartColorScheme);
     applyColorSchemeClass();
@@ -84,6 +86,7 @@ export function initDarkMode(){
   const savedScheme=localStorage.getItem('compPlanColorScheme');
   if(savedScheme&&COLOR_SCHEME_KEYS.includes(savedScheme)){
     window.chartColorScheme=savedScheme;
+    if(window.setChartColorScheme)window.setChartColorScheme(savedScheme);
     const idx=COLOR_SCHEME_KEYS.indexOf(savedScheme);
     syncColorSchemeSliders(idx);
   }
