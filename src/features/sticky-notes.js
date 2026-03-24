@@ -30,12 +30,17 @@ export function initStickyNotes(){
     panel.classList.remove('open');
   });
 
+  // Prevent mousedown on toolbar/swatches from stealing focus from contentEditable
+  panel.querySelector('.sn-toolbar').addEventListener('mousedown',e=>{
+    if(e.target.tagName!=='SELECT')e.preventDefault();
+  });
+
   // Toolbar commands
   panel.querySelectorAll('.sn-toolbar button[data-cmd]').forEach(b=>{
     b.addEventListener('click',e=>{
       e.preventDefault();
       document.execCommand(b.dataset.cmd,false,null);
-      body.focus();saveNote();
+      saveNote();
     });
   });
   panel.querySelectorAll('.sn-toolbar select[data-cmd]').forEach(sel=>{
@@ -75,12 +80,12 @@ export function initStickyNotes(){
     resetSwatch.className='sn-color-swatch';
     resetSwatch.style.background=resetColor;
     resetSwatch.title='Default';
-    resetSwatch.addEventListener('click',()=>{document.execCommand('foreColor',false,resetColor);body.focus();saveNote()});
+    resetSwatch.addEventListener('click',()=>{document.execCommand('foreColor',false,resetColor);saveNote()});
     textGroup.appendChild(resetSwatch);
     getSnColors().forEach(c=>{
       const s=document.createElement('span');
       s.className='sn-color-swatch';s.style.background=c;s.title=c;
-      s.addEventListener('click',()=>{document.execCommand('foreColor',false,c);body.focus();saveNote()});
+      s.addEventListener('click',()=>{document.execCommand('foreColor',false,c);saveNote()});
       textGroup.appendChild(s);
     });
     // Highlight colors: clear + scheme tints
@@ -88,12 +93,12 @@ export function initStickyNotes(){
     clearSwatch.className='sn-color-swatch';
     clearSwatch.style.background='transparent';clearSwatch.style.border='1px dashed var(--border)';
     clearSwatch.title='Clear highlight';
-    clearSwatch.addEventListener('click',()=>{document.execCommand('hiliteColor',false,'transparent');body.focus();saveNote()});
+    clearSwatch.addEventListener('click',()=>{document.execCommand('hiliteColor',false,'transparent');saveNote()});
     hlGroup.appendChild(clearSwatch);
     getSnHighlights().forEach((c,i)=>{
       const s=document.createElement('span');
       s.className='sn-color-swatch';s.style.background=c;s.title='Highlight';
-      s.addEventListener('click',()=>{document.execCommand('hiliteColor',false,c);body.focus();saveNote()});
+      s.addEventListener('click',()=>{document.execCommand('hiliteColor',false,c);saveNote()});
       hlGroup.appendChild(s);
     });
   }
