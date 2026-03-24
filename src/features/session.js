@@ -6,18 +6,8 @@ let sessionContext = null; // {code, sessionId, userId, userName, userColor, ver
 let ws = null; // WebSocket connection
 
 // Expose on window so other modules can access (use getters so reassignments stay in sync)
-Object.defineProperty(window, 'persistenceMode', { get() { return persistenceMode }, set(v) { persistenceMode = v } });
-Object.defineProperty(window, 'sessionContext', { get() { return sessionContext }, set(v) { sessionContext = v } });
-Object.defineProperty(window, 'persistenceMode', {
-  get() { return persistenceMode; },
-  set(v) { persistenceMode = v; },
-  configurable: true
-});
-Object.defineProperty(window, 'sessionContext', {
-  get() { return sessionContext; },
-  set(v) { sessionContext = v; },
-  configurable: true
-});
+Object.defineProperty(window, 'persistenceMode', { get() { return persistenceMode }, set(v) { persistenceMode = v }, configurable: true });
+Object.defineProperty(window, 'sessionContext', { get() { return sessionContext }, set(v) { sessionContext = v }, configurable: true });
 
 // Debounce utility
 function debounce(fn, ms) { let t; return function(...a) { clearTimeout(t); t = setTimeout(() => fn.apply(this, a), ms) } }
