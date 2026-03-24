@@ -5,11 +5,9 @@ let persistenceMode = 'template'; // 'template' or 'session'
 let sessionContext = null; // {code, sessionId, userId, userName, userColor, versionId, versionName}
 let ws = null; // WebSocket connection
 
-// Expose on window so other modules can access
-window.persistenceMode = persistenceMode;
-window.sessionContext = sessionContext;
-
-// Keep window in sync via getters/setters
+// Expose on window so other modules can access (use getters so reassignments stay in sync)
+Object.defineProperty(window, 'persistenceMode', { get() { return persistenceMode }, set(v) { persistenceMode = v } });
+Object.defineProperty(window, 'sessionContext', { get() { return sessionContext }, set(v) { sessionContext = v } });
 Object.defineProperty(window, 'persistenceMode', {
   get() { return persistenceMode; },
   set(v) { persistenceMode = v; },
