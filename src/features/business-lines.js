@@ -53,7 +53,7 @@ function refreshAllDropdowns(){
   populateBizLineSelect(document.getElementById('empBusinessLine'));
   populateMarketSelect(document.getElementById('projMarket'));
   // Sync vendor module dims if initialized
-  if(vendorModuleInited&&typeof renderVendorGridPublic==='function'){renderVendorGridPublic()}
+  if(typeof window.renderVendorGridPublic==='function'){window.renderVendorGridPublic()}
 }
 window.refreshAllDropdowns = refreshAllDropdowns;
 window.initBizLines = initBizLines;

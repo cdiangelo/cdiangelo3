@@ -95,6 +95,7 @@ function showApp(){
   document.getElementById('appShell').style.display='';
   renderAll();
 }
+let vendorModuleInited=false;
 function showVendor(){
   hideAllModules();
   document.getElementById('vendorModule').style.display='';
