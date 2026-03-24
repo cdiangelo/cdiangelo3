@@ -50,6 +50,8 @@ export function loadState(){
 }
 
 export function ensureStateFields(){
+  // Sync module-level state with window.state (external code may reassign window.state directly)
+  if(window.state && window.state !== state) state = window.state;
   if(!state.employees)state.employees=[];
   if(!state.bonusMatrix){state.bonusMatrix={};SENIORITY.forEach(s=>{state.bonusMatrix[s]={};FUNCTIONS.forEach(f=>{state.bonusMatrix[s][f]=DEFAULT_BONUS[s]})})}
   if(!state.projects)state.projects=[];
@@ -187,9 +189,12 @@ export function ensureStateFields(){
       if(genProj)e.allocations=[{projId:genProj.id,pct:100,primary:true}];
     }
   });
+  // Keep window.state in sync
+  window.state = state;
 }
 
 export function saveState(){
+  if(window.state && window.state !== state) state = window.state;
   if(window.persistenceMode==='template'){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
   else{window.debouncedServerSave();window.broadcastStateChange()}
 }
