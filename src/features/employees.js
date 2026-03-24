@@ -38,6 +38,30 @@ document.getElementById('empCountry').addEventListener('change',()=>{
   document.getElementById('empBusinessUnit').value=COUNTRY_BU[c]||'';
 });
 
+// ── Ops-mode form comp visibility ──
+function syncFormCompVisibility(){
+  const isOps=document.body.classList.contains('ops-mode');
+  const empTypeVal=document.getElementById('empType').value;
+  const empTypeEl=document.getElementById('empType');
+  const salaryGroup=document.getElementById('empSalary').closest('.form-group');
+  const capGroup=document.getElementById('empCapPct').closest('.form-group');
+  if(isOps){
+    // In ops mode: type is read-only; new adds are forced to 'hire'
+    empTypeEl.disabled=true;
+    if(!editingId){empTypeEl.value='hire'}
+    // Hide comp for existing employees
+    const hideComp=empTypeVal==='existing';
+    salaryGroup.style.display=hideComp?'none':'';
+    capGroup.style.display=hideComp?'none':'';
+  } else {
+    empTypeEl.disabled=false;
+    salaryGroup.style.display='';
+    capGroup.style.display='';
+  }
+}
+window.syncFormCompVisibility=syncFormCompVisibility;
+document.getElementById('empType').addEventListener('change',syncFormCompVisibility);
+
 document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const name=document.getElementById('empName').value.trim();
   const country=document.getElementById('empCountry').value;
@@ -45,6 +69,8 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   const func=document.getElementById('empFunction').value;
   const businessLine=document.getElementById('empBusinessLine').value;
   const businessUnit=COUNTRY_BU[country]||'';
+  const isOps=document.body.classList.contains('ops-mode');
+  const empType=isOps&&!editingId?'hire':document.getElementById('empType').value;
   const rawSalary=parseFloat(document.getElementById('empSalary').value)||0;
   const salary=rawSalary>0?rawSalary:benchmark(seniority,func,country);
   const capPct=parseFloat(document.getElementById('empCapPct').value)||0;
@@ -66,7 +92,11 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
   }
   if(editingId){
     const emp=state.employees.find(e=>e.id===editingId);
-    if(emp){Object.assign(emp,{name,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations})}
+    if(emp){
+      // In ops mode, preserve the existing empType (can't change it)
+      const saveType=isOps?emp.empType:empType;
+      Object.assign(emp,{name,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations,empType:saveType});
+    }
     editingId=null;
     document.getElementById('formTitle').textContent='Add Employee';
     document.getElementById('btnSaveEmp').textContent='Add Employee';
@@ -75,7 +105,7 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
     const count=Math.max(1,Math.min(100,parseInt(document.getElementById('empCount').value)||1));
     for(let ci=0;ci<count;ci++){
       const empName=count>1?name+' '+(ci+1):name;
-      state.employees.push({id:uid(),name:empName,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations:allocations.map(a=>({...a}))});
+      state.employees.push({id:uid(),name:empName,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,empType,allocations:allocations.map(a=>({...a}))});
     }
   }
   saveState();clearForm();renderEmployees();
@@ -88,6 +118,8 @@ document.getElementById('btnCancelEmp').addEventListener('click',()=>{
 });
 function clearForm(){['empName','empSalary','empNotes','empHireDate','empTermDate','empBusinessUnit','empMarketCode'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('empCapPct').value=0;
+  document.getElementById('empType').value=document.body.classList.contains('ops-mode')?'hire':'existing';
+  syncFormCompVisibility();
   ['empCountry','empSeniority','empFunction','empBusinessLine'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('benchmarkBadge').innerHTML='';
   document.getElementById('empSplitOutside').checked=false;
@@ -181,6 +213,7 @@ function startEdit(id){
   document.getElementById('empBusinessUnit').value=emp.businessUnit||COUNTRY_BU[emp.country]||'';
   document.getElementById('empSalary').value=emp.salary;
   document.getElementById('empCapPct').value=emp.capPct||0;
+  document.getElementById('empType').value=emp.empType||'existing';
   document.getElementById('empNotes').value=emp.notes||'';
   document.getElementById('empHireDate').value=emp.hireDate||'';
   document.getElementById('empTermDate').value=emp.termDate||'';
@@ -189,6 +222,7 @@ function startEdit(id){
   document.getElementById('btnSaveEmp').textContent='Save Changes';
   document.getElementById('btnCancelEmp').style.display='inline-block';
   document.getElementById('empCountWrap').style.display='none';
+  syncFormCompVisibility();
   updateBenchmarkBadge();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -223,6 +257,9 @@ function saveInlineEdit(id){
   emp.function=row.querySelector('.ie-function').value;
   const ieBiz=row.querySelector('.ie-bizline');
   if(ieBiz)emp.businessLine=ieBiz.value;
+  // empType: only changeable in finance mode (ie-emptype select exists)
+  const ieType=row.querySelector('.ie-emptype');
+  if(ieType)emp.empType=ieType.value;
   const rawSal=parseFloat(row.querySelector('.ie-salary').value)||0;
   emp.salary=rawSal>0?rawSal:benchmark(emp.seniority,emp.function,emp.country);
   const ieCap=row.querySelector('.ie-cappct');
@@ -338,6 +375,7 @@ function renderEmployees(){
     const getSortVal=(e)=>{
       switch(empSortCol){
         case 'name':return e.name.toLowerCase();
+        case 'empType':return e.empType||'existing';
         case 'country':return e.country;
         case 'seniority':return e.seniority;
         case 'function':return e.function;
@@ -368,10 +406,13 @@ function renderEmployees(){
     else{th.classList.remove('sort-active');arrow.textContent=''}
   });
   const tbody=document.querySelector('#empTable tbody');
+  const isOps=document.body.classList.contains('ops-mode');
   tbody.innerHTML=emps.map(e=>{
     const bp=getBonusPct(e),ba=getBonusAmt(e),ben=getBenefitsAmt(e),tc=getTotalComp(e);
     const af=getAnnualFactor(e);
     const proratedTc=getProratedComp(e);
+    // In ops mode, only hide comp for existing employees; hire comp stays visible
+    const cs=(e.empType||'existing')==='existing'?'comp-sensitive':'';
     // Build projects cell
     let projHtml='<span style="color:var(--text-dim);font-size:.8rem">—</span>';
     if(e.allocations&&e.allocations.length){
@@ -404,9 +445,12 @@ function renderEmployees(){
         </div>`;
       }).join('');
       allocEditHtml+=`<button class="btn btn-sm" style="padding:2px 8px;font-size:.72rem;margin-top:2px" onclick="window.addInlineAlloc()">+ Add</button>`;
+      const typeLabel=(e.empType||'existing')==='hire'?'New Hire':'Existing';
+      const typeStyle=(e.empType||'existing')==='hire'?'color:#059669;font-weight:600':'color:var(--text-dim)';
       return `<tr data-id="${e.id}" class="inline-edit">
         <td><button class="btn btn-sm btn-primary" onclick="window.saveInlineEdit('${e.id}')">Save</button> <button class="btn btn-sm" onclick="window.cancelInlineEdit()">Cancel</button></td>
         <td><input class="ie-name" value="${e.name}"></td>
+        <td>${isOps?`<span style="${typeStyle};font-size:.78rem">${typeLabel}</span>`:`<select class="ie-emptype" style="font-size:.78rem"><option value="existing"${(e.empType||'existing')==='existing'?' selected':''}>Existing</option><option value="hire"${e.empType==='hire'?' selected':''}>New Hire</option></select>`}</td>
         <td><select class="ie-country">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
         <td><select class="ie-seniority">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
         <td><select class="ie-function">${FUNCTIONS.map(f=>`<option${f===e.function?' selected':''}>${f}</option>`).join('')}</select></td>
@@ -414,22 +458,24 @@ function renderEmployees(){
         <td><select class="ie-bizline"><option value="">—</option>${state.bizLines.map(b=>`<option value="${b.code}"${b.code===(e.businessLine||'')?' selected':''}>${b.code} — ${b.name}</option>`).join('')}</select></td>
         <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||COUNTRY_BU[e.country]||'—'}</td>
         <td style="min-width:200px">${allocEditHtml}</td>
-        <td class="comp-sensitive"><input class="ie-salary" type="number" value="${e.salary}"></td>
-        <td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive">${fmt(tc)}</td>
+        <td class="${cs}"><input class="ie-salary" type="number" value="${e.salary}"></td>
+        <td>${bp}%</td><td class="${cs}">${fmt(ba)}</td><td class="${cs}">${fmt(ben)}</td><td class="${cs}">${fmt(tc)}</td>
         <td><input class="ie-cappct" type="number" min="0" max="100" value="${e.capPct||0}" style="width:55px"></td>
-        <td class="comp-sensitive">${fmt(getOpEx(e))}</td><td class="comp-sensitive">${fmt(getCapEx(e))}</td>
+        <td class="${cs}">${fmt(getOpEx(e))}</td><td class="${cs}">${fmt(getCapEx(e))}</td>
         <td><input class="ie-hire" type="date" value="${e.hireDate||''}"></td>
         <td><input class="ie-term" type="date" value="${e.termDate||''}"></td>
       </tr>`;
     }
+    const typeLabel=(e.empType||'existing')==='hire'?'New Hire':'Existing';
+    const typeStyle=(e.empType||'existing')==='hire'?'color:#059669;font-weight:600':'color:var(--text-dim)';
     return `<tr data-id="${e.id}">
       <td style="white-space:nowrap"><button class="btn btn-sm" onclick="window.startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="window.startEdit('${e.id}')">Form</button> <button class="btn btn-sm" style="background:#555;border-color:#555;color:#fff" onclick="window.deleteEmp('${e.id}')">Del</button></td>
-      <td>${e.name}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
+      <td>${e.name}</td><td style="${typeStyle};font-size:.78rem">${typeLabel}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
       <td style="font-size:.82rem">${(()=>{const mkts=getEmpMarkets(e);return mkts.map(m=>`<div>${m.code}${mkts.length>1?` <span style="font-size:.75rem;color:var(--text-dim)">${m.pct}%</span>`:''}</div>`).join('')})()}</td><td style="font-size:.82rem">${window.getBizLineName(e.businessLine)}</td>
       <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||'—'}</td>
       <td style="min-width:180px">${projHtml}</td>
-      <td class="comp-sensitive">${fmt(e.salary)}</td><td>${bp}%</td><td class="comp-sensitive">${fmt(ba)}</td><td class="comp-sensitive">${fmt(ben)}</td><td class="comp-sensitive" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
-      <td>${getCapPct(e)}%</td><td class="comp-sensitive">${fmt(getProratedOpEx(e))}</td><td class="comp-sensitive">${fmt(getProratedCapEx(e))}</td>
+      <td class="${cs}">${fmt(e.salary)}</td><td>${bp}%</td><td class="${cs}">${fmt(ba)}</td><td class="${cs}">${fmt(ben)}</td><td class="${cs}" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
+      <td>${getCapPct(e)}%</td><td class="${cs}">${fmt(getProratedOpEx(e))}</td><td class="${cs}">${fmt(getProratedCapEx(e))}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td>
     </tr>`;
   }).join('');
@@ -456,12 +502,17 @@ function openMassChange(){
   document.getElementById('mcFilteredOnly').checked=false;
   document.getElementById('mcPreview').style.display='none';
   document.getElementById('btnApplyMassChange').disabled=true;
+  // Hide empType option in ops mode (only finance can change type)
+  const isOps=document.body.classList.contains('ops-mode');
+  const typeOpt=document.querySelector('#mcField option[value="empType"]');
+  if(typeOpt)typeOpt.style.display=isOps?'none':'';
 }
 function closeMassChange(){
   document.getElementById('massChangeOverlay').style.display='none';
   document.getElementById('massChangeModal').style.display='none';
 }
 function getMassChangeOptions(field){
+  if(field==='empType')return [{value:'existing',label:'Existing'},{value:'hire',label:'New Hire'}];
   if(field==='project'){
     return state.projects.map(p=>({value:p.id,label:p.code+(p.product?' — '+p.product:'')}));
   }
@@ -545,6 +596,7 @@ function getMcMatchingEmps(){
     return emps.filter(e=>String(e.capPct||0)===fromVal);
   }
   if(!fromVal)return emps;
+  if(field==='empType')return emps.filter(e=>(e.empType||'existing')===fromVal);
   if(field==='function')return emps.filter(e=>e.function===fromVal);
   if(field==='seniority')return emps.filter(e=>e.seniority===fromVal);
   if(field==='country')return emps.filter(e=>e.country===fromVal);
@@ -563,7 +615,7 @@ function updateMcPreview(){
   }
   const matches=getMcMatchingEmps();
   preview.style.display='block';
-  const fieldLabel={project:'Project',function:'Function',seniority:'Seniority',capPct:'CapEx %',country:'Country',businessLine:'Business Line'}[field];
+  const fieldLabel={empType:'Type',project:'Project',function:'Function',seniority:'Seniority',capPct:'CapEx %',country:'Country',businessLine:'Business Line'}[field];
   if(matches.length===0){
     preview.innerHTML=`No employees match the selected criteria.`;
     btn.disabled=true;
@@ -579,10 +631,12 @@ function applyMassChange(){
   if(!field||!toVal)return;
   const matches=getMcMatchingEmps();
   if(!matches.length)return;
-  const fieldLabel={project:'Project',function:'Function',seniority:'Seniority',capPct:'CapEx %',country:'Country',businessLine:'Business Line'}[field];
+  const fieldLabel={empType:'Type',project:'Project',function:'Function',seniority:'Seniority',capPct:'CapEx %',country:'Country',businessLine:'Business Line'}[field];
   if(!confirm(`Update ${fieldLabel} for ${matches.length} employee${matches.length!==1?'s':''}?`))return;
   matches.forEach(emp=>{
-    if(field==='project'){
+    if(field==='empType'){
+      emp.empType=toVal;
+    } else if(field==='project'){
       if(fromVal){
         // Replace specific project allocation
         (emp.allocations||[]).forEach(a=>{if(a.projId===fromVal)a.projId=toVal});

@@ -166,6 +166,7 @@ export function ensureStateFields(){
     if(!e.termDate)e.termDate='';
     if(!e.marketCode)e.marketCode='';
     if(!e.businessLine)e.businessLine='';
+    if(!e.empType)e.empType='existing';
     if(!e.allocations)e.allocations=[];
     // Migrate standalone projectId into allocations
     if(e.projectId){

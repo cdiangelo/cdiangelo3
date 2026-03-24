@@ -28,10 +28,12 @@ export function initDarkMode(){
     document.body.classList.toggle('ops-mode',toggleOps.checked);
     localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
     window.renderMonthly();
+    if(window.renderEmployees)window.renderEmployees();
+    if(window.syncFormCompVisibility)window.syncFormCompVisibility();
   });
   // Restore preferences
   if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;landingToggleDark.checked=true;vendorToggleDark.checked=true;if(depToggleDark)depToggleDark.checked=true;if(revToggleDark)revToggleDark.checked=true;document.documentElement.classList.add('dark')}
-  if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode')}
+  if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode');if(window.syncFormCompVisibility)window.syncFormCompVisibility()}
   // Color scheme slider (synced across app + landing)
   const colorSchemeSlider=document.getElementById('colorSchemeSlider');
   const colorSchemeLabel=document.getElementById('colorSchemeLabel');
