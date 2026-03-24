@@ -16,9 +16,10 @@ function initProjects(){
     saveState();
     ['projCode','projProduct','projCategory','projDesc'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('projMarket').value='';
-    renderProjects();refreshProjectFilters();refreshProjectDropdown();
+    renderProjects();window.refreshProjectFilters();window.refreshProjectDropdown();
   });
 }
+initProjects();
 
 function deleteProject(id){
   if(confirm('Delete this project? Employee allocations referencing it will be removed.')){
@@ -27,7 +28,7 @@ function deleteProject(id){
       // projectId no longer used — allocations only
     });
     state.projects=state.projects.filter(p=>p.id!==id);
-    saveState();renderProjects();refreshProjectFilters();refreshProjectDropdown();
+    saveState();renderProjects();window.refreshProjectFilters();window.refreshProjectDropdown();
   }
 }
 window.deleteProject = deleteProject;
