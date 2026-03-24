@@ -262,7 +262,6 @@ function addDepRow(){
 
 function initDepModule(){
   if(depModuleInited)return;
-  depModuleInited=true;
   // Tab switching
   document.getElementById('depNav').querySelectorAll('[data-dtab]').forEach(btn=>{
     btn.addEventListener('click',function(){
@@ -380,6 +379,7 @@ function initDepModule(){
   });
   renderDepQaList();updateDepQaTotal();populateDepQaImpairEntries();
   renderDepreciationGrid();
+  depModuleInited=true;
 }
 
 

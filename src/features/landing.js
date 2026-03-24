@@ -98,7 +98,7 @@ function showApp(){
 function showVendor(){
   hideAllModules();
   document.getElementById('vendorModule').style.display='';
-  if(!vendorModuleInited){vendorModuleInited=true;initVendorModule()}
+  if(!vendorModuleInited){try{initVendorModule();vendorModuleInited=true}catch(e){console.error('Vendor init error:',e)}}
   else{window.renderVendorGridPublic()}
 }
 function showDepreciation(){

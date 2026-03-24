@@ -444,7 +444,6 @@ function renderRevFcChart(years){
 
 function initRevenueModule(){
   if(revenueModuleInited)return;
-  revenueModuleInited=true;
   // Tab switching
   document.getElementById('revNav').querySelectorAll('[data-rtab]').forEach(btn=>{
     btn.addEventListener('click',function(){
@@ -561,6 +560,7 @@ function initRevenueModule(){
   renderRevenueGrid();
   renderRevenueKpis();
   renderContractualList();
+  revenueModuleInited=true;
 }
 
 // Generic helpers for month range bars and import/export
