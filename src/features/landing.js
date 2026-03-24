@@ -627,37 +627,47 @@ function renderAll(){
   fns.forEach(fn=>{try{fn()}catch(e){console.error('Render error in '+fn.name+':',e)}});
 }
 
+// Run each init step independently so one failure doesn't kill the rest
+function safeRun(label,fn){try{fn()}catch(e){console.error('Init error in '+label+':',e)}}
+
+function runInitSequence(){
+  safeRun('updateSessionUI',()=>updateSessionUI());
+  safeRun('initDropdowns',()=>initDropdowns());
+  safeRun('renderAll',()=>renderAll());
+  safeRun('initScenarioPane',()=>{initScenarioPane();initDataPanel();window._scenInited=true});
+  safeRun('initSessionModal',()=>initSessionModal());
+  safeRun('renderPnlWalk',()=>renderPnlWalk());
+  safeRun('renderLandingCharts',()=>renderLandingCharts());
+  safeRun('renderLandingRevenue',()=>renderLandingRevenue());
+}
+
 // Check for session auto-reconnect
 (async function initApp(){
   const savedSession=localStorage.getItem('compPlanSession');
   if(savedSession){
     try{
       window.sessionContext=JSON.parse(savedSession);
-      // Verify session still exists
       const resp=await fetch(`/api/sessions/${window.sessionContext.code}`);
       if(resp.ok){
         window.persistenceMode='session';
-        // Load the version
         const vResp=await fetch(`/api/sessions/${window.sessionContext.code}/versions/${window.sessionContext.versionId}`);
         if(vResp.ok){
           const v=await vResp.json();
           { const _d=JSON.parse(v.state_data);Object.keys(state).forEach(k=>delete state[k]);Object.assign(state,_d); }ensureStateFields();
-          loadUserColorScheme();
-          updateSessionUI();initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-          initSessionModal();renderPnlWalk();renderLandingCharts();renderLandingRevenue();connectWebSocket();
+          safeRun('loadUserColorScheme',()=>loadUserColorScheme());
+          runInitSequence();
+          safeRun('connectWebSocket',()=>connectWebSocket());
           return;
         }
       }
-    }catch(e){/* fall through to template mode */}
-    // Failed to reconnect — fall back to template
+    }catch(e){console.warn('Session reconnect failed, falling back to template mode:',e)}
     window.sessionContext=null;localStorage.removeItem('compPlanSession');
   }
   // Template mode
-  loadState();
+  safeRun('loadState',()=>loadState());
   window.currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
-  updateWsDisplay();updateSessionUI();
-  initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-  initSessionModal();renderPnlWalk();renderLandingCharts();renderLandingRevenue();
+  safeRun('updateWsDisplay',()=>updateWsDisplay());
+  runInitSequence();
 })();
 
 /* ── window assignments for inline onclick / HTML-referenced functions ── */

@@ -15470,37 +15470,46 @@ function renderAll(){
   fns.forEach(fn=>{try{fn()}catch(e){console.error('Render error in '+fn.name+':',e)}});
 }
 
+// Run each init step independently so one failure doesn't kill the rest
+function _s(label,fn){try{fn()}catch(e){console.error('Init error in '+label+':',e)}}
+function _runInit(){
+  _s('updateSessionUI',()=>updateSessionUI());
+  _s('initDropdowns',()=>initDropdowns());
+  _s('renderAll',()=>renderAll());
+  _s('initScenarioPane',()=>{initScenarioPane();initDataPanel();window._scenInited=true});
+  _s('initSessionModal',()=>initSessionModal());
+  _s('renderPnlWalk',()=>renderPnlWalk());
+  _s('renderLandingCharts',()=>renderLandingCharts());
+  _s('renderLandingRevenue',()=>renderLandingRevenue());
+}
+
 // Check for session auto-reconnect
 (async function initApp(){
   const savedSession=localStorage.getItem('compPlanSession');
   if(savedSession){
     try{
       sessionContext=JSON.parse(savedSession);
-      // Verify session still exists
       const resp=await fetch(`/api/sessions/${sessionContext.code}`);
       if(resp.ok){
         persistenceMode='session';
-        // Load the version
         const vResp=await fetch(`/api/sessions/${sessionContext.code}/versions/${sessionContext.versionId}`);
         if(vResp.ok){
           const v=await vResp.json();
           state=JSON.parse(v.state_data);ensureStateFields();
-          loadUserColorScheme();
-          updateSessionUI();initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-          initSessionModal();renderPnlWalk();renderLandingCharts();renderLandingRevenue();connectWebSocket();
+          _s('loadUserColorScheme',()=>loadUserColorScheme());
+          _runInit();
+          _s('connectWebSocket',()=>connectWebSocket());
           return;
         }
       }
-    }catch(e){/* fall through to template mode */}
-    // Failed to reconnect — fall back to template
+    }catch(e){console.warn('Session reconnect failed:',e)}
     sessionContext=null;localStorage.removeItem('compPlanSession');
   }
   // Template mode
-  loadState();
+  _s('loadState',()=>loadState());
   currentWorkspaceName=localStorage.getItem('compPlanActiveWS')||'Default';
-  updateWsDisplay();updateSessionUI();
-  initDropdowns();renderAll();initScenarioPane();initDataPanel();window._scenInited=true;
-  initSessionModal();renderPnlWalk();renderLandingCharts();renderLandingRevenue();
+  _s('updateWsDisplay',()=>updateWsDisplay());
+  _runInit();
 })();
 
 // ── Universal Sticky Notes ──
