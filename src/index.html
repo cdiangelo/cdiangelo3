@@ -161,6 +161,17 @@ Template Mode &mdash; changes saved in this browser only.
   <div class="stb-right" id="stbUsers"></div>
 </div>
 
+<!-- GLOBAL TOOLBAR — fixed controls across all panes -->
+<div id="globalToolbar" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:90;flex-wrap:wrap">
+<button class="btn btn-sm" id="globalBackBtn" style="display:none">Back to Overview</button>
+<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="globalToggleDark"><span class="toggle-track"></span>Dark</label>
+<label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="globalToggleOps"><span class="toggle-track"></span>Ops View</label>
+<div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
+<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="globalColorSchemeSlider">
+<span class="color-scheme-label" id="globalColorSchemeLabel">Muted</span>
+</div>
+</div>
+
 <!-- LANDING PAGE -->
 <div id="landingPage">
 <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -170,20 +181,14 @@ Template Mode &mdash; changes saved in this browser only.
 <p class="landing-subtitle">Select a module to begin, or review the consolidated P&amp;L summary below.</p>
 </div>
 <span class="workspace-indicator" id="landingWsIndicator" style="margin-left:4px"></span>
-
-<!-- Milestones Pane -->
-<div class="milestones-wrap" id="milestonesWrap">
-<div class="milestones-bubbles" id="milestonesBubbles"></div>
-</div>
-
-</div>
-<div style="display:flex;align-items:center;gap:12px;margin-top:8px">
-<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="landingToggleDark"><span class="toggle-track"></span>Dark</label>
+<div style="display:flex;align-items:center;gap:12px;margin-left:8px">
 <label class="header-toggle" title="Show/hide revenue module"><input type="checkbox" id="landingToggleRevenue"><span class="toggle-track"></span>Revenue</label>
-<div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
-<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="landingColorSchemeSlider">
-<span class="color-scheme-label" id="landingColorSchemeLabel">Muted</span>
 </div>
+</div>
+
+<!-- Milestones / Goals Pane (right-aligned) -->
+<div class="milestones-wrap" id="milestonesWrap">
+<div id="milestoneRows"></div>
 </div>
 </div>
 
@@ -321,16 +326,7 @@ Template Mode &mdash; changes saved in this browser only.
 <header>
 <div class="container">
 <div style="display:flex;align-items:center;gap:8px"><h1>Comp<span>Plan</span></h1>
-<button class="btn btn-sm" id="compBackBtn" onclick="showLanding()">Back to Overview</button>
 <span class="workspace-indicator" id="wsIndicator" style="margin-left:4px">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span><span class="save-indicator" id="saveIndicator" style="display:none"></span></span>
-<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="toggleDark"><span class="toggle-track"></span>Dark</label>
-<label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="toggleOps"><span class="toggle-track"></span>Ops View</label>
-<div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
-<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="colorSchemeSlider">
-<span class="color-scheme-label" id="colorSchemeLabel">Muted</span>
-</div>
-</div>
 </div>
 <nav id="mainNav">
 <div class="nav-group">
@@ -340,7 +336,6 @@ Template Mode &mdash; changes saved in this browser only.
 <button data-tab="dashboard">Dashboard</button>
 <button data-tab="employees">Employees</button>
 <button data-tab="monthly">Monthly Spread</button>
-<button data-tab="forecast">Long Term Forecast</button>
 <button data-tab="scratch">Scratch Pad</button>
 </div>
 </div>
@@ -1029,15 +1024,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <header>
 <div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <h1 style="font-size:1.3rem;color:var(--accent)">Vendor<span style="color:var(--secondary)">Spend</span></h1>
-<button class="btn btn-sm" id="vendorBackBtn">Back to Overview</button>
 <span class="workspace-indicator" id="vendorWsIndicator" style="margin-left:4px"></span>
-<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="vendorToggleDark"><span class="toggle-track"></span>Dark</label>
-<div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
-<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="vendorColorSchemeSlider">
-<span class="color-scheme-label" id="vendorColorSchemeLabel">Muted</span>
-</div>
-</div>
 </div>
 </header>
 <main class="container" style="padding-top:24px">
@@ -1688,12 +1675,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <header>
 <div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <h1 style="font-size:1.3rem;color:var(--accent)">D&amp;A<span style="color:var(--secondary)">&amp; Assets</span></h1>
-<button class="btn btn-sm" id="depBackBtn">Back to Overview</button>
 <span class="workspace-indicator" id="depWsIndicator" style="margin-left:4px"></span>
-<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="depToggleDark"><span class="toggle-track"></span>Dark</label>
-<div class="color-scheme-wrap" title="Chart color palette"><input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="depColorSchemeSlider"><span class="color-scheme-label" id="depColorSchemeLabel">Muted</span></div>
-</div>
 </div>
 </header>
 <main class="container" style="padding-top:24px">
@@ -2070,12 +2052,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <header>
 <div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <h1 style="font-size:1.3rem;color:var(--accent)">Tech<span style="color:var(--secondary)">Revenue</span></h1>
-<button class="btn btn-sm" id="revBackBtn">Back to Overview</button>
 <span class="workspace-indicator" id="revWsIndicator" style="margin-left:4px"></span>
-<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="revToggleDark"><span class="toggle-track"></span>Dark</label>
-<div class="color-scheme-wrap" title="Chart color palette"><input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="revColorSchemeSlider"><span class="color-scheme-label" id="revColorSchemeLabel">Muted</span></div>
-</div>
 </div>
 </header>
 <main class="container" style="padding-top:24px">
@@ -2476,12 +2453,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <header>
 <div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <h1 style="font-size:1.3rem;color:var(--accent)">Long-Term<span style="color:var(--secondary)">Forecast</span></h1>
-<button class="btn btn-sm" id="ltfBackBtn">Back to Overview</button>
 <span class="workspace-indicator" id="ltfWsIndicator" style="margin-left:4px"></span>
-<div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="ltfToggleDark"><span class="toggle-track"></span>Dark</label>
-<div class="color-scheme-wrap" title="Chart color palette"><input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="ltfColorSchemeSlider"><span class="color-scheme-label" id="ltfColorSchemeLabel">Muted</span></div>
-</div>
 </div>
 </header>
 <main class="container" style="padding:24px 40px">
@@ -2498,7 +2470,20 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div id="ltfFactorPills" class="factor-pills"></div>
+<div class="controls" style="margin-bottom:16px">
+<div>
+<label>Split By</label>
+<div class="toggle-group" id="ltfSplitToggle">
+<button class="btn active" data-split="total">Total</button>
+<button class="btn" data-split="project">Project</button>
+<button class="btn" data-split="function">Function</button>
+<button class="btn" data-split="country">Country</button>
+<button class="btn" data-split="comp">Base / Bonus / Benefits</button>
+</div>
+</div>
+</div>
 <div class="chart-container" style="height:380px"><canvas id="ltfChart"></canvas></div>
+<div class="card" style="margin-top:12px;margin-bottom:16px"><div style="height:140px;position:relative"><canvas id="ltfFteChart"></canvas></div></div>
 <div style="margin-top:12px">
 <button class="btn btn-sm" id="ltfTableToggle" style="font-size:.76rem">&#9654; Show Details</button>
 <div id="ltfTableWrap" class="table-wrap" style="display:none;margin-top:8px"><table class="forecast-table" id="ltfTable"></table></div>

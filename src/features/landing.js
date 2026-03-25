@@ -1,6 +1,6 @@
 // ── landing.js — ES module extracted from index.html lines 14872–15479 ──
 import { state, saveState, ensureStateFields } from '../lib/state.js';
-import { fmt, esc, CURRENT_YEAR } from '../lib/constants.js';
+import { fmt, esc, CURRENT_YEAR, FUNCTIONS, COUNTRIES } from '../lib/constants.js';
 import { getMonthlyComp, getMonthlyCapEx } from '../lib/proration.js';
 
 /* ── globals accessed via window (not yet modularised) ── */
@@ -90,11 +90,13 @@ function showLanding(){
   hideAllModules();
   document.getElementById('landingPage').style.display='';
   renderPnlWalk();renderLandingCharts();renderLandingRevenue();
+  if(window._updateGlobalToolbar)window._updateGlobalToolbar();
 }
 function showApp(){
   hideAllModules();
   document.getElementById('appShell').style.display='';
   renderAll();
+  if(window._updateGlobalToolbar)window._updateGlobalToolbar();
 }
 let vendorModuleInited=false;
 function showVendor(){
@@ -102,6 +104,7 @@ function showVendor(){
   document.getElementById('vendorModule').style.display='';
   if(!vendorModuleInited){try{initVendorModule();vendorModuleInited=true}catch(e){console.error('Vendor init error:',e)}}
   else{window.renderVendorGridPublic()}
+  if(window._updateGlobalToolbar)window._updateGlobalToolbar();
 }
 function showDepreciation(){
   hideAllModules();
@@ -109,11 +112,13 @@ function showDepreciation(){
   initDepModule();
   initAssetTab();
   setTimeout(initDepScratch,50);
+  if(window._updateGlobalToolbar)window._updateGlobalToolbar();
 }
 function showRevenue(){
   hideAllModules();
   document.getElementById('revenueModule').style.display='';
   initRevenueModule();
+  if(window._updateGlobalToolbar)window._updateGlobalToolbar();
 }
 
 let ltfModuleInited=false;
@@ -123,6 +128,7 @@ function showLtf(){
   if(!ltfModuleInited){initLtfModule();ltfModuleInited=true}
   if(window.renderForecastFactorPills)window.renderForecastFactorPills();
   renderLtfChart();
+  if(window._updateGlobalToolbar)window._updateGlobalToolbar();
 }
 
 document.getElementById('modCompPlan').addEventListener('click',showApp);
@@ -130,10 +136,7 @@ document.getElementById('modVendor').addEventListener('click',showVendor);
 document.getElementById('modDepreciation').addEventListener('click',showDepreciation);
 document.getElementById('modLtf').addEventListener('click',showLtf);
 document.getElementById('modRevenue').addEventListener('click',showRevenue);
-document.getElementById('vendorBackBtn').addEventListener('click',showLanding);
-document.getElementById('depBackBtn').addEventListener('click',showLanding);
-document.getElementById('revBackBtn').addEventListener('click',showLanding);
-document.getElementById('ltfBackBtn').addEventListener('click',showLanding);
+// Back buttons removed — global toolbar handles navigation
 
 // Revenue pane toggle
 document.getElementById('toggleRevenuePane').addEventListener('click',function(){
@@ -580,7 +583,9 @@ function renderLandingRevForecastChart(){
 
 // ── LONG-TERM FORECAST MODULE ──
 let ltfChartInst=null;
+let ltfFteChartInst=null;
 let ltfView='pnl';
+let ltfSplit='total';
 
 // Per-account Y/Y bubbles plugin — shows C&B / OAO / D&A growth in differently shaded pills
 const ltfYoyPlugin={
@@ -661,6 +666,11 @@ function initLtfModule(){
     document.querySelectorAll('#ltfViewToggle .btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');ltfView=b.dataset.ltfview;renderLtfChart();
   }));
+  // Split toggle
+  document.querySelectorAll('#ltfSplitToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#ltfSplitToggle .btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');ltfSplit=b.dataset.split;renderLtfChart();
+  }));
   // Table toggle
   const tblToggle=document.getElementById('ltfTableToggle');
   const tblWrap=document.getElementById('ltfTableWrap');
@@ -669,6 +679,52 @@ function initLtfModule(){
     tblWrap.style.display=show?'':'none';
     tblToggle.innerHTML=(show?'&#9660;':'&#9654;')+' '+(show?'Hide':'Show')+' Details';
   });
+}
+
+function buildLtfSplitGroups(emps){
+  let splitGroups=null;
+  let splitGroupKeys={};
+  if(ltfSplit==='project'){
+    splitGroups={};
+    const allocTracker={};
+    emps.forEach(e=>{allocTracker[e.id]=0});
+    state.projects.forEach(p=>{
+      const allocated=[];
+      emps.forEach(e=>{
+        if(!e.allocations)return;
+        const alloc=e.allocations.find(a=>a.projId===p.id);
+        if(!alloc)return;
+        const pct=alloc.pct/100;
+        allocTracker[e.id]=(allocTracker[e.id]||0)+pct;
+        allocated.push({...e,salary:Math.round((e.salary||0)*pct),capPct:e.capPct,_allocPct:pct});
+      });
+      if(allocated.length){splitGroups[p.code]=allocated;splitGroupKeys[p.code]=p.id}
+    });
+    const genProj=state.projects.find(p=>p.code==='GEN-000');
+    const genCode=genProj?'GEN-000':'Unassigned';
+    emps.forEach(e=>{
+      const used=allocTracker[e.id]||0;
+      if(used<0.999){
+        const rem=1-used;
+        if(!splitGroups[genCode])splitGroups[genCode]=[];
+        splitGroups[genCode].push({...e,salary:Math.round((e.salary||0)*rem),capPct:e.capPct,_allocPct:rem});
+        if(!splitGroupKeys[genCode])splitGroupKeys[genCode]=genProj?genProj.id:null;
+      }
+    });
+  } else if(ltfSplit==='function'){
+    splitGroups={};
+    const used=new Set();
+    FUNCTIONS.forEach(f=>{const fe=emps.filter(e=>{if(e.function===f){used.add(e.id);return true}return false});if(fe.length){splitGroups[f]=fe;splitGroupKeys[f]=f}});
+    const other=emps.filter(e=>!used.has(e.id));
+    if(other.length){splitGroups['Other']=other;splitGroupKeys['Other']='Other'}
+  } else if(ltfSplit==='country'){
+    splitGroups={};
+    const used=new Set();
+    COUNTRIES.forEach(c=>{const ce=emps.filter(e=>{if(e.country===c){used.add(e.id);return true}return false});if(ce.length){splitGroups[c]=ce;splitGroupKeys[c]=c}});
+    const other=emps.filter(e=>!used.has(e.id));
+    if(other.length){splitGroups['Other']=other;splitGroupKeys['Other']='Other'}
+  }
+  return {splitGroups,splitGroupKeys};
 }
 
 function renderLtfChart(){
@@ -682,8 +738,9 @@ function renderLtfChart(){
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+'$'+(a>=1e6?(a/1e6).toFixed(1)+'M':(a/1000).toFixed(0)+'K')};
   const isPnl=ltfView==='pnl';
+  const lcc=getChartColors();
 
-  // Compute C&B via projectForecast
+  // Compute total C&B via projectForecast (always needed for OAO/D&A context)
   const cbRows=projectForecast(emps);
   const cbOpex=cbRows.map(r=>r.opex);
   const cbCapex=cbRows.map(r=>r.capex);
@@ -699,58 +756,109 @@ function renderLtfChart(){
   const cCapEx=getContractorCapExTotal();
 
   // Compute D&A from CapEx depreciation schedule
-  // Each year's total CapEx placed in service 1/1 next year, straight-line over asset life
   const assetLife=state.daAssetLifeYrs||5;
   const daBase=getDepreciationTotal();
   const daYears=[daBase];
   const totalCapexByYear=cbCapex.map(cb=>cb+cCapEx);
   for(let yr=1;yr<=5;yr++){
     let yearDa=0;
-    // Each vintage v (year 0=current, 1=year1, etc.) placed in service at start of year v+1
     for(let v=0;v<yr;v++){
-      const yearsInService=yr-v; // years since placed in service (1-based)
+      const yearsInService=yr-v;
       if(yearsInService<=assetLife){
-        // Full year of depreciation = CapEx / assetLife
         yearDa+=Math.round(totalCapexByYear[v]/assetLife);
       }
     }
-    // Existing D&A base rolls off linearly over asset life
     const baseRemaining=Math.max(0,Math.round(daBase*(1-yr/assetLife)));
     yearDa+=baseRemaining;
     daYears.push(yearDa);
   }
 
-  const lcc=getChartColors();
   if(ltfChartInst)ltfChartInst.destroy();
+  if(ltfFteChartInst)ltfFteChartInst.destroy();
+
+  // Build split groups if needed
+  const {splitGroups,splitGroupKeys}=buildLtfSplitGroups(emps);
+  let groupForecasts=null;
 
   // Account data for per-account Y/Y bubbles
   const acctColors={cb:lcc[0],oao:lcc[1],da:lcc[2]};
 
   let datasets=[];
   let acctData=[];
-  if(isPnl){
-    // P&L: stacked C&B/OAO/D&A positive, CapEx negative
-    datasets=[
-      {label:'C&B',data:cbOpex.slice(),backgroundColor:lcc[0],stack:'pos'},
-      {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'pos'},
-      {label:'D&A',data:daYears.slice(),backgroundColor:lcc[2],stack:'pos'},
-      {label:'CapEx',data:cbCapex.map((v,i)=>-(v+(i===0?cCapEx:cCapEx))),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
-    ];
-    acctData=[
-      {label:'C&B',data:cbOpex,color:acctColors.cb},
-      {label:'OAO',data:oaoYears,color:acctColors.oao},
-      {label:'D&A',data:daYears,color:acctColors.da}
-    ];
+
+  if(splitGroups && ltfSplit!=='comp'){
+    // ── Split by project/function/country ──
+    const groupNames=Object.keys(splitGroups);
+    groupForecasts={};
+    groupNames.forEach(g=>groupForecasts[g]=projectForecast(splitGroups[g],splitGroupKeys[g]));
+
+    // Normalize group values to match totals
+    yearLabels.forEach((_,yi)=>{
+      const tr=cbRows[yi];
+      let sumTotal=0,sumCapex=0;
+      groupNames.forEach(g=>{const r=groupForecasts[g][yi];if(r){sumTotal+=r.total;sumCapex+=r.capex}});
+      if(sumTotal){
+        const ratioT=tr.total/sumTotal;
+        const ratioC=sumCapex?tr.capex/sumCapex:0;
+        groupNames.forEach(g=>{const r=groupForecasts[g][yi];if(r){r.total=Math.round(r.total*ratioT);r.capex=Math.round(r.capex*ratioC);r.opex=r.total-r.capex}});
+      }
+    });
+
+    // Stacked chart by group (C&B portion only — OAO/D&A stay as separate stacks)
+    groupNames.forEach((g,i)=>{
+      const gf=groupForecasts[g];
+      const data=yearLabels.map((_,yi)=>{const r=gf[yi];return r?(isPnl?r.opex:r.total):0});
+      datasets.push({label:g.length>20?g.slice(0,18)+'\u2026':g,data,backgroundColor:lcc[i%lcc.length],stack:'pos'});
+    });
+    // Add OAO and D&A on top
+    datasets.push({label:'OAO',data:oaoYears.slice(),backgroundColor:hexToRgba(lcc[1],0.6),stack:'pos'});
+    if(isPnl){
+      datasets.push({label:'D&A',data:daYears.slice(),backgroundColor:hexToRgba(lcc[2],0.6),stack:'pos'});
+      datasets.push({label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'});
+    }
+  } else if(ltfSplit==='comp'){
+    // ── Split by Base / Bonus / Benefits ──
+    if(isPnl){
+      datasets=[
+        {label:'Base (OpEx)',data:cbRows.map(r=>Math.round(r.base*(1-r.capex/Math.max(r.total,1)))),backgroundColor:lcc[0],stack:'pos'},
+        {label:'Bonus (OpEx)',data:cbRows.map(r=>Math.round(r.bonus*(1-r.capex/Math.max(r.total,1)))),backgroundColor:lcc[1],stack:'pos'},
+        {label:'Benefits (OpEx)',data:cbRows.map(r=>Math.round(r.benefits*(1-r.capex/Math.max(r.total,1)))),backgroundColor:lcc[2],stack:'pos'},
+        {label:'OAO',data:oaoYears.slice(),backgroundColor:hexToRgba(lcc[3]||lcc[1],0.6),stack:'pos'},
+        {label:'D&A',data:daYears.slice(),backgroundColor:hexToRgba(lcc[4]||lcc[2],0.6),stack:'pos'},
+        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
+      ];
+    } else {
+      datasets=[
+        {label:'Base',data:cbRows.map(r=>r.base),backgroundColor:lcc[0],stack:'pos'},
+        {label:'Bonus',data:cbRows.map(r=>r.bonus),backgroundColor:lcc[1],stack:'pos'},
+        {label:'Benefits',data:cbRows.map(r=>r.benefits),backgroundColor:lcc[2],stack:'pos'},
+        {label:'OAO',data:oaoYears.slice(),backgroundColor:hexToRgba(lcc[3]||lcc[1],0.6),stack:'pos'}
+      ];
+    }
   } else {
-    // Total Investment: C&B gross + OAO (no D&A, no CapEx offset)
-    datasets=[
-      {label:'C&B',data:cbGross.slice(),backgroundColor:lcc[0],stack:'s0'},
-      {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'s0'}
-    ];
-    acctData=[
-      {label:'C&B',data:cbGross,color:acctColors.cb},
-      {label:'OAO',data:oaoYears,color:acctColors.oao}
-    ];
+    // ── Total view (default) ──
+    if(isPnl){
+      datasets=[
+        {label:'C&B',data:cbOpex.slice(),backgroundColor:lcc[0],stack:'pos'},
+        {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'pos'},
+        {label:'D&A',data:daYears.slice(),backgroundColor:lcc[2],stack:'pos'},
+        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
+      ];
+      acctData=[
+        {label:'C&B',data:cbOpex,color:acctColors.cb},
+        {label:'OAO',data:oaoYears,color:acctColors.oao},
+        {label:'D&A',data:daYears,color:acctColors.da}
+      ];
+    } else {
+      datasets=[
+        {label:'C&B',data:cbGross.slice(),backgroundColor:lcc[0],stack:'s0'},
+        {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'s0'}
+      ];
+      acctData=[
+        {label:'C&B',data:cbGross,color:acctColors.cb},
+        {label:'OAO',data:oaoYears,color:acctColors.oao}
+      ];
+    }
   }
 
   window.stackedBarDatalabels(datasets,tickColor,8,'ltf');
@@ -765,23 +873,96 @@ function renderLtfChart(){
     }
   });
 
-  // Detail table
-  const tbl=document.getElementById('ltfTable');
-  if(tbl){
-    const hdr=isPnl?'<thead><tr><th>Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>D&A</th><th>CapEx</th><th>OpEx</th></tr></thead>':'<thead><tr><th>Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>Tot Inv</th></tr></thead>';
-    let body='<tbody>';
-    yearLabels.forEach((yr,i)=>{
-      const hc=cbRows[i]?cbRows[i].hc:0;
-      if(isPnl){
-        const opex=cbOpex[i]+oaoYears[i]+daYears[i];
-        body+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td><td>${fmt(cbOpex[i])}</td><td>${fmt(oaoYears[i])}</td><td>${fmt(daYears[i])}</td><td>${fmt(cbCapex[i]+cCapEx)}</td><td style="font-weight:600;color:var(--success)">${fmt(opex)}</td></tr>`;
+  // ── FTE Chart ──
+  const fteCanvas=document.getElementById('ltfFteChart');
+  if(fteCanvas){
+    let fteDatasets=[];
+    if(splitGroups && ltfSplit!=='comp'){
+      const gNames=Object.keys(splitGroups);
+      gNames.forEach((g,i)=>{
+        const gf=groupForecasts[g];
+        fteDatasets.push({label:g.length>20?g.slice(0,18)+'\u2026':g,data:yearLabels.map((_,yi)=>gf[yi]?gf[yi].hc:0),borderColor:lcc[i%lcc.length],backgroundColor:hexToRgba(lcc[i%lcc.length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
+      });
+    } else {
+      fteDatasets=[{label:'Projected FTEs',data:cbRows.map(r=>r.hc),borderColor:lcc[0],backgroundColor:hexToRgba(lcc[0],0.15),fill:true,tension:0.4,pointRadius:3,borderWidth:2}];
+    }
+    // Total FTE datalabel on topmost dataset
+    fteDatasets.forEach((ds,i)=>{
+      if(i===fteDatasets.length-1){
+        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},
+          formatter:(_,ctx)=>{let sum=0;fteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});return sum||''}};
       } else {
-        const totInv=cbGross[i]+oaoYears[i];
-        body+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td><td>${fmt(cbGross[i])}</td><td>${fmt(oaoYears[i])}</td><td style="font-weight:600;color:var(--accent)">${fmt(totInv)}</td></tr>`;
+        ds.datalabels={display:false};
       }
     });
-    body+='</tbody>';
-    tbl.innerHTML=hdr+body;
+    ltfFteChartInst=new Chart(fteCanvas,{
+      type:'line',data:{labels:yearLabels,datasets:fteDatasets},
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
+        plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:14,font:{size:11}}},datalabels:{},tooltip:window.FTE_TOOLTIP||{}},
+        scales:{
+          x:{ticks:{color:tickColor,font:{size:10}},grid:{display:false},stacked:true},
+          y:{beginAtZero:true,stacked:true,ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor},title:{display:true,text:'Projected FTEs',color:tickColor,font:{size:10}}}
+        }
+      }
+    });
+  }
+
+  // ── Detail table ──
+  const tbl=document.getElementById('ltfTable');
+  if(tbl){
+    if(splitGroups && ltfSplit!=='comp'){
+      const groupNames=Object.keys(splitGroups);
+      const showOpex=isPnl;
+      let html='<thead><tr><th>Year</th><th>HC</th>';
+      groupNames.forEach(g=>html+=`<th class="split-th">${g.length>15?g.slice(0,13)+'\u2026':g}</th>`);
+      html+=`<th class="split-th col-divider">C&B</th><th>OAO</th>${showOpex?'<th>D&A</th><th>CapEx</th><th>OpEx</th>':'<th>Tot Inv</th>'}</tr></thead><tbody>`;
+      yearLabels.forEach((yr,i)=>{
+        const hc=cbRows[i]?cbRows[i].hc:0;
+        html+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td>`;
+        groupNames.forEach(g=>{const r=groupForecasts[g][i];const v=r?(showOpex?r.opex:r.total):0;html+=`<td>${fmt(v)}</td>`});
+        if(showOpex){
+          const opex=cbOpex[i]+oaoYears[i]+daYears[i];
+          html+=`<td class="col-divider">${fmt(cbOpex[i])}</td><td>${fmt(oaoYears[i])}</td><td>${fmt(daYears[i])}</td><td>${fmt(cbCapex[i]+cCapEx)}</td><td style="font-weight:600;color:var(--success)">${fmt(opex)}</td>`;
+        } else {
+          const totInv=cbGross[i]+oaoYears[i];
+          html+=`<td class="col-divider">${fmt(cbGross[i])}</td><td>${fmt(oaoYears[i])}</td><td style="font-weight:600;color:var(--accent)">${fmt(totInv)}</td>`;
+        }
+        html+='</tr>';
+      });
+      html+='</tbody>';
+      tbl.innerHTML=html;
+    } else if(ltfSplit==='comp'){
+      let html=isPnl?'<thead><tr><th>Year</th><th>HC</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>C&B</th><th>OAO</th><th>D&A</th><th>CapEx</th><th>OpEx</th></tr></thead><tbody>'
+        :'<thead><tr><th>Year</th><th>HC</th><th>Base</th><th>Bonus</th><th>Benefits</th><th>C&B</th><th>OAO</th><th>Tot Inv</th></tr></thead><tbody>';
+      yearLabels.forEach((yr,i)=>{
+        const hc=cbRows[i]?cbRows[i].hc:0;
+        const r=cbRows[i]||{base:0,bonus:0,benefits:0};
+        if(isPnl){
+          const opex=cbOpex[i]+oaoYears[i]+daYears[i];
+          html+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td>${fmt(cbOpex[i])}</td><td>${fmt(oaoYears[i])}</td><td>${fmt(daYears[i])}</td><td>${fmt(cbCapex[i]+cCapEx)}</td><td style="font-weight:600;color:var(--success)">${fmt(opex)}</td></tr>`;
+        } else {
+          const totInv=cbGross[i]+oaoYears[i];
+          html+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td><td>${fmt(r.base)}</td><td>${fmt(r.bonus)}</td><td>${fmt(r.benefits)}</td><td>${fmt(cbGross[i])}</td><td>${fmt(oaoYears[i])}</td><td style="font-weight:600;color:var(--accent)">${fmt(totInv)}</td></tr>`;
+        }
+      });
+      html+='</tbody>';
+      tbl.innerHTML=html;
+    } else {
+      const hdr=isPnl?'<thead><tr><th>Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>D&A</th><th>CapEx</th><th>OpEx</th></tr></thead>':'<thead><tr><th>Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>Tot Inv</th></tr></thead>';
+      let body='<tbody>';
+      yearLabels.forEach((yr,i)=>{
+        const hc=cbRows[i]?cbRows[i].hc:0;
+        if(isPnl){
+          const opex=cbOpex[i]+oaoYears[i]+daYears[i];
+          body+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td><td>${fmt(cbOpex[i])}</td><td>${fmt(oaoYears[i])}</td><td>${fmt(daYears[i])}</td><td>${fmt(cbCapex[i]+cCapEx)}</td><td style="font-weight:600;color:var(--success)">${fmt(opex)}</td></tr>`;
+        } else {
+          const totInv=cbGross[i]+oaoYears[i];
+          body+=`<tr><td style="font-weight:600;color:var(--accent)">${yr}</td><td>${hc}</td><td>${fmt(cbGross[i])}</td><td>${fmt(oaoYears[i])}</td><td style="font-weight:600;color:var(--accent)">${fmt(totInv)}</td></tr>`;
+        }
+      });
+      body+='</tbody>';
+      tbl.innerHTML=hdr+body;
+    }
   }
 }
 window.renderLtfChart=renderLtfChart;

@@ -1,32 +1,56 @@
-/* Milestones Component (lines 938-978) */
-.milestones-wrap{display:inline-flex;align-items:center;margin-left:18px;position:relative;vertical-align:middle}
-.milestones-bubbles{display:flex;align-items:center;gap:10px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:10px;padding:6px 12px}
-.ms-bubble{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:var(--panel);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
-.ms-bubble .ms-check{width:14px;height:14px;opacity:.18;transition:opacity .18s;pointer-events:none}
-.ms-bubble .ms-check path{fill:none;stroke:var(--text-dim);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.ms-bubble.done{border-color:var(--success);background:var(--success)}
-.ms-bubble.done .ms-check{opacity:1}
-.ms-bubble.done .ms-check path{stroke:#fff}
-.ms-bubble:hover{transform:scale(1.12);border-color:var(--accent)}
-.ms-bubble.done:hover{border-color:#2e6b36}
-.ms-bubble-add{width:30px;height:30px;border-radius:50%;border:2px dashed var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;opacity:0;flex-shrink:0;font-size:1rem;color:var(--text-dim);line-height:1}
-.milestones-bubbles:hover .ms-bubble-add{opacity:1}
+/* Milestones Component — multi-row with status cycling */
+.milestones-wrap{position:relative;flex-shrink:0;margin-left:auto}
+#milestoneRows{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.ms-row{display:flex;align-items:center;gap:8px}
+.ms-row-label{font-size:.72rem;font-weight:600;color:var(--text-dim);min-width:50px;text-align:right;cursor:pointer;white-space:nowrap;user-select:none;padding:2px 4px;border-radius:4px;transition:background .15s}
+.ms-row-label:hover{background:var(--panel-inset);color:var(--accent)}
+.ms-bubbles{display:flex;align-items:center;gap:8px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:8px;padding:4px 10px}
+.ms-row-delete{font-size:.9rem;color:var(--text-dim);cursor:pointer;opacity:0;transition:opacity .15s;padding:0 2px;line-height:1}
+.ms-row:hover .ms-row-delete{opacity:.6}
+.ms-row-delete:hover{opacity:1!important;color:var(--danger)}
+.ms-add-row{font-size:.68rem;margin-top:2px;opacity:.5;transition:opacity .15s}
+.ms-add-row:hover{opacity:1}
+
+/* Bubble base */
+.ms-bubble{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:var(--panel);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.ms-bubble:hover{transform:scale(1.15);border-color:var(--accent)}
+
+/* Status colors */
+.ms-bubble.status-red{border-color:#c0392b;background:rgba(192,57,43,.15)}
+.ms-bubble.status-red .ms-icon{color:#c0392b}
+.ms-bubble.status-yellow{border-color:#d4a017;background:rgba(212,160,23,.18)}
+.ms-bubble.status-yellow .ms-icon{color:#d4a017}
+.ms-bubble.status-green{border-color:var(--success);background:var(--success)}
+.ms-bubble.status-green .ms-icon{color:#fff}
+
+/* Dark mode adjustments */
+:root.dark .ms-bubble.status-red{background:rgba(192,57,43,.3)}
+:root.dark .ms-bubble.status-yellow{background:rgba(212,160,23,.3)}
+
+/* Icon */
+.ms-icon{width:12px;height:12px;pointer-events:none}
+.ms-icon path,.ms-icon circle{fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ms-icon circle{fill:currentColor;stroke:none}
+
+/* Add bubble (+) */
+.ms-bubble-add{width:26px;height:26px;border-radius:50%;border:2px dashed var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;opacity:0;flex-shrink:0;font-size:.85rem;color:var(--text-dim);line-height:1}
+.ms-bubbles:hover .ms-bubble-add{opacity:1}
 .ms-bubble-add:hover{border-color:var(--accent);color:var(--accent);transform:scale(1.12)}
 
 /* Milestone Tooltip */
-.ms-tooltip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:220px;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;font-size:.78rem;pointer-events:none;opacity:0;transition:opacity .15s}
+.ms-tooltip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:200px;max-width:280px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;font-size:.75rem;pointer-events:none;opacity:0;transition:opacity .15s}
 .ms-tooltip.visible{opacity:1;pointer-events:auto}
 .ms-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--border)}
 .ms-tooltip::before{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--panel);z-index:1}
-.ms-tooltip.below{bottom:auto;top:calc(100% + 10px)}
-.ms-tooltip.below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--border)}
-.ms-tooltip.below::before{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--panel)}
 .ms-tooltip .ms-tt-goal{font-weight:700;color:var(--text-dark);margin-bottom:4px;word-break:break-word}
-.ms-tooltip .ms-tt-date{color:var(--text-dim);font-size:.72rem}
-.ms-tooltip .ms-tt-days{font-size:.72rem;margin-top:2px;font-weight:600}
+.ms-tooltip .ms-tt-date{color:var(--text-dim);font-size:.7rem}
+.ms-tooltip .ms-tt-status{font-size:.7rem;margin-top:2px;font-weight:600}
+.ms-tooltip .ms-tt-status.status-not-started{color:#c0392b}
+.ms-tooltip .ms-tt-status.status-partial{color:#d4a017}
+.ms-tooltip .ms-tt-status.status-complete{color:var(--success)}
+.ms-tooltip .ms-tt-days{font-size:.7rem;margin-top:2px;font-weight:600}
 .ms-tooltip .ms-tt-days.overdue{color:var(--danger)}
 .ms-tooltip .ms-tt-days.upcoming{color:var(--success)}
-.ms-tooltip .ms-tt-done{color:var(--success);font-weight:600;margin-top:2px;font-size:.72rem}
 
 /* Milestone Edit Modal */
 .ms-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
