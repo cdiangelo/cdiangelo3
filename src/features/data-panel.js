@@ -61,6 +61,7 @@ function initDataPanel(){
     const name=document.getElementById('dataPanelWsSaveName').value.trim();
     if(!name){alert('Please enter a workspace name');return}
     saveWorkspaceAs(name);
+    window.logAudit('Save Workspace',name);
     document.getElementById('dataPanelWsSaveName').value='';
     renderDataPanelWsList();renderWorkspaceList();
   });
@@ -137,6 +138,7 @@ function initDataPanel(){
           MO_K.forEach(m=>{state.teRows[idx][m]=Math.round((state.teRows[idx][m]||0)*mult)});
         }
       }
+      window.logAudit('Import T&E',imported+' rows');
       saveState();
     });
   });
@@ -170,7 +172,7 @@ function initDataPanel(){
     const file=this.files[0];if(!file)return;
     this.value='';
     const reader=new FileReader();
-    reader.onload=ev=>{try{replaceState(JSON.parse(ev.target.result));ensureStateFields();saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
+    reader.onload=ev=>{try{replaceState(JSON.parse(ev.target.result));ensureStateFields();window.logAudit('Import JSON','Full state replaced from JSON');saveState();renderAll();alert('Import successful!')}catch(err){alert('Invalid JSON file')}};
     reader.readAsText(file);
   });
   // Backup: Share HTML
@@ -376,8 +378,43 @@ function renderDataPanelWsList(){
 }
 
 
+// ── AUDIT LOG ──
+function renderAuditLog(){
+  const container=document.getElementById('auditLogList');
+  if(!container)return;
+  const log=(state.auditLog||[]).slice().reverse();
+  if(!log.length){container.innerHTML='<div style="color:var(--text-dim);padding:6px">No entries yet.</div>';return}
+  let html='';
+  log.forEach(entry=>{
+    const ts=new Date(entry.ts);
+    const time=ts.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    const user=entry.user||'Unknown';
+    html+=`<div style="padding:3px 0;border-bottom:1px solid var(--border-light);display:flex;gap:6px;align-items:baseline">`;
+    html+=`<span style="color:var(--text-dim);font-size:.65rem;white-space:nowrap;min-width:90px">${time}</span>`;
+    html+=`<span style="font-weight:600;color:var(--accent);font-size:.7rem;min-width:60px">${esc(user)}</span>`;
+    html+=`<span style="font-weight:600;font-size:.7rem">${esc(entry.action)}</span>`;
+    html+=`<span style="color:var(--text-dim);font-size:.68rem;flex:1">${esc(entry.detail||'')}</span>`;
+    html+=`</div>`;
+  });
+  container.innerHTML=html;
+}
+
+// Toggle and clear
+document.getElementById('auditLogToggle').addEventListener('click',function(){
+  const wrap=document.getElementById('auditLogWrap');
+  const show=wrap.style.display==='none';
+  wrap.style.display=show?'':'none';
+  this.innerHTML=(show?'&#9660;':'&#9654;')+' Audit Log';
+  if(show)renderAuditLog();
+});
+document.getElementById('auditLogClear').addEventListener('click',()=>{
+  if(!confirm('Clear the audit log?'))return;
+  state.auditLog=[];window.state=state;saveState();renderAuditLog();
+});
+
 /* ── window assignments for inline onclick handlers ── */
 window.renderDataPanelWsList = renderDataPanelWsList;
+window.renderAuditLog = renderAuditLog;
 window.initDataPanel = initDataPanel;
 
 /* ── named exports ── */

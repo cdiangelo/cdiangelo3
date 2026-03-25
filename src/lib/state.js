@@ -140,6 +140,8 @@ export function ensureStateFields(){
   if(state.showRevenuePane===undefined)state.showRevenuePane=true;
   if(!state.revenueForecast)state.revenueForecast=[];
   if(state.landingPnlMode===undefined)state.landingPnlMode='cost';
+  // Audit log
+  if(!state.auditLog)state.auditLog=[];
   // Long-term forecast: OAO Y/Y growth and D&A asset lifecycle
   if(!state.oaoGrowthPct)state.oaoGrowthPct=[5,5,5,5,5];
   if(!state.daAssetLifeYrs)state.daAssetLifeYrs=5;
@@ -203,6 +205,23 @@ export function saveState(){
   else{window.debouncedServerSave();window.broadcastStateChange()}
 }
 
+/** Log an audit entry. action = short verb, detail = concise description.
+ *  Keeps last 200 entries max. */
+export function logAudit(action,detail){
+  if(window.state && window.state !== state) state = window.state;
+  if(!state.auditLog)state.auditLog=[];
+  const ctx=window.sessionContext||{};
+  state.auditLog.push({
+    ts:new Date().toISOString(),
+    user:ctx.userName||'Local User',
+    action,
+    detail
+  });
+  // Cap at 200 entries
+  if(state.auditLog.length>200)state.auditLog=state.auditLog.slice(-200);
+  window.state=state;
+}
+
 export function getBonusPct(emp){if(!emp||!emp.seniority)return 10;return state.bonusMatrix[emp.seniority]?.[emp.function]??DEFAULT_BONUS[emp.seniority]??10}
 export function getBonusAmt(emp){if(!emp)return 0;return Math.round((emp.salary||0)*getBonusPct(emp)/100)}
 export function getBenefitsPct(emp){
@@ -219,6 +238,7 @@ window.state = state;
 window.loadState = loadState;
 window.ensureStateFields = ensureStateFields;
 window.saveState = saveState;
+window.logAudit = logAudit;
 window.getBonusPct = getBonusPct;
 window.getBonusAmt = getBonusAmt;
 window.getBenefitsPct = getBenefitsPct;

@@ -222,6 +222,7 @@ document.getElementById('rosterFileInput').addEventListener('change',function(){
     });
     flushEmp(); // flush last employee
 
+    window.logAudit('Import Roster',added+' added, '+updated+' updated, '+skipped+' skipped');
     saveState();window.renderAll();
     // Reset scenario snapshots so they pick up the new roster
     window.budgetScenario=null;window.forecastScenario=null;window.budgetScenarioDirty=false;window.fcScenarioDirty=false;

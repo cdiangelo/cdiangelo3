@@ -97,6 +97,7 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
       const saveType=isOps?emp.empType:empType;
       Object.assign(emp,{name,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,allocations,empType:saveType});
     }
+    window.logAudit('Edit Employee',name+' ('+func+', '+country+')');
     editingId=null;
     document.getElementById('formTitle').textContent='Add Employee';
     document.getElementById('btnSaveEmp').textContent='Add Employee';
@@ -107,6 +108,7 @@ document.getElementById('btnSaveEmp').addEventListener('click',()=>{
       const empName=count>1?name+' '+(ci+1):name;
       state.employees.push({id:uid(),name:empName,country,seniority,function:func,businessLine,businessUnit,salary,capPct,notes,hireDate,termDate,empType,allocations:allocations.map(a=>({...a}))});
     }
+    window.logAudit('Add Employee',(count>1?count+'x ':'')+name+' ('+func+', '+country+')');
   }
   saveState();clearForm();renderEmployees();
 });
@@ -230,10 +232,11 @@ function deleteEmp(id){
   const idx=state.employees.findIndex(e=>e.id===id);if(idx<0)return;
   const item=state.employees[idx];
   const name=item.name||item.role||'employee';
+  window.logAudit('Delete Employee',name);
   state.employees.splice(idx,1);delete state.allocOverrides[id];saveState();window.renderAll();
   window.showUndoToast(name,state.employees,idx,item,window.renderAll);
 }
-document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('Remove all employees? This cannot be undone.')){state.employees=[];state.allocOverrides={};saveState();window.renderAll()}});
+document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('Remove all employees? This cannot be undone.')){window.logAudit('Clear All','Removed all employees');state.employees=[];state.allocOverrides={};saveState();window.renderAll()}});
 document.getElementById('btnImportRoster').addEventListener('click',()=>document.getElementById('empInlineRosterFile').click());
 document.getElementById('empInlineRosterFile').addEventListener('change',function(){
   const mainInput=document.getElementById('rosterFileInput');

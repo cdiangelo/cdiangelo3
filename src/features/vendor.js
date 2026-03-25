@@ -382,6 +382,7 @@ function initVendorModule(){
           MO_NAMES.forEach(m=>{state.vendorRows[idx][m]=Math.round((state.vendorRows[idx][m]||0)*mult)});
         }
       }
+      window.logAudit('Import Vendor',imported+' rows');
       saveState();renderVendorGrid();
     });
   });

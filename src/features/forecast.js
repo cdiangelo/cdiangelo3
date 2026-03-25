@@ -733,6 +733,7 @@ export function openForecastAssumptionsModal(scrollToKey){
 }
 export function closeForecastAssumptionsModal(){
   document.getElementById('forecastAssumptionsModal').classList.remove('show');
+  window.logAudit('Update Forecast','Forecast assumptions updated');
   renderForecastFactorPills();
   if(window.renderLtfChart)window.renderLtfChart();
 }
