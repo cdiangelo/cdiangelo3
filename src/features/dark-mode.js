@@ -78,9 +78,12 @@ export function initDarkMode(){
   // Global back button — show/hide based on current view and wire navigation
   const globalBackBtn=document.getElementById('globalBackBtn');
   window._updateGlobalToolbar=function(){
-    const onLanding=document.getElementById('landingPage').style.display!=='none';
+    const lp=document.getElementById('landingPage');
+    const onLanding=lp&&lp.style.display!=='none';
     globalBackBtn.style.display=onLanding?'none':'';
   };
   globalBackBtn.addEventListener('click',()=>{if(window.showLanding)window.showLanding()});
+  // Set initial state
+  window._updateGlobalToolbar();
 }
 initDarkMode();
