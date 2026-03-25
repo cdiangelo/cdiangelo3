@@ -52,8 +52,9 @@ function renderEmpPivot(){
   const colTotals={};colVals.forEach(cv=>{colTotals[cv]=sortedRows.reduce((s,rv)=>s+pivot[rv][cv],0)});
   const grandTotal=Object.values(colTotals).reduce((s,v)=>s+v,0);
 
-  // Stacked bar chart
-  const showBreakout=metric!=='comp';
+  // Stacked bar chart — hide breakout in ops mode for currency metrics
+  const isOps=document.body.classList.contains('ops-mode');
+  const showBreakout=metric!=='comp'&&!(isOps&&isCurrency);
   if(typeof Chart!=='undefined'){
     const canvas=document.getElementById('empPivotChart');
     if(empPivotChartInst)empPivotChartInst.destroy();
@@ -86,7 +87,6 @@ function renderEmpPivot(){
   const nDataCols=colVals.length+1;
   const datColW=Math.floor(100/(nDataCols+1))+'%';
   const truncCol=v=>v.length>14?v.slice(0,12)+'…':v;
-  const isOps=document.body.classList.contains('ops-mode');
   // In ops mode, hide breakout $ values (comp/opex/capex) but keep totals and headcount visible
   const hideBreakoutCells=isOps&&isCurrency;
   let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);font-size:.72rem;width:auto"></th>';
