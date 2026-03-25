@@ -472,7 +472,8 @@ function renderLandingCharts(){
   budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
+    plugins:[barTotalPlugin],
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:7}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
@@ -527,8 +528,8 @@ function renderLandingCharts(){
   fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
-    plugins:[window.yoyArrowsPlugin],
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{},yoyArrows:{}},
+    plugins:[window.yoyArrowsPlugin,barTotalPlugin],
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:8},yoyArrows:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 }
@@ -609,6 +610,45 @@ let ltfChartInst=null;
 let ltfFteChartInst=null;
 let ltfView='pnl';
 let ltfSplit='total';
+
+// Bar total label plugin — draws total above each stacked bar
+const barTotalPlugin={
+  id:'barTotal',
+  afterDraw(chart){
+    const opts=chart.options.plugins.barTotal;
+    if(!opts)return;
+    const ctx=chart.ctx;
+    const datasets=chart.data.datasets;
+    const nLabels=chart.data.labels.length;
+    const yScale=chart.scales.y;
+    const color=opts.color||'#333';
+    const fontSize=opts.fontSize||9;
+    ctx.save();
+    ctx.font=`bold ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillStyle=color;
+    for(let i=0;i<nLabels;i++){
+      let sum=0;
+      datasets.forEach((ds,di)=>{
+        if(chart.getDatasetMeta(di).hidden)return;
+        const v=ds.data[i];
+        if(typeof v==='number'&&v>0&&ds.stack!=='neg')sum+=v;
+      });
+      if(!sum)continue;
+      // Get x position from first visible dataset
+      let x=null;
+      for(let di=0;di<datasets.length;di++){
+        const meta=chart.getDatasetMeta(di);
+        if(!meta.hidden&&meta.data[i]){x=meta.data[i].x;break}
+      }
+      if(x==null)continue;
+      const y=yScale.getPixelForValue(sum);
+      const label=sum>=1e6?'$'+(sum/1e6).toFixed(1)+'M':sum>=1e3?'$'+(sum/1e3).toFixed(0)+'K':'$'+Math.round(sum);
+      ctx.fillText(label,x,y-4);
+    }
+    ctx.restore();
+  }
+};
 
 // Y/Y growth bubbles plugin — shows total or per-account growth pills between bars
 const ltfYoyPlugin={
@@ -910,9 +950,9 @@ function renderLtfChart(){
 
   ltfChartInst=new Chart(canvas,{
     type:'bar',data:{labels:yearLabels,datasets},
-    plugins:[ltfYoyPlugin],
+    plugins:[ltfYoyPlugin,barTotalPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},
-      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{},ltfYoy:{accountData:acctData,byAccount}},
+      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:9},ltfYoy:{accountData:acctData,byAccount}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}
     }
   });
