@@ -477,61 +477,58 @@ function renderLandingCharts(){
   });
 
   // ── Long-Term Forecast Chart ──
-  // Include vendor/T&E/contractor costs so LTF matches the PnL table's Tot Inv
+  // Compute accounts matching the LTF module breakdown
   const _oaoTotal=getVendorOaoTotal();
   const _cCapEx=getContractorCapExTotal();
-  function _enrichFcRows(rows){
-    rows.forEach((r,i)=>{
-      // Current year: add actual OAO + contractor CapEx; future years: carry OAO flat
-      r.total+=_oaoTotal+_cCapEx;
-      r.capex+=_cCapEx;
-      r.opex+=_oaoTotal;
-    });
-    return rows;
-  }
+  const _oaoGrowth=state.oaoGrowthPct||[5,5,5,5,5];
+  const _oaoYears=[_oaoTotal];
+  for(let oi=0;oi<5;oi++)_oaoYears.push(Math.round(_oaoYears[oi]*(1+(_oaoGrowth[oi]||0)/100)));
+  const _assetLife=state.daAssetLifeYrs||5;
+  const _daBase=getDepreciationTotal();
+
   if(landingForecastChartInst)landingForecastChartInst.destroy();
   let fcDS=[];
   const yearLabels=getDisplayFcLabels();
   try{
-  if(useSplit){
-    const groups={};
-    emps.forEach(e=>{const key=getPnlSplitKey(e,split);if(key!=null){if(!groups[key])groups[key]=[];groups[key].push(e)}});
-    const gNames=Object.keys(groups).sort();
-    const _splitOaoShare=gNames.length>0?1/gNames.length:1;
-    gNames.forEach((g,gi)=>{
-      try{
-      const rows=projectForecast(groups[g],g);
-      // Distribute OAO proportionally across split groups
-      rows.forEach(r=>{
-        r.total+=Math.round((_oaoTotal+_cCapEx)*_splitOaoShare);
-        r.capex+=Math.round(_cCapEx*_splitOaoShare);
-        r.opex+=Math.round(_oaoTotal*_splitOaoShare);
-      });
-      if(isPnl){
-        fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.opex),backgroundColor:getChartColors()[gi%getChartColors().length],stack:'pos'});
-        if(rows.some(r=>r.capex>0))fcDS.push({label:g+' (CapEx)',data:rows.map(r=>-r.capex),backgroundColor:hexToRgba(getChartColors()[gi%getChartColors().length],0.35),stack:'neg'});
-      } else {
-        fcDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:rows.map(r=>r.total),backgroundColor:getChartColors()[gi%getChartColors().length]});
-      }
-      }catch(e){console.warn('Forecast group error for '+g+':',e)}
-    });
-  } else {
-    const rows=_enrichFcRows(projectForecast(emps));
-    const lfc=getChartColors();
-    if(isPnl){
-      fcDS.push({label:'OpEx',data:rows.map(r=>r.opex),backgroundColor:lfc[4],stack:'pos'});
-      fcDS.push({label:'CapEx',data:rows.map(r=>-r.capex),backgroundColor:lfc[0],stack:'neg'});
-    } else {
-      fcDS.push({label:'Total Investment',data:rows.map(r=>r.total),backgroundColor:lfc[0]});
+  const _cbRows=projectForecast(emps);
+  const _cbOpex=_cbRows.map(r=>r.opex);
+  const _cbCapex=_cbRows.map(r=>r.capex);
+  const _cbGross=_cbRows.map(r=>r.total);
+
+  // D&A schedule
+  const _totalCapexByYear=_cbCapex.map(cb=>cb+_cCapEx);
+  const _daYears=[_daBase];
+  for(let yr=1;yr<=5;yr++){
+    let yearDa=0;
+    for(let v=0;v<yr;v++){
+      const yis=yr-v;
+      if(yis<=_assetLife)yearDa+=Math.round(_totalCapexByYear[v]/_assetLife);
     }
+    yearDa+=Math.max(0,Math.round(_daBase*(1-yr/_assetLife)));
+    _daYears.push(yearDa);
+  }
+
+  const lfc=getChartColors();
+  if(isPnl){
+    fcDS=[
+      {label:'C&B',data:_cbOpex.slice(),backgroundColor:lfc[0],stack:'pos'},
+      {label:'OAO',data:_oaoYears.slice(),backgroundColor:lfc[1],stack:'pos'},
+      {label:'D&A',data:_daYears.slice(),backgroundColor:lfc[2],stack:'pos'},
+      {label:'CapEx',data:_cbCapex.map(v=>-(v+_cCapEx)),backgroundColor:hexToRgba(lfc[0],0.35),stack:'neg'}
+    ];
+  } else {
+    fcDS=[
+      {label:'C&B',data:_cbGross.slice(),backgroundColor:lfc[0],stack:'s0'},
+      {label:'OAO',data:_oaoYears.slice(),backgroundColor:lfc[1],stack:'s0'}
+    ];
   }
   }catch(e){console.warn('Landing forecast chart error:',e)}
-  if(useSplit||isPnl){window.stackedBarDatalabels(fcDS,tickColor,8,'landing');fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
-  else{const _ldlC=window.getCrispDatalabelColor('landing')||tickColor;fcDS.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_ldlC,font:{size:window.chartColorScheme==='crisp'?10:8,weight:'bold'},formatter:v=>{const a=Math.abs(v);return a>=1e6?'$'+(v/1e6).toFixed(1)+'M':a>=1000?(v<0?'-':'')+'$'+(a/1000).toFixed(0)+'K':''}}})};
+  if(isPnl){window.stackedBarDatalabels(fcDS,tickColor,8,'landing');fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
+  else{window.stackedBarDatalabels(fcDS,tickColor,8,'landing')}
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
     plugins:[window.yoyArrowsPlugin],
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{},yoyArrows:{}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{},yoyArrows:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 }
