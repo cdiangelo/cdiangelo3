@@ -262,9 +262,9 @@ function renderDashboard(){
       return[];
     }
     const opexAdjComp2=(x)=>compView==='opex'?compVal(x)-capExVal(x):compVal(x);
-    const cats=[...new Set(state.projects.map(p=>p.category).filter(Boolean))];
+    const cats=[...new Set(state.projects.map(p=>p.category||'Uncategorized'))];
     cats.forEach((cat,i)=>{
-      const catProjIds=new Set(state.projects.filter(p=>p.category===cat).map(p=>p.id));
+      const catProjIds=new Set(state.projects.filter(p=>(p.category||'Uncategorized')===cat).map(p=>p.id));
       const data=labels.map(l=>groups[l].reduce((a,x)=>{
         const allocs=getEffectiveAllocs(empOf(x));
         if(!allocs.length)return a;
@@ -283,7 +283,7 @@ function renderDashboard(){
     if(unData.some(v=>v>0))datasets.push({label:'Unallocated',data:unData,backgroundColor:getChartColors()[cats.length%getChartColors().length],stack:'pos'});
     if(compView==='opex'){
       cats.forEach((cat,i)=>{
-        const catProjIds2=new Set(state.projects.filter(p=>p.category===cat).map(p=>p.id));
+        const catProjIds2=new Set(state.projects.filter(p=>(p.category||'Uncategorized')===cat).map(p=>p.id));
         const data=labels.map(l=>-groups[l].reduce((a,x)=>{
           const allocs=getEffectiveAllocs(empOf(x));
           if(!allocs.length)return a;
@@ -364,9 +364,9 @@ function renderDashboard(){
         fteDatasets.push({label:c,data,borderColor:getChartColors()[i%getChartColors().length],backgroundColor:hexToRgba(getChartColors()[i%getChartColors().length],0.25),fill:true,tension:0.4,pointRadius:0,borderWidth:1.5});
       });
     } else if(stackBy==='category'){
-      const cats=[...new Set(state.projects.map(p=>p.category).filter(Boolean))];
+      const cats=[...new Set(state.projects.map(p=>p.category||'Uncategorized'))];
       cats.forEach((cat,i)=>{
-        const catProjIds=new Set(state.projects.filter(p=>p.category===cat).map(p=>p.id));
+        const catProjIds=new Set(state.projects.filter(p=>(p.category||'Uncategorized')===cat).map(p=>p.id));
         const data=MONTH_SHORT.map((_,mi)=>{
           let fte=0;
           emps.forEach(e=>{
