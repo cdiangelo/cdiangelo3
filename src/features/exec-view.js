@@ -112,7 +112,6 @@ function renderExecFcSparkline(){
   const colors=window.getChartColors();
   const isDarkSpark=document.documentElement.classList.contains('dark');
   const sparkTickColor=isDarkSpark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'var(--text-dim)');
-  // Neon gradient fill: create gradient from line color to transparent
   const isNeonSpark=window.chartColorScheme==='neon';
   const sparkCanvas=document.getElementById('execFcSparkline');
   let sparkFillBg;
@@ -125,15 +124,42 @@ function renderExecFcSparkline(){
   } else {
     sparkFillBg=window.hexToRgba(colors[0],0.25);
   }
-  // Compute Y/Y % change labels
-  const yoyLabels=vals.map((v,i)=>{
-    if(i===0)return '';
-    const prev=vals[i-1];
-    if(!prev)return '';
-    const pct=((v-prev)/Math.abs(prev))*100;
-    return (pct>=0?'+':'')+pct.toFixed(1)+'%';
-  });
-  const sparkDlColor=window.getCrispDatalabelColor('sparkline')||(isNeonSpark?(isDarkSpark?'#88ccdd':'#006680'):window.hexToRgba(colors[0],0.85));
+  // Y/Y % growth drawn as pill badges between data points
+  const sparkYoyPlugin={
+    id:'sparkYoy',
+    afterDraw(chart){
+      const meta=chart.getDatasetMeta(0);
+      if(!meta||!meta.data||meta.data.length<2)return;
+      const ctx=chart.ctx;
+      const dk=document.documentElement.classList.contains('dark');
+      ctx.save();
+      const fontSize=11;
+      ctx.font=`600 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
+      for(let i=0;i<vals.length-1;i++){
+        const prev=vals[i],cur=vals[i+1];
+        if(!prev)continue;
+        const pct=((cur-prev)/Math.abs(prev))*100;
+        const pctStr=(pct>=0?'+':'')+pct.toFixed(1)+'%';
+        const p1=meta.data[i],p2=meta.data[i+1];
+        if(!p1||!p2)continue;
+        const midX=(p1.x+p2.x)/2;
+        const midY=Math.min(p1.y,p2.y)-18;
+        const tw=ctx.measureText(pctStr).width;
+        const pad=4;
+        const bgColor=pct>=0?(dk?'rgba(60,120,60,.6)':'rgba(58,125,68,.15)'):(dk?'rgba(140,50,50,.6)':'rgba(184,48,48,.15)');
+        const textColor=pct>=0?(dk?'#7adf7a':'#2a6a2a'):(dk?'#ff8a8a':'#a03030');
+        ctx.fillStyle=bgColor;
+        const rx=midX-tw/2-pad,ry=midY-fontSize/2-pad,rw=tw+pad*2,rh=fontSize+pad*2;
+        ctx.beginPath();
+        ctx.roundRect?ctx.roundRect(rx,ry,rw,rh,4):ctx.rect(rx,ry,rw,rh);
+        ctx.fill();
+        ctx.fillStyle=textColor;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(pctStr,midX,midY);
+      }
+      ctx.restore();
+    }
+  };
   execFcSparkChart=new Chart(sparkCanvas,{
     type:'line',
     data:{labels,datasets:[{
@@ -142,16 +168,11 @@ function renderExecFcSparkline(){
       borderColor:colors[0],borderWidth:2,
       pointRadius:3,pointBackgroundColor:colors[0],
       tension:0.3,
-      datalabels:{
-        display:ctx=>yoyLabels[ctx.dataIndex]!=='',
-        align:'top',anchor:'end',z:10,
-        font:{size:window.chartColorScheme==='crisp'?14:12,weight:'bold'},
-        color:sparkDlColor,
-        formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]
-      }
+      datalabels:{display:false}
     }]},
+    plugins:[sparkYoyPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},
-      plugins:{legend:{display:false},datalabels:{},
+      plugins:{legend:{display:false},datalabels:{display:false},
         tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
       scales:{
         x:{ticks:{font:{size:12,weight:'600'},color:sparkTickColor},grid:{display:false}},
