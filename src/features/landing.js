@@ -467,12 +467,12 @@ function renderLandingCharts(){
       budgetDS.push({label:'Total Comp',data,backgroundColor:lcc[0]});
     }
   }
-  // Data labels for top of each stacked bar
-  const budgetDL=useSplit||isPnl?{}:{display:true,anchor:'end',align:'end',color:window.getCrispDatalabelColor('landing')||tickColor,font:{size:window.chartColorScheme==='crisp'?10:8,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':v>0?'$'+Math.round(v):''};
-  if(useSplit||isPnl){window.stackedBarDatalabels(budgetDS,tickColor,8,'landing');budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
+  // Data labels — always show total on top of each bar
+  window.stackedBarDatalabels(budgetDS,tickColor,8,'landing');
+  budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('(CapEx)')}},datalabels:useSplit||isPnl?{}:budgetDL},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('(CapEx)')}},datalabels:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
@@ -523,8 +523,8 @@ function renderLandingCharts(){
     ];
   }
   }catch(e){console.warn('Landing forecast chart error:',e)}
-  if(isPnl){window.stackedBarDatalabels(fcDS,tickColor,8,'landing');fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}})}
-  else{window.stackedBarDatalabels(fcDS,tickColor,8,'landing')}
+  window.stackedBarDatalabels(fcDS,tickColor,8,'landing');
+  fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
     plugins:[window.yoyArrowsPlugin],
