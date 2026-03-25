@@ -464,7 +464,7 @@ function renderLandingCharts(){
       budgetDS.push({label:'CapEx',data:capex,backgroundColor:lcc[0],stack:'neg'});
     } else {
       const data=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
-      budgetDS.push({label:'Total Comp',data,backgroundColor:lcc[0]});
+      budgetDS.push({label:'Total Comp',data,backgroundColor:lcc[0],stack:'pos'});
     }
   }
   // Data labels — always show total on top of each bar
@@ -518,8 +518,8 @@ function renderLandingCharts(){
     ];
   } else {
     fcDS=[
-      {label:'C&B',data:_cbGross.slice(),backgroundColor:lfc[0],stack:'s0'},
-      {label:'OAO',data:_oaoYears.slice(),backgroundColor:lfc[1],stack:'s0'}
+      {label:'C&B',data:_cbGross.slice(),backgroundColor:lfc[0],stack:'pos'},
+      {label:'OAO',data:_oaoYears.slice(),backgroundColor:lfc[1],stack:'pos'}
     ];
   }
   }catch(e){console.warn('Landing forecast chart error:',e)}
@@ -899,8 +899,8 @@ function renderLtfChart(){
       ];
     } else {
       datasets=[
-        {label:'C&B',data:cbGross.slice(),backgroundColor:lcc[0],stack:'s0'},
-        {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'s0'}
+        {label:'C&B',data:cbGross.slice(),backgroundColor:lcc[0],stack:'pos'},
+        {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'pos'}
       ];
     }
   }
