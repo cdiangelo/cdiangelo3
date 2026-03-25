@@ -1,5 +1,7 @@
 // ── PROJECTS ──
 import { state, saveState } from '../lib/state.js';
+import { fmt } from '../lib/constants.js';
+import { getAnnualFactor, getProratedComp } from '../lib/proration.js';
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
