@@ -1270,7 +1270,7 @@ function initVendorModule(){
     const ctx=canvas.getContext('2d');
     if(chartInstRef)chartInstRef.destroy();
     const _isDark=document.documentElement.classList.contains('dark');
-    const _tickC=_isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
+    const _tickC=_isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
     const _gridC=_isDark?'rgba(255,255,255,.08)':'#ddd';
     return new Chart(ctx,{
       type:'bar',

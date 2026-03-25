@@ -9,6 +9,9 @@ export function initDarkMode(){
     localStorage.setItem('compPlanDark',on?'1':'0');
     toggleDark.checked=on;
     window.renderForecast();window.renderExecView();window.renderDashboard();window.renderLandingCharts();window.renderBudgetScenarioChart();window.renderFcScenarioChart();
+    if(window.renderEmployees)window.renderEmployees();
+    if(window.renderLandingRevenue)window.renderLandingRevenue();
+    if(window.renderLtfChart)window.renderLtfChart();
     colorSchemeCallbacks.forEach(fn=>fn());
   }
   toggleDark.addEventListener('change',()=>setDarkMode(toggleDark.checked));

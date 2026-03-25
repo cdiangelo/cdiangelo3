@@ -97,7 +97,7 @@ function renderExecFcSparkline(){
   if(execFcSparkChart)execFcSparkChart.destroy();
   const colors=window.getChartColors();
   const isDarkSpark=document.documentElement.classList.contains('dark');
-  const sparkTickColor=isDarkSpark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'var(--text-dim)');
+  const sparkTickColor=isDarkSpark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'var(--text-dim)');
   // Neon gradient fill: create gradient from line color to transparent
   const isNeonSpark=window.chartColorScheme==='neon';
   const sparkCanvas=document.getElementById('execFcSparkline');
@@ -231,7 +231,7 @@ function renderExecView(){
   populateExecFilters();
   const emps=getExecFilteredEmps();
   const isDark=document.documentElement.classList.contains('dark');
-  const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
+  const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   // Sync trend year header label
   const trendYrLabel=execTrendYear==='current'?String(DISPLAY_BASE_YEAR):displayYear(execTrendYear);

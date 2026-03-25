@@ -534,7 +534,7 @@ function renderForecastProjection(){
     // Chart - stacked base/bonus/benefits with capex view support
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
+      const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       let fDatasets;
@@ -617,7 +617,7 @@ function renderForecastProjection(){
     // Chart - stacked by group
     if(typeof Chart!=='undefined'){
       const isDark=document.documentElement.classList.contains('dark');
-      const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
+      const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
       const datasets=groupNames.map((g,i)=>({
@@ -647,7 +647,7 @@ function renderForecastProjection(){
   // ── Forecast FTE sparkline ──
   if(typeof Chart!=='undefined'){
     const isDark2=document.documentElement.classList.contains('dark');
-    const tickColor2=isDark2?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
+    const tickColor2=isDark2?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
     const gridColor2=isDark2?'rgba(255,255,255,.08)':'#ddd';
     if(window._forecastFteChart)window._forecastFteChart.destroy();
     const fteLabels=totalRows.map(r=>displayYear(r.year));

@@ -71,7 +71,7 @@ function renderEmpPivot(){
       backgroundColor:pivotColors[0],
       stack:'s0'}];
     const _epDk=document.documentElement.classList.contains('dark');
-    const _epTc=_epDk?(window.chartColorScheme==='crisp'?'#c0c0c0':'#ffffff'):(window.chartColorScheme==='crisp'?'#333333':'#5a5a5a');
+    const _epTc=_epDk?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
     const _epGc=_epDk?'rgba(255,255,255,.08)':'#ddd';
     empPivotChartInst=new Chart(canvas,{
       type:'bar',data:{labels:chartLabels,datasets},
