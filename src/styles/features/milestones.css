@@ -38,10 +38,8 @@
 .ms-bubble-add:hover{border-color:var(--accent);color:var(--accent);transform:scale(1.12)}
 
 /* Milestone Tooltip */
-.ms-tooltip{position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:200px;max-width:280px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;font-size:.75rem;pointer-events:none;opacity:0;transition:opacity .15s}
+.ms-tooltip{position:fixed;z-index:9999;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;min-width:200px;max-width:280px;box-shadow:0 4px 16px rgba(0,0,0,.12);font-size:.75rem;pointer-events:none;opacity:0;transition:opacity .15s}
 .ms-tooltip.visible{opacity:1;pointer-events:auto}
-.ms-tooltip::after{content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-bottom-color:var(--border)}
-.ms-tooltip::before{content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--panel);z-index:1}
 .ms-tooltip .ms-tt-goal{font-weight:700;color:var(--text-dark);margin-bottom:4px;word-break:break-word}
 .ms-tooltip .ms-tt-date{color:var(--text-dim);font-size:.7rem}
 .ms-tooltip .ms-tt-status{font-size:.7rem;margin-top:2px;font-weight:600}

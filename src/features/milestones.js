@@ -75,12 +75,15 @@ export function initMilestones(){
       }
     }
     tip.innerHTML=html;
-    bubble.style.position='relative';
-    bubble.appendChild(tip);
+    document.body.appendChild(tip);
     requestAnimationFrame(()=>{
-      const rect=tip.getBoundingClientRect();
-      if(rect.left<0){tip.style.left='0';tip.style.transform='translateX(0)'}
-      else if(rect.right>window.innerWidth){tip.style.left='auto';tip.style.right='0';tip.style.transform='translateX(0)'}
+      const br=bubble.getBoundingClientRect();
+      const tw=tip.offsetWidth;
+      let left=br.left+br.width/2-tw/2;
+      if(left<4)left=4;
+      if(left+tw>window.innerWidth-4)left=window.innerWidth-4-tw;
+      tip.style.left=left+'px';
+      tip.style.top=(br.bottom+8)+'px';
       tip.classList.add('visible');
     });
     activeTooltip=tip;
