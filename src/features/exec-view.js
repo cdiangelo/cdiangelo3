@@ -92,7 +92,21 @@ function renderExecFcSparkline(){
   const emps=getExecFilteredEmps();
   const rows=projectForecast(emps);
   const showOpex=execFcView==='opex';
-  const vals=rows.map(r=>showOpex?r.opex:r.total);
+  // Include OAO and D&A to show full account totals
+  const _oaoBase=window.getVendorOaoTotal?window.getVendorOaoTotal():0;
+  const _oaoGr=state.oaoGrowthPct||[5,5,5,5,5];
+  const _oaoYrs=[_oaoBase];for(let oi=0;oi<5;oi++)_oaoYrs.push(Math.round(_oaoYrs[oi]*(1+(_oaoGr[oi]||0)/100)));
+  const _cCapEx=window.getContractorCapExTotal?window.getContractorCapExTotal():0;
+  const _assetLife=state.daAssetLifeYrs||5;
+  const _daBase=window.getDepreciationTotal?window.getDepreciationTotal():0;
+  const cbCapex=rows.map(r=>r.capex);
+  const _tcby=cbCapex.map(cb=>cb+_cCapEx);
+  const _daYrs=[_daBase];
+  for(let yr=1;yr<=5;yr++){let yd=0;for(let v=0;v<yr;v++){if(yr-v<=_assetLife)yd+=Math.round(_tcby[v]/_assetLife)}yd+=Math.max(0,Math.round(_daBase*(1-yr/_assetLife)));_daYrs.push(yd)}
+  const vals=rows.map((r,i)=>{
+    if(showOpex)return r.opex+(_oaoYrs[i]||0)+(_daYrs[i]||0);
+    return r.total+(_oaoYrs[i]||0);
+  });
   const labels=getDisplayFcLabels();
   if(execFcSparkChart)execFcSparkChart.destroy();
   const colors=window.getChartColors();
