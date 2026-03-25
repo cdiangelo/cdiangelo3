@@ -241,6 +241,32 @@ function getPnlFilteredEmps(){
   return emps;
 }
 let pnlExpandedCats=new Set();
+
+/** Compute OAO total filtered by active PnL filters (market, product, category). */
+function getFilteredOaoTotal(){
+  const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const hasFilter=pnlFilterMarket||pnlFilterProduct||pnlFilterCategory;
+  if(!hasFilter)return getVendorOaoTotal();
+
+  function matchRow(r){
+    if(pnlFilterMarket&&r.market!==pnlFilterMarket)return false;
+    if(pnlFilterProduct||pnlFilterCategory){
+      const proj=state.projects.find(p=>p.id===r.project);
+      if(pnlFilterProduct&&(!proj||proj.product!==pnlFilterProduct))return false;
+      if(pnlFilterCategory&&(!proj||proj.category!==pnlFilterCategory))return false;
+    }
+    return true;
+  }
+  const sum=rows=>rows.filter(matchRow).reduce((s,r)=>s+moKeys.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+  const vTotal=sum(state.vendorRows||[]);
+  const tTotal=sum(state.teRows||[]);
+  const cOpex=(state.contractorRows||[]).filter(matchRow).reduce((s,r)=>{
+    const capPct=parseFloat(r.capPct)||0;
+    return s+moKeys.reduce((ms,m)=>{const raw=parseFloat(r[m])||0;return ms+(raw-Math.round(raw*capPct/100))},0);
+  },0);
+  return vTotal+tTotal+cOpex;
+}
+
 function renderPnlWalk(){
   populatePnlFilters();
   const emps=getPnlFilteredEmps();
@@ -282,7 +308,7 @@ function renderPnlWalk(){
 
   // Distribute vendor/T&E/contractor OAO across categories/products proportionally by HC
   // Note: contractor CapEx is NOT included in the comp plan P&L — only in landing page summaries
-  const oaoTotal=getVendorOaoTotal();
+  const oaoTotal=getFilteredOaoTotal();
   const daTotal=getDepreciationTotal();
   const revenueTotal=getRevenueTotal();
   const revenueEnabled=localStorage.getItem('compPlanRevenue')!=='0';
