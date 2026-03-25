@@ -613,7 +613,7 @@ let ltfFteChartInst=null;
 let ltfView='pnl';
 let ltfSplit='total';
 
-// Per-account Y/Y bubbles plugin — shows C&B / OAO / D&A growth in differently shaded pills
+// Y/Y growth bubbles plugin — shows total or per-account growth pills between bars
 const ltfYoyPlugin={
   id:'ltfYoy',
   afterDraw(chart){
@@ -624,6 +624,7 @@ const ltfYoyPlugin={
     const ctx=chart.ctx;const area=chart.chartArea;
     const nLabels=chart.data.labels.length;if(nLabels<2)return;
     const isDark=document.documentElement.classList.contains('dark');
+    const showByAccount=!!opts.byAccount;
     // Find first visible dataset for bar x-positions
     let visIdx=0;
     for(let di=0;di<chart.data.datasets.length;di++){if(!chart.getDatasetMeta(di).hidden){visIdx=di;break}}
@@ -652,21 +653,30 @@ const ltfYoyPlugin={
       ctx.moveTo(x2,y2);
       ctx.lineTo(x2-5*Math.cos(angle+0.4),y2-5*Math.sin(angle+0.4));
       ctx.strokeStyle=arrowColor;ctx.lineWidth=1.2;ctx.stroke();
-      // Draw per-account bubbles stacked vertically
+      // Build pills array: either per-account or single total
       const midY=(y1+y2)/2;
       const pillH=fontSize+4;
-      const totalH=acctData.length*pillH+((acctData.length-1)*2);
-      let pillY=midY-totalH/2;
       ctx.font=`600 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
-      acctData.forEach(acct=>{
-        const prev=acct.data[i]||0,cur=acct.data[i+1]||0;
-        if(!prev){pillY+=pillH+2;return}
-        const pct=((cur-prev)/Math.abs(prev))*100;
-        const pctStr=acct.label+' '+(pct>=0?'+':'')+pct.toFixed(1)+'%';
-        const tw=ctx.measureText(pctStr).width;
+      let pills=[];
+      if(showByAccount){
+        acctData.forEach(acct=>{
+          const prev=acct.data[i]||0,cur=acct.data[i+1]||0;
+          if(!prev)return;
+          const pct=((cur-prev)/Math.abs(prev))*100;
+          pills.push({label:acct.label+' '+(pct>=0?'+':'')+pct.toFixed(1)+'%',color:acct.color||'#888'});
+        });
+      } else {
+        if(!sumPrev)continue;
+        const pct=((sumCur-sumPrev)/Math.abs(sumPrev))*100;
+        const defColor=isDark?'#aaa':'#555';
+        pills.push({label:(pct>=0?'+':'')+pct.toFixed(1)+'%',color:defColor});
+      }
+      const totalH=pills.length*pillH+((pills.length-1)*2);
+      let pillY=midY-totalH/2;
+      pills.forEach(pill=>{
+        const tw=ctx.measureText(pill.label).width;
         const pad=3;
-        // Use account color with transparency for background
-        const baseColor=acct.color||'#888';
+        const baseColor=pill.color;
         const bgAlpha=isDark?0.45:0.15;
         const textAlpha=isDark?0.9:0.85;
         ctx.fillStyle=hexToRgba(baseColor,bgAlpha);
@@ -676,7 +686,7 @@ const ltfYoyPlugin={
         ctx.fill();
         ctx.fillStyle=hexToRgba(baseColor,textAlpha);
         ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(pctStr,midX,pillY+pillH/2-1);
+        ctx.fillText(pill.label,midX,pillY+pillH/2-1);
         pillY+=pillH+2;
       });
     }
@@ -811,8 +821,9 @@ function renderLtfChart(){
 
   let datasets=[];
   let acctData=[];
+  const byAccount=ltfSplit==='account';
 
-  if(splitGroups && ltfSplit!=='comp'){
+  if(splitGroups && ltfSplit!=='comp' && !byAccount){
     // ── Split by project/function/country ──
     const groupNames=Object.keys(splitGroups);
     groupForecasts={};
@@ -894,7 +905,7 @@ function renderLtfChart(){
     type:'bar',data:{labels:yearLabels,datasets},
     plugins:[ltfYoyPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},
-      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{},ltfYoy:{accountData:acctData}},
+      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},filter:item=>!item.text.includes('CapEx')}},datalabels:{},ltfYoy:{accountData:acctData,byAccount}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:9,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}
     }
   });
