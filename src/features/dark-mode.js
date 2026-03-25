@@ -61,7 +61,7 @@ export function initDarkMode(){
     syncColorSchemeSliders(v);
     localStorage.setItem(getColorSchemeKey(),window.chartColorScheme);
     applyColorSchemeClass();
-    window.renderAll();window.renderLandingCharts();
+    window.renderAll();window.renderLandingCharts();if(window.renderLtfChart)window.renderLtfChart();
     colorSchemeCallbacks.forEach(fn=>fn());
   }
   colorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(colorSchemeSlider.value)));
