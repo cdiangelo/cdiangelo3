@@ -150,7 +150,7 @@ function renderExecFcSparkline(){
         formatter:(_,ctx)=>yoyLabels[ctx.dataIndex]
       }
     }]},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},
       plugins:{legend:{display:false},datalabels:{},
         tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
       scales:{

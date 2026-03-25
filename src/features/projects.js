@@ -60,8 +60,9 @@ function renderProjects(){
       <td style="font-weight:600;color:var(--accent)">${p.code}</td>
       <td><select onchange="updateProjectMarket('${p.id}',this.value)" style="padding:4px 6px;font-size:.82rem"><option value="">—</option>${marketOpts}</select></td>
       <td><select onchange="updateProjectBizLine('${p.id}',this.value)" style="padding:4px 6px;font-size:.82rem"><option value="">—</option>${bizLineOpts}</select></td>
-      <td>${p.product}</td><td>${p.category}</td>
-      <td style="font-size:.82rem;color:var(--text-dim)">${p.description||'—'}</td>
+      <td><input value="${p.product}" onchange="updateProjectField('${p.id}','product',this.value)" style="padding:4px 6px;font-size:.82rem;width:120px"></td>
+      <td><input value="${p.category}" onchange="updateProjectField('${p.id}','category',this.value)" style="padding:4px 6px;font-size:.82rem;width:120px"></td>
+      <td><input value="${p.description||''}" onchange="updateProjectField('${p.id}','description',this.value)" style="padding:4px 6px;font-size:.82rem;width:160px"></td>
       <td>${allocFTE.toFixed(1)} FTE</td><td>${fmt(allocCost)}</td>
       <td><button class="btn btn-sm btn-danger" onclick="deleteProject('${p.id}')">Del</button></td>
     </tr>`;
@@ -80,5 +81,11 @@ function updateProjectBizLine(projId,bizLineCode){
   if(p){p.bizLineCode=bizLineCode;saveState()}
 }
 window.updateProjectBizLine = updateProjectBizLine;
+
+function updateProjectField(projId,field,value){
+  const p=state.projects.find(x=>x.id===projId);
+  if(p){p[field]=value;saveState()}
+}
+window.updateProjectField = updateProjectField;
 
 export { renderProjects, initProjects };
