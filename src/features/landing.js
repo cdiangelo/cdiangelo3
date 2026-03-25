@@ -668,23 +668,35 @@ const ltfYoyPlugin={
       } else {
         if(!sumPrev)continue;
         const pct=((sumCur-sumPrev)/Math.abs(sumPrev))*100;
-        const defColor=isDark?'#aaa':'#555';
-        pills.push({label:(pct>=0?'+':'')+pct.toFixed(1)+'%',color:defColor});
+        const bgColor=pct>=0?(isDark?'rgba(60,120,60,.6)':'rgba(58,125,68,.12)'):(isDark?'rgba(140,50,50,.6)':'rgba(184,48,48,.12)');
+        const labelColor=pct>=0?(isDark?'#7adf7a':'#2a6a2a'):(isDark?'#ff8a8a':'#a03030');
+        pills.push({label:(pct>=0?'+':'')+pct.toFixed(1)+'%',bgColor,labelColor});
       }
       const totalH=pills.length*pillH+((pills.length-1)*2);
       let pillY=midY-totalH/2;
       pills.forEach(pill=>{
         const tw=ctx.measureText(pill.label).width;
         const pad=3;
-        const baseColor=pill.color;
-        const bgAlpha=isDark?0.45:0.15;
-        const textAlpha=isDark?0.9:0.85;
-        ctx.fillStyle=hexToRgba(baseColor,bgAlpha);
-        const rx=midX-tw/2-pad,ry=pillY-1,rw=tw+pad*2,rh=pillH;
-        ctx.beginPath();
-        ctx.roundRect?ctx.roundRect(rx,ry,rw,rh,3):ctx.rect(rx,ry,rw,rh);
-        ctx.fill();
-        ctx.fillStyle=hexToRgba(baseColor,textAlpha);
+        if(pill.bgColor){
+          // Total mode — green/red style matching overview
+          ctx.fillStyle=pill.bgColor;
+          const rx=midX-tw/2-pad,ry=pillY-1,rw=tw+pad*2,rh=pillH;
+          ctx.beginPath();
+          ctx.roundRect?ctx.roundRect(rx,ry,rw,rh,3):ctx.rect(rx,ry,rw,rh);
+          ctx.fill();
+          ctx.fillStyle=pill.labelColor;
+        } else {
+          // Account mode — account-colored style
+          const baseColor=pill.color||'#888';
+          const bgAlpha=isDark?0.45:0.15;
+          const textAlpha=isDark?0.9:0.85;
+          ctx.fillStyle=hexToRgba(baseColor,bgAlpha);
+          const rx=midX-tw/2-pad,ry=pillY-1,rw=tw+pad*2,rh=pillH;
+          ctx.beginPath();
+          ctx.roundRect?ctx.roundRect(rx,ry,rw,rh,3):ctx.rect(rx,ry,rw,rh);
+          ctx.fill();
+          ctx.fillStyle=hexToRgba(baseColor,textAlpha);
+        }
         ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.fillText(pill.label,midX,pillY+pillH/2-1);
         pillY+=pillH+2;
@@ -816,11 +828,18 @@ function renderLtfChart(){
   const {splitGroups,splitGroupKeys}=buildLtfSplitGroups(emps);
   let groupForecasts=null;
 
-  // Account data for per-account Y/Y bubbles
+  // Account data for Y/Y bubbles (always computed for total % growth)
   const acctColors={cb:lcc[0],oao:lcc[1],da:lcc[2]};
+  const acctData=isPnl?[
+    {label:'C&B',data:cbOpex,color:acctColors.cb},
+    {label:'OAO',data:oaoYears,color:acctColors.oao},
+    {label:'D&A',data:daYears,color:acctColors.da}
+  ]:[
+    {label:'C&B',data:cbGross,color:acctColors.cb},
+    {label:'OAO',data:oaoYears,color:acctColors.oao}
+  ];
 
   let datasets=[];
-  let acctData=[];
   const byAccount=ltfSplit==='account';
 
   if(splitGroups && ltfSplit!=='comp' && !byAccount){
@@ -881,19 +900,10 @@ function renderLtfChart(){
         {label:'D&A',data:daYears.slice(),backgroundColor:lcc[2],stack:'pos'},
         {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
       ];
-      acctData=[
-        {label:'C&B',data:cbOpex,color:acctColors.cb},
-        {label:'OAO',data:oaoYears,color:acctColors.oao},
-        {label:'D&A',data:daYears,color:acctColors.da}
-      ];
     } else {
       datasets=[
         {label:'C&B',data:cbGross.slice(),backgroundColor:lcc[0],stack:'s0'},
         {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'s0'}
-      ];
-      acctData=[
-        {label:'C&B',data:cbGross,color:acctColors.cb},
-        {label:'OAO',data:oaoYears,color:acctColors.oao}
       ];
     }
   }
