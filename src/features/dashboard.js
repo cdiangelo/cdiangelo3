@@ -203,9 +203,7 @@ function renderDashboard(){
     `<div class="stat-card"><div class="label">CapEx Offset</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>`+
     `<div class="stat-card"><div class="label">Avg Cap %</div><div class="value" style="color:${svc}">${avgCapPct}%</div></div>`+
     `<div class="stat-card"><div class="label">C&B OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmt(cbOpEx)}</div></div>`;
-  const showPeriod=(groupBy==='month'||groupBy==='quarter');
-  document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
-  document.getElementById('curMonthWrapDash').style.display=showPeriod?'':'none';
+  const showPeriod=false;
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
