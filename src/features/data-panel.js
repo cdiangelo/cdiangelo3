@@ -412,6 +412,17 @@ document.getElementById('auditLogClear').addEventListener('click',()=>{
   state.auditLog=[];window.state=state;saveState();renderAuditLog();
 });
 
+// Collapsible data groups
+document.querySelectorAll('.data-group-toggle').forEach(h4=>{
+  h4.addEventListener('click',()=>{
+    const body=h4.nextElementSibling;
+    if(!body)return;
+    const show=body.style.display==='none';
+    body.style.display=show?'':'none';
+    h4.innerHTML=(show?'&#9660;':'&#9654;')+' '+h4.textContent.replace(/^[^\s]+\s/,'');
+  });
+});
+
 /* ── window assignments for inline onclick handlers ── */
 window.renderDataPanelWsList = renderDataPanelWsList;
 window.renderAuditLog = renderAuditLog;

@@ -2825,69 +2825,59 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <div class="data-section">
-<h4>Employee Roster</h4>
-<p>Bulk import/export employee data via Excel.</p>
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Import Budget Inputs</h4>
+<div class="data-group-body" style="display:none">
+<div class="data-sub"><h5>Employee Roster</h5><p>Bulk import/export employee data via Excel.</p>
 <button class="btn" id="dataPanelDlRoster">Download Template</button>
 <button class="btn btn-primary" id="dataPanelUploadRoster">Upload Roster</button>
-<input type="file" id="dataPanelRosterFile" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-
-<div class="data-section">
-<h4>Vendor Spend</h4>
-<p>Import/export vendor spend data via Excel.</p>
-<button class="btn" id="dataPanelVendorExport">Export Excel</button>
+<input type="file" id="dataPanelRosterFile" accept=".xlsx,.xls,.csv" style="display:none"></div>
+<div class="data-sub"><h5>Vendor Spend</h5><p>Import vendor spend data via Excel.</p>
 <button class="btn btn-primary" id="dataPanelVendorImport">Import Excel</button>
-<input type="file" id="dataPanelVendorFile" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-
-<div class="data-section">
-<h4>T&amp;E</h4>
-<p>Import/export travel &amp; entertainment data via Excel.</p>
-<button class="btn" id="dataPanelTeExport">Export T&amp;E Excel</button>
+<input type="file" id="dataPanelVendorFile" accept=".xlsx,.xls,.csv" style="display:none"></div>
+<div class="data-sub"><h5>T&amp;E</h5><p>Import travel &amp; entertainment data via Excel.</p>
 <button class="btn btn-primary" id="dataPanelTeImport">Import T&amp;E Excel</button>
-<input type="file" id="dataPanelTeFile" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-
-<div class="data-section">
-<h4>Contractors</h4>
-<p>Import/export contractor data via Excel.</p>
-<button class="btn" id="dataPanelContractorExport">Export Contractors Excel</button>
+<input type="file" id="dataPanelTeFile" accept=".xlsx,.xls,.csv" style="display:none"></div>
+<div class="data-sub"><h5>Contractors</h5><p>Import contractor data via Excel.</p>
 <button class="btn btn-primary" id="dataPanelContractorImport">Import Contractors Excel</button>
-<input type="file" id="dataPanelContractorFile" accept=".xlsx,.xls,.csv" style="display:none">
+<input type="file" id="dataPanelContractorFile" accept=".xlsx,.xls,.csv" style="display:none"></div>
+</div>
 </div>
 
 <div class="data-section">
-<h4>Bonus Matrix</h4>
-<p>Upload bonus percentages as a Seniority × Function grid.</p>
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Export Budget Outputs</h4>
+<div class="data-group-body" style="display:none">
+<div class="data-sub"><h5>Full Data Export</h5><p>Export all data (employees, vendors, T&amp;E) to a single Excel workbook.</p>
+<button class="btn btn-primary" id="dataPanelFullExport">Export All Data (Excel)</button></div>
+<div class="data-sub"><h5>Vendor Spend</h5>
+<button class="btn" id="dataPanelVendorExport">Export Vendor Excel</button></div>
+<div class="data-sub"><h5>T&amp;E</h5>
+<button class="btn" id="dataPanelTeExport">Export T&amp;E Excel</button></div>
+<div class="data-sub"><h5>Contractors</h5>
+<button class="btn" id="dataPanelContractorExport">Export Contractors Excel</button></div>
+</div>
+</div>
+
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Comp Assumptions</h4>
+<div class="data-group-body" style="display:none">
+<div class="data-sub"><h5>Bonus Matrix</h5><p>Upload bonus percentages as a Seniority × Function grid.</p>
 <button class="btn" id="btnDlBonusTemplate">Download Template</button>
 <button class="btn btn-primary" id="btnUploadBonus">Upload Bonus</button>
-<input type="file" id="bonusFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-
-<div class="data-section">
-<h4>Benefits Matrix</h4>
-<p>Upload benefits percentages and country multipliers.</p>
+<input type="file" id="bonusFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
+<div class="data-sub"><h5>Benefits Matrix</h5><p>Upload benefits percentages and country multipliers.</p>
 <button class="btn" id="btnDlBenefitsTemplate">Download Template</button>
 <button class="btn btn-primary" id="btnUploadBenefits">Upload Benefits</button>
-<input type="file" id="benefitsFileInput" accept=".xlsx,.xls,.csv" style="display:none">
-</div>
-
-<div class="data-section">
-<h4>Base Comp Rates</h4>
-<p>Upload seniority base salaries, function &amp; country multipliers.</p>
+<input type="file" id="benefitsFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
+<div class="data-sub"><h5>Base Comp Rates</h5><p>Upload seniority base salaries, function &amp; country multipliers.</p>
 <button class="btn" id="btnDlBaseCompTemplate">Download Template</button>
 <button class="btn btn-primary" id="btnUploadBaseComp">Upload Base Comp</button>
-<input type="file" id="baseCompFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+<input type="file" id="baseCompFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
+</div>
 </div>
 
 <div class="data-section">
-<h4>Full Data Export</h4>
-<p>Export all data (employees, vendors, T&amp;E) to a single Excel workbook.</p>
-<button class="btn btn-primary" id="dataPanelFullExport">Export All Data (Excel)</button>
-</div>
-
-<div class="data-section">
-<h4>Backup &amp; Share</h4>
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Backup &amp; Share</h4>
+<div class="data-group-body" style="display:none">
 <p>Full application state backup or shareable HTML export.</p>
 <button class="btn btn-primary" id="dataPanelExportJSON">Export JSON</button>
 <button class="btn" id="dataPanelImportJSON">Import JSON</button>
@@ -2897,6 +2887,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 <div style="margin-top:8px">
 <button class="btn" id="dataPanelPrint" style="width:100%">Open Print View</button>
+</div>
 </div>
 </div>
 
