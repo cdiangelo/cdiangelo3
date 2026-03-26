@@ -1,7 +1,7 @@
 // ── landing.js — ES module extracted from index.html lines 14872–15479 ──
-import { state, saveState, ensureStateFields } from '../lib/state.js';
+import { state, saveState, ensureStateFields, getBonusAmt, getBenefitsAmt } from '../lib/state.js';
 import { fmt, esc, CURRENT_YEAR, FUNCTIONS, COUNTRIES } from '../lib/constants.js';
-import { getMonthlyComp, getMonthlyCapEx } from '../lib/proration.js';
+import { getMonthlyComp, getMonthlyCapEx, getProratedComp, getProratedCapEx, getProratedBase, getProratedBonus, getProratedBenefits } from '../lib/proration.js';
 
 /* ── globals accessed via window (not yet modularised) ── */
 const getChartColors          = (...a) => window.getChartColors(...a);

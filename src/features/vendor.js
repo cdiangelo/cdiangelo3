@@ -97,6 +97,7 @@ function initVendorModule(){
     h+=`<td style="vertical-align:top;white-space:nowrap"><div style="display:flex;flex-direction:column;gap:2px">`;
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">Mo</label><select class="${prefix}-field ${prefix}-ri-mo" data-f="_rateIncMonth" style="font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${riMoOpts}</select></div>`;
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">%</label><input class="${prefix}-field ${prefix}-ri-pct" data-f="_rateIncPct" type="number" value="${riPct||''}" step="any" style="width:55px;font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
+    h+=`<button class="btn btn-sm ${prefix}-apply-ri" data-vi="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply increase</button>`;
     h+=`</div></td>`;
     MO.forEach(m=>{
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
@@ -168,6 +169,20 @@ function initVendorModule(){
         dataArr.splice(idx,1);
         saveState();renderFn();
         showUndoToast(label,dataArr,idx,item,renderFn);
+      });
+    });
+    // Apply rate increase
+    tbodyEl.querySelectorAll(`.${prefix}-apply-ri`).forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const idx=+btn.dataset.vi;
+        const row=dataArr[idx];if(!row)return;
+        const riMo=typeof row._rateIncMonth==='number'?row._rateIncMonth:-1;
+        const riPct=parseFloat(row._rateIncPct)||0;
+        if(riMo<0||!riPct)return;
+        MO.forEach((m,mi)=>{
+          if(mi>=riMo){row[m]=Math.round((parseFloat(row[m])||0)*(1+riPct/100))}
+        });
+        saveState();renderFn();
       });
     });
     // Drag-to-reorder rows
@@ -756,6 +771,7 @@ function initVendorModule(){
     h+=`<td style="vertical-align:top;white-space:nowrap"><div style="display:flex;flex-direction:column;gap:2px">`;
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">Mo</label><select class="cr-field cr-ri-mo" data-f="_rateIncMonth" style="font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${riMoOpts}</select></div>`;
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">%</label><input class="cr-field cr-ri-pct" data-f="_rateIncPct" type="number" value="${riPct||''}" step="any" style="width:55px;font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
+    h+=`<button class="btn btn-sm cr-apply-ri" data-ci="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply increase</button>`;
     h+=`</div></td>`;
     // Monthly columns — display based on view toggle
     MO.forEach(m=>{
@@ -879,6 +895,19 @@ function initVendorModule(){
         const startMo=typeof row._startMonth==='number'?row._startMonth:0;
         const endMo=typeof row._endMonth==='number'?row._endMonth:11;
         MO.forEach((m,mi)=>{if(mi>=startMo&&mi<=endMo)row[m]=monthlyAmt;else row[m]=0});
+        saveState();renderContractorGrid();
+      });
+    });
+    // Apply rate increase
+    tbody.querySelectorAll('.cr-apply-ri').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.ci;const row=state.contractorRows[i];if(!row)return;
+        const riMo=typeof row._rateIncMonth==='number'?row._rateIncMonth:-1;
+        const riPct=parseFloat(row._rateIncPct)||0;
+        if(riMo<0||!riPct)return;
+        MO.forEach((m,mi)=>{
+          if(mi>=riMo){row[m]=Math.round((parseFloat(row[m])||0)*(1+riPct/100))}
+        });
         saveState();renderContractorGrid();
       });
     });
