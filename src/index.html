@@ -65,12 +65,7 @@
 </div>
 </div>
 
-<!-- Template Banner (shown when not in a session) -->
-<div class="template-banner" id="templateBanner" style="display:none">
-Template Mode &mdash; changes saved in this browser only.
-<button class="btn btn-primary" onclick="openSessionModal()">Join a Session</button>
-<button class="btn" onclick="document.getElementById('templateBanner').style.display='none'" title="Dismiss">&times;</button>
-</div>
+<!-- Template Banner — moved after toolbar spacer, see below -->
 
 <!-- Teams Quick-Join -->
 <button class="teams-btn" id="teamsBtn" title="Teams"><svg viewBox="0 0 24 24"><path d="M19.2 6.4a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm2.4 1.2h-4.8c-.66 0-1.2.54-1.2 1.2v4.8c0 .66.54 1.2 1.2 1.2h.6v3.6c0 .33.27.6.6.6h2.4c.33 0 .6-.27.6-.6v-3.6h.6c.66 0 1.2-.54 1.2-1.2V8.8c0-.66-.54-1.2-1.2-1.2zM12.8 5.6a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6zm2 1.6h-.43a3.85 3.85 0 0 1-3.14 0H10.8c-1.33 0-2.4 1.07-2.4 2.4v4.4c0 .44.36.8.8.8h.4v4.4c0 .44.36.8.8.8h4.8c.44 0 .8-.36.8-.8v-4.4h.4c.44 0 .8-.36.8-.8V9.6c0-1.33-1.07-2.4-2.4-2.4z"/></svg></button>
@@ -172,6 +167,11 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 <div id="globalToolbarSpacer" style="height:38px"></div>
+<div class="template-banner" id="templateBanner" style="display:none">
+Template Mode &mdash; changes saved in this browser only.
+<button class="btn btn-primary" onclick="openSessionModal()">Join a Session</button>
+<button class="btn" onclick="document.getElementById('templateBanner').style.display='none'" title="Dismiss">&times;</button>
+</div>
 
 <!-- LANDING PAGE -->
 <div id="landingPage">
