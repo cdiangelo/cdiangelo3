@@ -444,7 +444,7 @@ function renderExecView(){
         plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:14,font:{size:13},padding:16}},datalabels:{}},
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
-          y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}},
+          y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}},
           y1:{beginAtZero:true,position:'right',title:{display:true,text:'FTE',color:tickColor,font:{size:12}},ticks:{color:tickColor},grid:{drawOnChartArea:false}}
         }
       }
@@ -555,7 +555,7 @@ function renderExecView(){
         plugins:[window.yoyArrowsPlugin],
         options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{position:'bottom',labels:{color:tickColor,padding:16}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
-          y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
+          y:{stacked:true,ticks:{color:tickColor,callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}}
         }}
       });
     }
@@ -602,7 +602,7 @@ function renderExecView(){
         plugins:[window.yoyArrowsPlugin],
         options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{position:'bottom',labels:{color:tickColor,boxWidth:14,font:{size:13},padding:16}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
-          y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
+          y:{stacked:true,ticks:{color:tickColor,callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}}
         }}
       });
     }

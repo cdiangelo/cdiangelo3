@@ -23,19 +23,63 @@ const deleteVersionFromServer= (...a) => window.deleteVersionFromServer(...a);
 const XLSX = window.XLSX;
 
 // ── DATA MANAGEMENT PANEL ──
+function closeAllSidePanels(){
+  const panels=[
+    {panel:'guideSlidePanel',btn:'guideToggleBtn',cls:'guide-open'},
+    {panel:'dataSlidePanel',btn:'dataToggleBtn',cls:'data-open'},
+    {panel:'scenarioSlidePanel',btn:'scenarioToggleBtn',cls:'scenario-open'}
+  ];
+  panels.forEach(p=>{
+    const el=document.getElementById(p.panel);
+    const bt=document.getElementById(p.btn);
+    if(el&&el.classList.contains('open')){el.classList.remove('open');document.body.classList.remove(p.cls);if(bt)bt.querySelector('.arrow').innerHTML='&#9654;'}
+  });
+}
+
+function initGuidePanel(){
+  const guidePanel=document.getElementById('guideSlidePanel');
+  const guideBtn=document.getElementById('guideToggleBtn');
+  if(!guidePanel||!guideBtn)return;
+  const guideArrow=guideBtn.querySelector('.arrow');
+  guideBtn.addEventListener('click',()=>{
+    const wasOpen=guidePanel.classList.contains('open');
+    closeAllSidePanels();
+    if(!wasOpen){
+      guidePanel.classList.add('open');
+      document.body.classList.add('guide-open');
+      guideArrow.innerHTML='&#9664;';
+    }
+  });
+  // Section toggles
+  document.getElementById('guideBusinessToggle').addEventListener('click',function(){
+    const body=document.getElementById('guideBusinessBody');
+    const show=body.style.display==='none';
+    body.style.display=show?'':'none';
+    this.innerHTML=(show?'&#9660;':'&#9654;')+' Business Planning';
+  });
+  document.getElementById('guideFinanceToggle').addEventListener('click',function(){
+    const body=document.getElementById('guideFinanceBody');
+    const show=body.style.display==='none';
+    body.style.display=show?'':'none';
+    this.innerHTML=(show?'&#9660;':'&#9654;')+' Finance &amp; Operations';
+  });
+}
+window.initGuidePanel=initGuidePanel;
+
 function initDataPanel(){
+  initGuidePanel();
   const dataPanel=document.getElementById('dataSlidePanel');
   const dataBtn=document.getElementById('dataToggleBtn');
   const dataArrow=dataBtn.querySelector('.arrow');
   dataBtn.addEventListener('click',()=>{
-    // Close scenario panel if open (mutual exclusivity)
-    const scenPanel=document.getElementById('scenarioSlidePanel');
-    const scenBtn=document.getElementById('scenarioToggleBtn');
-    if(scenPanel.classList.contains('open')){scenPanel.classList.remove('open');document.body.classList.remove('scenario-open');scenBtn.querySelector('.arrow').innerHTML='&#9654;'}
-    const isOpen=dataPanel.classList.toggle('open');
-    document.body.classList.toggle('data-open',isOpen);
-    dataArrow.innerHTML=isOpen?'&#9664;':'&#9654;';
-    if(isOpen)renderDataPanelWsList();
+    const wasOpen=dataPanel.classList.contains('open');
+    closeAllSidePanels();
+    if(!wasOpen){
+      dataPanel.classList.add('open');
+      document.body.classList.add('data-open');
+      dataArrow.innerHTML='&#9664;';
+      renderDataPanelWsList();
+    }
   });
 
   // Current Year selector — only changes header labels, no chart/table re-render
@@ -427,6 +471,7 @@ document.querySelectorAll('.data-group-toggle').forEach(h4=>{
 window.renderDataPanelWsList = renderDataPanelWsList;
 window.renderAuditLog = renderAuditLog;
 window.initDataPanel = initDataPanel;
+window.closeAllSidePanels = closeAllSidePanels;
 
 /* ── named exports ── */
 export { initDataPanel, renderDataPanelWsList };

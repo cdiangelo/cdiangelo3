@@ -758,7 +758,7 @@ function renderBudgetScenarioChart(){
     type:'bar',data:{labels:MO_SHORT,datasets},
     plugins:[plusPlugin],
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:12,font:{size:12}}},datalabels:{display:false}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000).toFixed(0)+'K'},grid:{color:gridColor}}}
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}}}
     }
   });
   // Canvas event listeners for + markers
@@ -1880,7 +1880,7 @@ function applyFcScenario(){
   renderFcScenarioChart();renderScenarioPnlSummary();
 }
 
-function fmtC(v){if(Math.abs(v)>=1e5)return (v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M';if(Math.abs(v)>=1e3)return (v<0?'-':'')+'$'+(Math.abs(v)/1e3).toFixed(0)+'K';return fmt(v)}
+function fmtC(v){return (v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'}
 function pnlRow(label,base,scen,isCost){
   const d=scen-base;const cls=isCost?(d<0?'var(--success)':d>0?'var(--danger)':'var(--text-dim)'):(d<0?'var(--success)':'var(--text-dim)');
   return `<tr><td>${label}</td><td style="text-align:right">${typeof base==='number'&&Math.abs(base)>999?fmtC(base):base}</td><td style="text-align:right">${typeof scen==='number'&&Math.abs(scen)>999?fmtC(scen):scen}</td><td style="text-align:right;color:${cls}">${typeof d==='number'&&Math.abs(d)>999?fmtC(d):d}</td></tr>`;
@@ -1930,14 +1930,12 @@ function initScenarioPane(){
   const toggleBtn=document.getElementById('scenarioToggleBtn');
   const arrowSpan=toggleBtn.querySelector('.arrow');
   toggleBtn.addEventListener('click',()=>{
-    // Close data panel if open (mutual exclusivity)
-    const dataPanel=document.getElementById('dataSlidePanel');
-    const dataBtn=document.getElementById('dataToggleBtn');
-    if(dataPanel.classList.contains('open')){dataPanel.classList.remove('open');document.body.classList.remove('data-open');dataBtn.querySelector('.arrow').innerHTML='&#9654;'}
-    const isOpen=panel.classList.toggle('open');
-    document.body.classList.toggle('scenario-open',isOpen);
-    arrowSpan.innerHTML=isOpen?'&#9664;':'&#9654;';
-    if(isOpen){
+    const wasOpen=panel.classList.contains('open');
+    if(window.closeAllSidePanels)window.closeAllSidePanels();
+    if(!wasOpen){
+      panel.classList.add('open');
+      document.body.classList.add('scenario-open');
+      arrowSpan.innerHTML='&#9664;';
       if(!budgetScenario)initBudgetScenario();if(!forecastScenario)initForecastScenario();
       renderBudgetScenarioChart();renderFcScenarioChart();renderScenarioPnlSummary();renderSavedScenarios();
     }

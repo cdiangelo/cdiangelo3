@@ -77,7 +77,7 @@ function renderEmpPivot(){
       type:'bar',data:{labels:chartLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},datalabels:{display:false}},
-        scales:{x:{stacked:true,ticks:{display:false},grid:{color:_epGc}},y:{stacked:true,ticks:{font:{size:10},color:_epTc,callback:function(v){return isCurrency?(v>=1e5?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v.toLocaleString()):v}},grid:{color:_epGc}}}
+        scales:{x:{stacked:true,ticks:{display:false},grid:{color:_epGc}},y:{stacked:true,ticks:{font:{size:10},color:_epTc,callback:function(v){return isCurrency?(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M':v}},grid:{color:_epGc}}}
       }
     });
   }

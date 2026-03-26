@@ -2796,6 +2796,40 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <!-- Data Management Toggle Button -->
+<!-- Guide Toggle Button -->
+<button class="guide-toggle-btn" id="guideToggleBtn"><span class="arrow">&#9654;</span>G U I D E</button>
+
+<!-- Guide Slide Panel -->
+<div class="guide-slide-panel" id="guideSlidePanel">
+<button class="panel-close-btn" onclick="document.getElementById('guideToggleBtn').click()">&times; Close Guide</button>
+<h3 style="color:var(--accent);font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Planning Guide</h3>
+
+<div class="guide-section">
+<h4 id="guideBusinessToggle">&#9654; Business Planning</h4>
+<div id="guideBusinessBody" style="display:none">
+<div class="guide-task"><span class="task-label">Review headcount targets</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Set revenue assumptions</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Define project allocations</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Review market benchmarks</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Set forecast growth assumptions</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+</div>
+</div>
+
+<div class="guide-section">
+<h4 id="guideFinanceToggle">&#9654; Finance &amp; Operations</h4>
+<div id="guideFinanceBody" style="display:none">
+<div class="guide-task"><span class="task-label">Upload employee roster</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Enter vendor &amp; T&amp;E spend</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Configure contractor rates</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Set bonus &amp; benefits matrices</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Review depreciation schedule</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Validate P&amp;L summary</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task"><span class="task-label">Run scenario analysis</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+</div>
+</div>
+
+</div>
+
 <button class="data-toggle-btn" id="dataToggleBtn"><span class="arrow">&#9654;</span>D A T A</button>
 
 <!-- Data Management Slide Panel -->

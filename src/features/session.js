@@ -340,6 +340,7 @@ function updateSessionUI() {
     // Populate the persistent top bar
     topBar.className = 'active';
     topBar.id = 'sessionTopBar';
+    document.body.classList.add('session-active');
     stbSession.innerHTML =
       `<span style="font-weight:600;color:var(--accent)">Session: ${sessionContext.sessionName || 'Active'}</span>` +
       `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel-inset);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code || ''}</span>` +
@@ -368,6 +369,7 @@ function updateSessionUI() {
     topBar.className = ''; topBar.id = 'sessionTopBar';
     stbSession.innerHTML = ''; stbUsers.innerHTML = '';
     presenceBar.className = 'presence-bar'; presenceBar.innerHTML = '';
+    document.body.classList.remove('session-active');
     document.body.classList.remove('session-active');
   }
 }

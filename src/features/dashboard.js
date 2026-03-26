@@ -74,7 +74,7 @@ const FTE_TOOLTIP={
     }
   }
 };
-function fmtShort(n){const abs=Math.abs(n);if(abs>=1e5)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(2)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return fmt(n)}
+function fmtShort(n){return (n<0?'-':'')+'$'+(Math.abs(n)/1e6).toFixed(2)+'M'}
 function stackedBarDatalabels(datasets,tickColor,fontSize,crispSection){
   const isCrispDl=window.chartColorScheme==='crisp';
   const fs=fontSize||(isCrispDl?13:11);
@@ -337,7 +337,7 @@ function renderDashboard(){
       data:{labels:labels.map(l=>l.length>18?l.slice(0,16)+'…':l),datasets},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{position:'bottom',labels:{color:tickColor,padding:14}},datalabels:{}},scales:{
         x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
-        y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
+        y:{stacked:true,ticks:{color:tickColor,callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}}
       }}
     });
     // FTE sparkline chart
@@ -416,7 +416,7 @@ function renderDashBreakdownCharts(labels,groups,isMonth,baseVal,bonusVal,benVal
   const shortLabels=labels.map(l=>l.length>10?l.slice(0,8)+'…':l);
   const chartOpts=(title)=>({responsive:true,maintainAspectRatio:false,layout:{padding:{top:14}},
     plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'end',color:getCrispDatalabelColor('breakdown')||tickColor,font:{size:window.chartColorScheme==='crisp'?12:10,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}},
-    scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},y:{beginAtZero:true,ticks:{color:tickColor,font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}}
+    scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},y:{beginAtZero:true,ticks:{color:tickColor,font:{size:10},callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}}}
   });
   function makeData(valFn){
     if(compView==='opex'){
