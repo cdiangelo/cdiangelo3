@@ -131,10 +131,12 @@ function renderExecFcSparkline(){
       const meta=chart.getDatasetMeta(0);
       if(!meta||!meta.data||meta.data.length<2)return;
       const ctx=chart.ctx;
-      const dk=document.documentElement.classList.contains('dark');
       ctx.save();
       const fontSize=11;
       ctx.font=`600 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
+      const lineColor=chart.data.datasets[0].borderColor||colors[0];
+      ctx.fillStyle=lineColor;
+      ctx.textAlign='center';ctx.textBaseline='bottom';
       for(let i=0;i<vals.length-1;i++){
         const prev=vals[i],cur=vals[i+1];
         if(!prev)continue;
@@ -143,19 +145,8 @@ function renderExecFcSparkline(){
         const p1=meta.data[i],p2=meta.data[i+1];
         if(!p1||!p2)continue;
         const midX=(p1.x+p2.x)/2;
-        const midY=Math.min(p1.y,p2.y)-18;
-        const tw=ctx.measureText(pctStr).width;
-        const pad=4;
-        const bgColor=pct>=0?(dk?'rgba(60,120,60,.6)':'rgba(58,125,68,.15)'):(dk?'rgba(140,50,50,.6)':'rgba(184,48,48,.15)');
-        const textColor=pct>=0?(dk?'#7adf7a':'#2a6a2a'):(dk?'#ff8a8a':'#a03030');
-        ctx.fillStyle=bgColor;
-        const rx=midX-tw/2-pad,ry=midY-fontSize/2-pad,rw=tw+pad*2,rh=fontSize+pad*2;
-        ctx.beginPath();
-        ctx.roundRect?ctx.roundRect(rx,ry,rw,rh,4):ctx.rect(rx,ry,rw,rh);
-        ctx.fill();
-        ctx.fillStyle=textColor;
-        ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(pctStr,midX,midY);
+        const topY=Math.min(p1.y,p2.y)-8;
+        ctx.fillText(pctStr,midX,topY);
       }
       ctx.restore();
     }
