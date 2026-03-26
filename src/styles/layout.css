@@ -93,10 +93,10 @@ body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptions
 .presence-dot.muted{opacity:.5;font-style:italic}
 #sessionTopBar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;padding:5px 20px;background:var(--panel);border-bottom:2px solid var(--accent);font-size:.78rem;align-items:center;justify-content:space-between;gap:12px}
 #sessionTopBar.active{display:flex}
-#sessionTopBar.active~#globalToolbar{top:30px}
-#sessionTopBar.active~#globalToolbarSpacer{height:68px}
 #sessionTopBar .stb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #sessionTopBar .stb-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+body.session-active #globalToolbar{top:30px!important}
+body.session-active #globalToolbarSpacer{height:68px!important}
 body.session-active header{top:62px}
 .save-indicator{font-size:.72rem;padding:2px 8px;border-radius:10px;font-weight:500;margin-left:8px}
 .save-indicator.saving{color:var(--warning)}

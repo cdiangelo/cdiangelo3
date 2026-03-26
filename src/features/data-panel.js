@@ -172,8 +172,14 @@ function initDataPanel(){
     document.getElementById('dataPanelWsSaveName').value='';
     renderDataPanelWsList();renderWorkspaceList();
   });
-  // Workspace: Quick Save
-
+  // Workspace: Quick Save — force save to current workspace
+  document.getElementById('dataPanelQuickSave').addEventListener('click',()=>{
+    if(window.saveState){window.saveState();window.logAudit('Quick Save','Force saved current state')}
+    // Also trigger server save if in session mode
+    if(window.debouncedServerSave)window.debouncedServerSave();
+    const btn=document.getElementById('dataPanelQuickSave');
+    btn.textContent='Saved!';setTimeout(()=>{btn.textContent='Quick Save'},1500);
+  });
 
   // Employee Roster: Download Template (reuse existing handler logic)
   document.getElementById('dataPanelDlRoster').addEventListener('click',()=>{

@@ -31,18 +31,18 @@ export function initFunMode(){try{
   const btn=document.createElement('button');
   btn.innerHTML='&#9654;';
   btn.title='Media';
-  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:1px solid ${dimC()};color:${dimC()};font-size:.6rem;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:color .3s,background .3s,border-color .3s,opacity .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.35`;
-  btn.addEventListener('mouseenter',()=>{btn.style.opacity='0.7';btn.style.color=hovC();btn.style.borderColor=hovC()});
-  btn.addEventListener('mouseleave',()=>{if(funState<0){btn.style.opacity='0.35';btn.style.color=dimC();btn.style.borderColor=dimC()}});
+  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:1px solid ${dimC()};color:${dimC()};font-size:.6rem;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.2`;
+  btn.addEventListener('mouseenter',()=>{btn.style.opacity='0.45'});
+  btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.opacity='0.2'});
   new MutationObserver(()=>{btn.style.background=bgC();btn.style.borderColor=dimC();if(funState<0){btn.style.color=dimC();btn.style.opacity='0.35'}}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
   document.body.appendChild(btn);
 
   // Editor button (gear icon above fun button)
   const editBtn=document.createElement('button');
   editBtn.innerHTML='&#9881;';
-  editBtn.style.cssText=`position:fixed;bottom:28px;right:8px;z-index:9999;background:${bgC()};border:1px solid ${dimC()};color:${dimC()};font-size:.65rem;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:color .3s,background .3s,border-color .3s,opacity .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.35`;
-  editBtn.addEventListener('mouseenter',()=>{editBtn.style.opacity='0.7';editBtn.style.color=hovC();editBtn.style.borderColor=hovC()});
-  editBtn.addEventListener('mouseleave',()=>{editBtn.style.opacity='0.35';editBtn.style.color=dimC();editBtn.style.borderColor=dimC()});
+  editBtn.style.cssText=`position:fixed;bottom:28px;right:8px;z-index:9999;background:${bgC()};border:1px solid ${dimC()};color:${dimC()};font-size:.65rem;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.2`;
+  editBtn.addEventListener('mouseenter',()=>{editBtn.style.opacity='0.45'});
+  editBtn.addEventListener('mouseleave',()=>{editBtn.style.opacity='0.2'});
   new MutationObserver(()=>{editBtn.style.background=bgC();editBtn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
   document.body.appendChild(editBtn);
 
@@ -339,14 +339,15 @@ export function initFunMode(){try{
   }
 
   function applyPipStyle(el){
-    el.style.cssText='position:fixed;bottom:12px;left:12px;width:25vw;min-width:280px;aspect-ratio:16/9;z-index:9998;pointer-events:none;overflow:hidden;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.25);transition:all .3s ease';
+    const pe=showControls?'auto':'none';
+    el.style.cssText=`position:fixed;bottom:12px;left:12px;width:25vw;min-width:280px;aspect-ratio:16/9;z-index:9998;pointer-events:${pe};overflow:hidden;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.25);transition:all .3s ease`;
   }
 
   function applyFullscreenStyle(el){
-    el.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;pointer-events:none;overflow:hidden;border-radius:0;box-shadow:none;transition:all .3s ease';
-    // Oversize iframe to avoid black bars
+    const pe=showControls?'auto':'none';
+    el.style.cssText=`position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;pointer-events:${pe};overflow:hidden;border-radius:0;box-shadow:none;transition:all .3s ease`;
     const iframe=el.querySelector('iframe');
-    if(iframe){iframe.style.cssText='position:absolute;top:50%;left:50%;width:120vw;height:120vh;transform:translate(-50%,-50%);border:none;opacity:'+savedOpacity;}
+    if(iframe){iframe.style.cssText='position:absolute;top:50%;left:50%;width:110vw;height:110vh;transform:translate(-50%,-50%);border:none;pointer-events:auto;opacity:'+savedOpacity;}
   }
 
   function toggleFullscreen(){
@@ -357,7 +358,7 @@ export function initFunMode(){try{
     } else {
       applyPipStyle(funWrap);
       const iframe=funWrap.querySelector('iframe');
-      if(iframe)iframe.style.cssText='width:100%;height:100%;border:none;opacity:'+savedOpacity;
+      if(iframe)iframe.style.cssText='width:100%;height:100%;border:none;pointer-events:auto;opacity:'+savedOpacity;
     }
   }
 
@@ -367,7 +368,7 @@ export function initFunMode(){try{
       isFullscreen=false;
       applyPipStyle(funWrap);
       const iframe=funWrap.querySelector('iframe');
-      if(iframe)iframe.style.cssText='width:100%;height:100%;border:none;opacity:'+savedOpacity;
+      if(iframe)iframe.style.cssText='width:100%;height:100%;border:none;pointer-events:auto;opacity:'+savedOpacity;
     }
   });
 
