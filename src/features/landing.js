@@ -391,7 +391,7 @@ function renderPnlWalk(){
       prodKeys.forEach(prod=>{
         const pd=prodData[cat][prod];
         h+=`<tr class="pnl-prod-row" style="background:var(--panel-inset)"><td style="padding-left:28px;white-space:nowrap;position:sticky;left:0;background:var(--panel-inset);z-index:1;font-size:.78rem;color:var(--text-dim)">${esc(prod)}</td>`;
-        cols.forEach(c=>h+=`<td class="num" style="font-size:.78rem;color:var(--text-dim);${c.cls==='subtotal'?'font-weight:600;color:var(--accent)':c.cls==='total'?'font-weight:600':''}">${c.isCurrency?fmt(pd[c.key]):pd[c.key]}</td>`);
+        cols.forEach(c=>h+=`<td class="num" style="font-size:.78rem;color:var(--text-dim);${c.cls==='subtotal'?'font-weight:600;color:var(--accent)':c.cls==='total'?'font-weight:600':''}">${c.isCurrency?fmtM(pd[c.key]):pd[c.key]}</td>`);
         h+='</tr>';
       });
     }
