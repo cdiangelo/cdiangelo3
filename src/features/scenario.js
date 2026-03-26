@@ -1898,33 +1898,37 @@ function buildSavedScenSelector(type){
   </div>`;
 }
 function renderInlineComparison(type,basePnl,containerEl){
+  // Clear previous inline comparisons
+  containerEl.querySelectorAll('.scen-inline-compare').forEach(el=>el.remove());
   const saved=getSavedScenarios();
   const checks=containerEl.querySelectorAll('.scen-compare-cb[data-type="'+type+'"]');
   const selectedIdxs=[];
   checks.forEach(cb=>{if(cb.checked)selectedIdxs.push(+cb.dataset.idx)});
   if(!selectedIdxs.length)return;
   const tblStyle='width:100%;margin-top:4px;font-size:.72rem';
+  const fv=(v,isCur)=>isCur?fmtC(v):v;
   selectedIdxs.forEach(idx=>{
-    const s=saved[idx];if(!s)return;
+    const s=saved[idx];if(!s||!s.pnl)return;
     const abbr=s.name.length>8?s.name.slice(0,8)+'…':s.name;
-    let html=`<div style="margin-top:6px;padding:6px;border:1px solid var(--border-light);border-radius:4px;background:var(--panel-inset)">
-      <div style="font-size:.68rem;font-weight:600;color:var(--accent);margin-bottom:2px">vs ${s.name}</div>
-      <table style="${tblStyle}"><tr><th style="text-align:left;font-size:.65rem">Metric</th><th style="text-align:right;font-size:.65rem">Current</th><th style="text-align:right;font-size:.65rem">${abbr}</th><th style="text-align:right;font-size:.65rem">Delta</th></tr>`;
     const sp=s.pnl;
     const metrics=type==='budget'?[
-      {k:'hc',l:'HC',cur:false},{k:'opex',l:'OpEx',cur:true},{k:'oao',l:'OAO',cur:true},{k:'capex',l:'CapEx',cur:true},{k:'total',l:'Total',cur:true}
+      {k:'hc',l:'HC',c:false},{k:'opex',l:'OpEx',c:true},{k:'oao',l:'OAO',c:true},{k:'capex',l:'CapEx',c:true},{k:'total',l:'Total',c:true}
     ]:[
-      {k:'hc',l:'HC',cur:false},{k:'opex',l:'OpEx',cur:true},{k:'total',l:'Total',cur:true}
+      {k:'hc',l:'HC',c:false},{k:'opex',l:'OpEx',c:true},{k:'total',l:'Total',c:true}
     ];
+    let rows='';
     metrics.forEach(m=>{
       const bv=basePnl[m.k]||0;const sv=sp[m.k]||0;const d=sv-bv;
       const dc=d<0?'var(--success)':d>0?'var(--danger)':'var(--text-dim)';
-      const fv=v=>m.cur?fmtC(v):v;
-      const ds=d===0?'—':(d>0?'+':'')+fv(d);
-      html+=`<tr><td style="padding:2px 4px">${m.l}</td><td style="text-align:right;padding:2px 4px">${fv(bv)}</td><td style="text-align:right;padding:2px 4px">${fv(sv)}</td><td style="text-align:right;padding:2px 4px;color:${dc};font-weight:600">${ds}</td></tr>`;
+      const ds=d===0?'—':(d>0?'+':'')+fv(d,m.c);
+      rows+=`<tr><td style="padding:2px 4px">${m.l}</td><td style="text-align:right;padding:2px 4px">${fv(bv,m.c)}</td><td style="text-align:right;padding:2px 4px">${fv(sv,m.c)}</td><td style="text-align:right;padding:2px 4px;color:${dc};font-weight:600">${ds}</td></tr>`;
     });
-    html+='</table></div>';
-    containerEl.insertAdjacentHTML('beforeend',html);
+    const div=document.createElement('div');
+    div.className='scen-inline-compare';
+    div.style.cssText='margin-top:6px;padding:6px;border:1px solid var(--border-light);border-radius:4px;background:var(--panel-inset)';
+    div.innerHTML=`<div style="font-size:.68rem;font-weight:600;color:var(--accent);margin-bottom:2px">vs ${s.name}</div>
+      <table style="${tblStyle}"><tr><th style="text-align:left;font-size:.65rem">Metric</th><th style="text-align:right;font-size:.65rem">Current</th><th style="text-align:right;font-size:.65rem">${abbr}</th><th style="text-align:right;font-size:.65rem">Delta</th></tr>${rows}</table>`;
+    containerEl.appendChild(div);
   });
 }
 function renderScenarioPnlSummary(){
