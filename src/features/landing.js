@@ -1096,8 +1096,8 @@ function renderExpandedCharts(){
   // LTF chart
   if(expandForecastInst){expandForecastInst.destroy();expandForecastInst=null}
   expandForecastInst=cloneChart(landingForecastChartInst,'expandForecastChart',[barTotalPlugin,window.yoyArrowsPlugin],true);
-  // Revenue charts — hide sections when revenue pane is off
-  const revVisible=state.showRevenuePane!==false;
+  // Revenue charts — hide when revenue module is toggled off
+  const revVisible=localStorage.getItem('compPlanRevenue')==='1';
   const expandRevEl=document.getElementById('expandRevenue');
   const expandRevFcEl=document.getElementById('expandRevForecast');
   if(expandRevEl)expandRevEl.style.display=revVisible?'':'none';
