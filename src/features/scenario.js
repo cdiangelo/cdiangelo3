@@ -921,6 +921,7 @@ function addChatMsg(containerId,text,type){
 }
 
 let budgetScenarioDirty=false,fcScenarioDirty=false;
+let _loadedBudgetScenName='',_loadedFcScenName='';
 
 function buildScopedCommand(text){
   // If filters are active, scope the command to selected function/country
@@ -1889,11 +1890,11 @@ function buildSavedScenSelector(type){
   const saved=getSavedScenarios().filter(s=>s.type===type);
   if(!saved.length)return '';
   return `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
-    <span style="font-size:.65rem;color:var(--text-dim)">Compare:</span>
+    <span style="font-size:.65rem;color:var(--text-dim)">Load:</span>
     ${saved.map((s,i)=>{
       const idx=getSavedScenarios().indexOf(s);
-      const abbr=s.name.length>6?s.name.slice(0,6)+'…':s.name;
-      return `<label style="display:flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text);cursor:pointer;padding:1px 4px;border:1px solid var(--border-light);border-radius:3px;background:var(--panel-inset)"><input type="checkbox" class="scen-compare-cb" data-type="${type}" data-idx="${idx}" style="margin:0;width:12px;height:12px;cursor:pointer">${abbr}</label>`;
+      const abbr=s.name.length>10?s.name.slice(0,10)+'…':s.name;
+      return `<button class="btn btn-sm scen-load-btn" data-type="${type}" data-idx="${idx}" style="padding:2px 8px;font-size:.65rem;font-weight:600;color:var(--accent);border:1px solid var(--border)">${abbr}</button>`;
     }).join('')}
   </div>`;
 }
@@ -1943,13 +1944,14 @@ function renderScenarioPnlSummary(){
   const bLast=baseFc[lastYr]||baseFc[baseFc.length-1]||{};
   const sLast=scenFc[lastYr]||scenFc[scenFc.length-1]||{};
   const tblStyle='width:100%;margin-top:4px;font-size:.72rem';
-  const thRow='<tr><th style="text-align:left;font-size:.68rem">Metric</th><th style="text-align:right;font-size:.68rem">Base</th><th style="text-align:right;font-size:.68rem">Scen</th><th style="text-align:right;font-size:.68rem">Delta</th></tr>';
+  const scenLabel=_loadedBudgetScenName||'Scen';
+  const scenLabelAbbr=scenLabel.length>10?scenLabel.slice(0,10)+'…':scenLabel;
+  const thRow=`<tr><th style="text-align:left;font-size:.68rem">Metric</th><th style="text-align:right;font-size:.68rem">Base</th><th style="text-align:right;font-size:.68rem">${scenLabelAbbr}</th><th style="text-align:right;font-size:.68rem">Delta</th></tr>`;
   const bTotInv=basePnl.annual.opex+basePnl.annual.capex+basePnl.annual.oao;
   const sTotInv=scenPnl.annual.opex+scenPnl.annual.capex+scenPnl.annual.oao;
-  const budgetBasePnl={hc:basePnl.annual.hc,opex:basePnl.annual.opex,oao:basePnl.annual.oao,capex:basePnl.annual.capex,total:bTotInv};
   if(bEl){
     bEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
-    <strong style="color:var(--accent);font-size:.76rem">Budget: Scenario vs Baseline</strong>
+    <strong style="color:var(--accent);font-size:.76rem">Budget: ${scenLabelAbbr} vs Baseline</strong>
     <table style="${tblStyle}">${thRow}
     ${pnlRow('HC',basePnl.annual.hc,scenPnl.annual.hc,false)}
     ${pnlRow('C&B OpEx',basePnl.annual.opex,scenPnl.annual.opex,true)}
@@ -1957,23 +1959,20 @@ function renderScenarioPnlSummary(){
     ${pnlRow('CapEx',basePnl.annual.capex,scenPnl.annual.capex,true)}
     <tr style="font-weight:700">${pnlRow('Total Investment',bTotInv,sTotInv,true).replace(/<\/?tr>/g,'')}</tr>
     </table>${buildSavedScenSelector('budget')}</div>`;
-    bEl.querySelectorAll('.scen-compare-cb').forEach(cb=>{
-      cb.addEventListener('change',()=>{
-        // Load the first checked scenario into the working budget scenario
-        const checked=[...bEl.querySelectorAll('.scen-compare-cb:checked')];
-        if(checked.length){
-          const idx=+checked[0].dataset.idx;
-          const saved=getSavedScenarios();
-          const s=saved[idx];
-          if(s&&s.data){
-            budgetScenario=JSON.parse(JSON.stringify(s.data));
-            budgetScenarioDirty=true;
-            document.getElementById('scenBudgetApply').style.display='inline-block';
-            renderBudgetScenarioChart();
-            renderScenarioPnlSummary();
-          }
+    bEl.querySelectorAll('.scen-load-btn[data-type="budget"]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const idx=+btn.dataset.idx;
+        const saved=getSavedScenarios();
+        const s=saved[idx];
+        if(s&&s.data){
+          budgetScenario=JSON.parse(JSON.stringify(s.data));
+          budgetScenarioDirty=true;
+          _loadedBudgetScenName=s.name;
+          document.getElementById('scenBudgetApply').style.display='inline-block';
+          document.getElementById('budgetScenStatus').innerHTML=`<span style="color:var(--success)">&#10003;</span> Loaded "${s.name}"`;
+          renderBudgetScenarioChart();
+          renderScenarioPnlSummary();
         }
-        renderInlineComparison('budget',budgetBasePnl,bEl);
       });
     });
   }
@@ -1981,32 +1980,33 @@ function renderScenarioPnlSummary(){
   const bVT=fcVtProjected(state.vendorRows,state.teRows,state.forecastAssumptions,fcLastIdx);
   const sVT=fcVtProjected(forecastScenario.vendorRows,forecastScenario.teRows,forecastScenario.assumptions,fcLastIdx);
   const fcBasePnl={hc:bLast.hc||0,opex:bLast.opex||0,total:(bLast.total||0)+bVT};
+  const fcScenLabel=_loadedFcScenName||'Scen';
+  const fcScenAbbr=fcScenLabel.length>10?fcScenLabel.slice(0,10)+'…':fcScenLabel;
+  const fcThRow=`<tr><th style="text-align:left;font-size:.68rem">Metric</th><th style="text-align:right;font-size:.68rem">Base</th><th style="text-align:right;font-size:.68rem">${fcScenAbbr}</th><th style="text-align:right;font-size:.68rem">Delta</th></tr>`;
   if(fEl){
     fEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
-    <strong style="color:var(--accent);font-size:.76rem">Forecast vs Baseline (${getDisplayYears()[4]})</strong>
-    <table style="${tblStyle}">${thRow}
+    <strong style="color:var(--accent);font-size:.76rem">Forecast: ${fcScenAbbr} vs Baseline (${getDisplayYears()[4]})</strong>
+    <table style="${tblStyle}">${fcThRow}
     ${pnlRow('HC',bLast.hc||0,sLast.hc||0,false)}
     ${pnlRow('C&B OpEx',bLast.opex||0,sLast.opex||0,true)}
     ${pnlRow('Vendor/T&E',bVT,sVT,true)}
     ${pnlRow('CapEx',bLast.capex||0,sLast.capex||0,true)}
     ${pnlRow('Total Inv',(bLast.total||0)+bVT,(sLast.total||0)+sVT,true)}
     </table>${buildSavedScenSelector('forecast')}</div>`;
-    fEl.querySelectorAll('.scen-compare-cb').forEach(cb=>{
-      cb.addEventListener('change',()=>{
-        const checked=[...fEl.querySelectorAll('.scen-compare-cb:checked')];
-        if(checked.length){
-          const idx=+checked[0].dataset.idx;
-          const saved=getSavedScenarios();
-          const s=saved[idx];
-          if(s&&s.data){
-            forecastScenario=JSON.parse(JSON.stringify(s.data));
-            fcScenarioDirty=true;
-            document.getElementById('scenFcApply').style.display='inline-block';
-            renderFcScenarioChart();
-            renderScenarioPnlSummary();
-          }
+    fEl.querySelectorAll('.scen-load-btn[data-type="forecast"]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const idx=+btn.dataset.idx;
+        const saved=getSavedScenarios();
+        const s=saved[idx];
+        if(s&&s.data){
+          forecastScenario=JSON.parse(JSON.stringify(s.data));
+          fcScenarioDirty=true;
+          _loadedFcScenName=s.name;
+          document.getElementById('scenFcApply').style.display='inline-block';
+          document.getElementById('fcScenStatus').innerHTML=`<span style="color:var(--success)">&#10003;</span> Loaded "${s.name}"`;
+          renderFcScenarioChart();
+          renderScenarioPnlSummary();
         }
-        renderInlineComparison('forecast',fcBasePnl,fEl);
       });
     });
   }
