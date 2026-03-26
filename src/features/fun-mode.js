@@ -350,10 +350,9 @@ export function initFunMode(){try{
   }
 
   function applyFullscreenStyle(el){
-    const pe=showControls?'auto':'none';
-    el.style.cssText=`position:fixed;top:0;left:0;width:${fullW}vw;height:${fullH}vh;z-index:9999;pointer-events:${pe};overflow:hidden;border-radius:0;box-shadow:none;transition:all .3s ease`;
+    el.style.cssText=`position:fixed;top:0;left:0;width:${fullW}vw;height:${fullH}vh;z-index:9999;pointer-events:none;overflow:hidden;border-radius:0;box-shadow:none;transition:all .3s ease`;
     const iframe=el.querySelector('iframe');
-    if(iframe){iframe.style.cssText=`position:absolute;top:50%;left:50%;width:${fullW+15}vw;height:${fullH+15}vh;transform:translate(-50%,-50%);border:none;pointer-events:auto;opacity:${savedOpacity}`;}
+    if(iframe){iframe.style.cssText=`position:absolute;top:50%;left:50%;width:${fullW+15}vw;height:${fullH+15}vh;transform:translate(-50%,-50%);border:none;pointer-events:none;opacity:${savedOpacity}`;}
   }
 
   function toggleFullscreen(){
@@ -364,7 +363,8 @@ export function initFunMode(){try{
     } else {
       applyPipStyle(funWrap);
       const iframe=funWrap.querySelector('iframe');
-      if(iframe)iframe.style.cssText='width:100%;height:100%;border:none;pointer-events:auto;opacity:'+savedOpacity;
+      const pe=showControls?'auto':'none';
+      if(iframe)iframe.style.cssText=`width:100%;height:100%;border:none;pointer-events:${pe};opacity:${savedOpacity}`;
     }
   }
 
@@ -374,7 +374,8 @@ export function initFunMode(){try{
       isFullscreen=false;
       applyPipStyle(funWrap);
       const iframe=funWrap.querySelector('iframe');
-      if(iframe)iframe.style.cssText='width:100%;height:100%;border:none;pointer-events:auto;opacity:'+savedOpacity;
+      const pe=showControls?'auto':'none';
+      if(iframe)iframe.style.cssText=`width:100%;height:100%;border:none;pointer-events:${pe};opacity:${savedOpacity}`;
     }
   });
 
