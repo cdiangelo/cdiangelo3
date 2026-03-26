@@ -61,8 +61,9 @@ body.guide-open .scenario-toggle-btn{left:50vw}
 .guide-slide-panel .guide-section:last-child{border-bottom:none}
 .guide-slide-panel .guide-section h4{font-size:.88rem;font-weight:600;color:var(--text-dark);margin:0 0 8px 0;cursor:pointer;user-select:none}
 .guide-slide-panel .guide-section h4:hover{color:var(--accent)}
-.guide-slide-panel .guide-task{display:flex;align-items:center;justify-content:space-between;padding:6px 8px 6px 12px;border-left:2px solid var(--border-light);margin-bottom:4px;font-size:.78rem;transition:background .15s}
+.guide-slide-panel .guide-task{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;border-left:2px solid var(--border-light);margin-bottom:4px;font-size:.78rem;transition:background .15s}
 .guide-slide-panel .guide-task:hover{background:var(--panel-inset)}
+.guide-slide-panel .guide-task .guide-check{width:13px;height:13px;flex-shrink:0;margin:0;cursor:pointer;accent-color:var(--accent)}
 .guide-slide-panel .guide-task .task-label{flex:1;color:var(--text)}
 .guide-slide-panel .guide-task .task-link{font-size:.7rem;color:var(--accent);cursor:pointer;white-space:nowrap;padding:2px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;font-weight:600;transition:background .15s}
 .guide-slide-panel .guide-task .task-link:hover{background:var(--panel-inset)}
