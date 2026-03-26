@@ -1053,18 +1053,15 @@ window.renderLtfChart=renderLtfChart;
 
 // ── CHART EXPAND PANE ──
 let expandBudgetInst=null,expandForecastInst=null,expandRevenueInst=null,expandRevFcInst=null;
-function cloneChart(srcInst,targetCanvasId,extraPlugins){
+function cloneChart(srcInst,targetCanvasId,extraPlugins,expandFonts){
   if(!srcInst)return null;
   const src=srcInst.config;
-  // Deep copy data arrays
   const newData={labels:src.data.labels.slice(),datasets:src.data.datasets.map(ds=>{
     const copy={...ds,data:ds.data.slice()};
     if(ds.datalabels)copy.datalabels={...ds.datalabels};
     return copy;
   })};
-  // Shallow copy options to preserve function references (callbacks, formatters)
   const newOpts=JSON.parse(JSON.stringify(src.options,(k,v)=>typeof v==='function'?'__fn__':v));
-  // Restore functions from source
   function restoreFns(target,source){
     if(!source||!target||typeof source!=='object')return;
     for(const k in source){
@@ -1073,7 +1070,18 @@ function cloneChart(srcInst,targetCanvasId,extraPlugins){
     }
   }
   restoreFns(newOpts,src.options);
-  // Collect per-chart plugins
+  // Bump font sizes for expanded view
+  if(expandFonts){
+    if(newOpts.scales){
+      ['x','y'].forEach(ax=>{if(newOpts.scales[ax]&&newOpts.scales[ax].ticks&&newOpts.scales[ax].ticks.font)newOpts.scales[ax].ticks.font.size=14});
+      if(newOpts.scales.y&&newOpts.scales.y.title&&newOpts.scales.y.title.font)newOpts.scales.y.title.font.size=14;
+    }
+    if(newOpts.plugins){
+      if(newOpts.plugins.legend&&newOpts.plugins.legend.labels&&newOpts.plugins.legend.labels.font)newOpts.plugins.legend.labels.font.size=14;
+      if(newOpts.plugins.barTotal)newOpts.plugins.barTotal.fontSize=14;
+    }
+    if(newOpts.layout)newOpts.layout.padding={top:28};
+  }
   const plugins=(src._config&&src._config.plugins?src._config.plugins:[]).concat(extraPlugins||[]);
   return new Chart(document.getElementById(targetCanvasId),{type:src.type,data:newData,plugins,options:newOpts});
 }
@@ -1083,10 +1091,10 @@ function renderExpandedCharts(){
   if(!pane||!pane.classList.contains('open'))return;
   // Budget chart
   if(expandBudgetInst)expandBudgetInst.destroy();
-  expandBudgetInst=cloneChart(landingBudgetChartInst,'expandBudgetChart',[barTotalPlugin]);
+  expandBudgetInst=cloneChart(landingBudgetChartInst,'expandBudgetChart',[barTotalPlugin],true);
   // LTF chart
   if(expandForecastInst)expandForecastInst.destroy();
-  expandForecastInst=cloneChart(landingForecastChartInst,'expandForecastChart',[barTotalPlugin,window.yoyArrowsPlugin]);
+  expandForecastInst=cloneChart(landingForecastChartInst,'expandForecastChart',[barTotalPlugin,window.yoyArrowsPlugin],true);
   // Revenue charts — hide sections when revenue pane is off
   const revVisible=state.showRevenuePane!==false;
   const expandRevEl=document.getElementById('expandRevenue');
@@ -1094,13 +1102,33 @@ function renderExpandedCharts(){
   if(expandRevEl)expandRevEl.style.display=revVisible?'':'none';
   if(expandRevFcEl)expandRevFcEl.style.display=revVisible?'':'none';
   if(expandRevenueInst)expandRevenueInst.destroy();
-  expandRevenueInst=revVisible?cloneChart(landingRevenueChartInst,'expandRevenueChart'):null;
+  expandRevenueInst=revVisible?cloneChart(landingRevenueChartInst,'expandRevenueChart',null,true):null;
   if(expandRevFcInst)expandRevFcInst.destroy();
-  expandRevFcInst=revVisible?cloneChart(landingRevFcChartInst,'expandRevFcChart'):null;
+  expandRevFcInst=revVisible?cloneChart(landingRevFcChartInst,'expandRevFcChart',null,true):null;
+}
+function syncExpandFilters(){
+  // Copy main filter options into expand toolbar dropdowns
+  const pairs=[['pnlFilterProduct','expandFilterProduct'],['pnlFilterCategory','expandFilterCategory'],['pnlFilterFunction','expandFilterFunction'],['pnlFilterCountry','expandFilterCountry']];
+  pairs.forEach(([src,dst])=>{
+    const srcEl=document.getElementById(src),dstEl=document.getElementById(dst);
+    if(!srcEl||!dstEl)return;
+    const curVal=dstEl.value;
+    dstEl.innerHTML=srcEl.innerHTML;
+    dstEl.value=srcEl.value;
+  });
+  // Sync view toggle
+  const mainActive=document.querySelector('#landingChartViewToggle .btn.active');
+  if(mainActive){
+    document.querySelectorAll('#expandViewToggle .btn').forEach(b=>{
+      b.classList.toggle('active',b.dataset.xview===mainActive.dataset.lcview);
+    });
+  }
 }
 function openChartExpandPane(targetId){
   const pane=document.getElementById('chartExpandPane');
   pane.classList.add('open');
+  document.body.style.overflow='hidden';
+  syncExpandFilters();
   renderExpandedCharts();
   setTimeout(function(){
     const el=document.getElementById(targetId);
@@ -1110,6 +1138,7 @@ function openChartExpandPane(targetId){
 function closeChartExpandPane(){
   const pane=document.getElementById('chartExpandPane');
   pane.classList.remove('open');
+  document.body.style.overflow='';
   if(expandBudgetInst){expandBudgetInst.destroy();expandBudgetInst=null}
   if(expandForecastInst){expandForecastInst.destroy();expandForecastInst=null}
   if(expandRevenueInst){expandRevenueInst.destroy();expandRevenueInst=null}
@@ -1118,6 +1147,25 @@ function closeChartExpandPane(){
 document.getElementById('chartExpandClose').addEventListener('click',closeChartExpandPane);
 document.querySelectorAll('.chart-expand-btn').forEach(function(btn){
   btn.addEventListener('click',function(){openChartExpandPane(this.dataset.expandTarget)});
+});
+// Expand toolbar: view toggle syncs to main and re-renders
+document.querySelectorAll('#expandViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#expandViewToggle .btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  // Sync back to main toggle
+  const mainBtns=document.querySelectorAll('#landingChartViewToggle .btn');
+  mainBtns.forEach(x=>x.classList.remove('active'));
+  const match=[...mainBtns].find(x=>x.dataset.lcview===b.dataset.xview);
+  if(match){match.classList.add('active');landingChartView=b.dataset.xview;renderLandingCharts()}
+}));
+// Expand toolbar: filter dropdowns sync to main and re-render
+['expandFilterProduct','expandFilterCategory','expandFilterFunction','expandFilterCountry'].forEach((id,idx)=>{
+  const mainIds=['pnlFilterProduct','pnlFilterCategory','pnlFilterFunction','pnlFilterCountry'];
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('change',()=>{
+    const mainEl=document.getElementById(mainIds[idx]);
+    if(mainEl){mainEl.value=el.value;mainEl.dispatchEvent(new Event('change'))}
+  });
 });
 // Keep expanded charts in sync when landing charts re-render
 const _origRenderLandingCharts=renderLandingCharts;

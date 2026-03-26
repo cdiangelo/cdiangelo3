@@ -28,14 +28,19 @@
 body.scenario-open #undoToast,body.data-open #undoToast{left:calc(50% + 25vw)}
 
 /* Chart expand pane (lines 721-728) */
-#chartExpandPane{position:fixed;bottom:0;right:0;left:0;height:70vh;background:var(--bg);border-top:2px solid var(--border);z-index:1040;transform:translateY(100%);transition:transform .3s ease,left .3s ease;overflow-y:auto;padding:24px 32px;box-shadow:0 -4px 24px rgba(0,0,0,.18)}
+#chartExpandPane{position:fixed;top:0;right:0;bottom:0;left:0;background:var(--bg);z-index:1040;transform:translateY(100%);transition:transform .3s ease;overflow-y:auto;padding:0;box-shadow:0 0 40px rgba(0,0,0,.25)}
 #chartExpandPane.open{transform:translateY(0)}
-body.scenario-open #chartExpandPane,body.data-open #chartExpandPane{left:50vw}
-#chartExpandPane .expand-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px}
-#chartExpandPane .expand-chart-card .chart-wrap{position:relative;width:100%;height:340px}
-#chartExpandPane .expand-chart-title{font-size:.88rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
-#chartExpandPane .expand-close-btn{position:sticky;top:0;z-index:2;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 16px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:16px;display:inline-flex;align-items:center;gap:6px}
-#chartExpandPane .expand-close-btn:hover{background:var(--border)}
+body.scenario-open #chartExpandPane,body.data-open #chartExpandPane{left:0}
+#chartExpandPane .expand-toolbar{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:2px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#chartExpandPane .expand-toolbar .form-group{margin-bottom:0}
+#chartExpandPane .expand-toolbar label{margin-bottom:0;font-size:.74rem;font-weight:600}
+#chartExpandPane .expand-toolbar select{padding:3px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)}
+#chartExpandPane .expand-charts-body{padding:24px 32px}
+#chartExpandPane .expand-chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:24px}
+#chartExpandPane .expand-chart-card .chart-wrap{position:relative;width:100%;height:55vh;min-height:400px}
+#chartExpandPane .expand-chart-title{font-size:1.05rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px}
+#chartExpandPane .expand-close-btn{background:var(--bg);border:2px solid var(--border);color:var(--text);padding:8px 18px;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+#chartExpandPane .expand-close-btn:hover{background:var(--border);color:var(--accent)}
 
 /* P&L Walk (lines 730-740) */
 .pnl-walk{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:32px}

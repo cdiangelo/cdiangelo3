@@ -303,7 +303,18 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 
 <div id="chartExpandPane">
+<div class="expand-toolbar">
+<div class="toggle-group" id="expandViewToggle" style="font-size:.76rem">
+<button class="btn active" data-xview="pnl" style="padding:3px 12px;font-size:.76rem">P&amp;L</button>
+<button class="btn" data-xview="total" style="padding:3px 12px;font-size:.76rem">Total Inv</button>
+</div>
+<div class="form-group"><label>Product</label><select id="expandFilterProduct" style="min-width:110px"><option value="">All Products</option></select></div>
+<div class="form-group"><label>Category</label><select id="expandFilterCategory" style="min-width:120px"><option value="">All Categories</option></select></div>
+<div class="form-group"><label>Function</label><select id="expandFilterFunction" style="min-width:120px"><option value="">All Functions</option></select></div>
+<div class="form-group"><label>Country</label><select id="expandFilterCountry" style="min-width:120px"><option value="">All Countries</option></select></div>
 <button class="expand-close-btn" id="chartExpandClose">&#x2715; Close</button>
+</div>
+<div class="expand-charts-body">
 <div class="expand-chart-card" id="expandBudget">
 <div class="expand-chart-title">Monthly Budget</div>
 <div class="chart-wrap"><canvas id="expandBudgetChart"></canvas></div>
@@ -319,6 +330,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="expand-chart-card" id="expandRevForecast">
 <div class="expand-chart-title">Revenue Long-Term Forecast</div>
 <div class="chart-wrap"><canvas id="expandRevFcChart"></canvas></div>
+</div>
 </div>
 </div>
 
