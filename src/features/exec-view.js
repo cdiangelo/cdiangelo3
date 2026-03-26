@@ -12,6 +12,7 @@ import {
 } from '../lib/proration.js';
 import { projectForecast } from './forecast.js';
 
+function fmtM(n){const a=Math.abs(n);if(a>=1e6)return(n<0?'-':'')+'$'+(n/1e6).toFixed(1)+'M';if(a>=1e5)return(n<0?'-':'')+'$'+(n/1e6).toFixed(2)+'M';return fmt(n)}
 let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total',execTrendYear='current';
 let execMonthlyChart=null,execForecastChart=null,execFcSparkChart=null;
 let execFcCollapsed=true;
@@ -646,13 +647,13 @@ function renderExecView(){
     const catCapEx=allCatPeople.reduce((a,p)=>a+p.capEx,0);
     const catOpEx=allCatPeople.reduce((a,p)=>a+p.opEx,0);
     const catFte=Math.round(allCatPeople.reduce((a,p)=>a+p.allocPct,0))/100;
-    rHtml+=`<div class="exec-roster-cat collapsed"><div class="cat-header"><span><span class="toggle-icon">&#9660;</span>${cat}</span><span style="font-weight:400;font-size:.8rem;color:var(--text-dim)">${catFte} FTE &middot; ${fmt(catTotal)} total &middot; ${fmt(catCapEx)} CapEx &middot; ${fmt(catOpEx)} OpEx</span></div><div class="cat-body">`;
+    rHtml+=`<div class="exec-roster-cat collapsed"><div class="cat-header"><span><span class="toggle-icon">&#9660;</span>${cat}</span><span style="font-weight:700;font-size:.82rem">${catFte} FTE &middot; ${fmtM(catTotal)} total &middot; ${fmtM(catCapEx)} CapEx &middot; ${fmtM(catOpEx)} OpEx</span></div><div class="cat-body">`;
     const prods=Object.keys(tree[cat]).sort();
     prods.forEach(prod=>{
       const people=tree[cat][prod];
       const prodCapEx=people.reduce((a,p)=>a+p.capEx,0);
       const prodTotal=people.reduce((a,p)=>a+p.totalComp,0);
-      rHtml+=`<div class="exec-roster-prod"><div class="prod-header"><span class="toggle-icon">&#9660;</span>${prod} <span style="font-weight:400;font-size:.78rem;color:var(--text-dim)">(${people.length} people &middot; ${fmt(prodTotal)} total &middot; ${fmt(prodCapEx)} CapEx)</span></div><div class="prod-body">`;
+      rHtml+=`<div class="exec-roster-prod"><div class="prod-header"><span class="toggle-icon">&#9660;</span>${prod} <span style="font-weight:600;font-size:.8rem">(${people.length} people &middot; ${fmtM(prodTotal)} total &middot; ${fmtM(prodCapEx)} CapEx)</span></div><div class="prod-body">`;
       people.sort((a,b)=>b.allocPct-a.allocPct).forEach(p=>{
         rHtml+=`<div class="exec-roster-person"><span class="person-name">${p.name} <span style="color:var(--text-dim);font-size:.75rem">${p.seniority}, ${p.function}</span></span><span class="person-metrics">${p.allocPct}% alloc &middot; ${fmt(p.capEx)} CapEx &middot; ${fmt(p.opEx)} OpEx</span></div>`;
       });
