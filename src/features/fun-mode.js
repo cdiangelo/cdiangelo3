@@ -360,21 +360,15 @@ export function initFunMode(){try{
     document.body.appendChild(funWrap);
   }
 
-  // Compute inverse of body zoom to cover actual viewport
-  const bodyZoom=parseFloat(getComputedStyle(document.body).zoom)||1;
-  const zInv=1/bodyZoom;
-  const fullW=Math.ceil(100*zInv);
-  const fullH=Math.ceil(100*zInv);
-
   function applyPipStyle(el){
     const pe=showControls?'auto':'none';
     el.style.cssText=`position:fixed;bottom:12px;left:12px;width:25vw;min-width:280px;aspect-ratio:16/9;z-index:9998;pointer-events:${pe};overflow:hidden;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.25);transition:all .3s ease`;
   }
 
   function applyFullscreenStyle(el){
-    el.style.cssText=`position:fixed;top:0;left:0;width:${fullW}vw;height:${fullH}vh;z-index:9999;pointer-events:none;overflow:hidden;border-radius:0;box-shadow:none;transition:all .3s ease`;
+    el.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;pointer-events:none;overflow:hidden;border-radius:0;box-shadow:none;transition:all .3s ease';
     const iframe=el.querySelector('iframe');
-    if(iframe){iframe.style.cssText=`position:absolute;top:50%;left:50%;width:${fullW+15}vw;height:${fullH+15}vh;transform:translate(-50%,-50%);border:none;pointer-events:none;opacity:${savedOpacity}`;}
+    if(iframe){iframe.style.cssText=`position:absolute;top:50%;left:50%;width:115vw;height:115vh;transform:translate(-50%,-50%);border:none;pointer-events:none;opacity:${savedOpacity}`;}
   }
 
   function toggleFullscreen(){
