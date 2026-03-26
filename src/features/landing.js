@@ -1053,29 +1053,50 @@ window.renderLtfChart=renderLtfChart;
 
 // ── CHART EXPAND PANE ──
 let expandBudgetInst=null,expandForecastInst=null,expandRevenueInst=null,expandRevFcInst=null;
-function deepClone(obj){
-  if(obj===null||typeof obj!=='object')return obj;
-  if(typeof obj==='function')return obj;
-  if(Array.isArray(obj))return obj.map(deepClone);
-  var out={};for(var k in obj){if(obj.hasOwnProperty(k))out[k]=typeof obj[k]==='function'?obj[k]:deepClone(obj[k])}
-  return out;
-}
-function cloneChartCfg(inst,canvasId){
-  var cfg=inst.config;
-  return{type:cfg.type,data:deepClone(cfg.data),plugins:(cfg.plugins||[]).slice(),options:deepClone(cfg.options)};
+function cloneChart(srcInst,targetCanvasId,extraPlugins){
+  if(!srcInst)return null;
+  const src=srcInst.config;
+  // Deep copy data arrays
+  const newData={labels:src.data.labels.slice(),datasets:src.data.datasets.map(ds=>{
+    const copy={...ds,data:ds.data.slice()};
+    if(ds.datalabels)copy.datalabels={...ds.datalabels};
+    return copy;
+  })};
+  // Shallow copy options to preserve function references (callbacks, formatters)
+  const newOpts=JSON.parse(JSON.stringify(src.options,(k,v)=>typeof v==='function'?'__fn__':v));
+  // Restore functions from source
+  function restoreFns(target,source){
+    if(!source||!target||typeof source!=='object')return;
+    for(const k in source){
+      if(typeof source[k]==='function'){target[k]=source[k]}
+      else if(typeof source[k]==='object'&&source[k]!==null&&target[k])restoreFns(target[k],source[k]);
+    }
+  }
+  restoreFns(newOpts,src.options);
+  // Collect per-chart plugins
+  const plugins=(src._config&&src._config.plugins?src._config.plugins:[]).concat(extraPlugins||[]);
+  return new Chart(document.getElementById(targetCanvasId),{type:src.type,data:newData,plugins,options:newOpts});
 }
 function renderExpandedCharts(){
   if(typeof Chart==='undefined')return;
   var pane=document.getElementById('chartExpandPane');
   if(!pane||!pane.classList.contains('open'))return;
+  // Budget chart
   if(expandBudgetInst)expandBudgetInst.destroy();
-  if(landingBudgetChartInst)expandBudgetInst=new Chart(document.getElementById('expandBudgetChart'),cloneChartCfg(landingBudgetChartInst));
+  expandBudgetInst=cloneChart(landingBudgetChartInst,'expandBudgetChart',[barTotalPlugin]);
+  // LTF chart
   if(expandForecastInst)expandForecastInst.destroy();
-  if(landingForecastChartInst)expandForecastInst=new Chart(document.getElementById('expandForecastChart'),cloneChartCfg(landingForecastChartInst));
+  expandForecastInst=cloneChart(landingForecastChartInst,'expandForecastChart',[barTotalPlugin,window.yoyArrowsPlugin]);
+  // Revenue charts — hide sections when revenue pane is off
+  const revVisible=state.showRevenuePane!==false;
+  const expandRevEl=document.getElementById('expandRevenue');
+  const expandRevFcEl=document.getElementById('expandRevForecast');
+  if(expandRevEl)expandRevEl.style.display=revVisible?'':'none';
+  if(expandRevFcEl)expandRevFcEl.style.display=revVisible?'':'none';
   if(expandRevenueInst)expandRevenueInst.destroy();
-  if(landingRevenueChartInst)expandRevenueInst=new Chart(document.getElementById('expandRevenueChart'),cloneChartCfg(landingRevenueChartInst));
+  expandRevenueInst=revVisible?cloneChart(landingRevenueChartInst,'expandRevenueChart'):null;
   if(expandRevFcInst)expandRevFcInst.destroy();
-  if(landingRevFcChartInst)expandRevFcInst=new Chart(document.getElementById('expandRevFcChart'),cloneChartCfg(landingRevFcChartInst));
+  expandRevFcInst=revVisible?cloneChart(landingRevFcChartInst,'expandRevFcChart'):null;
 }
 function openChartExpandPane(targetId){
   const pane=document.getElementById('chartExpandPane');
