@@ -88,6 +88,15 @@ function initVendorModule(){
     h+=`<td style="${blk(row.project)}"><select class="${prefix}-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
     h+=`<td style="${blk(row.acctDesc)}"><select class="${prefix}-field ${prefix}-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
     h+=`<td class="${prefix}-acctCode" style="font-size:.78rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
+    // Rate Increase column
+    const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const riMo=typeof row._rateIncMonth==='number'?row._rateIncMonth:-1;
+    const riPct=parseFloat(row._rateIncPct)||0;
+    const riMoOpts='<option value="-1">—</option>'+MO_LABELS.map((l,mi)=>`<option value="${mi}">${l}</option>`).join('');
+    h+=`<td style="vertical-align:top;white-space:nowrap"><div style="display:flex;flex-direction:column;gap:2px">`;
+    h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">Mo</label><select class="${prefix}-field ${prefix}-ri-mo" data-f="_rateIncMonth" style="font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${riMoOpts}</select></div>`;
+    h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">%</label><input class="${prefix}-field ${prefix}-ri-pct" data-f="_rateIncPct" type="number" value="${riPct||''}" step="any" style="width:55px;font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
+    h+=`</div></td>`;
     MO.forEach(m=>{
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
       const displayed=scaleVal(parseFloat(raw)||0);
@@ -117,6 +126,10 @@ function initVendorModule(){
         const f=el.dataset.f;
         if(el.classList.contains(`${prefix}-mo`)){
           dataArr[i][f]=unscaleVal(parseFloat(el.value)||0);
+        } else if(f==='_rateIncMonth'){
+          dataArr[i][f]=parseInt(el.value);
+        } else if(f==='_rateIncPct'){
+          dataArr[i][f]=parseFloat(el.value)||0;
         } else {
           dataArr[i][f]=el.value;
         }
@@ -278,7 +291,7 @@ function initVendorModule(){
     return isDark?TAG_COLORS_DARK.slice():TAG_COLORS_LIGHT.slice();
   }
 
-  function fields2colSpan(prefix){return prefix==='vr'?11:10}
+  function fields2colSpan(prefix){return prefix==='vr'?12:11}
 
   function renderFooter(tfootEl,dataArr,colSpan,monthFilter){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
@@ -337,7 +350,7 @@ function initVendorModule(){
     let h='';
     state.vendorRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'vr','vendor')});
     tbody.innerHTML=h;
-    renderFooter(totalEl,state.vendorRows,10,vendorSelectedMonths);
+    renderFooter(totalEl,state.vendorRows,11,vendorSelectedMonths);
     bindSpendRows(tbody,totalEl,state.vendorRows,'vr',renderVendorGrid,vendorSelectedMonths);
   }
 
@@ -635,7 +648,7 @@ function initVendorModule(){
     let h='';
     state.teRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'te','te')});
     tbody.innerHTML=h;
-    renderFooter(totalEl,state.teRows,9,teSelectedMonths);
+    renderFooter(totalEl,state.teRows,10,teSelectedMonths);
     bindSpendRows(tbody,totalEl,state.teRows,'te',renderTeGrid,teSelectedMonths);
   }
 
@@ -732,6 +745,14 @@ function initVendorModule(){
     h+=`<td style="${blk(row.project)}"><select class="cr-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
     h+=`<td style="${blk(row.acctDesc)}"><select class="cr-field cr-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
     h+=`<td class="cr-acctCode" style="font-size:.78rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
+    // Rate Increase column
+    const riMo=typeof row._rateIncMonth==='number'?row._rateIncMonth:-1;
+    const riPct=parseFloat(row._rateIncPct)||0;
+    const riMoOpts='<option value="-1">—</option>'+MO_LABELS.map((l,mi)=>`<option value="${mi}">${l}</option>`).join('');
+    h+=`<td style="vertical-align:top;white-space:nowrap"><div style="display:flex;flex-direction:column;gap:2px">`;
+    h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">Mo</label><select class="cr-field cr-ri-mo" data-f="_rateIncMonth" style="font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${riMoOpts}</select></div>`;
+    h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">%</label><input class="cr-field cr-ri-pct" data-f="_rateIncPct" type="number" value="${riPct||''}" step="any" style="width:55px;font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
+    h+=`</div></td>`;
     // Monthly columns — display based on view toggle
     MO.forEach(m=>{
       const raw=parseFloat(row[m])||0;
@@ -774,7 +795,7 @@ function initVendorModule(){
     const fyTotal=hasFilter?moTotals.filter((_,i)=>contractorSelectedMonths.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
     // Use individual <td>s instead of colspan to prevent column misalignment with data rows
     const totalLabel=`TOTAL${hasFilter?' (filtered)':''}${contractorView!=='expense'?' — '+contractorView.toUpperCase():''}`;
-    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${totalLabel}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>`;
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${totalLabel}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>`;
     moTotals.forEach((t,mi)=>{
       const dim=hasFilter&&!contractorSelectedMonths.has(mi)?'opacity:.35;':'';
       const sv=contractorAmtScale===1?t:Math.round((t/contractorAmtScale)*100)/100;
@@ -803,6 +824,7 @@ function initVendorModule(){
         const f=sel.dataset.f;
         if(f==='_startMonth'){sel.value=typeof row._startMonth==='number'?row._startMonth:0}
         else if(f==='_endMonth'){sel.value=typeof row._endMonth==='number'?row._endMonth:11}
+        else if(f==='_rateIncMonth'){sel.value=typeof row._rateIncMonth==='number'?row._rateIncMonth:-1}
         else if(f&&row[f])sel.value=row[f];
       });
     });
@@ -821,8 +843,11 @@ function initVendorModule(){
           renderContractorGrid();
         } else if(f==='hourlyRate'||f==='monthlyHours'){
           row[f]=parseFloat(el.value)||0;
-        } else if(f==='_startMonth'||f==='_endMonth'){
-          row[f]=parseInt(el.value)||0;
+        } else if(f==='_startMonth'||f==='_endMonth'||f==='_rateIncMonth'){
+          row[f]=parseInt(el.value);
+          saveState();return;
+        } else if(f==='_rateIncPct'){
+          row[f]=parseFloat(el.value)||0;
           saveState();return;
         } else {
           row[f]=el.value;
