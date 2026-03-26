@@ -436,7 +436,7 @@ function renderLandingCharts(){
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const useSplit=false;
   const isPnl=landingChartView==='pnl';
-  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+'$'+(a>=1e6?(a/1e6).toFixed(1)+'M':(a/1000).toFixed(0)+'K')};
+  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+(a>=1e6?(a/1e6).toFixed(1)+'M':'$'+(a/1000).toFixed(0)+'K')};
 
   // ── Monthly Budget Chart ──
   if(landingBudgetChartInst)landingBudgetChartInst.destroy();
@@ -643,7 +643,7 @@ const barTotalPlugin={
       }
       if(x==null)continue;
       const y=yScale.getPixelForValue(sum);
-      const label=sum>=1e6?'$'+(sum/1e6).toFixed(1)+'M':sum>=1e3?'$'+(sum/1e3).toFixed(0)+'K':'$'+Math.round(sum);
+      const label=sum>=1e6?(sum/1e6).toFixed(1):sum>=1e3?'$'+(sum/1e3).toFixed(0)+'K':'$'+Math.round(sum);
       ctx.fillText(label,x,y-4);
     }
     ctx.restore();
@@ -756,6 +756,15 @@ function initLtfModule(){
     document.querySelectorAll('#ltfSplitToggle .btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');ltfSplit=b.dataset.split;renderLtfChart();
   }));
+  // Methodology toggle
+  const methToggle=document.getElementById('ltfMethodToggle');
+  const methPanel=document.getElementById('ltfMethodPanel');
+  if(methToggle)methToggle.addEventListener('click',()=>{
+    const show=methPanel.style.display==='none';
+    methPanel.style.display=show?'':'none';
+    methToggle.innerHTML=(show?'&#9660;':'&#9654;')+' '+(show?'Hide':'Show')+' Forecast Methodology &amp; Sensitivity';
+    if(show)renderLtfMethodology();
+  });
   // Table toggle
   const tblToggle=document.getElementById('ltfTableToggle');
   const tblWrap=document.getElementById('ltfTableWrap');
@@ -764,6 +773,159 @@ function initLtfModule(){
     tblWrap.style.display=show?'':'none';
     tblToggle.innerHTML=(show?'&#9660;':'&#9654;')+' '+(show?'Hide':'Show')+' Details';
   });
+}
+
+function renderLtfMethodology(){
+  const panel=document.getElementById('ltfMethodPanel');
+  if(!panel||panel.style.display==='none')return;
+  const fa=state.forecastAssumptions;
+  const tog=fa.toggles||{};
+  const emps=getPnlFilteredEmps();
+  const forwardEmps=emps.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>2026);
+  const fHC=forwardEmps.length;
+  const fBase=forwardEmps.reduce((a,e)=>a+(e.salary||0),0);
+  const fBonus=forwardEmps.reduce((a,e)=>a+getBonusAmt(e),0);
+  const fBen=forwardEmps.reduce((a,e)=>a+getBenefitsAmt(e),0);
+  const fTotal=emps.reduce((a,e)=>a+getProratedComp(e),0);
+  const fCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
+  const avgSal=fHC?fBase/fHC:100000;
+  const bonusRate=fHC&&fBase?fBonus/fBase:0.1;
+  const benRate=fHC&&fBase?fBen/fBase:0.2;
+  const capRate=fTotal?fCapEx/fTotal:0;
+  const _fmt=v=>'$'+Math.round(v).toLocaleString();
+  const pct=v=>(v*100).toFixed(1)+'%';
+  const attrMode=(fa.modes&&fa.modes.attrition)||'pct';
+  const hiresMode=(fa.modes&&fa.modes.hires)||'pct';
+
+  // OAO / D&A context
+  const oaoBase=getVendorOaoTotal();
+  const oaoGrowth=state.oaoGrowthPct||[5,5,5,5,5];
+  const daBase=getDepreciationTotal();
+  const assetLife=state.daAssetLifeYrs||5;
+
+  // Baseline
+  document.getElementById('ltfMethodBaseline').innerHTML=`
+    <h5>Baseline (Derived from Current Roster + OAO + D&A)</h5>
+    <div class="method-baseline">
+      <div class="mb-item"><div class="mb-label">Forward HC</div><div class="mb-val">${fHC}</div></div>
+      <div class="mb-item"><div class="mb-label">Avg Salary</div><div class="mb-val">${_fmt(avgSal)}</div></div>
+      <div class="mb-item"><div class="mb-label">Bonus Rate</div><div class="mb-val">${pct(bonusRate)}</div></div>
+      <div class="mb-item"><div class="mb-label">Benefits Rate</div><div class="mb-val">${pct(benRate)}</div></div>
+      <div class="mb-item"><div class="mb-label">Cap Rate</div><div class="mb-val">${pct(capRate)}</div></div>
+      <div class="mb-item"><div class="mb-label">C&B Total</div><div class="mb-val">${_fmt(fTotal)}</div></div>
+      <div class="mb-item"><div class="mb-label">OAO Base</div><div class="mb-val">${_fmt(oaoBase)}</div></div>
+      <div class="mb-item"><div class="mb-label">D&A Base</div><div class="mb-val">${_fmt(daBase)}</div></div>
+      <div class="mb-item"><div class="mb-label">Asset Life</div><div class="mb-val">${assetLife} yrs</div></div>
+    </div>`;
+
+  // Steps
+  const steps=[
+    {num:1,title:'Attrition Loss',key:'attrition',
+      formula:attrMode==='pct'?'attrLoss = HC × attrition%':'attrLoss = attrition # × groupRatio',
+      note:'Removes employees from HC pool each year based on turnover rate'},
+    {num:2,title:'New Hires (with AI Gearing)',key:'hires',
+      formula:hiresMode==='pct'?'netHires = round(HC × hires% × aiGear)':'netHires = round(hires# × groupRatio × aiGear)',
+      note:'AI gearing reduces required hires (e.g. 0.8× = 20% fewer needed)'},
+    {num:3,title:'Headcount Update',always:true,
+      formula:'HC = max(0, HC − attrLoss + netHires)',
+      note:'Net headcount after attrition and hiring'},
+    {num:4,title:'Merit + Market Growth',key:'merit',
+      formula:'salaryGrowth ×= (1 + merit% + market%)',
+      note:'Compounds year-over-year on top of average salary'},
+    {num:5,title:'Compensation Calculation',always:true,
+      formula:'base = HC × avgSalary × salaryGrowth\ntotal = base × (1 + bonusRate + benRate)',
+      note:'Applies blended bonus & benefits rates from current roster'},
+    {num:6,title:'CapEx / OpEx Split',key:'capitalization',
+      formula:'capex = total × capRate\nopex = total − capex',
+      note:tog.capitalization?'Using assumption cap rate':'Using current roster cap rate ('+pct(capRate)+')'},
+    {num:7,title:'OAO Growth',always:true,
+      formula:'OAO[yr] = OAO[yr-1] × (1 + oaoGrowth%)',
+      note:'Vendor/T&E costs grow Y/Y at configured rate (default '+oaoGrowth[0]+'%)'},
+    {num:8,title:'D&A from CapEx Schedule',always:true,
+      formula:'D&A = Σ(rollingCapEx / assetLife) + baseRemaining',
+      note:'Depreciation computed from cumulative CapEx over '+assetLife+'-year asset life'}
+  ];
+  let stepsHtml='<h5>Calculation Steps (per year)</h5>';
+  steps.forEach(s=>{
+    const active=s.always||!s.key||tog[s.key]!==false;
+    stepsHtml+=`<div class="method-step${active?'':' ms-disabled'}">
+      <div class="ms-num">${s.num}</div>
+      <div class="ms-body">
+        <div class="ms-title">${s.title}${!active?' (OFF)':''}</div>
+        <div class="ms-formula">${s.formula.replace(/\n/g,'<br>')}</div>
+        <div class="ms-note">${s.note}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('ltfMethodSteps').innerHTML=stepsHtml;
+
+  // Year-by-year walk
+  const FORECAST_YEARS=window.getDisplayYears?window.getDisplayYears():[2027,2028,2029,2030,2031];
+  const allEmpsCount=Math.max(state.employees.filter(e=>!e.termDate||new Date(e.termDate).getFullYear()>2026).length,1);
+  let hc=fHC,salaryGrowth=1;
+  const cbCapex=[];
+  const cCapEx=getContractorCapExTotal();
+  let walkRows=[];
+  const oaoYears=[oaoBase];
+  for(let i=0;i<5;i++)oaoYears.push(Math.round(oaoYears[i]*(1+(oaoGrowth[i]||0)/100)));
+  const daYears=[daBase];
+
+  FORECAST_YEARS.forEach((y,i)=>{
+    const attrVal=tog.attrition?fa.attrition[i]:0;
+    const attrLoss=attrMode==='pct'?Math.round(hc*attrVal/100):Math.round(attrVal*(fHC/allEmpsCount));
+    const hiresVal=tog.hires?fa.hires[i]:0;
+    const rawHires=hiresMode==='pct'?Math.round(hc*hiresVal/100):Math.round(hiresVal*(fHC/allEmpsCount));
+    const meritRate=tog.merit?fa.merit[i]/100:0;
+    const marketRate=tog.market?fa.market[i]/100:0;
+    const aiGear=tog.ai?fa.ai[i]:1;
+    const capRateY=tog.capitalization?fa.capitalization[i]/100:capRate;
+    const netHires=Math.round(rawHires*aiGear);
+    const prevHC=hc;
+    hc=Math.max(0,hc-attrLoss+netHires);
+    salaryGrowth*=(1+meritRate+marketRate);
+    const base=Math.round(hc*avgSal*salaryGrowth);
+    const total=Math.round(base*(1+bonusRate+benRate));
+    const capex=Math.round(total*capRateY);
+    const opex=total-capex;
+    cbCapex.push(capex);
+    // D&A calc
+    const totalCapexByYear=cbCapex.map(cb=>cb+cCapEx);
+    let yearDa=0;
+    for(let v=0;v<=i;v++){if(i+1-v<=assetLife)yearDa+=Math.round(totalCapexByYear[v]/assetLife)}
+    yearDa+=Math.max(0,Math.round(daBase*(1-(i+1)/assetLife)));
+    daYears.push(yearDa);
+    const oao=oaoYears[i+1];
+    const totalPnl=opex+oao+yearDa;
+    walkRows.push({year:y,prevHC,attrLoss,netHires,hc,meritRate,marketRate,salaryGrowth,
+      base,total,capex,opex,oao,da:yearDa,totalPnl,attrVal,hiresVal,aiGear,rawHires,capRateY});
+  });
+
+  const dy=window.displayYear||(y=>y);
+  let walkHtml=`<h5 style="margin-bottom:8px">Year-by-Year Walk (Full P&L)</h5>
+    <div style="overflow-x:auto"><table class="method-walk-table">
+    <thead><tr>
+      <th>Year</th><th>Start HC</th><th>Attrition</th><th>Net Hires</th>
+      <th>End HC</th><th>Growth</th><th>C&B Total</th><th>CapEx</th><th>C&B OpEx</th>
+      <th>OAO</th><th>D&A</th><th style="font-weight:800">Total OpEx</th>
+    </tr></thead><tbody>`;
+  walkRows.forEach(r=>{
+    walkHtml+=`<tr>
+      <td class="mw-highlight">${dy(r.year)}</td>
+      <td>${r.prevHC}</td>
+      <td class="mw-dim">−${r.attrLoss}</td>
+      <td>+${r.netHires}</td>
+      <td class="mw-highlight">${r.hc}</td>
+      <td class="mw-dim">${r.salaryGrowth.toFixed(3)}×</td>
+      <td>${_fmt(r.total)}</td>
+      <td class="mw-dim">${_fmt(r.capex)}</td>
+      <td>${_fmt(r.opex)}</td>
+      <td>${_fmt(r.oao)}</td>
+      <td>${_fmt(r.da)}</td>
+      <td class="mw-highlight" style="font-weight:700">${_fmt(r.totalPnl)}</td>
+    </tr>`;
+  });
+  walkHtml+='</tbody></table></div>';
+  document.getElementById('ltfMethodWalk').innerHTML=walkHtml;
 }
 
 function buildLtfSplitGroups(emps){
@@ -821,7 +983,7 @@ function renderLtfChart(){
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
-  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+'$'+(a>=1e6?(a/1e6).toFixed(1)+'M':(a/1000).toFixed(0)+'K')};
+  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+(a>=1e6?(a/1e6).toFixed(1)+'M':'$'+(a/1000).toFixed(0)+'K')};
   const isPnl=ltfView==='pnl';
   const lcc=getChartColors();
 
@@ -1108,14 +1270,16 @@ function renderExpandedCharts(){
   expandRevFcInst=revVisible?cloneChart(landingRevFcChartInst,'expandRevFcChart',null,true):null;
 }
 function syncExpandFilters(){
-  // Copy main filter options into expand toolbar dropdowns
+  // Copy main filter options into expand toolbar dropdowns, preserving expand's current selection
   const pairs=[['pnlFilterProduct','expandFilterProduct'],['pnlFilterCategory','expandFilterCategory'],['pnlFilterFunction','expandFilterFunction'],['pnlFilterCountry','expandFilterCountry']];
   pairs.forEach(([src,dst])=>{
     const srcEl=document.getElementById(src),dstEl=document.getElementById(dst);
     if(!srcEl||!dstEl)return;
-    const curVal=dstEl.value;
+    const keepVal=dstEl.value;
     dstEl.innerHTML=srcEl.innerHTML;
-    dstEl.value=srcEl.value;
+    // Keep expand's current selection if it still exists in options; otherwise use main's value
+    dstEl.value=keepVal;
+    if(!dstEl.value&&keepVal)dstEl.value=srcEl.value;
   });
   // Sync view toggle
   const mainActive=document.querySelector('#landingChartViewToggle .btn.active');

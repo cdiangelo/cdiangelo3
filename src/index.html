@@ -237,7 +237,7 @@ Template Mode &mdash; changes saved in this browser only.
 <!-- Left: P&L by Product Category matrix -->
 <div class="pnl-walk" style="margin-bottom:0">
 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-<h3 style="margin-bottom:0;font-size:.95rem">P&amp;L by Product Category</h3>
+<h3 style="margin-bottom:0;font-size:.95rem">P&amp;L by Product Category <span style="font-weight:400;font-size:.72rem;color:var(--text-dim)">(in $M)</span></h3>
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
 <div class="toggle-group" id="landingPnlModeToggle" style="font-size:.72rem;margin-right:6px">
 <button class="btn active" data-pnlmode="cost" style="padding:2px 10px;font-size:.72rem">Cost View</button>
@@ -260,12 +260,12 @@ Template Mode &mdash; changes saved in this browser only.
 <div style="display:flex;flex-direction:column;gap:16px">
 <div class="landing-chart-card">
 <button class="chart-expand-btn" data-expand-target="expandBudget" title="Expand">&#x26F6;</button>
-<div class="landing-chart-title">Monthly Budget</div>
+<div class="landing-chart-title">Monthly Budget <span style="font-weight:400;font-size:.7rem;color:var(--text-dim)">(in $M)</span></div>
 <div class="chart-wrap"><canvas id="landingBudgetChart"></canvas></div>
 </div>
 <div class="landing-chart-card">
 <button class="chart-expand-btn" data-expand-target="expandForecast" title="Expand">&#x26F6;</button>
-<div class="landing-chart-title">Long-Term Forecast</div>
+<div class="landing-chart-title">Long-Term Forecast <span style="font-weight:400;font-size:.7rem;color:var(--text-dim)">(in $M)</span></div>
 <div class="chart-wrap"><canvas id="landingForecastChart"></canvas></div>
 </div>
 </div>
@@ -316,11 +316,11 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="expand-charts-body">
 <div class="expand-chart-card" id="expandBudget">
-<div class="expand-chart-title">Monthly Budget</div>
+<div class="expand-chart-title">Monthly Budget <span style="font-weight:400;font-size:.75rem;color:var(--text-dim)">(in $M)</span></div>
 <div class="chart-wrap"><canvas id="expandBudgetChart"></canvas></div>
 </div>
 <div class="expand-chart-card" id="expandForecast">
-<div class="expand-chart-title">Long-Term Forecast</div>
+<div class="expand-chart-title">Long-Term Forecast <span style="font-weight:400;font-size:.75rem;color:var(--text-dim)">(in $M)</span></div>
 <div class="chart-wrap"><canvas id="expandForecastChart"></canvas></div>
 </div>
 <div class="expand-chart-card" id="expandRevenue">
@@ -2496,6 +2496,14 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 <div class="chart-container" style="height:380px"><canvas id="ltfChart"></canvas></div>
 <div class="card" style="margin-top:12px;margin-bottom:16px"><div style="height:140px;position:relative"><canvas id="ltfFteChart"></canvas></div></div>
+<div style="margin-top:12px">
+<button class="btn btn-sm" id="ltfMethodToggle" style="font-size:.76rem">&#9654; Forecast Methodology &amp; Sensitivity</button>
+<div id="ltfMethodPanel" style="display:none;margin-top:8px;padding:16px 20px;background:var(--panel);border:1px solid var(--border);border-radius:10px">
+<div id="ltfMethodBaseline" class="method-section"></div>
+<div id="ltfMethodSteps" class="method-section" style="margin-top:16px"></div>
+<div id="ltfMethodWalk"></div>
+</div>
+</div>
 <div style="margin-top:12px">
 <button class="btn btn-sm" id="ltfTableToggle" style="font-size:.76rem">&#9654; Show Details</button>
 <div id="ltfTableWrap" class="table-wrap" style="display:none;margin-top:8px"><table class="forecast-table" id="ltfTable"></table></div>
