@@ -22,14 +22,15 @@ export function initFunMode(){try{
   let funPlayer=null;
 
   const isDark=()=>document.documentElement.classList.contains('dark');
-  const dimC=()=>isDark()?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)';
-  const hovC=()=>isDark()?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.25)';
-  const bgC=()=>isDark()?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
+  const dimC=()=>isDark()?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.08)';
+  const hovC=()=>isDark()?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.18)';
+  const bgC=()=>'transparent';
 
   // Fun button
   const btn=document.createElement('button');
-  btn.textContent='fun';
-  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:none;color:${dimC()};font-size:.65rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:color .3s;-webkit-tap-highlight-color:transparent;width:36px;text-align:center`;
+  btn.innerHTML='&#9654;';
+  btn.title='Media';
+  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:none;color:${dimC()};font-size:.6rem;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:color .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.6`;
   btn.addEventListener('mouseenter',()=>btn.style.color=hovC());
   btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.color=dimC()});
   new MutationObserver(()=>{btn.style.background=bgC();if(funState<0)btn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
