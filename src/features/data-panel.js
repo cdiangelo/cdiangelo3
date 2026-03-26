@@ -74,6 +74,58 @@ function initGuidePanel(){
       h5.innerHTML=(show?'&#9660;':'&#9654;')+' '+label;
     });
   });
+
+  // Tracking toggle — show/hide checkboxes and persist state
+  const trackToggle=document.getElementById('guideTrackToggle');
+  function getGuideChecked(){return state.guideChecked||{}}
+  function setGuideChecked(obj){state.guideChecked=obj;saveState()}
+  function syncGuideChecks(){
+    const tracking=trackToggle.checked;
+    const checked=getGuideChecked();
+    document.querySelectorAll('.guide-check').forEach(cb=>{
+      cb.style.display=tracking?'':'none';
+      const task=cb.closest('.guide-task').dataset.task;
+      if(task)cb.checked=!!checked[task];
+    });
+  }
+  trackToggle.addEventListener('change',syncGuideChecks);
+  // Checkbox change → save to state
+  document.querySelectorAll('.guide-check').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const task=cb.closest('.guide-task').dataset.task;
+      if(!task)return;
+      const checked=getGuideChecked();
+      if(cb.checked)checked[task]=true;else delete checked[task];
+      setGuideChecked(checked);
+    });
+  });
+
+  // Navigation links
+  const navMap={
+    'employees':()=>{if(window.showApp)window.showApp();document.querySelector('[data-tab="employees"]')?.click()},
+    'vendor':()=>{if(window.showVendor)window.showVendor();document.querySelector('[data-vtab="vendor-grid"]')?.click()},
+    'te':()=>{if(window.showVendor)window.showVendor();document.querySelector('[data-vtab="te-grid"]')?.click()},
+    'contractor':()=>{if(window.showVendor)window.showVendor();document.querySelector('[data-vtab="contractor-grid"]')?.click()},
+    'exec':()=>{if(window.showApp)window.showApp();document.querySelector('[data-tab="exec"]')?.click()},
+    'ltf':()=>{if(window.showLtf)window.showLtf()},
+    'depreciation':()=>{if(window.showDepreciation)window.showDepreciation()},
+    'overview':()=>{if(window.showLanding)window.showLanding()},
+    'scenario':()=>{document.getElementById('scenarioToggleBtn')?.click()},
+    'data-import':()=>{document.getElementById('dataToggleBtn')?.click()},
+    'data-comp':()=>{document.getElementById('dataToggleBtn')?.click()}
+  };
+  document.querySelectorAll('.task-link[data-guide-nav]').forEach(link=>{
+    link.addEventListener('click',()=>{
+      const nav=link.dataset.guideNav;
+      if(navMap[nav]){
+        // Close guide panel first
+        document.getElementById('guideToggleBtn').click();
+        setTimeout(()=>navMap[nav](),100);
+      }
+    });
+  });
+
+  syncGuideChecks();
 }
 window.initGuidePanel=initGuidePanel;
 

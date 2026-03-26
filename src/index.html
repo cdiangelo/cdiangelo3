@@ -2802,23 +2802,26 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Guide Slide Panel -->
 <div class="guide-slide-panel" id="guideSlidePanel">
 <button class="panel-close-btn" onclick="document.getElementById('guideToggleBtn').click()">&times; Close Guide</button>
-<h3 style="color:var(--accent);font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Planning Guide</h3>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+<h3 style="color:var(--accent);font-size:1.1rem;font-weight:700;margin:0">Planning Guide</h3>
+<label style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text-dim);cursor:pointer"><input type="checkbox" id="guideTrackToggle" style="margin:0;cursor:pointer"> Track progress</label>
+</div>
 
 <div class="guide-section">
 <h4 id="guideBusinessToggle">&#9654; Business / Ops</h4>
 <div id="guideBusinessBody" style="display:none">
 <h5 class="guide-sub-toggle" style="cursor:pointer;font-size:.8rem;font-weight:600;color:var(--text-dark);margin:8px 0 4px 4px;user-select:none">&#9654; Budget</h5>
 <div class="guide-sub-body" style="display:none">
-<div class="guide-task"><span class="task-label">Review headcount targets</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Set revenue assumptions</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Define project allocations</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Review market benchmarks</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task" data-task="biz-bud-roster"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Review &amp; edit rosters</span><span class="task-link" data-guide-nav="employees">Employees &rarr;</span></div>
+<div class="guide-task" data-task="biz-bud-vendor"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Review &amp; edit vendor spend</span><span class="task-link" data-guide-nav="vendor">Vendor &rarr;</span></div>
+<div class="guide-task" data-task="biz-bud-te"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Review &amp; edit T&amp;E</span><span class="task-link" data-guide-nav="te">T&amp;E &rarr;</span></div>
+<div class="guide-task" data-task="biz-bud-hctrend"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Review headcount trends &amp; forecast</span><span class="task-link" data-guide-nav="exec">Exec View &rarr;</span></div>
 </div>
 <h5 class="guide-sub-toggle" style="cursor:pointer;font-size:.8rem;font-weight:600;color:var(--text-dark);margin:8px 0 4px 4px;user-select:none">&#9654; Long Term Plan</h5>
 <div class="guide-sub-body" style="display:none">
-<div class="guide-task"><span class="task-label">Set forecast growth assumptions</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Configure OAO growth rates</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Review 5-year projection</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task" data-task="biz-ltf-assumptions"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Set forecast growth assumptions</span><span class="task-link" data-guide-nav="ltf">LTF &rarr;</span></div>
+<div class="guide-task" data-task="biz-ltf-oao"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Configure OAO growth rates</span><span class="task-link" data-guide-nav="ltf">LTF &rarr;</span></div>
+<div class="guide-task" data-task="biz-ltf-review"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Review 5-year projection</span><span class="task-link" data-guide-nav="ltf">LTF &rarr;</span></div>
 </div>
 </div>
 </div>
@@ -2828,18 +2831,17 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="guideFinanceBody" style="display:none">
 <h5 class="guide-sub-toggle" style="cursor:pointer;font-size:.8rem;font-weight:600;color:var(--text-dark);margin:8px 0 4px 4px;user-select:none">&#9654; Budget</h5>
 <div class="guide-sub-body" style="display:none">
-<div class="guide-task"><span class="task-label">Upload employee roster</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Enter vendor &amp; T&amp;E spend</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Configure contractor rates</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Set bonus &amp; benefits matrices</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Review depreciation schedule</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Validate P&amp;L summary</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task" data-task="fin-bud-roster"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Upload employee roster</span><span class="task-link" data-guide-nav="data-import">Data &rarr;</span></div>
+<div class="guide-task" data-task="fin-bud-contractor"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Configure contractor rates</span><span class="task-link" data-guide-nav="contractor">Contractors &rarr;</span></div>
+<div class="guide-task" data-task="fin-bud-bonus"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Set bonus &amp; benefits matrices</span><span class="task-link" data-guide-nav="data-comp">Data &rarr;</span></div>
+<div class="guide-task" data-task="fin-bud-dep"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Review depreciation schedule</span><span class="task-link" data-guide-nav="depreciation">D&amp;A &rarr;</span></div>
+<div class="guide-task" data-task="fin-bud-pnl"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Validate P&amp;L summary</span><span class="task-link" data-guide-nav="overview">Overview &rarr;</span></div>
 </div>
 <h5 class="guide-sub-toggle" style="cursor:pointer;font-size:.8rem;font-weight:600;color:var(--text-dark);margin:8px 0 4px 4px;user-select:none">&#9654; Long Term Plan</h5>
 <div class="guide-sub-body" style="display:none">
-<div class="guide-task"><span class="task-label">Review LTF methodology</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Run scenario analysis</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
-<div class="guide-task"><span class="task-label">Compare saved scenarios</span><span class="task-link" data-guide-action="">Go &rarr;</span></div>
+<div class="guide-task" data-task="fin-ltf-method"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Review LTF methodology</span><span class="task-link" data-guide-nav="ltf">LTF &rarr;</span></div>
+<div class="guide-task" data-task="fin-ltf-scenario"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Run scenario analysis</span><span class="task-link" data-guide-nav="scenario">Scenario &rarr;</span></div>
+<div class="guide-task" data-task="fin-ltf-compare"><input type="checkbox" class="guide-check" style="display:none"><span class="task-label">Compare saved scenarios</span><span class="task-link" data-guide-nav="scenario">Scenario &rarr;</span></div>
 </div>
 </div>
 </div>

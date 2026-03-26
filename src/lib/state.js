@@ -142,6 +142,8 @@ export function ensureStateFields(){
   if(state.landingPnlMode===undefined)state.landingPnlMode='cost';
   // Audit log
   if(!state.auditLog)state.auditLog=[];
+  // Guide tracking
+  if(!state.guideChecked)state.guideChecked={};
   // Long-term forecast: OAO Y/Y growth and D&A asset lifecycle
   if(!state.oaoGrowthPct)state.oaoGrowthPct=[5,5,5,5,5];
   if(!state.daAssetLifeYrs)state.daAssetLifeYrs=5;
