@@ -181,9 +181,43 @@ function initDataPanel(){
     btn.textContent='Saved!';setTimeout(()=>{btn.textContent='Quick Save'},1500);
   });
 
-  // Employee Roster: Download Template (reuse existing handler logic)
-  document.getElementById('dataPanelDlRoster').addEventListener('click',()=>{
-    document.getElementById('btnDlRosterTemplate').click();
+  // Download All Input Templates — single workbook with sheets for each import type + reference values
+  document.getElementById('dataPanelDlAllTemplates').addEventListener('click',()=>{
+    if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}
+    const wb=XLSX.utils.book_new();
+    // Employee Roster template
+    const rosterHeaders=['Name','Country','Seniority','Function','Salary','CapEx %','Hire Date','Term Date','Business Line','Business Unit','Market Code','Type (existing/hire)'];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([rosterHeaders,['Jane Doe','United States','Senior','Software Engineering',150000,20,'2024-01-15','','100000','Corp HQ','US0001','existing']]),'Employee Roster');
+    // Vendor Spend template
+    const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const vendorHeaders=['Parent Co','Vendor Name','Vendor Type','Notes','Business Unit','Biz Line','Market','Project Code','Account Description',...MO];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([vendorHeaders,['Acme Corp','Acme SaaS','Software & Licenses','Annual license','Corp HQ','100000','US0001','PRJ-001','Software License',5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000]]),'Vendor Spend');
+    // T&E template
+    const teHeaders=['Expense Type','Description','Notes','Business Unit','Biz Line','Market','Project Code','Account Description',...MO];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([teHeaders,['T&E','Team Travel','Q1 offsite','Corp HQ','100000','US0001','PRJ-001','Travel',2000,2000,2000,0,0,0,0,0,0,0,0,0]]),'T&E');
+    // Contractor template
+    const crHeaders=['Contractor Name','Vendor Name','Hourly Rate','Monthly Hours','CapEx %','Notes','Business Unit','Biz Line','Market','Project Code','Account Description',...MO];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([crHeaders,['John Smith','Consulting Co',150,160,25,'Backend dev','Corp HQ','100000','US0001','PRJ-001','Professional Services',24000,24000,24000,24000,24000,24000,24000,24000,24000,24000,24000,24000]]),'Contractors');
+    // Bonus Matrix template
+    const bonusHeaders=['Seniority \\ Function',...(window.FUNCTIONS||['Software Engineering','Data Engineering','Product Management','DevOps/SRE','Data Science','Design/UX','QA/Testing','IT/Support','Project Management','Other'])];
+    const senLevels=window.SENIORITY||['Junior','Mid-Level','Senior','Staff','Director','VP'];
+    const bonusData=[bonusHeaders,...senLevels.map(s=>[s,...bonusHeaders.slice(1).map(()=>10)])];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(bonusData),'Bonus Matrix');
+    // Benefits Matrix template
+    const benData=[bonusHeaders,...senLevels.map(s=>[s,...bonusHeaders.slice(1).map(()=>20)])];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(benData),'Benefits Matrix');
+    // Reference Values
+    const refData=[
+      ['Reference Values',''],
+      ['',''],
+      ['Countries',...(window.COUNTRIES||['United States','India','United Kingdom','Canada','Germany'])],
+      ['Seniority Levels',...senLevels],
+      ['Functions',...(bonusHeaders.slice(1))],
+      ['Vendor Types','Software & Licenses','Professional Services','Data & Analytics','Infrastructure','Other OpEx','Contractor'],
+      ['Expense Types','T&E','Meals','Travel','Events','Training','Subscriptions','Other']
+    ];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(refData),'Reference Values');
+    XLSX.writeFile(wb,'budget_input_templates.xlsx');
   });
   // Employee Roster: Upload
   document.getElementById('dataPanelUploadRoster').addEventListener('click',()=>{

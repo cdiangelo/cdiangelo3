@@ -9,6 +9,7 @@ function createScratchPad(cfg){
   for(let r=0;r<sRows;r++){sData.push(Array(sCols).fill(''));sRowNames.push('')}
   for(let c=0;c<sCols;c++){sColHeaders.push('')}
   const grid=document.getElementById(cfg.grid);
+  if(!grid){console.warn('Scratch pad: grid not found',cfg.grid);return{resizeWbCanvas:()=>{},exportToExcel:()=>{},renderWbSwatches:()=>{}}}
 
   function colLabel(c){let s='';c++;while(c>0){c--;s=String.fromCharCode(65+c%26)+s;c=Math.floor(c/26)}return s}
   function parseRef(ref){const m=ref.match(/^([A-Z]+)(\d+)$/);if(!m)return null;let c=0;for(const ch of m[1])c=c*26+(ch.charCodeAt(0)-64);return{r:parseInt(m[2])-1,c:c-1}}
@@ -105,6 +106,7 @@ function createScratchPad(cfg){
 
   // ── Whiteboard ──
   const canvas=document.getElementById(cfg.canvas);
+  if(!canvas){console.warn('Scratch pad: canvas not found',cfg.canvas);return{resizeWbCanvas:()=>{},exportToExcel:()=>{},renderWbSwatches:()=>{}}}
   const ctx=canvas.getContext('2d');
   function getWbColors(){
     const isDark=document.documentElement.classList.contains('dark');
