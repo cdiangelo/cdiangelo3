@@ -47,8 +47,8 @@ body.scenario-open .landing-modules,body.data-open .landing-modules{grid-templat
 body.scenario-open .landing-charts,body.data-open .landing-charts{grid-template-columns:1fr}
 body.scenario-open #landingPnlGrid,body.data-open #landingPnlGrid{grid-template-columns:1fr}
 body.scenario-open .pnl-walk .table-wrap,body.data-open .pnl-walk .table-wrap{overflow-x:auto}
-.guide-toggle-btn{position:fixed;left:0;top:100px;z-index:1100;background:rgba(139,32,32,.55);color:#fff;border:1px solid rgba(255,255,255,.15);padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:1px 1px 6px rgba(0,0,0,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,left .3s ease}
-.guide-toggle-btn:hover{background:rgba(139,32,32,.75)}
+.guide-toggle-btn{position:fixed;left:0;top:100px;z-index:1100;background:var(--accent);opacity:.65;color:#fff;border:1px solid rgba(255,255,255,.15);padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:1px 1px 6px rgba(0,0,0,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,opacity .2s,left .3s ease}
+.guide-toggle-btn:hover{opacity:.85}
 .guide-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
 .guide-slide-panel{position:fixed;left:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-right:2px solid var(--border);z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;padding:16px;box-shadow:4px 0 20px rgba(0,0,0,.15)}
 .guide-slide-panel.open{transform:translateX(0)}
@@ -65,8 +65,7 @@ body.guide-open .scenario-toggle-btn{left:50vw}
 .guide-slide-panel .guide-task .task-label{flex:1;color:var(--text)}
 .guide-slide-panel .guide-task .task-link{font-size:.7rem;color:var(--accent);cursor:pointer;white-space:nowrap;padding:2px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;font-weight:600;transition:background .15s}
 .guide-slide-panel .guide-task .task-link:hover{background:var(--panel-inset)}
-html.dark .guide-toggle-btn{background:rgba(212,82,77,.4);border-color:rgba(255,255,255,.1)}
-html.dark .guide-toggle-btn:hover{background:rgba(212,82,77,.65)}
+html.dark .guide-toggle-btn{border-color:rgba(255,255,255,.1)}
 .data-toggle-btn{position:fixed;left:0;top:200px;z-index:1100;background:rgba(123,31,162,.55);color:#fff;border:1px solid rgba(255,255,255,.15);padding:14px 8px;border-radius:0 8px 8px 0;cursor:pointer;font-size:.78rem;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;box-shadow:1px 1px 6px rgba(0,0,0,.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .2s,left .3s ease}
 .data-toggle-btn:hover{background:rgba(123,31,162,.75)}
 .data-toggle-btn .arrow{display:block;writing-mode:horizontal-tb;text-align:center;font-size:1rem;margin-bottom:4px}
