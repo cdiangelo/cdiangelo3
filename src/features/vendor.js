@@ -479,6 +479,7 @@ function initVendorModule(){
         <td><select class="acct-group-edit dim-edit-select" data-idx="${idx}">
           <option value="vendor"${(a.group||'vendor')==='vendor'?' selected':''}>Vendor</option>
           <option value="te"${a.group==='te'?' selected':''}>T&amp;E</option>
+          <option value="depreciation"${a.group==='depreciation'?' selected':''}>Depreciation</option>
         </select></td>
         <td style="font-size:.78rem;color:var(--text-dim)">${vCount}</td>
         <td><button class="btn btn-sm btn-danger acct-del" data-idx="${idx}" style="padding:2px 6px;font-size:.7rem">Del</button></td>

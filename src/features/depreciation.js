@@ -103,7 +103,7 @@ function buildProjectOptions(sel){
 }
 function buildAcctOptions(sel){
   let h='<option value="">—</option>';
-  (state.accounts||[]).forEach(a=>{h+='<option'+(a.description===sel?' selected':'')+'>'+escHtml(a.description)+'</option>'});
+  (state.accounts||[]).filter(a=>(a.group||'vendor')==='depreciation').forEach(a=>{h+='<option'+(a.description===sel?' selected':'')+'>'+escHtml(a.description)+'</option>'});
   return h;
 }
 function buildMonthOptions(sel){

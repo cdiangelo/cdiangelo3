@@ -162,7 +162,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 
 <!-- GLOBAL TOOLBAR — fixed controls across all panes -->
-<div id="globalToolbar" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:90;flex-wrap:wrap">
+<div id="globalToolbar" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:110;flex-wrap:wrap">
 <button class="btn btn-sm" id="globalBackBtn" style="display:none">Back to Overview</button>
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="globalToggleDark"><span class="toggle-track"></span>Dark</label>
 <label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="globalToggleOps"><span class="toggle-track"></span>Ops View</label>
@@ -379,13 +379,16 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="btn active" data-group="month">Month</button>
 </div>
 </div>
-<div id="periodToggleWrap" style="display:none!important">
+<div id="periodToggleWrap" style="display:none">
+<label>Period</label>
 <div class="toggle-group" id="periodToggle">
 <button class="btn active" data-period="mtd">MTD</button>
+<button class="btn" data-period="qtd">QTD</button>
+<button class="btn" data-period="ytd">YTD</button>
 </div>
 </div>
 <div id="curMonthWrapDash" style="display:none!important">
-<select id="curMonthSelDash"><option value="0">Jan</option></select>
+<select id="curMonthSelDash" style="display:none"><option value="0">Jan</option></select>
 </div>
 <div>
 <label>Stack By</label>
@@ -1629,7 +1632,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <option value="">—</option><option value="Software &amp; Licenses">Software &amp; Licenses</option><option value="Professional Services">Professional Services</option><option value="Data &amp; Analytics">Data &amp; Analytics</option><option value="T&amp;E">T&amp;E</option><option value="Infrastructure">Infrastructure</option><option value="Other OpEx">Other OpEx</option>
 </select></div>
 <div><label style="font-size:.7rem;color:var(--text-dim)">Tab</label><br><select id="acctGroup" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px">
-<option value="vendor">Vendor</option><option value="te">T&amp;E</option>
+<option value="vendor">Vendor</option><option value="te">T&amp;E</option><option value="depreciation">Depreciation</option>
 </select></div>
 <button class="btn" id="btnAddAcct" style="padding:3px 10px;font-size:.8rem">Add</button>
 <button class="btn" id="btnAddBlankAcct" style="padding:3px 10px;font-size:.8rem">+ Blank Row</button>
@@ -1868,7 +1871,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th class="sortable" data-dsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
 <th class="sortable" data-dsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
 <th style="min-width:80px">Account Code</th>
-<th style="min-width:110px">Rate Increase</th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
 <th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
 <th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
@@ -2281,7 +2283,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th class="sortable" data-rsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
 <th class="sortable" data-rsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
 <th style="min-width:80px">Account Code</th>
-<th style="min-width:110px">Rate Increase</th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
 <th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
 <th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
