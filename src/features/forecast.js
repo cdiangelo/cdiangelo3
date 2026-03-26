@@ -572,7 +572,7 @@ function renderForecastProjection(){
         type:'bar',
         data:{labels:rows.map(r=>displayYear(r.year)),datasets:fDatasets},
         plugins:[window.yoyArrowsPlugin],
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{},yoyArrows:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{position:'bottom',labels:{color:tickColor,padding:14}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -637,7 +637,7 @@ function renderForecastProjection(){
         type:'bar',
         data:{labels:yearLabels,datasets},
         plugins:[window.yoyArrowsPlugin],
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{},yoyArrows:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{position:'bottom',labels:{color:tickColor,padding:14}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -677,7 +677,7 @@ function renderForecastProjection(){
       type:'line',
       data:{labels:fteLabels,datasets:fcFteDatasets},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-        plugins:{legend:{display:fcFteDatasets.length>1,labels:{color:tickColor2,boxWidth:14,font:{size:13}}},datalabels:{},tooltip:window.FTE_TOOLTIP},
+        plugins:{legend:{display:fcFteDatasets.length>1,position:'bottom',labels:{color:tickColor2,boxWidth:14,font:{size:13},padding:14}},datalabels:{},tooltip:window.FTE_TOOLTIP},
         scales:{
           x:{ticks:{color:tickColor2,font:{size:12}},grid:{display:false},stacked:true},
           y:{beginAtZero:true,stacked:true,ticks:{color:tickColor2,font:{size:12}},grid:{color:gridColor2},title:{display:true,text:'Projected FTEs',color:tickColor2,font:{size:12}}}

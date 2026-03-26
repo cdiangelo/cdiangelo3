@@ -335,7 +335,7 @@ function renderDashboard(){
     dashChart=new Chart(document.getElementById('dashChart'),{
       type:'bar',
       data:{labels:labels.map(l=>l.length>18?l.slice(0,16)+'…':l),datasets},
-      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{labels:{color:tickColor}},datalabels:{}},scales:{
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{position:'bottom',labels:{color:tickColor,padding:14}},datalabels:{}},scales:{
         x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
         y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
       }}
@@ -397,7 +397,7 @@ function renderDashboard(){
       type:'line',
       data:{labels:MONTH_SHORT,datasets:fteDatasets},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-        plugins:{legend:{display:fteDatasets.length>1,labels:{color:tickColor,boxWidth:14,font:{size:13}}},datalabels:{},tooltip:FTE_TOOLTIP},
+        plugins:{legend:{display:fteDatasets.length>1,position:'bottom',labels:{color:tickColor,boxWidth:14,font:{size:13},padding:14}},datalabels:{},tooltip:FTE_TOOLTIP},
         scales:{
           x:{ticks:{color:tickColor,font:{size:12}},grid:{display:false},stacked:true},
           y:{beginAtZero:true,stacked:true,ticks:{color:tickColor,font:{size:12}},grid:{color:gridColor},title:{display:true,text:'Allocated FTEs',color:tickColor,font:{size:12}}}

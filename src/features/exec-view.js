@@ -440,7 +440,7 @@ function renderExecView(){
       type:'bar',
       data:{labels:periodLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-        plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:14,font:{size:13}}},datalabels:{}},
+        plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:14,font:{size:13},padding:16}},datalabels:{}},
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}},
@@ -552,7 +552,7 @@ function renderExecView(){
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
         plugins:[window.yoyArrowsPlugin],
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{labels:{color:tickColor}},datalabels:{},yoyArrows:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{position:'bottom',labels:{color:tickColor,padding:16}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
@@ -599,7 +599,7 @@ function renderExecView(){
       execForecastChart=new Chart(document.getElementById('execForecastChart'),{
         type:'bar',data:{labels:yearLabels,datasets:ds},
         plugins:[window.yoyArrowsPlugin],
-        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{labels:{color:tickColor,boxWidth:14,font:{size:13}}},datalabels:{},yoyArrows:{}},scales:{
+        options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},plugins:{legend:{position:'bottom',labels:{color:tickColor,boxWidth:14,font:{size:13},padding:16}},datalabels:{},yoyArrows:{}},scales:{
           x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:true,ticks:{color:tickColor,callback:v=>'$'+v.toLocaleString()},grid:{color:gridColor}}
         }}
