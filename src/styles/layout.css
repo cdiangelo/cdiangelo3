@@ -96,7 +96,7 @@ body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptions
 #sessionTopBar.active~#globalToolbarSpacer{height:68px}
 #sessionTopBar .stb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #sessionTopBar .stb-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-body.session-active header{top:30px}
+body.session-active header{top:62px}
 .save-indicator{font-size:.72rem;padding:2px 8px;border-radius:10px;font-weight:500;margin-left:8px}
 .save-indicator.saving{color:var(--warning)}
 .save-indicator.saved{color:var(--success)}
