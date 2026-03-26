@@ -1958,7 +1958,23 @@ function renderScenarioPnlSummary(){
     <tr style="font-weight:700">${pnlRow('Total Investment',bTotInv,sTotInv,true).replace(/<\/?tr>/g,'')}</tr>
     </table>${buildSavedScenSelector('budget')}</div>`;
     bEl.querySelectorAll('.scen-compare-cb').forEach(cb=>{
-      cb.addEventListener('change',()=>renderInlineComparison('budget',budgetBasePnl,bEl));
+      cb.addEventListener('change',()=>{
+        // Load the first checked scenario into the working budget scenario
+        const checked=[...bEl.querySelectorAll('.scen-compare-cb:checked')];
+        if(checked.length){
+          const idx=+checked[0].dataset.idx;
+          const saved=getSavedScenarios();
+          const s=saved[idx];
+          if(s&&s.data){
+            budgetScenario=JSON.parse(JSON.stringify(s.data));
+            budgetScenarioDirty=true;
+            document.getElementById('scenBudgetApply').style.display='inline-block';
+            renderBudgetScenarioChart();
+            renderScenarioPnlSummary();
+          }
+        }
+        renderInlineComparison('budget',budgetBasePnl,bEl);
+      });
     });
   }
   const fcLastIdx=FORECAST_YEARS.length;
@@ -1976,7 +1992,22 @@ function renderScenarioPnlSummary(){
     ${pnlRow('Total Inv',(bLast.total||0)+bVT,(sLast.total||0)+sVT,true)}
     </table>${buildSavedScenSelector('forecast')}</div>`;
     fEl.querySelectorAll('.scen-compare-cb').forEach(cb=>{
-      cb.addEventListener('change',()=>renderInlineComparison('forecast',fcBasePnl,fEl));
+      cb.addEventListener('change',()=>{
+        const checked=[...fEl.querySelectorAll('.scen-compare-cb:checked')];
+        if(checked.length){
+          const idx=+checked[0].dataset.idx;
+          const saved=getSavedScenarios();
+          const s=saved[idx];
+          if(s&&s.data){
+            forecastScenario=JSON.parse(JSON.stringify(s.data));
+            fcScenarioDirty=true;
+            document.getElementById('scenFcApply').style.display='inline-block';
+            renderFcScenarioChart();
+            renderScenarioPnlSummary();
+          }
+        }
+        renderInlineComparison('forecast',fcBasePnl,fEl);
+      });
     });
   }
 }
