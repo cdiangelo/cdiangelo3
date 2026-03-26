@@ -74,7 +74,7 @@ const FTE_TOOLTIP={
     }
   }
 };
-function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return fmt(n)}
+function fmtShort(n){const abs=Math.abs(n);if(abs>=1e5)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(2)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return fmt(n)}
 function stackedBarDatalabels(datasets,tickColor,fontSize,crispSection){
   const isCrispDl=window.chartColorScheme==='crisp';
   const fs=fontSize||(isCrispDl?13:11);
@@ -196,7 +196,7 @@ function renderDashboard(){
   const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
   const svc=getStatValueColor();
   const cbOpEx=totalComp-totalCapEx;
-  const fmtM=v=>{const a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'$'+(v/1e6).toFixed(1)+'M';if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
+  const fmtM=v=>{const a=Math.abs(v);if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
   document.getElementById('dashStatCards').innerHTML=
     `<div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svc}">${emps.length}</div></div>`+
     `<div class="stat-card"><div class="label">Avg Base</div><div class="value" style="color:${svc}">${fmt(avgBase)}</div></div>`+

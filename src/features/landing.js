@@ -366,7 +366,7 @@ function renderPnlWalk(){
     {key:'totInv',label:isRevMode?'Net Income':'Tot Inv',isCurrency:true,cls:'total'}
   );
 
-  const fmtM=v=>{const a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'$'+(v/1e6).toFixed(1)+'M';if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
+  const fmtM=v=>{const a=Math.abs(v);if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
   function fmtCell(c,v){
     const style=c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':'';
     return `<td class="num" style="${style}">${c.isCurrency?fmtM(v):v}</td>`;
@@ -439,7 +439,7 @@ function renderLandingCharts(){
   const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const useSplit=false;
   const isPnl=landingChartView==='pnl';
-  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+(a>=1e6?(a/1e6).toFixed(1)+'M':'$'+(a/1000).toFixed(0)+'K')};
+  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+(a>=1e5?(a/1e6).toFixed(2)+'M':'$'+(a/1000).toFixed(0)+'K')};
 
   // ── Monthly Budget Chart ──
   if(landingBudgetChartInst)landingBudgetChartInst.destroy();
@@ -652,7 +652,7 @@ const barTotalPlugin={
       }
       if(x==null)continue;
       const y=yScale.getPixelForValue(sum);
-      const label=sum>=1e6?(sum/1e6).toFixed(1):sum>=1e3?'$'+(sum/1e3).toFixed(0)+'K':'$'+Math.round(sum);
+      const label=sum>=1e5?(sum/1e6).toFixed(2):sum>=1e3?'$'+(sum/1e3).toFixed(0)+'K':'$'+Math.round(sum);
       ctx.fillText(label,x,y-4);
     }
     ctx.restore();
@@ -992,7 +992,7 @@ function renderLtfChart(){
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
-  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+(a>=1e6?(a/1e6).toFixed(1)+'M':'$'+(a/1000).toFixed(0)+'K')};
+  const fmtTick=v=>{const a=Math.abs(v);return(v<0?'-':'')+(a>=1e5?(a/1e6).toFixed(2)+'M':'$'+(a/1000).toFixed(0)+'K')};
   const isPnl=ltfView==='pnl';
   const lcc=getChartColors();
 

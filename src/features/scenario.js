@@ -856,7 +856,7 @@ function renderFcScenarioChart(){
     type:'bar',data:{labels,datasets},
     plugins:[fcPlusPlugin,window.yoyArrowsPlugin],
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:tickColor,boxWidth:12,font:{size:12}}},datalabels:{display:false},yoyArrows:{}},
-      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:gridColor}}}
+      scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},y:{stacked:true,beginAtZero:true,ticks:{color:tickColor,font:{size:11},callback:v=>'$'+(v/1000000).toFixed(2)+'M'},grid:{color:gridColor}}}
     }
   });
   // Canvas event listeners for + markers on forecast chart
@@ -1561,7 +1561,7 @@ function adjVendorSpend(vendorName,delta){
   activeMo.forEach(mo=>{matching[0][mo]=(parseFloat(matching[0][mo])||0)+perMonth});
   budgetScenarioDirty=true;
   const dir=delta>0?'Increased':'Decreased';
-  const amt=Math.abs(delta)>=1000000?`$${(Math.abs(delta)/1000000).toFixed(1)}m`:`$${(Math.abs(delta)/1000).toFixed(0)}k`;
+  const amt=Math.abs(delta)>=100000?`$${(Math.abs(delta)/1000000).toFixed(2)}m`:`$${(Math.abs(delta)/1000).toFixed(0)}k`;
   const entry={id:Date.now(),cmd:`${dir.toLowerCase()} ${vendorName} spend by ${amt}`,scopedCmd:`${dir.toLowerCase()} ${vendorName} spend by ${amt}`,msg:`${dir} ${vendorName} spend by ${amt}.`,delta:computeBudgetDelta(),isRefinement:false,parentId:null};
   scenActionHistory.push(entry);
   document.getElementById('scenBudgetApply').style.display='inline-block';
@@ -1607,7 +1607,7 @@ function adjFcVendorSpend(vendorName,delta){
   MO.forEach(mo=>{matching[0][mo]=(parseFloat(matching[0][mo])||0)+perMonth});
   fcScenarioDirty=true;
   const dir=delta>0?'Increased':'Decreased';
-  const amt=Math.abs(delta)>=1000000?`$${(Math.abs(delta)/1000000).toFixed(1)}m`:`$${(Math.abs(delta)/1000).toFixed(0)}k`;
+  const amt=Math.abs(delta)>=100000?`$${(Math.abs(delta)/1000000).toFixed(2)}m`:`$${(Math.abs(delta)/1000).toFixed(0)}k`;
   const entry={id:Date.now(),cmd:`${dir.toLowerCase()} ${vendorName} fc spend by ${amt}`,scopedCmd:`${dir.toLowerCase()} ${vendorName} fc spend by ${amt}`,msg:`${dir} ${vendorName} forecast spend by ${amt}.`,delta:computeFcDelta(),isRefinement:false,parentId:null};
   fcActionHistory.push(entry);
   document.getElementById('scenFcApply').style.display='inline-block';
@@ -1880,7 +1880,7 @@ function applyFcScenario(){
   renderFcScenarioChart();renderScenarioPnlSummary();
 }
 
-function fmtC(v){if(Math.abs(v)>=1e6)return (v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return (v<0?'-':'')+'$'+(Math.abs(v)/1e3).toFixed(0)+'K';return fmt(v)}
+function fmtC(v){if(Math.abs(v)>=1e5)return (v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M';if(Math.abs(v)>=1e3)return (v<0?'-':'')+'$'+(Math.abs(v)/1e3).toFixed(0)+'K';return fmt(v)}
 function pnlRow(label,base,scen,isCost){
   const d=scen-base;const cls=isCost?(d<0?'var(--success)':d>0?'var(--danger)':'var(--text-dim)'):(d<0?'var(--success)':'var(--text-dim)');
   return `<tr><td>${label}</td><td style="text-align:right">${typeof base==='number'&&Math.abs(base)>999?fmtC(base):base}</td><td style="text-align:right">${typeof scen==='number'&&Math.abs(scen)>999?fmtC(scen):scen}</td><td style="text-align:right;color:${cls}">${typeof d==='number'&&Math.abs(d)>999?fmtC(d):d}</td></tr>`;
@@ -2167,7 +2167,7 @@ function renderComparisonTable(saved){
   saved.forEach((s,i)=>{if(i!==baseIdx)comparisons.push({name:s.name,pnl:s.pnl})});
   if(!comparisons.length){ct.innerHTML='';return}
 
-  const fmtV=v=>{const a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'$'+(v/1e6).toFixed(1)+'M';if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
+  const fmtV=v=>{const a=Math.abs(v);if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
   const metrics=[
     {key:'hc',label:'Headcount',isCurrency:false},
     {key:'opex',label:'OpEx',isCurrency:true},

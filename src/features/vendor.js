@@ -1361,7 +1361,7 @@ function initVendorModule(){
         },
         scales:{
           x:{stacked:true,ticks:{font:{size:10},color:_tickC},grid:{color:_gridC}},
-          y:{stacked:true,ticks:{font:{size:10},color:_tickC,callback:function(v){return v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v.toLocaleString()}},grid:{color:_gridC}}
+          y:{stacked:true,ticks:{font:{size:10},color:_tickC,callback:function(v){return v>=100000?'$'+(v/1000000).toFixed(2)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v.toLocaleString()}},grid:{color:_gridC}}
         }
       }
     });

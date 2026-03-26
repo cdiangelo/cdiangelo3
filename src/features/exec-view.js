@@ -12,7 +12,7 @@ import {
 } from '../lib/proration.js';
 import { projectForecast } from './forecast.js';
 
-function fmtM(n){const a=Math.abs(n);if(a>=1e6)return(n<0?'-':'')+'$'+(n/1e6).toFixed(1)+'M';if(a>=1e5)return(n<0?'-':'')+'$'+(n/1e6).toFixed(2)+'M';return fmt(n)}
+function fmtM(n){const a=Math.abs(n);if(a>=1e5)return(n<0?'-':'')+'$'+(n/1e6).toFixed(2)+'M';return fmt(n)}
 let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total',execTrendYear='current';
 let execMonthlyChart=null,execForecastChart=null,execFcSparkChart=null;
 let execFcCollapsed=true;

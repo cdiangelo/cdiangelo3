@@ -188,7 +188,7 @@ export const FTE_TOOLTIP={
   }
 };
 
-export function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return fmt(n)}
+export function fmtShort(n){const abs=Math.abs(n);if(abs>=1e6)return (n<0?'-':'')+'$'+(abs/1e6).toFixed(2)+'M';if(abs>=1e3)return (n<0?'-':'')+'$'+(abs/1e3).toFixed(0)+'K';return fmt(n)}
 
 export function stackedBarDatalabels(datasets,tickColor,fontSize,crispSection){
   const isCrispDl=chartColorScheme==='crisp';
