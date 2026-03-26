@@ -463,10 +463,11 @@ function renderEmployees(){
         <td><select class="ie-bizline"><option value="">—</option>${state.bizLines.map(b=>`<option value="${b.code}"${b.code===(e.businessLine||'')?' selected':''}>${b.code} — ${b.name}</option>`).join('')}</select></td>
         <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||COUNTRY_BU[e.country]||'—'}</td>
         <td style="min-width:200px">${allocEditHtml}</td>
-        <td class="${cs}"><input class="ie-salary" type="number" value="${e.salary}"></td>
-        <td>${bp}%</td><td class="${cs}">${fmt(ba)}</td><td class="${cs}">${fmt(ben)}</td><td class="${cs}">${fmt(tc)}</td>
+        <td class="emp-comp-toggle-cell"></td>
+        <td class="${cs} emp-comp-col"><input class="ie-salary" type="number" value="${e.salary}"></td>
+        <td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col">${fmt(tc)}</td>
         <td><input class="ie-cappct" type="number" min="0" max="100" value="${e.capPct||0}" style="width:55px"></td>
-        <td class="${cs}">${fmt(getOpEx(e))}</td><td class="${cs}">${fmt(getCapEx(e))}</td>
+        <td class="${cs} emp-comp-col">${fmt(getOpEx(e))}</td><td class="${cs} emp-comp-col">${fmt(getCapEx(e))}</td>
         <td><input class="ie-hire" type="date" value="${e.hireDate||''}"></td>
         <td><input class="ie-term" type="date" value="${e.termDate||''}"></td>
       </tr>`;
@@ -479,12 +480,25 @@ function renderEmployees(){
       <td style="font-size:.82rem">${(()=>{const mkts=getEmpMarkets(e);return mkts.map(m=>`<div>${m.code}${mkts.length>1?` <span style="font-size:.75rem;color:var(--text-dim)">${m.pct}%</span>`:''}</div>`).join('')})()}</td><td style="font-size:.82rem">${window.getBizLineName(e.businessLine)}</td>
       <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||'—'}</td>
       <td style="min-width:180px">${projHtml}</td>
-      <td class="${cs}">${fmt(e.salary)}</td><td>${bp}%</td><td class="${cs}">${fmt(ba)}</td><td class="${cs}">${fmt(ben)}</td><td class="${cs}" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
-      <td>${getCapPct(e)}%</td><td class="${cs}">${fmt(getProratedOpEx(e))}</td><td class="${cs}">${fmt(getProratedCapEx(e))}</td>
+      <td class="emp-comp-toggle-cell"></td>
+      <td class="${cs} emp-comp-col">${fmt(e.salary)}</td><td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
+      <td>${getCapPct(e)}%</td><td class="${cs} emp-comp-col">${fmt(getProratedOpEx(e))}</td><td class="${cs} emp-comp-col">${fmt(getProratedCapEx(e))}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td>
     </tr>`;
   }).join('');
 }
+// Comp detail column toggle
+let empCompExpanded=false;
+function syncEmpCompCols(){
+  document.querySelectorAll('#empTable .emp-comp-col').forEach(el=>{el.style.display=empCompExpanded?'':'none'});
+  const tog=document.getElementById('empCompToggle');
+  if(tog)tog.textContent=empCompExpanded?'−':'+';
+}
+document.getElementById('empCompToggle').addEventListener('click',()=>{empCompExpanded=!empCompExpanded;syncEmpCompCols()});
+// Re-sync after render
+const _origRenderEmployees=renderEmployees;
+renderEmployees=function(){_origRenderEmployees();syncEmpCompCols()};
+
 document.getElementById('empFilterName').addEventListener('input',renderEmployees);
 ['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterMarket','empFilterBizLine','empFilterProject'].forEach(id=>{
   document.getElementById(id).addEventListener('change',renderEmployees);

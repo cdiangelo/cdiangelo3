@@ -56,6 +56,11 @@ body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
 body.ops-mode .comp-sensitive::selection{color:transparent}
 body.ops-mode .ops-hide{display:none!important}
 
+/* Emp comp toggle */
+.emp-comp-toggle-cell{width:20px;padding:0!important}
+#empCompToggle{cursor:pointer;user-select:none}
+#empCompToggle:hover{color:var(--accent)!important}
+
 /* Spreadsheet-style cell selection */
 td.spreadsheet-selected{outline:2px solid var(--accent);outline-offset:-1px;z-index:1;position:relative}
 input.spreadsheet-active{background:rgba(99,102,241,.06)!important;font-weight:600}
