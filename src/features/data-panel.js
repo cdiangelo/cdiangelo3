@@ -55,13 +55,13 @@ function initGuidePanel(){
     const body=document.getElementById('guideBusinessBody');
     const show=body.style.display==='none';
     body.style.display=show?'':'none';
-    this.innerHTML=(show?'&#9660;':'&#9654;')+' Business Planning';
+    this.innerHTML=(show?'&#9660;':'&#9654;')+' Business / Ops';
   });
   document.getElementById('guideFinanceToggle').addEventListener('click',function(){
     const body=document.getElementById('guideFinanceBody');
     const show=body.style.display==='none';
     body.style.display=show?'':'none';
-    this.innerHTML=(show?'&#9660;':'&#9654;')+' Finance &amp; Operations';
+    this.innerHTML=(show?'&#9660;':'&#9654;')+' Finance';
   });
 }
 window.initGuidePanel=initGuidePanel;
