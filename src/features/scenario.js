@@ -2161,6 +2161,14 @@ function initScenarioPane(){
   document.getElementById('scenSaveBudgetBtn').addEventListener('click',()=>saveScenario('budget'));
   document.getElementById('scenSaveFcBtn').addEventListener('click',()=>saveScenario('forecast'));
   document.getElementById('scenExportBtn').addEventListener('click',exportScenarioToExcel);
+  // Add Hires collapse/expand
+  document.getElementById('scenHireHeader').addEventListener('click',function(){
+    const body=document.getElementById('scenHireBody');
+    const show=body.style.display==='none';
+    body.style.display=show?'':'none';
+    this.querySelector('span').innerHTML=(show?'&#9660;':'&#9654;')+' Add Hires';
+    this.querySelector('span:last-child').textContent=show?'':'click to expand';
+  });
 }
 
 // ── SAVED SCENARIOS & COMPARISON ──

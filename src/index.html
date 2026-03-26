@@ -2579,8 +2579,9 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <input id="scenEmpSearch" class="scen-emp-search" placeholder="Search employees..." oninput="filterScenEmpList()">
 <div id="scenEmpList" class="scen-emp-list"></div>
 </div>
-<div id="scenHireSection" style="margin-top:10px;padding:8px 10px;background:rgba(58,125,68,.06);border:1px solid rgba(58,125,68,.2);border-radius:6px">
-<div style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Add Hires</div>
+<div id="scenHireSection" style="margin-top:10px;padding:6px 10px;background:rgba(58,125,68,.06);border:1px solid rgba(58,125,68,.2);border-radius:6px">
+<div id="scenHireHeader" style="font-size:.72rem;font-weight:600;text-transform:uppercase;color:var(--text-dim);cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between"><span>&#9654; Add Hires</span><span style="font-size:.65rem;font-weight:400;color:var(--text-dim)">click to expand</span></div>
+<div id="scenHireBody" style="display:none;margin-top:6px">
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
 <input id="scenHireCount" type="number" min="1" max="100" value="1" oninput="updateHirePreview()" style="width:48px;padding:2px 4px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);text-align:center">
 <select id="scenHireSeniority" onchange="updateHirePreview()" style="padding:2px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)"></select>
@@ -2596,6 +2597,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn btn-sm" onclick="scenAddHires()" style="padding:2px 10px;font-size:.72rem;background:rgba(58,125,68,.12);border-color:rgba(58,125,68,.3);color:#3a7d44;margin-left:auto">+ Add</button>
 </div>
 <div id="scenHirePreview" style="font-size:.68rem;color:var(--text-dim);margin-top:3px"></div>
+</div>
 </div>
 </div>
 <div class="chat-examples" id="budgetChatExamples">
