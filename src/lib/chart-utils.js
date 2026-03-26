@@ -141,6 +141,7 @@ if(typeof Chart!=='undefined')Chart.register(softBarPlugin);
 if(typeof Chart!=='undefined'){
   Chart.defaults.plugins.tooltip.mode='index';
   Chart.defaults.plugins.tooltip.intersect=false;
+  Chart.defaults.plugins.tooltip.animation={duration:0};
   Chart.defaults.plugins.tooltip.callbacks.label=function(ctx){
     const label=ctx.dataset.label||'';
     const val=ctx.parsed.y;
@@ -148,6 +149,8 @@ if(typeof Chart!=='undefined'){
     const fmtVal=Math.abs(val)>=1e5?'$'+(val/1e6).toFixed(2)+'M':Math.abs(val)>=1e3?'$'+(val/1e3).toFixed(0)+'K':'$'+val.toLocaleString();
     return label+': '+fmtVal;
   };
+  // Disable hover animation delay for instant response
+  Chart.defaults.hover.animationDuration=0;
 }
 
 export function getChartColors(){
