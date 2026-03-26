@@ -18,6 +18,7 @@ export function initFunMode(){try{
   let savedOpacity=parseFloat(localStorage.getItem('funOpacity'))||1;
   let savedMuted=localStorage.getItem('funMuted')!=='false';
   let savedVolume=parseInt(localStorage.getItem('funVolume'),10);if(isNaN(savedVolume))savedVolume=50;
+  let showControls=localStorage.getItem('funControls')==='true';
   let adTimer=null;
   let funPlayer=null;
 
@@ -208,6 +209,28 @@ export function initFunMode(){try{
     volSection.appendChild(muteBtn);volSection.appendChild(volLabel);volSection.appendChild(volSlider);volSection.appendChild(volVal);
     editorPanel.appendChild(volSection);
 
+    // Player controls toggle
+    const ctrlSection=document.createElement('div');
+    ctrlSection.style.cssText=`margin-top:6px;padding:6px 8px;border-radius:4px;background:${isDark()?'rgba(255,255,255,.04)':'rgba(0,0,0,.03)'};display:flex;align-items:center;gap:8px;cursor:pointer`;
+    const ctrlCheck=document.createElement('input');
+    ctrlCheck.type='checkbox';ctrlCheck.checked=showControls;
+    ctrlCheck.style.cssText='margin:0;cursor:pointer';
+    const ctrlLabel=document.createElement('span');
+    ctrlLabel.textContent='Show player controls (skip, seek, next)';
+    ctrlLabel.style.cssText=`font-size:.68rem;color:${isDark()?'rgba(255,255,255,.5)':'rgba(0,0,0,.45)'};cursor:pointer`;
+    ctrlCheck.addEventListener('change',()=>{
+      showControls=ctrlCheck.checked;
+      localStorage.setItem('funControls',showControls);
+      // Reload current video with new controls setting
+      if(funState>=0&&funWrap){
+        const iframe=document.getElementById('funVideoFrame');
+        if(iframe)iframe.src=buildIframeSrc(FUN_VIDEOS[funState]);
+      }
+    });
+    ctrlLabel.addEventListener('click',()=>{ctrlCheck.checked=!ctrlCheck.checked;ctrlCheck.dispatchEvent(new Event('change'))});
+    ctrlSection.appendChild(ctrlCheck);ctrlSection.appendChild(ctrlLabel);
+    editorPanel.appendChild(ctrlSection);
+
     // Reset button
     const resetBtn=document.createElement('button');
     resetBtn.textContent='Reset to defaults';
@@ -226,7 +249,8 @@ export function initFunMode(){try{
   function buildIframeSrc(v){
     const s=v.start||0;
     const m=savedMuted?1:0;
-    return `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&mute=${m}&loop=1&playlist=${v.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&start=${s}&iv_load_policy=3&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+    const ctrl=showControls?1:0;
+    return `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&mute=${m}&loop=1&playlist=${v.id}&controls=${ctrl}&showinfo=0&rel=0&modestbranding=1&playsinline=1&start=${s}&iv_load_policy=3&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
   }
   function sendYtCmd(iframe,func,args){
     try{iframe.contentWindow.postMessage(JSON.stringify({event:'command',func:func,args:args||[]}),'*')}catch(e){}
