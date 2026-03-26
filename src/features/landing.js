@@ -11,6 +11,8 @@ const getVendorOaoTotal       = (...a) => window.getVendorOaoTotal(...a);
 const getContractorCapExTotal = (...a) => window.getContractorCapExTotal(...a);
 const getContractorCapExByMonth = (...a) => window.getContractorCapExByMonth(...a);
 const getDepreciationTotal    = (...a) => window.getDepreciationTotal(...a);
+const getVendorOaoByMonth     = (...a) => window.getVendorOaoByMonth(...a);
+const getDepreciationByMonth  = (...a) => window.getDepreciationByMonth(...a);
 const getRevenueTotal         = (...a) => window.getRevenueTotal(...a);
 const getRevenueByMonth       = (...a) => window.getRevenueByMonth(...a);
 const getRevenueMrr           = (...a) => window.getRevenueMrr(...a);
@@ -458,13 +460,19 @@ function renderLandingCharts(){
   } else {
     const lcc=getChartColors();
     if(isPnl){
-      const opex=MO_SHORT.map((_,mi)=>{const c=emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
+      const cbOpex=MO_SHORT.map((_,mi)=>{const c=emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
+      const oaoMo=MO_SHORT.map((_,mi)=>getVendorOaoByMonth(mi));
+      const daMo=MO_SHORT.map((_,mi)=>getDepreciationByMonth(mi));
       const capex=MO_SHORT.map((_,mi)=>-(emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0)+getContractorCapExByMonth(mi)));
-      budgetDS.push({label:'OpEx',data:opex,backgroundColor:lcc[4],stack:'pos'});
-      budgetDS.push({label:'CapEx',data:capex,backgroundColor:lcc[0],stack:'neg'});
+      budgetDS.push({label:'C&B',data:cbOpex,backgroundColor:lcc[0],stack:'pos'});
+      budgetDS.push({label:'OAO',data:oaoMo,backgroundColor:lcc[1],stack:'pos'});
+      budgetDS.push({label:'D&A',data:daMo,backgroundColor:lcc[2],stack:'pos'});
+      budgetDS.push({label:'CapEx',data:capex,backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'});
     } else {
-      const data=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
-      budgetDS.push({label:'Total Comp',data,backgroundColor:lcc[0],stack:'pos'});
+      const cbGross=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
+      const oaoMo=MO_SHORT.map((_,mi)=>getVendorOaoByMonth(mi));
+      budgetDS.push({label:'C&B',data:cbGross,backgroundColor:lcc[0],stack:'pos'});
+      budgetDS.push({label:'OAO',data:oaoMo,backgroundColor:lcc[1],stack:'pos'});
     }
   }
   // Data labels — always show total on top of each bar
@@ -473,7 +481,7 @@ function renderLandingCharts(){
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
     plugins:[barTotalPlugin],
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:isPnl||useSplit,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},padding:14,filter:item=>!item.text.includes('(CapEx)')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:10}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:10}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
