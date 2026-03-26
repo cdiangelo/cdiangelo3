@@ -162,7 +162,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 
 <!-- GLOBAL TOOLBAR — fixed controls across all panes -->
-<div id="globalToolbar" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:110;flex-wrap:wrap">
+<div id="globalToolbar" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);position:fixed;top:0;left:0;right:0;z-index:110;flex-wrap:wrap">
 <button class="btn btn-sm" id="globalBackBtn" style="display:none">Back to Overview</button>
 <label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="globalToggleDark"><span class="toggle-track"></span>Dark</label>
 <label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="globalToggleOps"><span class="toggle-track"></span>Ops View</label>
@@ -171,6 +171,7 @@ Template Mode &mdash; changes saved in this browser only.
 <span class="color-scheme-label" id="globalColorSchemeLabel">Muted</span>
 </div>
 </div>
+<div id="globalToolbarSpacer" style="height:38px"></div>
 
 <!-- LANDING PAGE -->
 <div id="landingPage">
