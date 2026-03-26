@@ -1,6 +1,6 @@
 /* Container, Header, Nav, Tabs (lines 35-48) */
 .container{max-width:100%;margin:0 auto;padding:0 80px}
-header{background:var(--panel);border-bottom:2px solid var(--border);padding:16px 0;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+header{background:var(--panel);border-bottom:2px solid var(--border);padding:16px 0;position:sticky;top:32px;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 header .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 header h1{font-size:1.3rem;color:var(--accent)}
 header h1 span{color:var(--secondary)}
