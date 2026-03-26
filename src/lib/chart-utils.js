@@ -137,6 +137,18 @@ export const softBarPlugin={id:'softBar',beforeUpdate(chart){
 // Register plugins if Chart.js is available
 if(typeof Chart!=='undefined')Chart.register(crispPatternPlugin);
 if(typeof Chart!=='undefined')Chart.register(softBarPlugin);
+// Global tooltip defaults: show all datasets on hover, format currency
+if(typeof Chart!=='undefined'){
+  Chart.defaults.plugins.tooltip.mode='index';
+  Chart.defaults.plugins.tooltip.intersect=false;
+  Chart.defaults.plugins.tooltip.callbacks.label=function(ctx){
+    const label=ctx.dataset.label||'';
+    const val=ctx.parsed.y;
+    if(typeof val!=='number')return label+': '+val;
+    const fmtVal=Math.abs(val)>=1e5?'$'+(val/1e6).toFixed(2)+'M':Math.abs(val)>=1e3?'$'+(val/1e3).toFixed(0)+'K':'$'+val.toLocaleString();
+    return label+': '+fmtVal;
+  };
+}
 
 export function getChartColors(){
   const isDark=document.documentElement.classList.contains('dark');
