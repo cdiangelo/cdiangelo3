@@ -2,15 +2,11 @@
 
 export function initFunMode(){try{
   const DEFAULT_VIDEOS=[
-    {id:'wnhvanMdx4s',label:'Earth from Space'},
-    {id:'aGK82Tluxq8',label:'Scenic Views'},
-    {id:'YEVmlxEExbk',label:'Nature'},
-    {id:'g01AqnNI_TE',label:'World Wonders',start:845},
-    {id:'a6aHuWXrI_Q',label:'Scene 5'},
-    {id:'i3qUonr3d9U',label:'Scene 6'},
-    {id:'q7nz919dhVc',label:'Scene 7'},
-    {id:'ptVUsBllmsE',label:'Scene 8'},
-    {id:'pWH0DejTaqg',label:'Scene 9'}
+    {id:'29XymHesxa0',label:'Scene 1'},
+    {id:'cAbJtTxU56E',label:'Scene 2'},
+    {id:'urVW36rIHYM',label:'Scene 3'},
+    {id:'0xhzwDXfLds',label:'Scene 4'},
+    {id:'vGMJZSfVW1M',label:'Scene 5'}
   ];
   let FUN_VIDEOS=JSON.parse(localStorage.getItem('funVideos')||'null')||JSON.parse(JSON.stringify(DEFAULT_VIDEOS));
   function saveFunVideos(){localStorage.setItem('funVideos',JSON.stringify(FUN_VIDEOS))}
