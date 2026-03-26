@@ -38,8 +38,6 @@ html.dark #empTable tr:hover td:nth-child(1),html.dark #empTable tr:hover td:nth
 html.dark #empTable th:nth-child(1),html.dark #empTable td:nth-child(1),html.dark #empTable th:nth-child(2),html.dark #empTable td:nth-child(2){background:var(--panel)}
 html.dark .ws-list li:hover{background:rgba(212,82,77,.05)}
 html.dark .chart-container{background:rgba(255,255,255,.02);border-radius:8px;padding:8px}
-html.dark .pnl-walk-table tr.subtotal td{background:rgba(212,82,77,.08)}
-html.dark .pnl-walk-table tr.total td{background:rgba(212,82,77,.12)}
 html.dark .modal-overlay{background:rgba(0,0,0,.7)}
 html.dark .scenario-slide-panel table td,html.dark .data-slide-panel table td{color:var(--text)}
 html.dark .scenario-slide-panel table th,html.dark .data-slide-panel table th{color:var(--text-dim)}

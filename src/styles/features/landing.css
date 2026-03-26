@@ -49,8 +49,8 @@ body.scenario-open #chartExpandPane,body.data-open #chartExpandPane{left:0}
 .pnl-walk-table.compact{width:auto;min-width:0}
 .pnl-walk-table th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);padding:5px 10px;border-bottom:2px solid var(--border);background:var(--panel-inset)}
 .pnl-walk-table td{padding:6px 10px;font-size:.82rem;border-bottom:1px solid var(--border-light)}
-.pnl-walk-table tr.subtotal td{font-weight:700;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);color:var(--accent);background:rgba(139,32,32,.04);padding:5px 10px;font-size:.82rem}
-.pnl-walk-table tr.total td{font-weight:700;border-top:3px double var(--accent);color:var(--text-dark);font-size:.84rem;background:rgba(139,32,32,.07);padding:5px 10px}
+.pnl-walk-table tr.subtotal td{font-weight:700;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);color:var(--accent);background:var(--panel-inset);padding:5px 10px;font-size:.82rem}
+.pnl-walk-table tr.total td{font-weight:700;border-top:3px double var(--accent);color:var(--text-dark);font-size:.84rem;background:var(--panel-inset);padding:5px 10px}
 .pnl-walk-table td.num{text-align:right;font-variant-numeric:tabular-nums}
 .pnl-walk-table td.label-cell{color:var(--text-dim);padding-left:20px;font-size:.84rem}
 .pnl-walk-table td.section-label{font-weight:600;color:var(--text-dark)}
