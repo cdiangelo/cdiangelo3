@@ -782,6 +782,62 @@ function initLtfModule(){
     tblWrap.style.display=show?'':'none';
     tblToggle.innerHTML=(show?'&#9660;':'&#9654;')+' '+(show?'Hide':'Show')+' Details';
   });
+
+  // Custom Adjustments
+  if(!state.ltfCustomAdj)state.ltfCustomAdj=[];
+  function renderLtfAdj(){
+    const list=document.getElementById('ltfAdjList');
+    if(!list)return;
+    const years=window.getDisplayFcLabels?window.getDisplayFcLabels():['Y1','Y2','Y3','Y4','Y5','Y6'];
+    if(!state.ltfCustomAdj.length){
+      list.innerHTML='<div style="font-size:.72rem;color:var(--text-dim)">No custom adjustments. Click + Add to create one.</div>';
+      return;
+    }
+    list.innerHTML=state.ltfCustomAdj.map((adj,i)=>{
+      let h=`<div style="padding:8px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:6px">`;
+      h+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">`;
+      h+=`<input class="ltf-adj-label" data-ai="${i}" value="${adj.label||''}" placeholder="Adjustment name" style="flex:1;padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">`;
+      h+=`<button class="btn btn-sm ltf-adj-del" data-ai="${i}" style="padding:1px 6px;font-size:.66rem;color:var(--danger)">×</button>`;
+      h+=`</div>`;
+      h+=`<div style="display:flex;gap:4px;flex-wrap:wrap">`;
+      years.forEach((yr,yi)=>{
+        const val=adj.amounts[yi]||0;
+        const dispVal=val/1e6;
+        h+=`<div style="display:flex;flex-direction:column;align-items:center;gap:1px">`;
+        h+=`<span style="font-size:.6rem;color:var(--text-dim)">${yr}</span>`;
+        h+=`<input class="ltf-adj-amt" data-ai="${i}" data-yi="${yi}" type="number" step="any" value="${dispVal||''}" placeholder="0" style="width:60px;padding:2px 4px;font-size:.74rem;text-align:right;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
+        h+=`<span style="font-size:.55rem;color:var(--text-dim)">$M</span>`;
+        h+=`</div>`;
+      });
+      h+=`</div></div>`;
+      return h;
+    }).join('');
+    // Bind events
+    list.querySelectorAll('.ltf-adj-label').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        state.ltfCustomAdj[+inp.dataset.ai].label=inp.value;
+        saveState();renderLtfChart();
+      });
+    });
+    list.querySelectorAll('.ltf-adj-amt').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const ai=+inp.dataset.ai,yi=+inp.dataset.yi;
+        state.ltfCustomAdj[ai].amounts[yi]=Math.round((parseFloat(inp.value)||0)*1e6);
+        saveState();renderLtfChart();
+      });
+    });
+    list.querySelectorAll('.ltf-adj-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        state.ltfCustomAdj.splice(+btn.dataset.ai,1);
+        saveState();renderLtfAdj();renderLtfChart();
+      });
+    });
+  }
+  document.getElementById('ltfAddAdj').addEventListener('click',()=>{
+    state.ltfCustomAdj.push({label:'',amounts:[0,0,0,0,0,0]});
+    saveState();renderLtfAdj();
+  });
+  renderLtfAdj();
 }
 
 function renderLtfMethodology(){
@@ -1114,6 +1170,19 @@ function renderLtfChart(){
         {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'pos'}
       ];
     }
+  }
+
+  // Add custom adjustments as separate datasets
+  if(state.ltfCustomAdj&&state.ltfCustomAdj.length){
+    state.ltfCustomAdj.forEach((adj,ai)=>{
+      const adjData=yearLabels.map((_,yi)=>adj.amounts[yi]||0);
+      if(adjData.some(v=>v!==0)){
+        const adjColor=lcc[(3+ai)%lcc.length];
+        datasets.push({label:adj.label||'Adj '+(ai+1),data:adjData,backgroundColor:hexToRgba(adjColor,0.5),stack:'pos'});
+        // Include in acctData for Y/Y total calculation
+        acctData.push({label:adj.label||'Adj',data:adjData,color:adjColor});
+      }
+    });
   }
 
   window.stackedBarDatalabels(datasets,tickColor,8,'ltf');

@@ -146,7 +146,7 @@ if(typeof Chart!=='undefined'){
     const label=ctx.dataset.label||'';
     const val=ctx.parsed.y;
     if(typeof val!=='number')return label+': '+val;
-    const fmtVal=Math.abs(val)>=1e5?'$'+(val/1e6).toFixed(2)+'M':Math.abs(val)>=1e3?'$'+(val/1e3).toFixed(0)+'K':'$'+val.toLocaleString();
+    const fmtVal=(val<0?'-':'')+'$'+(Math.abs(val)/1e6).toFixed(2)+'M';
     return label+': '+fmtVal;
   };
   // Disable hover animation delay for instant response

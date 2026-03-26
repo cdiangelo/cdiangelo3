@@ -144,8 +144,9 @@ export function ensureStateFields(){
   if(!state.auditLog)state.auditLog=[];
   // Guide tracking
   if(!state.guideChecked)state.guideChecked={};
-  // Long-term forecast: OAO Y/Y growth and D&A asset lifecycle
+  // Long-term forecast: OAO Y/Y growth, D&A asset lifecycle, custom adjustments
   if(!state.oaoGrowthPct)state.oaoGrowthPct=[5,5,5,5,5];
+  if(!state.ltfCustomAdj)state.ltfCustomAdj=[];
   if(!state.daAssetLifeYrs)state.daAssetLifeYrs=5;
   if(!state.vendorRows||!state.vendorRows.length){
     const genProj=state.projects.find(p=>p.code==='GEN-000');
