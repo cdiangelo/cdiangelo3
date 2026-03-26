@@ -132,7 +132,7 @@ function renderExecFcSparkline(){
       if(!meta||!meta.data||meta.data.length<2)return;
       const ctx=chart.ctx;
       ctx.save();
-      const fontSize=11;
+      const fontSize=12;
       ctx.font=`600 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
       const lineColor=chart.data.datasets[0].borderColor||colors[0];
       ctx.fillStyle=lineColor;

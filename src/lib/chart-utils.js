@@ -254,7 +254,7 @@ export const yoyArrowsPlugin={
     for(let di=0;di<datasets.length;di++){if(!chart.getDatasetMeta(di).hidden){visMetaIdx=di;break}}
     // Responsive font: scale with chart width
     const chartW=area.right-area.left;
-    const baseFontSize=Math.max(9,Math.min(13,chartW/(nLabels*6)));
+    const baseFontSize=Math.max(10,Math.min(14,chartW/(nLabels*5)));
     const fontSize=opts.fontSize||baseFontSize;
     const arrowColor=opts.color||(document.documentElement.classList.contains('dark')?'rgba(255,255,255,.45)':'rgba(0,0,0,.35)');
     const textColor=opts.textColor||(document.documentElement.classList.contains('dark')?'rgba(255,255,255,.7)':'rgba(0,0,0,.6)');

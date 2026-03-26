@@ -49,10 +49,12 @@ function syncFormCompVisibility(){
     // In ops mode: type is read-only; new adds are forced to 'hire'
     empTypeEl.disabled=true;
     if(!editingId){empTypeEl.value='hire'}
-    // Hide comp for existing employees
-    const hideComp=empTypeVal==='existing';
+    // Hide comp for existing employees only; hires see salary + benchmarks
+    const actualType=empTypeEl.value;
+    const hideComp=actualType==='existing';
     salaryGroup.style.display=hideComp?'none':'';
     capGroup.style.display=hideComp?'none':'';
+    if(!hideComp)updateBenchmarkBadge();
   } else {
     empTypeEl.disabled=false;
     salaryGroup.style.display='';
