@@ -297,9 +297,9 @@ function renderExecView(){
   const svColor=window.getStatValueColor();
   document.getElementById('execStatCards').innerHTML=
     `<div class="stat-card"><div class="label">${execSelectedMonths.size>0&&execSelectedMonths.size<12?periodLabel+' ':''}Headcount</div><div class="value" style="color:${svColor}">${execSelectedMonths.size>0?Math.round(statMonths.reduce((s,mi)=>s+emps.filter(e=>getMonthFactor(e,mi)>0).length,0)/statMonths.length):emps.length}</div><canvas class="sparkline" id="sparkHC"></canvas></div>`+
-    `<div class="stat-card"><div class="label">${periodLabel} Comp</div><div class="value" style="color:${svColor}">${fmt(periodComp)}</div><canvas class="sparkline" id="sparkComp"></canvas></div>`+
-    `<div class="stat-card"><div class="label">${periodLabel} CapEx</div><div class="value" style="color:${svColor}">${fmt(periodCapEx)}</div><canvas class="sparkline" id="sparkCapEx"></canvas></div>`+
-    `<div class="stat-card"><div class="label">${periodLabel} OpEx</div><div class="value" style="color:var(--success)">${fmt(periodOpEx)}</div><canvas class="sparkline" id="sparkOpEx"></canvas></div>`;
+    `<div class="stat-card"><div class="label">${periodLabel} Comp</div><div class="value" style="color:${svColor}">${fmtM(periodComp)}</div><canvas class="sparkline" id="sparkComp"></canvas></div>`+
+    `<div class="stat-card"><div class="label">${periodLabel} CapEx</div><div class="value" style="color:${svColor}">${fmtM(periodCapEx)}</div><canvas class="sparkline" id="sparkCapEx"></canvas></div>`+
+    `<div class="stat-card"><div class="label">${periodLabel} OpEx</div><div class="value" style="color:var(--success)">${fmtM(periodOpEx)}</div><canvas class="sparkline" id="sparkOpEx"></canvas></div>`;
 
   // Sparkline data — scoped to exec month range if selected
   const SPARK_MONTHS=execSelectedMonths.size>0?[...execSelectedMonths].sort((a,b)=>a-b):[0,1,2,3,4,5,6,7,8,9,10,11];

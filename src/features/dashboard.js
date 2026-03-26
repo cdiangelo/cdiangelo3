@@ -196,13 +196,14 @@ function renderDashboard(){
   const totalCapEx=emps.reduce((a,e)=>a+getProratedCapEx(e),0);
   const svc=getStatValueColor();
   const cbOpEx=totalComp-totalCapEx;
+  const fmtM=v=>{const a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'$'+(v/1e6).toFixed(1)+'M';if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
   document.getElementById('dashStatCards').innerHTML=
     `<div class="stat-card"><div class="label">Headcount</div><div class="value" style="color:${svc}">${emps.length}</div></div>`+
     `<div class="stat-card"><div class="label">Avg Base</div><div class="value" style="color:${svc}">${fmt(avgBase)}</div></div>`+
-    `<div class="stat-card"><div class="label">Total Comp</div><div class="value" style="color:${svc}">${fmt(totalComp)}</div></div>`+
-    `<div class="stat-card"><div class="label">CapEx Offset</div><div class="value" style="color:${svc}">${fmt(totalCapEx)}</div></div>`+
+    `<div class="stat-card"><div class="label">Total Comp</div><div class="value" style="color:${svc}">${fmtM(totalComp)}</div></div>`+
+    `<div class="stat-card"><div class="label">CapEx Offset</div><div class="value" style="color:${svc}">${fmtM(totalCapEx)}</div></div>`+
     `<div class="stat-card"><div class="label">Avg Cap %</div><div class="value" style="color:${svc}">${avgCapPct}%</div></div>`+
-    `<div class="stat-card"><div class="label">C&B OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmt(cbOpEx)}</div></div>`;
+    `<div class="stat-card"><div class="label">C&B OpEx</div><div class="value" style="color:${svc};font-weight:800">${fmtM(cbOpEx)}</div></div>`;
   const showPeriod=(groupBy==='month'||groupBy==='quarter');
   document.getElementById('periodToggleWrap').style.display=showPeriod?'':'none';
   const isDark=document.documentElement.classList.contains('dark');
