@@ -39,6 +39,7 @@ body.scenario-open main,body.scenario-open header,body.scenario-open #landingPag
 body:not(.scenario-open) main,body:not(.scenario-open) header,body:not(.scenario-open) #landingPage{transition:margin-left .3s ease}
 body.scenario-open .scenario-toggle-btn{left:50vw}
 body.scenario-open .data-toggle-btn{left:50vw}
+body.scenario-open .guide-toggle-btn{left:50vw}
 body.scenario-open .section-title,body.data-open .section-title{font-size:.88rem}
 body.scenario-open header h1,body.data-open header h1{font-size:1rem}
 body.scenario-open nav button,body.data-open nav button{font-size:.72rem;padding:4px 8px}
@@ -74,6 +75,7 @@ html.dark .guide-toggle-btn{border-color:rgba(255,255,255,.1)}
 body.data-open main,body.data-open header,body.data-open #landingPage{margin-left:50vw;transition:margin-left .3s ease}
 body.data-open .data-toggle-btn{left:50vw}
 body.data-open .scenario-toggle-btn{left:50vw}
+body.data-open .guide-toggle-btn{left:50vw}
 body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptionsModal,body.guide-open #forecastAssumptionsModal{padding-left:50vw;transition:padding-left .3s ease}
 .panel-close-btn{display:none;align-items:center;gap:4px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:10px}
 .panel-close-btn:hover{background:var(--border)}

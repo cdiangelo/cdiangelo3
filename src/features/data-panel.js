@@ -63,6 +63,17 @@ function initGuidePanel(){
     body.style.display=show?'':'none';
     this.innerHTML=(show?'&#9660;':'&#9654;')+' Finance';
   });
+  // Sub-section toggles (Budget / Long Term Plan)
+  document.querySelectorAll('.guide-sub-toggle').forEach(h5=>{
+    h5.addEventListener('click',()=>{
+      const body=h5.nextElementSibling;
+      if(!body)return;
+      const show=body.style.display==='none';
+      body.style.display=show?'':'none';
+      const label=h5.textContent.replace(/^[^\s]+\s/,'');
+      h5.innerHTML=(show?'&#9660;':'&#9654;')+' '+label;
+    });
+  });
 }
 window.initGuidePanel=initGuidePanel;
 

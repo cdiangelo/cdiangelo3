@@ -1885,6 +1885,48 @@ function pnlRow(label,base,scen,isCost){
   const d=scen-base;const cls=isCost?(d<0?'var(--success)':d>0?'var(--danger)':'var(--text-dim)'):(d<0?'var(--success)':'var(--text-dim)');
   return `<tr><td>${label}</td><td style="text-align:right">${typeof base==='number'&&Math.abs(base)>999?fmtC(base):base}</td><td style="text-align:right">${typeof scen==='number'&&Math.abs(scen)>999?fmtC(scen):scen}</td><td style="text-align:right;color:${cls}">${typeof d==='number'&&Math.abs(d)>999?fmtC(d):d}</td></tr>`;
 }
+function buildSavedScenSelector(type){
+  const saved=getSavedScenarios().filter(s=>s.type===type);
+  if(!saved.length)return '';
+  return `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+    <span style="font-size:.65rem;color:var(--text-dim)">Compare:</span>
+    ${saved.map((s,i)=>{
+      const idx=getSavedScenarios().indexOf(s);
+      const abbr=s.name.length>6?s.name.slice(0,6)+'…':s.name;
+      return `<label style="display:flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text);cursor:pointer;padding:1px 4px;border:1px solid var(--border-light);border-radius:3px;background:var(--panel-inset)"><input type="checkbox" class="scen-compare-cb" data-type="${type}" data-idx="${idx}" style="margin:0;width:12px;height:12px;cursor:pointer">${abbr}</label>`;
+    }).join('')}
+  </div>`;
+}
+function renderInlineComparison(type,basePnl,containerEl){
+  const saved=getSavedScenarios();
+  const checks=containerEl.querySelectorAll('.scen-compare-cb[data-type="'+type+'"]');
+  const selectedIdxs=[];
+  checks.forEach(cb=>{if(cb.checked)selectedIdxs.push(+cb.dataset.idx)});
+  if(!selectedIdxs.length)return;
+  const tblStyle='width:100%;margin-top:4px;font-size:.72rem';
+  selectedIdxs.forEach(idx=>{
+    const s=saved[idx];if(!s)return;
+    const abbr=s.name.length>8?s.name.slice(0,8)+'…':s.name;
+    let html=`<div style="margin-top:6px;padding:6px;border:1px solid var(--border-light);border-radius:4px;background:var(--panel-inset)">
+      <div style="font-size:.68rem;font-weight:600;color:var(--accent);margin-bottom:2px">vs ${s.name}</div>
+      <table style="${tblStyle}"><tr><th style="text-align:left;font-size:.65rem">Metric</th><th style="text-align:right;font-size:.65rem">Current</th><th style="text-align:right;font-size:.65rem">${abbr}</th><th style="text-align:right;font-size:.65rem">Delta</th></tr>`;
+    const sp=s.pnl;
+    const metrics=type==='budget'?[
+      {k:'hc',l:'HC',cur:false},{k:'opex',l:'OpEx',cur:true},{k:'oao',l:'OAO',cur:true},{k:'capex',l:'CapEx',cur:true},{k:'total',l:'Total',cur:true}
+    ]:[
+      {k:'hc',l:'HC',cur:false},{k:'opex',l:'OpEx',cur:true},{k:'total',l:'Total',cur:true}
+    ];
+    metrics.forEach(m=>{
+      const bv=basePnl[m.k]||0;const sv=sp[m.k]||0;const d=sv-bv;
+      const dc=d<0?'var(--success)':d>0?'var(--danger)':'var(--text-dim)';
+      const fv=v=>m.cur?fmtC(v):v;
+      const ds=d===0?'—':(d>0?'+':'')+fv(d);
+      html+=`<tr><td style="padding:2px 4px">${m.l}</td><td style="text-align:right;padding:2px 4px">${fv(bv)}</td><td style="text-align:right;padding:2px 4px">${fv(sv)}</td><td style="text-align:right;padding:2px 4px;color:${dc};font-weight:600">${ds}</td></tr>`;
+    });
+    html+='</table></div>';
+    containerEl.insertAdjacentHTML('beforeend',html);
+  });
+}
 function renderScenarioPnlSummary(){
   const bEl=document.getElementById('scenBudgetPnl');
   const fEl=document.getElementById('scenFcPnl');
@@ -1900,7 +1942,9 @@ function renderScenarioPnlSummary(){
   const thRow='<tr><th style="text-align:left;font-size:.68rem">Metric</th><th style="text-align:right;font-size:.68rem">Base</th><th style="text-align:right;font-size:.68rem">Scen</th><th style="text-align:right;font-size:.68rem">Delta</th></tr>';
   const bTotInv=basePnl.annual.opex+basePnl.annual.capex+basePnl.annual.oao;
   const sTotInv=scenPnl.annual.opex+scenPnl.annual.capex+scenPnl.annual.oao;
-  if(bEl)bEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
+  const budgetBasePnl={hc:basePnl.annual.hc,opex:basePnl.annual.opex,oao:basePnl.annual.oao,capex:basePnl.annual.capex,total:bTotInv};
+  if(bEl){
+    bEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
     <strong style="color:var(--accent);font-size:.76rem">Budget: Scenario vs Baseline</strong>
     <table style="${tblStyle}">${thRow}
     ${pnlRow('HC',basePnl.annual.hc,scenPnl.annual.hc,false)}
@@ -1908,11 +1952,17 @@ function renderScenarioPnlSummary(){
     ${pnlRow('Vendor/T&E',basePnl.annual.oao,scenPnl.annual.oao,true)}
     ${pnlRow('CapEx',basePnl.annual.capex,scenPnl.annual.capex,true)}
     <tr style="font-weight:700">${pnlRow('Total Investment',bTotInv,sTotInv,true).replace(/<\/?tr>/g,'')}</tr>
-    </table></div>`;
+    </table>${buildSavedScenSelector('budget')}</div>`;
+    bEl.querySelectorAll('.scen-compare-cb').forEach(cb=>{
+      cb.addEventListener('change',()=>renderInlineComparison('budget',budgetBasePnl,bEl));
+    });
+  }
   const fcLastIdx=FORECAST_YEARS.length;
   const bVT=fcVtProjected(state.vendorRows,state.teRows,state.forecastAssumptions,fcLastIdx);
   const sVT=fcVtProjected(forecastScenario.vendorRows,forecastScenario.teRows,forecastScenario.assumptions,fcLastIdx);
-  if(fEl)fEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
+  const fcBasePnl={hc:bLast.hc||0,opex:bLast.opex||0,total:(bLast.total||0)+bVT};
+  if(fEl){
+    fEl.innerHTML=`<div style="background:var(--panel);padding:8px;border-radius:6px;border:1px solid var(--border)">
     <strong style="color:var(--accent);font-size:.76rem">Forecast vs Baseline (${getDisplayYears()[4]})</strong>
     <table style="${tblStyle}">${thRow}
     ${pnlRow('HC',bLast.hc||0,sLast.hc||0,false)}
@@ -1920,7 +1970,11 @@ function renderScenarioPnlSummary(){
     ${pnlRow('Vendor/T&E',bVT,sVT,true)}
     ${pnlRow('CapEx',bLast.capex||0,sLast.capex||0,true)}
     ${pnlRow('Total Inv',(bLast.total||0)+bVT,(sLast.total||0)+sVT,true)}
-    </table></div>`;
+    </table>${buildSavedScenSelector('forecast')}</div>`;
+    fEl.querySelectorAll('.scen-compare-cb').forEach(cb=>{
+      cb.addEventListener('change',()=>renderInlineComparison('forecast',fcBasePnl,fEl));
+    });
+  }
 }
 
 // ── Wire up scenario events ──
