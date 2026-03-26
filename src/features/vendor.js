@@ -2,6 +2,7 @@
 import { state, saveState } from '../lib/state.js';
 import { fmt, esc, uid, VENDOR_TYPES, EXPENSE_TYPES, COUNTRY_BU } from '../lib/constants.js';
 import { TAG_COLORS_DARK, TAG_COLORS_LIGHT } from '../lib/chart-utils.js';
+import { attachSpreadsheetNav } from '../lib/spreadsheet-nav.js';
 
 /* ── globals accessed via window (not yet modularised) ── */
 const getChartColors         = (...a) => window.getChartColors(...a);
@@ -352,6 +353,7 @@ function initVendorModule(){
     tbody.innerHTML=h;
     renderFooter(totalEl,state.vendorRows,11,vendorSelectedMonths);
     bindSpendRows(tbody,totalEl,state.vendorRows,'vr',renderVendorGrid,vendorSelectedMonths);
+    attachSpreadsheetNav('vendorTbody','vr-mo');
   }
 
   document.getElementById('vendorAddRow').addEventListener('click',()=>{
@@ -651,6 +653,7 @@ function initVendorModule(){
     tbody.innerHTML=h;
     renderFooter(totalEl,state.teRows,10,teSelectedMonths);
     bindSpendRows(tbody,totalEl,state.teRows,'te',renderTeGrid,teSelectedMonths);
+    attachSpreadsheetNav('teTbody','te-mo');
   }
 
   document.getElementById('teAddRow').addEventListener('click',()=>{
@@ -901,6 +904,7 @@ function initVendorModule(){
         saveState();renderContractorGrid();
       });
     });
+    attachSpreadsheetNav('contractorTbody','cr-mo');
   }
 
   // Add contractor row

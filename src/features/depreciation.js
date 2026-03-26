@@ -1,6 +1,7 @@
 // ── depreciation.js — ES module extracted from index.html lines 13704–14079 ──
 import { state, saveState } from '../lib/state.js';
 import { fmt } from '../lib/constants.js';
+import { attachSpreadsheetNav } from '../lib/spreadsheet-nav.js';
 
 /* ── globals accessed via window (not yet modularised) ── */
 const showUndoToast = (...a) => window.showUndoToast(...a);
@@ -197,6 +198,7 @@ function renderDepreciationGrid(){
       showUndoToast(label,state.depreciationRows,i,item,renderDepreciationGrid);
     });
   });
+  attachSpreadsheetNav('depTbody','dep-mo');
 }
 
 function toggleDepCategory(catId){

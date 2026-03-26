@@ -54,3 +54,7 @@ html.dark .data-toggle-btn:hover{background:rgba(123,31,162,.65)}
 body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
 body.ops-mode .comp-sensitive::selection{color:transparent}
 body.ops-mode .ops-hide{display:none!important}
+
+/* Spreadsheet-style cell selection */
+td.spreadsheet-selected{outline:2px solid var(--accent);outline-offset:-1px;z-index:1;position:relative}
+input.spreadsheet-active{background:rgba(99,102,241,.06)!important;font-weight:600}
