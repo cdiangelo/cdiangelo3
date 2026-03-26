@@ -441,7 +441,13 @@ function renderExecView(){
       type:'bar',
       data:{labels:periodLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-        plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:14,font:{size:13},padding:16}},datalabels:{}},
+        plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:14,font:{size:13},padding:16}},datalabels:{},
+          tooltip:{mode:'index',intersect:false,animation:{duration:0},callbacks:{label:function(ctx){
+            const label=ctx.dataset.label||'';
+            const val=ctx.parsed.y;
+            if(ctx.dataset.yAxisID==='y1')return label+': '+Math.round(val*10)/10+' FTEs';
+            return label+': '+(val<0?'-':'')+'$'+(Math.abs(val)/1e6).toFixed(2)+'M';
+          }}}},
         scales:{
           x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
           y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}},

@@ -76,7 +76,8 @@ function renderEmpPivot(){
     empPivotChartInst=new Chart(canvas,{
       type:'bar',data:{labels:chartLabels,datasets},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},datalabels:{display:false}},
+        plugins:{legend:{display:false},datalabels:{display:false},
+          tooltip:{callbacks:{label:function(ctx){const l=ctx.dataset.label||'';const v=ctx.parsed.y;return isCurrency?l+': '+(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M':l+': '+v}}}},
         scales:{x:{stacked:true,ticks:{display:false},grid:{color:_epGc}},y:{stacked:true,ticks:{font:{size:10},color:_epTc,callback:function(v){return isCurrency?(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M':v}},grid:{color:_epGc}}}
       }
     });

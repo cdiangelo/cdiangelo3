@@ -146,6 +146,8 @@ if(typeof Chart!=='undefined'){
     const label=ctx.dataset.label||'';
     const val=ctx.parsed.y;
     if(typeof val!=='number')return label+': '+val;
+    // Don't format small values as $M — likely FTE/HC/count data
+    if(Math.abs(val)<500)return label+': '+Math.round(val*10)/10;
     const fmtVal=(val<0?'-':'')+'$'+(Math.abs(val)/1e6).toFixed(2)+'M';
     return label+': '+fmtVal;
   };
