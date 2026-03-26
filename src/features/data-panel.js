@@ -104,8 +104,8 @@ function initGuidePanel(){
   const navMap={
     'employees':()=>{if(window.showApp)window.showApp();document.querySelector('[data-tab="employees"]')?.click()},
     'vendor':()=>{if(window.showVendor)window.showVendor();document.querySelector('[data-vtab="vendor-grid"]')?.click()},
-    'te':()=>{if(window.showVendor)window.showVendor();document.querySelector('[data-vtab="te-grid"]')?.click()},
-    'contractor':()=>{if(window.showVendor)window.showVendor();document.querySelector('[data-vtab="contractor-grid"]')?.click()},
+    'te':()=>{if(window.showVendor)window.showVendor();setTimeout(()=>document.querySelector('[data-vtab="vendor-te"]')?.click(),50)},
+    'contractor':()=>{if(window.showVendor)window.showVendor();setTimeout(()=>document.querySelector('[data-vtab="vendor-contractors"]')?.click(),50)},
     'exec':()=>{if(window.showApp)window.showApp();document.querySelector('[data-tab="exec"]')?.click()},
     'ltf':()=>{if(window.showLtf)window.showLtf()},
     'depreciation':()=>{if(window.showDepreciation)window.showDepreciation()},

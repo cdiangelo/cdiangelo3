@@ -1425,6 +1425,7 @@ window.showApp = showApp;
 window.showVendor = showVendor;
 window.showDepreciation = showDepreciation;
 window.showRevenue = showRevenue;
+window.showLtf = showLtf;
 window.openChartExpandPane = openChartExpandPane;
 window.closeChartExpandPane = closeChartExpandPane;
 window.renderPnlWalk = renderPnlWalk;
