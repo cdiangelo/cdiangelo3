@@ -1089,11 +1089,12 @@ function renderExpandedCharts(){
   if(typeof Chart==='undefined')return;
   var pane=document.getElementById('chartExpandPane');
   if(!pane||!pane.classList.contains('open'))return;
+  syncExpandFilters();
   // Budget chart
-  if(expandBudgetInst)expandBudgetInst.destroy();
+  if(expandBudgetInst){expandBudgetInst.destroy();expandBudgetInst=null}
   expandBudgetInst=cloneChart(landingBudgetChartInst,'expandBudgetChart',[barTotalPlugin],true);
   // LTF chart
-  if(expandForecastInst)expandForecastInst.destroy();
+  if(expandForecastInst){expandForecastInst.destroy();expandForecastInst=null}
   expandForecastInst=cloneChart(landingForecastChartInst,'expandForecastChart',[barTotalPlugin,window.yoyArrowsPlugin],true);
   // Revenue charts — hide sections when revenue pane is off
   const revVisible=state.showRevenuePane!==false;
@@ -1101,9 +1102,9 @@ function renderExpandedCharts(){
   const expandRevFcEl=document.getElementById('expandRevForecast');
   if(expandRevEl)expandRevEl.style.display=revVisible?'':'none';
   if(expandRevFcEl)expandRevFcEl.style.display=revVisible?'':'none';
-  if(expandRevenueInst)expandRevenueInst.destroy();
+  if(expandRevenueInst){expandRevenueInst.destroy();expandRevenueInst=null}
   expandRevenueInst=revVisible?cloneChart(landingRevenueChartInst,'expandRevenueChart',null,true):null;
-  if(expandRevFcInst)expandRevFcInst.destroy();
+  if(expandRevFcInst){expandRevFcInst.destroy();expandRevFcInst=null}
   expandRevFcInst=revVisible?cloneChart(landingRevFcChartInst,'expandRevFcChart',null,true):null;
 }
 function syncExpandFilters(){
@@ -1148,24 +1149,36 @@ document.getElementById('chartExpandClose').addEventListener('click',closeChartE
 document.querySelectorAll('.chart-expand-btn').forEach(function(btn){
   btn.addEventListener('click',function(){openChartExpandPane(this.dataset.expandTarget)});
 });
-// Expand toolbar: view toggle syncs to main and re-renders
+// Expand toolbar: unified handler — sync to main, re-render source charts, then re-clone expanded
+let _expandRenderTimer=null;
+function expandFilterChanged(){
+  // Debounce rapid changes
+  if(_expandRenderTimer)clearTimeout(_expandRenderTimer);
+  _expandRenderTimer=setTimeout(()=>{
+    // Sync expand filters → main filters (no events, just set values)
+    const pairs=[['expandFilterProduct','pnlFilterProduct'],['expandFilterCategory','pnlFilterCategory'],['expandFilterFunction','pnlFilterFunction'],['expandFilterCountry','pnlFilterCountry']];
+    pairs.forEach(([src,dst])=>{
+      const s=document.getElementById(src),d=document.getElementById(dst);
+      if(s&&d)d.value=s.value;
+    });
+    // Sync view toggle
+    const activeView=document.querySelector('#expandViewToggle .btn.active');
+    if(activeView){
+      landingChartView=activeView.dataset.xview;
+      document.querySelectorAll('#landingChartViewToggle .btn').forEach(x=>x.classList.toggle('active',x.dataset.lcview===landingChartView));
+    }
+    // Re-render source charts (the wrapped version auto-calls renderExpandedCharts)
+    renderPnlWalk();renderLandingCharts();
+  },80);
+}
 document.querySelectorAll('#expandViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#expandViewToggle .btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  // Sync back to main toggle
-  const mainBtns=document.querySelectorAll('#landingChartViewToggle .btn');
-  mainBtns.forEach(x=>x.classList.remove('active'));
-  const match=[...mainBtns].find(x=>x.dataset.lcview===b.dataset.xview);
-  if(match){match.classList.add('active');landingChartView=b.dataset.xview;renderLandingCharts()}
+  expandFilterChanged();
 }));
-// Expand toolbar: filter dropdowns sync to main and re-render
-['expandFilterProduct','expandFilterCategory','expandFilterFunction','expandFilterCountry'].forEach((id,idx)=>{
-  const mainIds=['pnlFilterProduct','pnlFilterCategory','pnlFilterFunction','pnlFilterCountry'];
+['expandFilterProduct','expandFilterCategory','expandFilterFunction','expandFilterCountry'].forEach(id=>{
   const el=document.getElementById(id);
-  if(el)el.addEventListener('change',()=>{
-    const mainEl=document.getElementById(mainIds[idx]);
-    if(mainEl){mainEl.value=el.value;mainEl.dispatchEvent(new Event('change'))}
-  });
+  if(el)el.addEventListener('change',expandFilterChanged);
 });
 // Keep expanded charts in sync when landing charts re-render
 const _origRenderLandingCharts=renderLandingCharts;
