@@ -22,26 +22,26 @@ export function initFunMode(){try{
   let funPlayer=null;
 
   const isDark=()=>document.documentElement.classList.contains('dark');
-  const dimC=()=>isDark()?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.08)';
-  const hovC=()=>isDark()?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.18)';
-  const bgC=()=>'transparent';
+  const dimC=()=>isDark()?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.10)';
+  const hovC=()=>isDark()?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.25)';
+  const bgC=()=>isDark()?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)';
 
   // Fun button
   const btn=document.createElement('button');
   btn.innerHTML='&#9654;';
   btn.title='Media';
-  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:none;color:${dimC()};font-size:.6rem;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:color .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.6`;
-  btn.addEventListener('mouseenter',()=>btn.style.color=hovC());
-  btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.color=dimC()});
-  new MutationObserver(()=>{btn.style.background=bgC();if(funState<0)btn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:1px solid ${dimC()};color:${dimC()};font-size:.6rem;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:color .3s,background .3s,border-color .3s,opacity .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.35`;
+  btn.addEventListener('mouseenter',()=>{btn.style.opacity='0.7';btn.style.color=hovC();btn.style.borderColor=hovC()});
+  btn.addEventListener('mouseleave',()=>{if(funState<0){btn.style.opacity='0.35';btn.style.color=dimC();btn.style.borderColor=dimC()}});
+  new MutationObserver(()=>{btn.style.background=bgC();btn.style.borderColor=dimC();if(funState<0){btn.style.color=dimC();btn.style.opacity='0.35'}}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
   document.body.appendChild(btn);
 
   // Editor button (gear icon above fun button)
   const editBtn=document.createElement('button');
   editBtn.innerHTML='&#9881;';
-  editBtn.style.cssText=`position:fixed;bottom:28px;right:8px;z-index:9999;background:${bgC()};border:none;color:${dimC()};font-size:.65rem;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:color .3s;-webkit-tap-highlight-color:transparent;width:36px;text-align:center`;
-  editBtn.addEventListener('mouseenter',()=>editBtn.style.color=hovC());
-  editBtn.addEventListener('mouseleave',()=>editBtn.style.color=dimC());
+  editBtn.style.cssText=`position:fixed;bottom:28px;right:8px;z-index:9999;background:${bgC()};border:1px solid ${dimC()};color:${dimC()};font-size:.65rem;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:color .3s,background .3s,border-color .3s,opacity .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.35`;
+  editBtn.addEventListener('mouseenter',()=>{editBtn.style.opacity='0.7';editBtn.style.color=hovC();editBtn.style.borderColor=hovC()});
+  editBtn.addEventListener('mouseleave',()=>{editBtn.style.opacity='0.35';editBtn.style.color=dimC();editBtn.style.borderColor=dimC()});
   new MutationObserver(()=>{editBtn.style.background=bgC();editBtn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
   document.body.appendChild(editBtn);
 
