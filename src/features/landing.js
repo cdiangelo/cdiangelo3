@@ -366,9 +366,10 @@ function renderPnlWalk(){
     {key:'totInv',label:isRevMode?'Net Income':'Tot Inv',isCurrency:true,cls:'total'}
   );
 
+  const fmtM=v=>{const a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'$'+(v/1e6).toFixed(1)+'M';if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
   function fmtCell(c,v){
     const style=c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':'';
-    return `<td class="num" style="${style}">${c.isCurrency?fmt(v):v}</td>`;
+    return `<td class="num" style="${style}">${c.isCurrency?fmtM(v):v}</td>`;
   }
 
   let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap">Product Category</th>';
@@ -398,7 +399,7 @@ function renderPnlWalk(){
 
   // Total row
   h+=`<tr class="total"><td style="position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:10px;margin-right:4px"></span>Total</td>`;
-  cols.forEach(c=>h+=`<td class="num">${c.isCurrency?fmt(totals[c.key]):totals[c.key]}</td>`);
+  cols.forEach(c=>h+=`<td class="num">${c.isCurrency?fmtM(totals[c.key]):totals[c.key]}</td>`);
   h+='</tr></tbody>';
   tbl.innerHTML=h;
   tbl.classList.remove('compact');
