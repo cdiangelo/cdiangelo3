@@ -1316,15 +1316,18 @@ document.querySelectorAll('.chart-expand-btn').forEach(function(btn){
 // Expand toolbar: unified handler — sync to main, re-render source charts, then re-clone expanded
 let _expandRenderTimer=null;
 function expandFilterChanged(){
-  // Debounce rapid changes
   if(_expandRenderTimer)clearTimeout(_expandRenderTimer);
   _expandRenderTimer=setTimeout(()=>{
-    // Sync expand filters → main filters (no events, just set values)
-    const pairs=[['expandFilterProduct','pnlFilterProduct'],['expandFilterCategory','pnlFilterCategory'],['expandFilterFunction','pnlFilterFunction'],['expandFilterCountry','pnlFilterCountry']];
-    pairs.forEach(([src,dst])=>{
-      const s=document.getElementById(src),d=document.getElementById(dst);
-      if(s&&d)d.value=s.value;
-    });
+    // Sync expand filters → main filter variables AND DOM elements
+    const s=id=>document.getElementById(id);
+    pnlFilterProduct=s('expandFilterProduct').value;
+    pnlFilterCategory=s('expandFilterCategory').value;
+    pnlFilterFunction=s('expandFilterFunction').value;
+    pnlFilterCountry=s('expandFilterCountry').value;
+    s('pnlFilterProduct').value=pnlFilterProduct;
+    s('pnlFilterCategory').value=pnlFilterCategory;
+    s('pnlFilterFunction').value=pnlFilterFunction;
+    s('pnlFilterCountry').value=pnlFilterCountry;
     // Sync view toggle
     const activeView=document.querySelector('#expandViewToggle .btn.active');
     if(activeView){
