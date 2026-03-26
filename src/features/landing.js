@@ -883,32 +883,33 @@ function renderLtfMethodology(){
       <div class="mb-item"><div class="mb-label">Asset Life</div><div class="mb-val">${assetLife} yrs</div></div>
     </div>`;
 
-  // Steps
+  // Steps — show actual input values
+  const a0=fa.attrition[0]||0,h0=fa.hires[0]||0,m0=fa.merit[0]||0,mk0=fa.market[0]||0,ai0=fa.ai[0]||1,c0=fa.capitalization[0]||0;
   const steps=[
     {num:1,title:'Attrition Loss',key:'attrition',
-      formula:attrMode==='pct'?'attrLoss = HC × attrition%':'attrLoss = attrition # × groupRatio',
-      note:'Removes employees from HC pool each year based on turnover rate'},
+      formula:attrMode==='pct'?`attrLoss = ${fHC} × ${a0}% = ${Math.round(fHC*a0/100)}`:`attrLoss = ${a0} employees`,
+      note:`Input: ${a0}${attrMode==='pct'?'%':' heads'} per year — removes employees from HC pool`},
     {num:2,title:'New Hires (with AI Gearing)',key:'hires',
-      formula:hiresMode==='pct'?'netHires = round(HC × hires% × aiGear)':'netHires = round(hires# × groupRatio × aiGear)',
-      note:'AI gearing reduces required hires (e.g. 0.8× = 20% fewer needed)'},
+      formula:hiresMode==='pct'?`rawHires = ${fHC} × ${h0}% = ${Math.round(fHC*h0/100)}, netHires = ${Math.round(fHC*h0/100)} × ${ai0} = ${Math.round(Math.round(fHC*h0/100)*ai0)}`:`rawHires = ${h0}, netHires = ${h0} × ${ai0} = ${Math.round(h0*ai0)}`,
+      note:`AI gearing: ${ai0}× — ${ai0<1?Math.round((1-ai0)*100)+'% fewer hires needed':'no reduction'}`},
     {num:3,title:'Headcount Update',always:true,
-      formula:'HC = max(0, HC − attrLoss + netHires)',
-      note:'Net headcount after attrition and hiring'},
+      formula:`HC = max(0, startHC − attrLoss + netHires)`,
+      note:'Net headcount after attrition and hiring each year'},
     {num:4,title:'Merit + Market Growth',key:'merit',
-      formula:'salaryGrowth ×= (1 + merit% + market%)',
-      note:'Compounds year-over-year on top of average salary'},
+      formula:`salaryGrowth ×= (1 + ${m0}% + ${mk0}%) = ×${(1+m0/100+mk0/100).toFixed(3)} per year`,
+      note:`Merit: ${m0}%, Market: ${mk0}% — compounds Y/Y on avg salary of ${_fmt(avgSal)}`},
     {num:5,title:'Compensation Calculation',always:true,
-      formula:'base = HC × avgSalary × salaryGrowth\ntotal = base × (1 + bonusRate + benRate)',
-      note:'Applies blended bonus & benefits rates from current roster'},
+      formula:`base = HC × ${_fmt(avgSal)} × growthMult\ntotal = base × (1 + ${pct(bonusRate)} + ${pct(benRate)}) = base × ${(1+bonusRate+benRate).toFixed(3)}`,
+      note:'Bonus and benefits rates derived from current roster blend'},
     {num:6,title:'CapEx / OpEx Split',key:'capitalization',
-      formula:'capex = total × capRate\nopex = total − capex',
-      note:tog.capitalization?'Using assumption cap rate':'Using current roster cap rate ('+pct(capRate)+')'},
+      formula:tog.capitalization?`capex = total × ${c0}%, opex = total − capex`:`capex = total × ${pct(capRate)} (roster rate)`,
+      note:tog.capitalization?`Using assumption: ${c0}% cap rate`:'Using current roster cap rate: '+pct(capRate)},
     {num:7,title:'OAO Growth',always:true,
-      formula:'OAO[yr] = OAO[yr-1] × (1 + oaoGrowth%)',
-      note:'Vendor/T&E costs grow Y/Y at configured rate (default '+oaoGrowth[0]+'%)'},
+      formula:`OAO[yr] = OAO[yr-1] × (1 + ${oaoGrowth[0]}%) — base: ${_fmt(oaoBase)}`,
+      note:`Y/Y growth rates: ${oaoGrowth.map(g=>g+'%').join(', ')}`},
     {num:8,title:'D&A from CapEx Schedule',always:true,
-      formula:'D&A = Σ(rollingCapEx / assetLife) + baseRemaining',
-      note:'Depreciation computed from cumulative CapEx over '+assetLife+'-year asset life'}
+      formula:`D&A = Σ(rollingCapEx / ${assetLife}) + baseRemaining — base: ${_fmt(daBase)}`,
+      note:`${assetLife}-year straight-line depreciation on cumulative CapEx`}
   ];
   let stepsHtml='<h5>Calculation Steps (per year)</h5>';
   steps.forEach(s=>{
@@ -966,27 +967,42 @@ function renderLtfMethodology(){
   });
 
   const dy=window.displayYear||(y=>y);
+  const fM=v=>{const a=Math.abs(v);return a>=1e5?(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M':_fmt(v)};
   let walkHtml=`<h5 style="margin-bottom:8px">Year-by-Year Walk (Full P&L)</h5>
     <div style="overflow-x:auto"><table class="method-walk-table">
     <thead><tr>
-      <th>Year</th><th>Start HC</th><th>Attrition</th><th>Net Hires</th>
-      <th>End HC</th><th>Growth</th><th>C&B Total</th><th>CapEx</th><th>C&B OpEx</th>
+      <th>Year</th><th>Start HC</th>
+      <th>Attr %</th><th>Attr Loss</th><th>Raw Hires</th><th>AI Gear</th><th>Net Hires</th>
+      <th>End HC</th><th>∆ HC</th>
+      <th>Merit%</th><th>Mkt%</th><th>Growth×</th>
+      <th>Avg Sal</th><th>C&B Total</th><th>Cap%</th><th>CapEx</th><th>C&B OpEx</th>
       <th>OAO</th><th>D&A</th><th style="font-weight:800">Total OpEx</th>
     </tr></thead><tbody>`;
   walkRows.forEach(r=>{
+    const deltaHC=r.hc-r.prevHC;
+    const deltaStyle=deltaHC>0?'color:var(--success)':deltaHC<0?'color:var(--danger)':'';
+    const effSal=Math.round(avgSal*r.salaryGrowth);
     walkHtml+=`<tr>
       <td class="mw-highlight">${dy(r.year)}</td>
       <td>${r.prevHC}</td>
+      <td class="mw-dim">${r.attrVal}%</td>
       <td class="mw-dim">−${r.attrLoss}</td>
+      <td>${r.rawHires}</td>
+      <td class="mw-dim">${r.aiGear.toFixed(2)}×</td>
       <td>+${r.netHires}</td>
       <td class="mw-highlight">${r.hc}</td>
+      <td style="${deltaStyle};font-weight:600">${deltaHC>0?'+':''}${deltaHC}</td>
+      <td>${(r.meritRate*100).toFixed(1)}%</td>
+      <td>${(r.marketRate*100).toFixed(1)}%</td>
       <td class="mw-dim">${r.salaryGrowth.toFixed(3)}×</td>
-      <td>${_fmt(r.total)}</td>
-      <td class="mw-dim">${_fmt(r.capex)}</td>
-      <td>${_fmt(r.opex)}</td>
-      <td>${_fmt(r.oao)}</td>
-      <td>${_fmt(r.da)}</td>
-      <td class="mw-highlight" style="font-weight:700">${_fmt(r.totalPnl)}</td>
+      <td class="mw-dim">${fM(effSal)}</td>
+      <td>${fM(r.total)}</td>
+      <td class="mw-dim">${(r.capRateY*100).toFixed(0)}%</td>
+      <td class="mw-dim">${fM(r.capex)}</td>
+      <td>${fM(r.opex)}</td>
+      <td>${fM(r.oao)}</td>
+      <td>${fM(r.da)}</td>
+      <td class="mw-highlight" style="font-weight:700">${fM(r.totalPnl)}</td>
     </tr>`;
   });
   walkHtml+='</tbody></table></div>';
