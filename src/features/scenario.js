@@ -2104,11 +2104,21 @@ function saveScenario(type){
   renderSavedScenarios();
 }
 
+let comparisonBaseIdx=-1; // -1 = live state as base
+
 function renderSavedScenarios(){
   const saved=getSavedScenarios();
   const list=document.getElementById('savedScenariosList');
-  if(!saved.length){list.innerHTML='<div style="color:var(--text-dim);font-size:.75rem">No saved scenarios</div>';document.getElementById('scenCompareTable').innerHTML='';return}
-  let html=saved.map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">
+  if(!saved.length){list.innerHTML='<div style="color:var(--text-dim);font-size:.75rem">No saved scenarios</div>';document.getElementById('scenCompareTable').innerHTML='';comparisonBaseIdx=-1;return}
+  if(comparisonBaseIdx>=saved.length)comparisonBaseIdx=-1;
+  let html='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:.72rem;color:var(--text-dim)"><span style="width:18px;text-align:center">Base</span><span style="flex:1">Scenario</span></div>';
+  // Live state as base option
+  html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">
+    <input type="radio" name="scenBase" value="-1" ${comparisonBaseIdx===-1?'checked':''} style="margin:0;cursor:pointer" onchange="window._setScenBase(-1)">
+    <span style="flex:1;color:var(--text);font-style:italic">Current Plan (live)</span>
+  </div>`;
+  html+=saved.map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.78rem">
+    <input type="radio" name="scenBase" value="${i}" ${comparisonBaseIdx===i?'checked':''} style="margin:0;cursor:pointer" onchange="window._setScenBase(${i})">
     <span style="flex:1;color:var(--text)">${s.name} <span style="color:var(--text-dim)">(${s.type})</span></span>
     <button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem" onclick="loadSavedScenario(${i})">Load</button>
     <button class="btn btn-sm" style="padding:1px 6px;font-size:.68rem;color:var(--danger)" onclick="deleteSavedScenario(${i})">×</button>
@@ -2116,6 +2126,7 @@ function renderSavedScenarios(){
   list.innerHTML=html;
   renderComparisonTable(saved);
 }
+window._setScenBase=function(idx){comparisonBaseIdx=idx;renderSavedScenarios()};
 
 function loadSavedScenario(idx){
   const saved=getSavedScenarios();const s=saved[idx];if(!s)return;
@@ -2139,28 +2150,85 @@ function deleteSavedScenario(idx){
 
 function renderComparisonTable(saved){
   const ct=document.getElementById('scenCompareTable');
-  if(!saved||!saved.length){ct.innerHTML='';return}
-  // Baseline P&L
-  const baseBudget=computeBudgetPnl(state.employees,state.vendorRows||[],state.teRows||[]);
-  const basePnl={hc:baseBudget.annual.hc,opex:baseBudget.annual.opex,capex:baseBudget.annual.capex,oao:baseBudget.annual.oao,total:baseBudget.annual.total};
-  const metrics=[{key:'hc',label:'Headcount',isCurrency:false},{key:'opex',label:'OpEx',isCurrency:true},{key:'total',label:'Total Spend',isCurrency:true}];
-  let html='<table style="width:100%;font-size:.72rem;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--text-dim)">Metric</th>';
-  html+='<th style="text-align:right;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--text-dim)">Baseline</th>';
-  saved.forEach(s=>{html+=`<th style="text-align:right;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--accent)">${s.name}</th>`});
-  html+='</tr></thead><tbody>';
-  metrics.forEach(met=>{
-    html+=`<tr><td style="padding:3px 4px;color:var(--text)">${met.label}</td>`;
-    const bv=basePnl[met.key]||0;
-    html+=`<td style="text-align:right;padding:3px 4px;color:var(--text)">${met.isCurrency?fmt(bv):bv}</td>`;
-    saved.forEach(s=>{
-      const sv=s.pnl[met.key]||0;const delta=sv-bv;
-      const color=delta<0?'var(--success)':delta>0?'var(--danger)':'var(--text-dim)';
-      html+=`<td style="text-align:right;padding:3px 4px;color:${color}">${met.isCurrency?fmt(sv):sv}${delta!==0?' <span style="font-size:.65rem">'+(delta>0?'+':'')+((met.isCurrency?fmt(delta):delta))+'</span>':''}</td>`;
+  if(!saved||saved.length<1){ct.innerHTML='';return}
+  // Determine base and scenario
+  const livePnlRaw=computeBudgetPnl(state.employees,state.vendorRows||[],state.teRows||[]);
+  const livePnl={hc:livePnlRaw.annual.hc,opex:livePnlRaw.annual.opex,capex:livePnlRaw.annual.capex,oao:livePnlRaw.annual.oao,total:livePnlRaw.annual.total};
+  const liveName='Current Plan';
+
+  // Base = selected radio; Scenario = the other saved entries (or live if base is a saved one)
+  const baseIdx=comparisonBaseIdx;
+  const basePnl=baseIdx>=0&&saved[baseIdx]?saved[baseIdx].pnl:livePnl;
+  const baseName=baseIdx>=0&&saved[baseIdx]?saved[baseIdx].name:liveName;
+
+  // Build comparison rows: every other entry (saved scenarios not selected as base, plus live if base is saved)
+  const comparisons=[];
+  if(baseIdx>=0)comparisons.push({name:liveName,pnl:livePnl});
+  saved.forEach((s,i)=>{if(i!==baseIdx)comparisons.push({name:s.name,pnl:s.pnl})});
+  if(!comparisons.length){ct.innerHTML='';return}
+
+  const fmtV=v=>{const a=Math.abs(v);if(a>=1e6)return(v<0?'-':'')+'$'+(v/1e6).toFixed(1)+'M';if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
+  const metrics=[
+    {key:'hc',label:'Headcount',isCurrency:false},
+    {key:'opex',label:'OpEx',isCurrency:true},
+    {key:'oao',label:'OAO',isCurrency:true},
+    {key:'capex',label:'CapEx',isCurrency:true},
+    {key:'total',label:'Total Spend',isCurrency:true}
+  ];
+
+  comparisons.forEach(comp=>{
+    let html=`<div style="margin-top:10px;font-size:.74rem;font-weight:600;color:var(--accent);margin-bottom:4px">${baseName} vs ${comp.name}</div>`;
+    html+=`<table style="width:100%;font-size:.74rem;border-collapse:collapse"><thead><tr>
+      <th style="text-align:left;padding:4px 6px;border-bottom:2px solid var(--border);color:var(--text-dim)">Metric</th>
+      <th style="text-align:right;padding:4px 6px;border-bottom:2px solid var(--border);color:var(--text-dim);font-weight:700">${baseName}</th>
+      <th style="text-align:right;padding:4px 6px;border-bottom:2px solid var(--border);color:var(--accent);font-weight:700">${comp.name}</th>
+      <th style="text-align:right;padding:4px 6px;border-bottom:2px solid var(--border);color:var(--text-dim);font-weight:700">Delta</th>
+    </tr></thead><tbody>`;
+    metrics.forEach(met=>{
+      const bv=basePnl[met.key]||0;
+      const sv=comp.pnl[met.key]||0;
+      const delta=sv-bv;
+      const deltaColor=delta<0?'var(--success)':delta>0?'var(--danger)':'var(--text-dim)';
+      const fv=v=>met.isCurrency?fmtV(v):v;
+      const deltaStr=delta===0?'—':(delta>0?'+':'')+fv(delta);
+      html+=`<tr>
+        <td style="padding:4px 6px;color:var(--text)">${met.label}</td>
+        <td style="text-align:right;padding:4px 6px;color:var(--text)">${fv(bv)}</td>
+        <td style="text-align:right;padding:4px 6px;color:var(--text)">${fv(sv)}</td>
+        <td style="text-align:right;padding:4px 6px;color:${deltaColor};font-weight:600">${deltaStr}</td>
+      </tr>`;
     });
-    html+='</tr>';
+    html+='</tbody></table>';
+    ct.innerHTML+=html;
   });
-  html+='</tbody></table>';
-  ct.innerHTML=html;
+  // Clear before appending
+  const wrapper=document.getElementById('scenCompareTable');
+  const allHtml=comparisons.map(comp=>{
+    let h=`<div style="margin-top:10px;font-size:.74rem;font-weight:600;color:var(--accent);margin-bottom:4px">${baseName} vs ${comp.name}</div>`;
+    h+=`<table style="width:100%;font-size:.74rem;border-collapse:collapse"><thead><tr>
+      <th style="text-align:left;padding:4px 6px;border-bottom:2px solid var(--border);color:var(--text-dim)">Metric</th>
+      <th style="text-align:right;padding:4px 6px;border-bottom:2px solid var(--border);font-weight:700">${baseName}</th>
+      <th style="text-align:right;padding:4px 6px;border-bottom:2px solid var(--border);color:var(--accent);font-weight:700">${comp.name}</th>
+      <th style="text-align:right;padding:4px 6px;border-bottom:2px solid var(--border);font-weight:700">Delta</th>
+    </tr></thead><tbody>`;
+    metrics.forEach(met=>{
+      const bv=basePnl[met.key]||0;
+      const sv=comp.pnl[met.key]||0;
+      const delta=sv-bv;
+      const deltaColor=delta<0?'var(--success)':delta>0?'var(--danger)':'var(--text-dim)';
+      const fv=v=>met.isCurrency?fmtV(v):v;
+      const deltaStr=delta===0?'—':(delta>0?'+':'')+fv(delta);
+      h+=`<tr>
+        <td style="padding:4px 6px">${met.label}</td>
+        <td style="text-align:right;padding:4px 6px">${fv(bv)}</td>
+        <td style="text-align:right;padding:4px 6px">${fv(sv)}</td>
+        <td style="text-align:right;padding:4px 6px;color:${deltaColor};font-weight:600">${deltaStr}</td>
+      </tr>`;
+    });
+    h+='</tbody></table>';
+    return h;
+  }).join('');
+  wrapper.innerHTML=allHtml;
 }
 
 // ── SCENARIO EXCEL EXPORT ──
