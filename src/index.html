@@ -13,7 +13,83 @@
 </head>
 <body>
 
-<!-- Session Join Modal -->
+<!-- ═══ TIER 1: EMAIL ENTRY ═══ -->
+<div id="authPage" class="auth-page">
+<div class="auth-bg"></div>
+<div class="auth-content">
+<div class="auth-card">
+<h1 class="auth-title">Welcome</h1>
+<p class="auth-subtitle">Enter your email to get started</p>
+<div class="auth-input-wrap">
+<input type="email" id="authEmail" class="auth-input" placeholder="name@company.com" autocomplete="email" autofocus>
+<button class="auth-btn" id="authContinue">Continue</button>
+</div>
+<div class="auth-error" id="authError"></div>
+</div>
+</div>
+</div>
+
+<!-- ═══ TIER 2: FILE MANAGER / HOME ═══ -->
+<div id="homePage" style="display:none">
+<div class="home-header">
+<div class="home-header-left">
+<h2 class="home-logo">Comp<span>Plan</span></h2>
+<span class="home-user" id="homeUserLabel"></span>
+</div>
+<div class="home-header-right">
+<button class="btn btn-sm" id="homeSignOut" style="font-size:.72rem;color:var(--text-dim)">Sign Out</button>
+</div>
+</div>
+<div class="home-body">
+<div class="home-main">
+<div class="home-create-section">
+<h3>Create New Plan</h3>
+<div class="home-create-form">
+<input id="homePlanName" placeholder="Plan name (e.g. Q3 Reforecast)" style="flex:2">
+<select id="homePlanYear">
+<option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
+</select>
+<select id="homePlanType">
+<option value="budget">Budget</option><option value="forecast">Forecast</option><option value="actual">Actual</option>
+</select>
+<button class="btn btn-primary" id="homeCreatePlan">Create</button>
+</div>
+</div>
+<div class="home-plans-section">
+<h3>Your Plans</h3>
+<div id="homePlanList" class="home-plan-list">
+<div class="home-plan-empty">No plans yet. Create one above.</div>
+</div>
+</div>
+</div>
+<div class="home-sidebar">
+<h3>Storage</h3>
+<div class="home-storage-info">
+<div class="home-storage-bar"><div class="home-storage-fill" id="homeStorageFill"></div></div>
+<div class="home-storage-label" id="homeStorageLabel">0 plans</div>
+</div>
+<h4 style="margin-top:16px">Recent Activity</h4>
+<div id="homeRecentActivity" class="home-recent">
+<div style="color:var(--text-dim);font-size:.76rem">No recent activity</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ═══ PLAN HEADER BAR (shows inside a plan) ═══ -->
+<div id="planHeaderBar" style="display:none">
+<div class="plan-hdr-left">
+<button class="btn btn-sm" id="planBackHome">&#8592; Home</button>
+<span class="plan-hdr-name" id="planHdrName"></span>
+<span class="plan-hdr-badge" id="planHdrBadge"></span>
+</div>
+<div class="plan-hdr-right">
+<span class="plan-hdr-saved" id="planHdrSaved">Saved</span>
+<span class="plan-hdr-users" id="planHdrUsers"></span>
+</div>
+</div>
+
+<!-- Session Join Modal (legacy - hidden) -->
 <div class="session-modal-overlay" id="sessionModal">
 <div class="session-modal">
 <button class="close-btn" id="sessionModalClose">&times;</button>
@@ -174,7 +250,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 
 <!-- LANDING PAGE -->
-<div id="landingPage">
+<div id="landingPage" style="display:none">
 <div style="display:flex;justify-content:space-between;align-items:flex-start">
 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
 <div>

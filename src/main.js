@@ -11,6 +11,7 @@ import './styles/features/milestones.css';
 import './styles/features/scenario.css';
 import './styles/features/sticky-notes.css';
 import './styles/features/vendor.css';
+import './styles/features/auth-home.css';
 
 // ── Core libraries (order matters) ──
 import './lib/api.js';            // Installs fetch wrapper — must be first
@@ -20,6 +21,7 @@ import './lib/proration.js';
 import './lib/chart-utils.js';
 
 // ── Feature modules ──
+import './features/auth-home.js';
 import './features/session.js';
 import './features/undo.js';
 import './features/nav.js';
