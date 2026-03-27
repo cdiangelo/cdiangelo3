@@ -243,7 +243,8 @@ async function openPlan(plan){
   document.getElementById('globalToolbarSpacer').style.display='';
   document.getElementById('globalToolbarSpacer').style.height='70px';
 
-  // Show landing page
+  // Show side panels and landing page
+  setSidePanelVisibility(true);
   if(window.showLanding)window.showLanding();
   if(window.initDropdowns)try{window.initDropdowns()}catch(e){}
   if(window.renderAll)try{window.renderAll()}catch(e){}
@@ -260,6 +261,7 @@ async function openPlan(plan){
     ['landingPage','appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
+    setSidePanelVisibility(false);
     document.getElementById('homePage').style.display='';
     renderPlanList();
   };
@@ -317,9 +319,46 @@ function disconnectPlanWebSocket(){
   if(_planWs){try{_planWs.close()}catch(e){}_planWs=null}
 }
 
+// ── Toolbar buttons: Notes, Whiteboard, Teams ──
+function wireToolbarButtons(){
+  // Notes — toggle existing sticky note panel
+  const notesBtn=document.getElementById('toolbarNotesBtn');
+  if(notesBtn)notesBtn.addEventListener('click',()=>{
+    const btn=document.getElementById('stickyNoteBtn');
+    if(btn)btn.click();
+  });
+  // Whiteboard — toggle a whiteboard overlay (reuse comp plan scratch whiteboard)
+  const wbBtn=document.getElementById('toolbarWhiteboardBtn');
+  if(wbBtn)wbBtn.addEventListener('click',()=>{
+    // Navigate to comp plan scratch pad which has the whiteboard
+    if(window.showApp)window.showApp();
+    setTimeout(()=>{
+      const scratchBtn=document.querySelector('[data-tab="scratch"]');
+      if(scratchBtn)scratchBtn.click();
+    },100);
+  });
+  // Teams — toggle existing teams panel
+  const teamsBtn=document.getElementById('toolbarTeamsBtn');
+  if(teamsBtn)teamsBtn.addEventListener('click',()=>{
+    const btn=document.getElementById('teamsBtn');
+    if(btn)btn.click();
+  });
+}
+
+// ── Hide side panels until in a plan ──
+function setSidePanelVisibility(visible){
+  ['guideToggleBtn','dataToggleBtn','scenarioToggleBtn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display=visible?'':'none';
+  });
+}
+
 // ── Init ──
 initAuthPage();
+setSidePanelVisibility(false); // Hidden until plan opened
+wireToolbarButtons();
 
 // Expose for other modules
 window.getActiveUser=getUser;
 window.emailToInitials=emailToInitials;
+window.setSidePanelVisibility=setSidePanelVisibility;
