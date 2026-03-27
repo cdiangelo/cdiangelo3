@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
     const db = getDb();
     const accountId = parseInt(req.query.accountId);
     if (!accountId) return res.status(400).json({ error: 'accountId required' });
-    const plans = db.prepare(`
+    const plans = await db.prepare(`
       SELECT pf.id, pf.name, pf.year, pf.scenario_type as "scenarioType",
              pf.description, pf.created_at as "createdAt", pf.updated_at as "updatedAt",
              a.initials as "creatorInitials", a.email as "creatorEmail"
@@ -32,11 +32,11 @@ router.post('/', async (req, res) => {
     const db = getDb();
     const { name, year, scenarioType, description, accountId } = req.body;
     if (!name || !year || !scenarioType || !accountId) return res.status(400).json({ error: 'name, year, scenarioType, accountId required' });
-    const result = db.prepare(
+    const result = await db.prepare(
       'INSERT INTO plan_files (name, year, scenario_type, description, state_data, created_by) VALUES (?, ?, ?, ?, ?, ?)'
     ).run(name, parseInt(year), scenarioType, description || '', '{}', parseInt(accountId));
     const planId = result.lastInsertRowid;
-    db.prepare('INSERT INTO plan_access (plan_file_id, account_id, role) VALUES (?, ?, ?)').run(planId, parseInt(accountId), 'owner');
+    await db.prepare('INSERT INTO plan_access (plan_file_id, account_id, role) VALUES (?, ?, ?) RETURNING plan_file_id').run(planId, parseInt(accountId), 'owner');
     res.json({ id: planId, name, year: parseInt(year), scenarioType });
   } catch (e) {
     console.error('Create plan error:', e);
@@ -48,7 +48,7 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const db = getDb();
-    const plan = db.prepare('SELECT id, name, year, scenario_type as "scenarioType", state_data, updated_at as "updatedAt" FROM plan_files WHERE id = ?').get(parseInt(req.params.id));
+    const plan = await db.prepare('SELECT id, name, year, scenario_type as "scenarioType", state_data, updated_at as "updatedAt" FROM plan_files WHERE id = ?').get(parseInt(req.params.id));
     if (!plan) return res.status(404).json({ error: 'Plan not found' });
     res.json(plan);
   } catch (e) {
@@ -63,7 +63,7 @@ router.put('/:id', async (req, res) => {
     const db = getDb();
     const { stateData } = req.body;
     if (!stateData) return res.status(400).json({ error: 'stateData required' });
-    db.prepare('UPDATE plan_files SET state_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(stateData, parseInt(req.params.id));
+    await db.prepare('UPDATE plan_files SET state_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(stateData, parseInt(req.params.id));
     res.json({ ok: true });
   } catch (e) {
     console.error('Save plan error:', e);
@@ -75,7 +75,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const db = getDb();
-    db.prepare('DELETE FROM plan_files WHERE id = ?').run(parseInt(req.params.id));
+    await db.prepare('DELETE FROM plan_files WHERE id = ?').run(parseInt(req.params.id));
     res.json({ ok: true });
   } catch (e) {
     console.error('Delete plan error:', e);
@@ -90,19 +90,19 @@ router.post('/:id/share', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'email required' });
     const cleanEmail = email.trim().toLowerCase();
-    let account = db.prepare('SELECT id FROM accounts WHERE email = ?').get(cleanEmail);
+    let account = await db.prepare('SELECT id FROM accounts WHERE email = ?').get(cleanEmail);
     if (!account) {
       const prefix = cleanEmail.split('@')[0] || '';
       const parts = prefix.split('.');
       const initials = parts.length >= 2 ? parts.map(p => p.charAt(0).toUpperCase()).join('.') : prefix.slice(0, 2).toUpperCase();
       const COLORS = ['#3a7d44','#2563eb','#dc2626','#9333ea','#ea580c','#0891b2','#c026d3','#854d0e'];
-      const cnt = db.prepare('SELECT COUNT(*) as cnt FROM accounts').get();
+      const cnt = await db.prepare('SELECT COUNT(*) as cnt FROM accounts').get();
       const color = COLORS[(cnt?.cnt || 0) % COLORS.length];
-      const r = db.prepare('INSERT INTO accounts (email, initials, color) VALUES (?, ?, ?)').run(cleanEmail, initials, color);
+      const r = await db.prepare('INSERT INTO accounts (email, initials, color) VALUES (?, ?, ?)').run(cleanEmail, initials, color);
       account = { id: r.lastInsertRowid };
     }
     try {
-      db.prepare('INSERT INTO plan_access (plan_file_id, account_id) VALUES (?, ?)').run(parseInt(req.params.id), account.id);
+      await db.prepare('INSERT INTO plan_access (plan_file_id, account_id) VALUES (?, ?) RETURNING plan_file_id').run(parseInt(req.params.id), account.id);
     } catch (e) { /* duplicate - ok */ }
     res.json({ ok: true, accountId: account.id });
   } catch (e) {

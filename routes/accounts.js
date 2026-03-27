@@ -21,15 +21,15 @@ router.post('/login', async (req, res) => {
     const cleanEmail = email.trim().toLowerCase();
     const initials = emailToInitials(cleanEmail);
 
-    const existing = db.prepare('SELECT id, email, initials, color FROM accounts WHERE email = ?').get(cleanEmail);
+    const existing = await db.prepare('SELECT id, email, initials, color FROM accounts WHERE email = ?').get(cleanEmail);
     if (existing) {
-      db.prepare('UPDATE accounts SET last_seen = CURRENT_TIMESTAMP WHERE id = ?').run(existing.id);
+      await db.prepare('UPDATE accounts SET last_seen = CURRENT_TIMESTAMP WHERE id = ?').run(existing.id);
       return res.json(existing);
     }
 
-    const countRow = db.prepare('SELECT COUNT(*) as cnt FROM accounts').get();
+    const countRow = await db.prepare('SELECT COUNT(*) as cnt FROM accounts').get();
     const color = COLORS[(countRow?.cnt || 0) % COLORS.length];
-    const result = db.prepare('INSERT INTO accounts (email, initials, color) VALUES (?, ?, ?)').run(cleanEmail, initials, color);
+    const result = await db.prepare('INSERT INTO accounts (email, initials, color) VALUES (?, ?, ?)').run(cleanEmail, initials, color);
     res.json({ id: result.lastInsertRowid, email: cleanEmail, initials, color });
   } catch (e) {
     console.error('Account login error:', e);

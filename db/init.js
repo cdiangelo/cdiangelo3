@@ -64,6 +64,7 @@ async function initDb() {
 
     // Clean stale presence rows on startup
     await db.exec('DELETE FROM presence');
+    try{await db.exec('DELETE FROM plan_presence')}catch(e){}
 
     return db;
   })();
