@@ -6,6 +6,8 @@ const { setupWebSocket } = require('./ws/handler');
 const sessionsRouter = require('./routes/sessions');
 const usersRouter = require('./routes/users');
 const versionsRouter = require('./routes/versions');
+const accountsRouter = require('./routes/accounts');
+const planFilesRouter = require('./routes/plan-files');
 
 const app = express();
 const server = http.createServer(app);
@@ -20,6 +22,8 @@ app.get('/healthz', (req, res) => res.send('ok'));
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/sessions/:code/users', usersRouter);
 app.use('/api/sessions/:code/versions', versionsRouter);
+app.use('/api/accounts', accountsRouter);
+app.use('/api/plan-files', planFilesRouter);
 
 // Serve the app — must come AFTER API routes
 const fs = require('fs');

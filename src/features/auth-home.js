@@ -1,7 +1,6 @@
 // ═══ AUTH & HOME — Tier 1 email entry + Tier 2 file manager ═══
 import { state, saveState, loadState, ensureStateFields } from '../lib/state.js';
 
-const PLANS_KEY='compPlanFiles';
 const USER_KEY='compPlanUser';
 
 function getUser(){
@@ -11,8 +10,22 @@ function getUser(){
 function setUser(u){localStorage.setItem(USER_KEY,JSON.stringify(u))}
 function clearUser(){localStorage.removeItem(USER_KEY)}
 
-function getPlans(){try{return JSON.parse(localStorage.getItem(PLANS_KEY)||'[]')}catch(e){return[]}}
-function setPlans(arr){localStorage.setItem(PLANS_KEY,JSON.stringify(arr))}
+// API-backed plan file operations
+async function fetchPlans(accountId){
+  try{const r=await fetch('/api/plan-files?accountId='+accountId);if(r.ok)return await r.json();return[]}catch(e){console.warn('Failed to fetch plans:',e);return[]}
+}
+async function createPlanApi(data){
+  try{const r=await fetch('/api/plan-files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(r.ok)return await r.json();return null}catch(e){console.warn('Failed to create plan:',e);return null}
+}
+async function loadPlanState(planId){
+  try{const r=await fetch('/api/plan-files/'+planId);if(r.ok)return await r.json();return null}catch(e){console.warn('Failed to load plan:',e);return null}
+}
+async function deletePlanApi(planId){
+  try{await fetch('/api/plan-files/'+planId,{method:'DELETE'})}catch(e){console.warn('Failed to delete plan:',e)}
+}
+async function loginApi(email){
+  try{const r=await fetch('/api/accounts/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});if(r.ok)return await r.json();return null}catch(e){console.warn('Login API failed, using local fallback');return null}
+}
 
 function emailToInitials(email){
   const prefix=email.split('@')[0]||'';
@@ -50,14 +63,18 @@ function initAuthPage(){
     card.classList.toggle('typing',emailInput.value.length>0);
   });
 
-  function doLogin(){
+  async function doLogin(){
     const email=emailInput.value.trim().toLowerCase();
     if(!email||!email.includes('@')){
       errorEl.textContent='Please enter a valid email address';
       return;
     }
-    const user={email,initials:emailToInitials(email),name:emailToName(email),createdAt:Date.now()};
+    continueBtn.textContent='...';continueBtn.disabled=true;
+    // Try server login first, fall back to local
+    const serverAccount=await loginApi(email);
+    const user=serverAccount?{...serverAccount,name:emailToName(email)}:{email,initials:emailToInitials(email),name:emailToName(email),createdAt:Date.now()};
     setUser(user);
+    continueBtn.textContent='Continue';continueBtn.disabled=false;
     authPage.style.display='none';
     showHomePage();
   }
@@ -82,17 +99,19 @@ function showHomePage(){
   renderPlanList();
 
   // Create plan
-  document.getElementById('homeCreatePlan').addEventListener('click',()=>{
+  document.getElementById('homeCreatePlan').addEventListener('click',async()=>{
     const name=document.getElementById('homePlanName').value.trim();
     const year=document.getElementById('homePlanYear').value;
     const type=document.getElementById('homePlanType').value;
     if(!name){alert('Enter a plan name');return}
-    const plans=getPlans();
-    const plan={id:uid(),name,year,type,creator:user.initials,creatorEmail:user.email,createdAt:Date.now(),updatedAt:Date.now()};
-    plans.push(plan);
-    setPlans(plans);
-    document.getElementById('homePlanName').value='';
-    renderPlanList();
+    const btn=document.getElementById('homeCreatePlan');
+    btn.textContent='Creating...';btn.disabled=true;
+    const result=await createPlanApi({name,year,scenarioType:type,accountId:user.id});
+    btn.textContent='Create';btn.disabled=false;
+    if(result){
+      document.getElementById('homePlanName').value='';
+      renderPlanList();
+    } else {alert('Failed to create plan')}
   });
 
   // Sign out
@@ -105,10 +124,17 @@ function showHomePage(){
   });
 }
 
-function renderPlanList(){
-  const plans=getPlans();
-  const list=document.getElementById('homePlanList');
+let _cachedPlans=[];
+async function renderPlanList(){
   const user=getUser();
+  const list=document.getElementById('homePlanList');
+
+  // Fetch from server if user has server id, otherwise empty
+  let plans=[];
+  if(user&&user.id){
+    plans=await fetchPlans(user.id);
+  }
+  _cachedPlans=plans;
 
   if(!plans.length){
     list.innerHTML='<div class="home-plan-empty">No plans yet. Create one above.</div>';
@@ -116,84 +142,86 @@ function renderPlanList(){
     list.innerHTML=plans.map((p,i)=>{
       const date=new Date(p.updatedAt||p.createdAt);
       const timeStr=date.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+date.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
-      return `<div class="home-plan-card" data-plan-idx="${i}">
-        <div class="plan-initials" style="background:${['#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#a38b5e'][i%5]}">${p.creator||'?'}</div>
+      const type=p.scenarioType||p.type||'budget';
+      return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${i}">
+        <div class="plan-initials" style="background:${['#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#a38b5e'][i%5]}">${p.creatorInitials||p.creator||'?'}</div>
         <div style="flex:1">
           <div class="plan-name">${p.name}</div>
           <div class="plan-meta">
-            <span class="plan-badge ${p.type}">${p.type}</span>
+            <span class="plan-badge ${type}">${type}</span>
             <span>${p.year}</span>
             <span>Updated ${timeStr}</span>
           </div>
         </div>
-        <span class="plan-delete" data-plan-del="${i}" title="Delete plan">&times;</span>
+        <span class="plan-delete" data-plan-id="${p.id}" title="Delete plan">&times;</span>
       </div>`;
     }).join('');
 
-    // Click to open plan
     list.querySelectorAll('.home-plan-card').forEach(card=>{
       card.addEventListener('click',(e)=>{
         if(e.target.classList.contains('plan-delete'))return;
         const idx=+card.dataset.planIdx;
-        openPlan(idx);
+        openPlan(_cachedPlans[idx]);
       });
     });
 
-    // Delete
     list.querySelectorAll('.plan-delete').forEach(btn=>{
-      btn.addEventListener('click',(e)=>{
+      btn.addEventListener('click',async(e)=>{
         e.stopPropagation();
-        const idx=+btn.dataset.planDel;
-        if(!confirm('Delete "'+plans[idx].name+'"?'))return;
-        plans.splice(idx,1);
-        setPlans(plans);
-        // Also remove saved state for this plan
-        localStorage.removeItem('compPlanState_'+plans[idx]?.id);
+        const planId=btn.dataset.planId;
+        const plan=_cachedPlans.find(p=>String(p.id)===planId);
+        if(!plan||!confirm('Delete "'+plan.name+'"?'))return;
+        await deletePlanApi(planId);
         renderPlanList();
       });
     });
   }
 
-  // Storage info
   const fill=document.getElementById('homeStorageFill');
   const label=document.getElementById('homeStorageLabel');
   if(fill)fill.style.width=Math.min(100,plans.length*20)+'%';
-  if(label)label.textContent=plans.length+' plan'+(plans.length!==1?'s':'')+' (max 5)';
+  if(label)label.textContent=plans.length+' plan'+(plans.length!==1?'s':'');
 }
 
-function openPlan(idx){
-  const plans=getPlans();
-  const plan=plans[idx];
+let _planSaveTimer=null;
+async function openPlan(plan){
   if(!plan)return;
   const user=getUser();
 
   // Store active plan reference
   window._activePlan=plan;
-  window._activePlanIdx=idx;
 
-  // Load plan state (or create fresh)
-  const stateKey='compPlanState_'+plan.id;
-  const raw=localStorage.getItem(stateKey);
-  if(raw){
+  // Load state from server
+  const serverPlan=await loadPlanState(plan.id);
+  if(serverPlan&&serverPlan.state_data){
     try{
-      const parsed=JSON.parse(raw);
-      // Replace current state
+      const parsed=JSON.parse(serverPlan.state_data);
       Object.keys(parsed).forEach(k=>{state[k]=parsed[k]});
-    }catch(e){console.warn('Failed to load plan state:',e)}
+    }catch(e){console.warn('Failed to parse plan state:',e)}
   }
   ensureStateFields();
   window.state=state;
 
-  // Set up autosave to this plan's key
+  // Set up debounced autosave to server
   const origSaveState=window.saveState;
   window.saveState=function(){
     if(origSaveState)origSaveState();
-    localStorage.setItem(stateKey,JSON.stringify(state));
-    // Update timestamp
-    plan.updatedAt=Date.now();
-    plans[idx]=plan;
-    setPlans(plans);
+    // Debounced server save
+    if(_planSaveTimer)clearTimeout(_planSaveTimer);
+    _planSaveTimer=setTimeout(async()=>{
+      try{
+        await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(state)})});
+        const savedEl=document.getElementById('planHdrSaved');
+        if(savedEl){savedEl.textContent='Saved';savedEl.style.color='var(--success)'}
+      }catch(e){console.warn('Autosave failed:',e)}
+    },1000);
+    // Update save indicator
+    const savedEl=document.getElementById('planHdrSaved');
+    if(savedEl){savedEl.textContent='Saving...';savedEl.style.color='var(--text-dim)'}
   };
+
+  // Connect WebSocket for real-time collaboration
+  connectPlanWebSocket(plan,user);
 
   // Hide home, show app
   document.getElementById('homePage').style.display='none';
@@ -202,11 +230,12 @@ function openPlan(idx){
   const hdr=document.getElementById('planHeaderBar');
   hdr.style.display='flex';
   document.getElementById('planHdrName').textContent=plan.name;
-  document.getElementById('planHdrBadge').textContent=plan.year+' '+plan.type.toUpperCase();
-  document.getElementById('planHdrBadge').className='plan-hdr-badge '+plan.type;
+  const type=plan.scenarioType||plan.type||'budget';
+  document.getElementById('planHdrBadge').textContent=plan.year+' '+type.toUpperCase();
+  document.getElementById('planHdrBadge').className='plan-hdr-badge '+type;
 
   // User dot
-  document.getElementById('planHdrUsers').innerHTML=`<div class="user-dot" style="background:${['#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#a38b5e'][idx%5]}" title="${user.name}">${user.initials}</div>`;
+  document.getElementById('planHdrUsers').innerHTML=`<div class="user-dot" style="background:${user.color||'#3a7d44'}" title="${user.name}">${user.initials}</div>`;
 
   // Show global toolbar below plan header
   document.getElementById('globalToolbar').style.display='flex';
@@ -216,26 +245,76 @@ function openPlan(idx){
 
   // Show landing page
   if(window.showLanding)window.showLanding();
+  if(window.initDropdowns)try{window.initDropdowns()}catch(e){}
   if(window.renderAll)try{window.renderAll()}catch(e){}
   if(window.renderPnlWalk)try{window.renderPnlWalk()}catch(e){}
   if(window.renderLandingCharts)try{window.renderLandingCharts()}catch(e){}
 
   // Back to home
-  document.getElementById('planBackHome').addEventListener('click',()=>{
-    // Save current state
+  document.getElementById('planBackHome').onclick=()=>{
     if(window.saveState)window.saveState();
-    // Hide app elements
+    disconnectPlanWebSocket();
     document.getElementById('planHeaderBar').style.display='none';
     document.getElementById('globalToolbar').style.display='none';
     document.getElementById('globalToolbarSpacer').style.display='none';
-    // Hide all modules
     ['landingPage','appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
-    // Show home
     document.getElementById('homePage').style.display='';
     renderPlanList();
-  });
+  };
+}
+
+// ── WebSocket for plan collaboration ──
+let _planWs=null;
+function connectPlanWebSocket(plan,user){
+  disconnectPlanWebSocket();
+  const proto=location.protocol==='https:'?'wss:':'ws:';
+  const url=proto+'//'+location.host+'/ws';
+  try{
+    _planWs=new WebSocket(url);
+    _planWs.onopen=()=>{
+      _planWs.send(JSON.stringify({type:'auth',planFileId:plan.id,accountId:user.id,initials:user.initials,color:user.color||'#3a7d44'}));
+    };
+    _planWs.onmessage=(ev)=>{
+      try{
+        const msg=JSON.parse(ev.data);
+        if(msg.type==='state_sync'&&msg.fromAccountId!==user.id){
+          // Apply remote state
+          const parsed=JSON.parse(msg.stateData);
+          Object.keys(parsed).forEach(k=>{state[k]=parsed[k]});
+          window.state=state;
+          ensureStateFields();
+          if(window.renderAll)try{window.renderAll()}catch(e){}
+        }
+        if(msg.type==='presence'){
+          // Update presence dots in plan header
+          const dots=document.getElementById('planHdrUsers');
+          if(dots&&msg.users){
+            dots.innerHTML=msg.users.map(u=>`<div class="user-dot" style="background:${u.color||'#3a7d44'}" title="${u.initials}">${u.initials}</div>`).join('');
+          }
+        }
+      }catch(e){}
+    };
+    _planWs.onclose=()=>{_planWs=null};
+    // Broadcast state changes
+    const origSave=window.saveState;
+    const wrappedSave=window.saveState;
+    window._broadcastPlanState=function(){
+      if(_planWs&&_planWs.readyState===1){
+        _planWs.send(JSON.stringify({type:'state_update',stateData:JSON.stringify(state),timestamp:Date.now()}));
+      }
+    };
+    // Hook into saveState to also broadcast
+    const prevSave=window.saveState;
+    window.saveState=function(){
+      if(prevSave)prevSave();
+      if(window._broadcastPlanState)window._broadcastPlanState();
+    };
+  }catch(e){console.warn('WebSocket connection failed:',e)}
+}
+function disconnectPlanWebSocket(){
+  if(_planWs){try{_planWs.close()}catch(e){}_planWs=null}
 }
 
 // ── Init ──
