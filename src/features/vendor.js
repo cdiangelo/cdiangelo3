@@ -393,7 +393,7 @@ function initVendorModule(){
       const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
       const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       const FIELD_MAP={};
-      const fieldPairs=[['Parent Co','parentCo'],['Parent','parentCo'],['Vendor Name','vendorName'],['Vendor','vendorName'],['Vendor Type','vendorType'],['Type','vendorType'],['Business Unit','businessUnit'],['BU','businessUnit'],['Biz Line','bizLine'],['Business Line','bizLine'],['Function','bizLine'],['Market','market'],['Project','project'],['Account Description','acctDesc'],['Account','acctDesc'],['Notes','notes']];
+      const fieldPairs=[['Parent Co','parentCo'],['Parent','parentCo'],['Vendor Name','vendorName'],['Vendor','vendorName'],['Vendor Type','vendorType'],['Type','vendorType'],['Business Unit','businessUnit'],['BU','businessUnit'],['Biz Line','bizLine'],['Business Line','bizLine'],['Function','bizLine'],['Market','market'],['Project','project'],['Project Code','project'],['Account Description','acctDesc'],['Account','acctDesc'],['Notes','notes']];
       fieldPairs.forEach(([k,v])=>{FIELD_MAP[k]=v;FIELD_MAP[k.toLowerCase()]=v});
       MO_LABELS.forEach((m,i)=>{FIELD_MAP[m]=MO_NAMES[i];FIELD_MAP[m.toLowerCase()]=MO_NAMES[i]});
       let imported=0;
@@ -401,6 +401,8 @@ function initVendorModule(){
       rows.forEach(r=>{
         const row={parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
         Object.keys(r).forEach(k=>{const mapped=FIELD_MAP[k]||FIELD_MAP[k.trim().toLowerCase()];if(mapped)row[mapped]=MO_NAMES.includes(mapped)?parseFloat(r[k])||0:String(r[k])});
+        // Resolve project code to ID
+        if(row.project){const p=state.projects.find(pr=>pr.code===row.project||pr.id===row.project);if(p)row.project=p.id}
         state.vendorRows.push(row);
         imported++;
       });
@@ -461,7 +463,7 @@ function initVendorModule(){
     if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    const headers=['Parent Co','Vendor Name','Vendor Type','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code',...MO,'Full Year'];
+    const headers=['Parent Co','Vendor Name','Vendor Type','Notes','Business Unit','Biz Line','Market','Project Code','Account Description','Account Code',...MO,'Full Year'];
     const data=[headers];
     state.vendorRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
@@ -687,7 +689,7 @@ function initVendorModule(){
     if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    const headers=['Expense Type','Description','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code',...MO,'Full Year'];
+    const headers=['Expense Type','Description','Notes','Business Unit','Biz Line','Market','Project Code','Account Description','Account Code',...MO,'Full Year'];
     const data=[headers];
     state.teRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
@@ -986,6 +988,7 @@ function initVendorModule(){
       rows.forEach(r=>{
         const row={name:'',vendorName:'',hourlyRate:0,monthlyHours:0,_startMonth:0,_endMonth:11,capPct:0,businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
         Object.keys(r).forEach(k=>{const mapped=FIELD_MAP[k]||FIELD_MAP[k.trim().toLowerCase()];if(mapped)row[mapped]=['hourlyRate','monthlyHours','capPct',...MO_NAMES].includes(mapped)?parseFloat(r[k])||0:String(r[k])});
+        if(row.project){const p=state.projects.find(pr=>pr.code===row.project||pr.id===row.project);if(p)row.project=p.id}
         state.contractorRows.push(row);imported++;
       });
       const scale=prompt(`Imported ${imported} contractor rows.\n\nWere values loaded as:\n  1 = Singles (actual dollars)\n  2 = Thousands ($K)\n  3 = Millions ($M)\n\nEnter 1, 2, or 3:`,'1');
