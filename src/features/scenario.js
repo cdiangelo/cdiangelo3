@@ -1887,14 +1887,14 @@ function pnlRow(label,base,scen,isCost){
   return `<tr><td>${label}</td><td style="text-align:right">${typeof base==='number'&&Math.abs(base)>999?fmtC(base):base}</td><td style="text-align:right">${typeof scen==='number'&&Math.abs(scen)>999?fmtC(scen):scen}</td><td style="text-align:right;color:${cls}">${typeof d==='number'&&Math.abs(d)>999?fmtC(d):d}</td></tr>`;
 }
 function buildSavedScenSelector(type){
-  const saved=getSavedScenarios().filter(s=>s.type===type);
-  if(!saved.length)return '';
+  const allSaved=getSavedScenarios();
+  const filtered=allSaved.map((s,i)=>({...s,_globalIdx:i})).filter(s=>s.type===type);
+  if(!filtered.length)return '';
   return `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
     <span style="font-size:.65rem;color:var(--text-dim)">Load:</span>
-    ${saved.map((s,i)=>{
-      const idx=getSavedScenarios().indexOf(s);
+    ${filtered.map(s=>{
       const abbr=s.name.length>10?s.name.slice(0,10)+'…':s.name;
-      return `<button class="btn btn-sm scen-load-btn" data-type="${type}" data-idx="${idx}" style="padding:2px 8px;font-size:.65rem;font-weight:600;color:var(--accent);border:1px solid var(--border)">${abbr}</button>`;
+      return `<button class="btn btn-sm scen-load-btn" data-type="${type}" data-idx="${s._globalIdx}" style="padding:2px 8px;font-size:.65rem;font-weight:600;color:var(--accent);border:1px solid var(--border)">${abbr}</button>`;
     }).join('')}
   </div>`;
 }

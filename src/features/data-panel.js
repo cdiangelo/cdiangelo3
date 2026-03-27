@@ -332,6 +332,10 @@ function initDataPanel(){
   });
 
   // Full Data Export (Excel with all sheets)
+  // Export Roster
+  document.getElementById('dataPanelRosterExport').addEventListener('click',()=>{
+    document.getElementById('btnDlRosterTemplate').click();
+  });
   document.getElementById('dataPanelFullExport').addEventListener('click',()=>{
     if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}
     const wb=XLSX.utils.book_new();
