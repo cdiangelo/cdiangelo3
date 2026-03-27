@@ -327,15 +327,14 @@ function wireToolbarButtons(){
     const btn=document.getElementById('stickyNoteBtn');
     if(btn)btn.click();
   });
-  // Whiteboard — toggle a whiteboard overlay (reuse comp plan scratch whiteboard)
+  // Whiteboard — toggle popout pane
   const wbBtn=document.getElementById('toolbarWhiteboardBtn');
   if(wbBtn)wbBtn.addEventListener('click',()=>{
-    // Navigate to comp plan scratch pad which has the whiteboard
-    if(window.showApp)window.showApp();
-    setTimeout(()=>{
-      const scratchBtn=document.querySelector('[data-tab="scratch"]');
-      if(scratchBtn)scratchBtn.click();
-    },100);
+    const popout=document.getElementById('whiteboardPopout');
+    if(!popout)return;
+    const show=popout.style.display==='none';
+    popout.style.display=show?'':'none';
+    if(show)initWhiteboardPopout();
   });
   // Teams — toggle existing teams panel
   const teamsBtn=document.getElementById('toolbarTeamsBtn');
@@ -351,6 +350,58 @@ function setSidePanelVisibility(visible){
     const el=document.getElementById(id);
     if(el)el.style.display=visible?'':'none';
   });
+}
+
+// ── Whiteboard Popout ──
+let _wbPopoutInited=false;
+function initWhiteboardPopout(){
+  if(_wbPopoutInited)return;
+  _wbPopoutInited=true;
+  const canvas=document.getElementById('wbPopoutCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  let drawing=false,lastX=0,lastY=0,size=3,color='#1a1a1a',history=[];
+  const shape=document.getElementById('wbPopoutShape');
+
+  function resize(){canvas.width=canvas.clientWidth;canvas.height=canvas.clientHeight;redraw()}
+  function redraw(){history.forEach(s=>{ctx.beginPath();ctx.strokeStyle=s.c;ctx.lineWidth=s.w;ctx.lineCap='round';s.pts.forEach((p,i)=>{if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y)});ctx.stroke()})}
+  new ResizeObserver(resize).observe(canvas);
+  setTimeout(resize,100);
+
+  function pos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+  canvas.addEventListener('mousedown',e=>{drawing=true;const p=pos(e);lastX=p.x;lastY=p.y;
+    if((shape.value||'')==='eraser'){ctx.clearRect(p.x-size*2,p.y-size*2,size*4,size*4);return}
+    history.push({c:color,w:size,pts:[p]})});
+  canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=pos(e);
+    if((shape.value||'')==='eraser'){ctx.clearRect(p.x-size*2,p.y-size*2,size*4,size*4);return}
+    const cur=history[history.length-1];if(cur)cur.pts.push(p);
+    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.moveTo(lastX,lastY);ctx.lineTo(p.x,p.y);ctx.stroke();lastX=p.x;lastY=p.y});
+  canvas.addEventListener('mouseup',()=>{drawing=false});
+  canvas.addEventListener('mouseleave',()=>{drawing=false});
+
+  document.getElementById('wbPopoutSize').addEventListener('input',function(){size=+this.value});
+  document.getElementById('wbPopoutUndo').addEventListener('click',()=>{history.pop();ctx.clearRect(0,0,canvas.width,canvas.height);redraw()});
+  document.getElementById('wbPopoutClear').addEventListener('click',()=>{history=[];ctx.clearRect(0,0,canvas.width,canvas.height)});
+  document.getElementById('wbPopoutClose').addEventListener('click',()=>{document.getElementById('whiteboardPopout').style.display='none'});
+
+  // Colors
+  const isDark=document.documentElement.classList.contains('dark');
+  const colors=isDark?['#ffffff','#c4a0a0','#a0b8c8','#5ab866','#b0a0c0','#ff6b6b','#ffa94d','#74c0fc']:['#1a1a1a','#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#dc2626','#ea580c','#2563eb'];
+  const colEl=document.getElementById('wbPopoutColors');
+  colors.forEach(c=>{
+    const dot=document.createElement('span');
+    dot.style.cssText=`width:12px;height:12px;border-radius:50%;background:${c};cursor:pointer;border:1px solid var(--border)`;
+    dot.addEventListener('click',()=>{color=c});
+    colEl.appendChild(dot);
+  });
+
+  // Draggable header
+  const hdr=document.getElementById('wbPopoutHeader');
+  const popout=document.getElementById('whiteboardPopout');
+  let dragging=false,dx=0,dy=0;
+  hdr.addEventListener('mousedown',e=>{dragging=true;dx=e.clientX-popout.offsetLeft;dy=e.clientY-popout.offsetTop;e.preventDefault()});
+  document.addEventListener('mousemove',e=>{if(!dragging)return;popout.style.left=(e.clientX-dx)+'px';popout.style.top=(e.clientY-dy)+'px';popout.style.right='auto';popout.style.bottom='auto'});
+  document.addEventListener('mouseup',()=>{dragging=false});
 }
 
 // ── Init ──
