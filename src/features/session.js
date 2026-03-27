@@ -358,9 +358,10 @@ function updateSessionUI() {
     presenceBar.className = 'presence-bar'; presenceBar.innerHTML = '';
     document.body.classList.add('session-active');
   } else {
-    banner.style.display = 'flex';
-    if (landingBox) landingBox.style.display = 'flex';
-    indicator.style.display = '';
+    // Plan files replace sessions — hide session UI permanently
+    banner.style.display = 'none';
+    if (landingBox) landingBox.style.display = 'none';
+    indicator.style.display = 'none';
     const wsHtml = 'Workspace: <span class="ws-name" onclick="openWorkspaceModal()" title="Click to manage workspaces">' + window.currentWorkspaceName + '</span>';
     indicator.innerHTML = wsHtml + '<span class="save-indicator" id="saveIndicator" style="display:none"></span>';
     // Show workspace indicator on all module pages
