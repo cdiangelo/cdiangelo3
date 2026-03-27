@@ -417,7 +417,7 @@ function renderPnlWalk(){
   });
 }
 
-let landingBudgetChartInst=null,landingForecastChartInst=null,landingChartView='pnl';
+let landingBudgetChartInst=null,landingForecastChartInst=null,landingRevenueChartInst=null,landingRevFcChartInst=null,landingChartView='pnl';
 
 document.querySelectorAll('#landingChartViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#landingChartViewToggle .btn').forEach(x=>x.classList.remove('active'));
