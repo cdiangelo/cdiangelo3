@@ -2,6 +2,7 @@
 // Extracted from index.html lines 6257–6823
 
 function createScratchPad(cfg){
+  try{
   let sRows=8,sCols=6;
   const sData=[];
   const sColHeaders=[];
@@ -110,7 +111,9 @@ function createScratchPad(cfg){
   const ctx=canvas.getContext('2d');
   function getWbColors(){
     const isDark=document.documentElement.classList.contains('dark');
-    return isDark?window.TAG_COLORS_DARK.slice():window.TAG_COLORS_LIGHT.slice();
+    const dk=window.TAG_COLORS_DARK||['#ffffff','#c4a0a0','#a0b8c8','#5ab866','#b0a0c0','#c8b8a0'];
+    const lt=window.TAG_COLORS_LIGHT||['#1a1a1a','#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#a38b5e'];
+    return isDark?dk.slice():lt.slice();
   }
   let wbColor=getWbColors()[0],wbOpacity=1,wbSize=3,wbShowGrid=false,wbDrawing=false;
   let wbHistory=[],wbShapeStart=null,wbSelection=null,wbSelImg=null,wbSelOffset=null;
@@ -549,6 +552,7 @@ function createScratchPad(cfg){
   if(typeof window.colorSchemeCallbacks!=='undefined')window.colorSchemeCallbacks.push(renderWbSwatches);
 
   return {resizeWbCanvas,exportToExcel,renderWbSwatches};
+  }catch(e){console.error('Scratch pad init error:',e);return null}
 }
 
 const scratchPadCfg={grid:'scratchGrid',addRow:'scratchAddRow',addCol:'scratchAddCol',clear:'scratchClear',showFormulas:'scratchShowFormulas',exportBtn:'scratchExport',exportName:'scratch_sheet',canvas:'wbCanvas',wbSizeId:'wbSize',wbOpacityId:'wbOpacity',wbColorSwatchesId:'wbColorSwatches',wbGridId:'wbGrid',wbShapeId:'wbShape',wbUndoId:'wbUndo',wbClearId:'wbClearBtn'};
@@ -558,7 +562,7 @@ const depScratchCfg={grid:'dScratchGrid',addRow:'dScratchAddRow',addCol:'dScratc
 let mainScratch=null,vendorScratch=null,depScratch=null;
 export function initScratchPad(){
   if(!mainScratch){mainScratch=createScratchPad(scratchPadCfg)}
-  else if(mainScratch.resizeWbCanvas){mainScratch.resizeWbCanvas()}
+  if(mainScratch&&mainScratch.resizeWbCanvas){mainScratch.resizeWbCanvas()}
 }
 export function initVendorScratch(){
   if(!vendorScratch){vendorScratch=createScratchPad(vendorScratchCfg)}
