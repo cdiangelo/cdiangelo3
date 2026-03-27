@@ -373,7 +373,7 @@ function initVendorModule(){
 
   document.getElementById('vendorAddRow').addEventListener('click',()=>{
     const genProj=state.projects.find(p=>p.code==='GEN-000');
-    state.vendorRows.push({parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+    state.vendorRows.unshift({parentCo:'',vendorName:'',vendorType:'',businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
     saveState();renderVendorGrid();
   });
   document.getElementById('vendorClearAllRows').addEventListener('click',()=>{
@@ -675,7 +675,7 @@ function initVendorModule(){
 
   document.getElementById('teAddRow').addEventListener('click',()=>{
     const genProj=state.projects.find(p=>p.code==='GEN-000');
-    state.teRows.push({expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+    state.teRows.unshift({expenseType:'',description:'',businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
     saveState();renderTeGrid();
   });
   document.getElementById('teClearAllRows').addEventListener('click',()=>{
@@ -941,7 +941,7 @@ function initVendorModule(){
   // Add contractor row
   document.getElementById('contractorAddRow').addEventListener('click',()=>{
     const genProj=state.projects.find(p=>p.code==='GEN-000');
-    state.contractorRows.push({name:'',vendorName:'',hourlyRate:0,monthlyHours:0,_startMonth:0,_endMonth:11,capPct:0,businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+    state.contractorRows.unshift({name:'',vendorName:'',hourlyRate:0,monthlyHours:0,_startMonth:0,_endMonth:11,capPct:0,businessUnit:'',bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
     saveState();renderContractorGrid();
   });
 
@@ -1801,7 +1801,7 @@ function initVendorModule(){
     if(!name){alert('Enter a vendor name');return}
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     const row={parentCo:'',vendorName:name,vendorType:document.getElementById('vendorQaNewType').value,businessUnit:document.getElementById('vendorQaNewBU').value,bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:document.getElementById('vendorQaNewAcct').value,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    state.vendorRows.push(row);
+    state.vendorRows.unshift(row);
     vendorQaHistory.unshift('Added: '+name);
     document.getElementById('vendorQaNewName').value='';
     saveState();renderVendorQaList();renderVendorGrid();refreshVendorPivot();
@@ -1900,7 +1900,7 @@ function initVendorModule(){
     if(!desc&&!eType){alert('Enter an expense type or description');return}
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     const row={expenseType:eType,description:desc,businessUnit:document.getElementById('teQaNewBU').value,bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:document.getElementById('teQaNewAcct').value,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    state.teRows.push(row);
+    state.teRows.unshift(row);
     teQaHistory.unshift('Added: '+(eType?eType+': ':'')+desc);
     document.getElementById('teQaNewDesc').value='';
     saveState();renderTeQaList();renderTeGrid();refreshTePivot();
@@ -2008,7 +2008,7 @@ function initVendorModule(){
     if(!name){alert('Enter a contractor name');return}
     const genProj=state.projects.find(p=>p.code==='GEN-000');
     const row={name,vendorName:'',hourlyRate:0,monthlyHours:0,_startMonth:0,_endMonth:11,capPct:0,businessUnit:document.getElementById('contractorQaNewBU').value,bizLine:'',market:'',project:genProj?genProj.id:'',acctDesc:document.getElementById('contractorQaNewAcct').value,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    state.contractorRows.push(row);
+    state.contractorRows.unshift(row);
     contractorQaHistory.unshift('Added: '+name);
     document.getElementById('contractorQaNewName').value='';
     saveState();renderContractorQaList();renderContractorGrid();
