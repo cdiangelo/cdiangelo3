@@ -116,7 +116,6 @@
   --chart-tooltip-bg:rgba(248,247,255,0.97);
   --toolbar-bg:#3B0F7A;--toolbar-text:#F8F7FF;--toolbar-text-dim:#C4B8E8;--toolbar-border:rgba(196,184,232,0.20);
 }
-}
 
 /* Smooth theme transition */
 html{transition:background-color .25s ease,color .2s ease}
