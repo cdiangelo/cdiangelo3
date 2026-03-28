@@ -112,8 +112,20 @@
 }
 
 /* Body & Links */
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;letter-spacing:.01em}
-a{color:var(--accent)}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;letter-spacing:.01em;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+a{color:var(--accent);transition:color .15s ease}
+a:hover{color:var(--accent-light)}
+
+/* ── Typography hierarchy ── */
+h1{font-size:1.5rem;font-weight:600;color:var(--text-dark);letter-spacing:-.01em;line-height:1.3}
+h2{font-size:1.25rem;font-weight:600;color:var(--text-dark);letter-spacing:-.01em;line-height:1.3}
+h3{font-size:1.05rem;font-weight:600;color:var(--text-dark);line-height:1.4}
+h4{font-size:.92rem;font-weight:500;color:var(--text);line-height:1.4}
+
+/* ── Global interactive transition ── */
+button,a,.btn,select,input,textarea,.card,.stat-card,.toggle-track,.home-plan-card,.landing-module,.chevron-shape,.chevron-sub-item,.btb-btn,.nav-group-btns button{
+  transition:all .18s ease;
+}
 
 /* Light mode form elements */
 [data-theme="light"] select,[data-theme="light"] input,[data-theme="light"] textarea{background:var(--bg-input);border-color:var(--border);color:var(--text)}

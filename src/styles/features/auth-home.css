@@ -27,14 +27,14 @@
 .home-user{font-size:.82rem;color:var(--text-dim);display:flex;align-items:center;gap:6px}
 .home-body{display:grid;grid-template-columns:1fr 280px;gap:24px;padding:24px;max-width:1200px;margin:0 auto}
 .home-main{display:flex;flex-direction:column;gap:20px}
-.home-create-section,.home-plans-section{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px}
+.home-create-section,.home-plans-section{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .home-create-section h3,.home-plans-section h3{font-size:.92rem;color:var(--accent);margin:0 0 12px 0}
 .home-create-form{display:flex;gap:8px;flex-wrap:wrap}
 .home-create-form input,.home-create-form select{padding:8px 12px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-family:inherit}
 .home-plan-list{display:flex;flex-direction:column;gap:6px}
 .home-plan-empty{color:var(--text-dim);font-size:.8rem;padding:16px;text-align:center}
-.home-plan-card{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:10px;cursor:pointer;transition:background .15s,border-color .15s}
-.home-plan-card:hover{background:var(--bg);border-color:var(--accent)}
+.home-plan-card{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:10px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.home-plan-card:hover{background:var(--accent-glow);border-color:var(--border-accent);box-shadow:0 4px 12px var(--accent-glow-lg);transform:translateY(-1px)}
 .home-plan-card .plan-name{flex:1;font-weight:600;color:var(--text);font-size:.84rem}
 .home-plan-card .plan-meta{font-size:.7rem;color:var(--text-dim);display:flex;gap:8px;align-items:center}
 .home-plan-card .plan-badge{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:10px;font-weight:600}
@@ -53,7 +53,7 @@
 .home-recent{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;max-height:300px;overflow-y:auto}
 
 /* ═══ PLAN HEADER BAR ═══ */
-#planHeaderBar{display:flex;align-items:center;justify-content:space-between;padding:8px 24px;background:var(--panel);border-bottom:1px solid var(--border);font-size:.8rem;position:fixed;top:0;left:0;right:0;z-index:200}
+#planHeaderBar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:44px;background:var(--panel);border-bottom:1px solid var(--border-light);font-size:.8rem;position:fixed;top:0;left:0;right:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .plan-hdr-left{display:flex;align-items:center;gap:10px}
 .plan-hdr-name{font-weight:600;color:var(--accent)}
 .plan-hdr-badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:10px;font-weight:600;border:1px solid var(--border)}
