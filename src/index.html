@@ -218,10 +218,15 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- ═══ CHEVRON NAV ═══ -->
 <div class="chevron-nav" id="chevronNav">
-<div class="chevron-item" id="chevExecSummary" data-target="exec">
+<div class="chevron-item has-submenu" id="chevExecSummary" data-target="exec">
 <div class="chevron-shape">
 <span class="chevron-label">Executive Summary</span>
 <span class="chevron-hover-arrow">&#9655;</span>
+</div>
+<div class="chevron-submenu" id="chevExecMenu">
+<div class="chevron-sub-item" data-module="exec-overview">Overview</div>
+<div class="chevron-sub-item" data-module="exec-comp">Exec Comp View</div>
+<div class="chevron-sub-item" data-module="exec-pivot">Pivot</div>
 </div>
 </div>
 <div class="chevron-item has-submenu" id="chevBudget" data-target="budget">
@@ -357,6 +362,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="nav-group-btns" id="execSubNav">
 <button class="btn active" id="execSubOverview">Overview</button>
 <button class="btn" id="execSubComp">Exec Comp</button>
+<button class="btn" id="execSubPivot">Pivot</button>
 </div>
 <!-- Hidden main nav — tabs still accessible via JS -->
 <nav id="mainNav" style="display:none">
@@ -543,6 +549,14 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="execRosterPane"></div>
 </div>
 
+</div>
+
+<!-- PIVOT TAB (Executive Summary) -->
+<div id="tab-pivot" class="tab-content">
+<div class="card" style="min-height:300px">
+<h3 class="section-title">Pivot Analysis</h3>
+<p style="color:var(--tertiary);font-size:.85rem">Pivot analysis tools will be available here.</p>
+</div>
 </div>
 
 <!-- EMPLOYEES -->

@@ -10,18 +10,9 @@
     if (!shape) return;
 
     shape.addEventListener('click', () => {
-      const target = item.dataset.target;
-
-      // Executive Summary — navigate directly
-      if (target === 'exec') {
-        navigateToExecSummary();
-        return;
-      }
-
-      // Budget / Forecast — toggle submenu
+      // All chevrons toggle submenu
       if (item.classList.contains('has-submenu')) {
         const wasExpanded = item.classList.contains('expanded');
-        // Collapse all first
         document.querySelectorAll('.chevron-item.expanded').forEach(c => c.classList.remove('expanded'));
         if (!wasExpanded) {
           item.classList.add('expanded');
@@ -36,6 +27,14 @@
       const module = sub.dataset.module;
       const parentTarget = sub.closest('.chevron-item').dataset.target;
       window.planContext = parentTarget;
+
+      // Executive Summary sub-items
+      if (parentTarget === 'exec') {
+        if (module === 'exec-overview') navigateToExecSummary('overview');
+        else if (module === 'exec-comp') navigateToExecSummary('comp');
+        else if (module === 'exec-pivot') navigateToExecSummary('pivot');
+        return;
+      }
 
       // Forecast sub-items all go to LTF module
       if (parentTarget === 'forecast') {
@@ -68,7 +67,7 @@
     });
   }
 
-  function navigateToExecSummary() {
+  function navigateToExecSummary(tab) {
     const chevNav = document.getElementById('chevronNav');
     if (chevNav) chevNav.style.display = 'none';
     showBackToPlan();
@@ -80,8 +79,11 @@
     if (window.renderPnlWalk) try { window.renderPnlWalk() } catch(e) {}
     if (window.renderLandingCharts) try { window.renderLandingCharts() } catch(e) {}
 
-    // Default to Overview tab
-    showOverviewTab();
+    // Route to correct sub-tab
+    if (tab === 'comp') showExecCompTab();
+    else if (tab === 'pivot') showPivotTab();
+    else showOverviewTab();
+
     if (window._updateGlobalToolbar) window._updateGlobalToolbar();
   }
 
@@ -108,38 +110,50 @@
     }
   }
 
-  // ── Exec Summary sub-nav: Overview vs Exec Comp ──
+  // ── Exec Summary sub-nav: Overview / Exec Comp / Pivot ──
   const overviewBtn = document.getElementById('execSubOverview');
   const compBtn = document.getElementById('execSubComp');
+  const pivotBtn = document.getElementById('execSubPivot');
   const sumContent = document.getElementById('landingSummaryContent');
 
-  function showOverviewTab() {
-    if (overviewBtn) overviewBtn.classList.add('active');
+  function clearExecSubNav() {
+    if (overviewBtn) overviewBtn.classList.remove('active');
     if (compBtn) compBtn.classList.remove('active');
-    // Show P&L summary, hide exec tab content
-    if (sumContent) sumContent.style.display = '';
+    if (pivotBtn) pivotBtn.classList.remove('active');
+    if (sumContent) sumContent.style.display = 'none';
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    // Update header title
+  }
+
+  function showOverviewTab() {
+    clearExecSubNav();
+    if (overviewBtn) overviewBtn.classList.add('active');
+    if (sumContent) sumContent.style.display = '';
     const title = document.querySelector('#compHeaderBar .module-title');
     if (title) title.textContent = 'Executive Summary';
   }
 
   function showExecCompTab() {
+    clearExecSubNav();
     if (compBtn) compBtn.classList.add('active');
-    if (overviewBtn) overviewBtn.classList.remove('active');
-    // Hide P&L summary, show exec tab
-    if (sumContent) sumContent.style.display = 'none';
     const execTab = document.getElementById('tab-exec');
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     if (execTab) execTab.classList.add('active');
     if (window.renderExecView) window.renderExecView();
-    // Update header title
+    const title = document.querySelector('#compHeaderBar .module-title');
+    if (title) title.textContent = 'Executive Summary';
+  }
+
+  function showPivotTab() {
+    clearExecSubNav();
+    if (pivotBtn) pivotBtn.classList.add('active');
+    const pivotTab = document.getElementById('tab-pivot');
+    if (pivotTab) pivotTab.classList.add('active');
     const title = document.querySelector('#compHeaderBar .module-title');
     if (title) title.textContent = 'Executive Summary';
   }
 
   if (overviewBtn) overviewBtn.addEventListener('click', showOverviewTab);
   if (compBtn) compBtn.addEventListener('click', showExecCompTab);
+  if (pivotBtn) pivotBtn.addEventListener('click', showPivotTab);
 
   // ── Bottom toolbar ──
   const bottomToolbar = document.getElementById('bottomToolbar');
