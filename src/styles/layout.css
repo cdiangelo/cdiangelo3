@@ -1,6 +1,6 @@
 /* Container, Header, Nav, Tabs (lines 35-48) */
 .container{max-width:100%;margin:0 auto;padding:0 80px}
-header{background:var(--panel);border-bottom:2px solid var(--border);padding:16px 0;position:sticky;top:32px;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+header{background:var(--panel);border-bottom:1px solid var(--border);padding:18px 0;position:sticky;top:32px;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,.06)}
 body.session-active header{top:62px}
 header .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 header h1{font-size:1.3rem;color:var(--accent)}
@@ -11,7 +11,7 @@ nav{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .nav-group{display:flex;flex-direction:column;gap:4px}
 .nav-group-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);font-weight:600;padding:0 4px;margin-bottom:2px}
 .nav-group-btns{display:flex;gap:4px;flex-wrap:wrap}
-nav button{background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .2s}
+nav button{background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.82rem;transition:all .2s;font-family:inherit}
 nav button:hover{border-color:var(--accent);color:var(--text-dark)}
 nav button.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .tab-content{display:none;padding:24px 0}
