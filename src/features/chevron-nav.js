@@ -91,22 +91,27 @@
     showBackToPlan();
     if (module === 'comp') {
       if (window.showApp) window.showApp();
-      // Hide overview content, show employees tab
       if (sumContent) sumContent.style.display = 'none';
       const empBtn = document.querySelector('#mainNav button[data-tab="employees"]');
       if (empBtn) empBtn.click();
-      // Update header
       const title = document.querySelector('#compHeaderBar .module-title');
       if (title) title.textContent = 'Compensation & Benefits';
-      // Deactivate exec sub-nav
       if (overviewBtn) overviewBtn.classList.remove('active');
       if (compBtn) compBtn.classList.remove('active');
+      // Broadcast: parent context determines BUD or FCAST prefix
+      const prefix = window.planContext === 'forecast' ? 'FCAST' : 'BUD';
+      if (window._broadcastTab) window._broadcastTab(prefix + ' - C&B');
     } else if (module === 'vendor') {
       if (window.showVendor) window.showVendor();
+      const prefix = window.planContext === 'forecast' ? 'FCAST' : 'BUD';
+      if (window._broadcastTab) window._broadcastTab(prefix + ' - OAO');
     } else if (module === 'depreciation') {
       if (window.showDepreciation) window.showDepreciation();
+      const prefix = window.planContext === 'forecast' ? 'FCAST' : 'BUD';
+      if (window._broadcastTab) window._broadcastTab(prefix + ' - D&A');
     } else if (module === 'ltf') {
       if (window.showLtf) window.showLtf();
+      if (window._broadcastTab) window._broadcastTab('FCAST');
     }
   }
 
@@ -130,6 +135,7 @@
     if (sumContent) sumContent.style.display = '';
     const title = document.querySelector('#compHeaderBar .module-title');
     if (title) title.textContent = 'Executive Summary';
+    if (window._broadcastTab) window._broadcastTab('EXEC');
   }
 
   function showExecCompTab() {
@@ -140,6 +146,7 @@
     if (window.renderExecView) window.renderExecView();
     const title = document.querySelector('#compHeaderBar .module-title');
     if (title) title.textContent = 'Executive Summary';
+    if (window._broadcastTab) window._broadcastTab('EXEC');
   }
 
   function showPivotTab() {
@@ -148,6 +155,7 @@
     const pivotTab = document.getElementById('tab-pivot');
     if (pivotTab) pivotTab.classList.add('active');
     if (window.renderPivot) window.renderPivot();
+    if (window._broadcastTab) window._broadcastTab('EXEC');
     const title = document.querySelector('#compHeaderBar .module-title');
     if (title) title.textContent = 'Executive Summary';
   }

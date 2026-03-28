@@ -326,12 +326,12 @@ function connectPlanWebSocket(plan,user){
           if(window.renderAll)try{window.renderAll()}catch(e){}
         }
         if(msg.type==='presence'){
-          // Update presence dots in plan header with tab labels
           const dots=document.getElementById('planHdrUsers');
           if(dots&&msg.users){
             dots.innerHTML=msg.users.map(u=>{
-              const tabLabel=u.tab?`<span style="font-size:.55rem;color:var(--toolbar-text-dim);margin-left:2px">${u.tab}</span>`:'';
-              return `<div class="user-dot" style="background:${u.color||'#3a7d44'}" title="${u.initials}${u.tab?' — '+u.tab:''}">${u.initials}</div>${tabLabel}`;
+              const tab=u.tab||'';
+              const tabBadge=tab?`<span style="font-size:.58rem;font-weight:600;color:var(--toolbar-text-dim);background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;margin-left:3px;letter-spacing:.03em;white-space:nowrap">${tab}</span>`:'';
+              return `<span style="display:inline-flex;align-items:center;gap:2px;margin-right:6px"><div class="user-dot" style="background:${u.color||'#3a7d44'}" title="${u.initials}${tab?' — '+tab:''}">${u.initials}</div>${tabBadge}</span>`;
             }).join('');
           }
         }
