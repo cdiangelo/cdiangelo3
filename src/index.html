@@ -225,8 +225,9 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="landing-module" id="modRevenue"></div>
 </div>
 
-<!-- ═══ CHEVRON NAV ═══ -->
-<div class="chevron-nav" id="chevronNav">
+<!-- ═══ CHEVRON NAV + CALENDAR ═══ -->
+<div style="display:flex;gap:32px;align-items:flex-start;padding:48px 0 40px 48px">
+<div class="chevron-nav" id="chevronNav" style="padding:0;margin:0">
 <div class="chevron-item has-submenu" id="chevExecSummary" data-target="exec">
 <div class="chevron-shape">
 <span class="chevron-label">Executive Summary</span>
@@ -261,6 +262,32 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </div>
+
+<!-- ═══ SIDE CALENDAR ═══ -->
+<div class="plan-calendar" id="planCalendar">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+<button class="cal-nav" id="calPrev" style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:1rem;padding:4px 8px">&#8249;</button>
+<span id="calMonthLabel" style="font-size:.88rem;font-weight:600;color:var(--text)"></span>
+<button class="cal-nav" id="calNext" style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:1rem;padding:4px 8px">&#8250;</button>
+</div>
+<div class="cal-grid" id="calGrid"></div>
+<div style="margin-top:12px">
+<div id="calItems" style="display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto"></div>
+<div style="display:flex;gap:4px;margin-top:8px">
+<input id="calNewItem" placeholder="Add milestone..." style="flex:1;padding:5px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
+<select id="calNewColor" style="width:auto;padding:3px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
+<option value="var(--accent)">Accent</option>
+<option value="var(--success)">Green</option>
+<option value="var(--warning)">Amber</option>
+<option value="var(--danger)">Red</option>
+<option value="var(--secondary)">Blue</option>
+</select>
+<button class="btn btn-sm" id="calAddBtn" style="padding:3px 10px;font-size:.72rem">+</button>
+</div>
+</div>
+<button id="calHideBtn" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:.68rem;color:var(--tertiary);text-align:center;width:100%">Hide Calendar</button>
+</div>
+</div><!-- /flex wrapper -->
 
 <div style="display:none" id="landingSummaryContent">
 <!-- View toggle bar -->
