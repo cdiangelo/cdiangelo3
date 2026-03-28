@@ -370,16 +370,25 @@ function initWhiteboardPopout(){
   let snapshots=[];  // ImageData history for undo
   const shapeEl=document.getElementById('wbPopoutShape');
 
-  function resize(){canvas.width=canvas.clientWidth;canvas.height=canvas.clientHeight;if(snapshots.length)ctx.putImageData(snapshots[snapshots.length-1],0,0)}
+  function resize(){
+    const w=canvas.clientWidth,h=canvas.clientHeight;
+    if(w<1||h<1)return;
+    const imgData=(canvas.width>0&&canvas.height>0)?ctx.getImageData(0,0,canvas.width,canvas.height):null;
+    canvas.width=w;canvas.height=h;
+    if(imgData)ctx.putImageData(imgData,0,0);
+  }
   function saveSnap(){if(canvas.width>0&&canvas.height>0)snapshots.push(ctx.getImageData(0,0,canvas.width,canvas.height));if(snapshots.length>50)snapshots.shift()}
   function restoreSnap(){if(snapshots.length)ctx.putImageData(snapshots[snapshots.length-1],0,0);else ctx.clearRect(0,0,canvas.width,canvas.height)}
   new ResizeObserver(resize).observe(canvas);
-  setTimeout(()=>{resize();saveSnap()},100);
+  setTimeout(()=>{resize();saveSnap()},200);
 
   function pos(e){const r=canvas.getBoundingClientRect();const sx=canvas.width/r.width;const sy=canvas.height/r.height;return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy}}
   canvas.addEventListener('mousedown',e=>{
+    e.preventDefault();
     drawing=true;const p=pos(e);startX=p.x;startY=p.y;lastX=p.x;lastY=p.y;
     const tool=shapeEl.value||'';
+    // Save snapshot before shape/pen starts so preview can restore to it
+    saveSnap();
     if(tool==='eraser'){const r=Math.max(8,size*3);ctx.save();ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.restore();return}
     if(tool==='dot'){ctx.beginPath();ctx.fillStyle=color;ctx.arc(p.x,p.y,size,0,Math.PI*2);ctx.fill();drawing=false;saveSnap();return}
   });
@@ -400,8 +409,7 @@ function initWhiteboardPopout(){
   canvas.addEventListener('mouseup',e=>{
     if(!drawing)return;drawing=false;
     const tool=shapeEl.value||'';
-    if(tool==='eraser'){saveSnap();return}
-    // Finalize shapes
+    // Finalize shapes — restore pre-drag snapshot, draw final shape, save
     if(tool==='line'||tool==='rect'||tool==='circle'){
       const p=pos(e);
       restoreSnap();
@@ -410,6 +418,7 @@ function initWhiteboardPopout(){
       else if(tool==='rect'){ctx.strokeRect(Math.min(startX,p.x),Math.min(startY,p.y),Math.abs(p.x-startX),Math.abs(p.y-startY))}
       else if(tool==='circle'){const cx=(startX+p.x)/2,cy=(startY+p.y)/2,rx=Math.abs(p.x-startX)/2,ry=Math.abs(p.y-startY)/2;if(rx>0&&ry>0){ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.stroke()}}
     }
+    // Save final state (for pen this captures the freehand strokes, for shapes the finalized shape)
     saveSnap();
   });
   canvas.addEventListener('mouseleave',()=>{if(drawing){drawing=false;saveSnap()}});
@@ -455,6 +464,27 @@ function initWhiteboardPopout(){
 initAuthPage();
 setSidePanelVisibility(false); // Hidden until plan opened
 wireToolbarButtons();
+
+// ── Global Home button handler (failsafe — always wired) ──
+const _homeBtn=document.getElementById('planBackHome');
+if(_homeBtn){
+  _homeBtn.addEventListener('click',()=>{
+    try{if(window.saveState)window.saveState()}catch(e){}
+    document.getElementById('planHeaderBar').style.display='none';
+    try{document.getElementById('globalToolbar').style.display='none'}catch(e){}
+    try{document.getElementById('globalToolbarSpacer').style.display='none'}catch(e){}
+    const btb=document.getElementById('bottomToolbar');if(btb)btb.style.display='none';
+    // Close settings panel
+    const sp=document.getElementById('settingsSlidePanel');if(sp){sp.classList.remove('open');sp.style.transform='translateX(100%)'}
+    ['landingPage','appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
+    try{if(window.closeAllSidePanels)window.closeAllSidePanels()}catch(e){}
+    document.body.classList.remove('scenario-open','data-open','guide-open');
+    document.getElementById('homePage').style.display='';
+    if(typeof renderPlanList==='function')try{renderPlanList()}catch(e){}
+  });
+}
 
 // Expose for other modules
 window.getActiveUser=getUser;

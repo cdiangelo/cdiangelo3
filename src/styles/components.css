@@ -10,6 +10,13 @@
 .stat-card .label{font-size:.65rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;line-height:1.2;font-weight:500}
 .stat-card .value{font-size:1.2rem;font-weight:700;color:var(--accent)}
 
+/* Click feedback — brief scale pulse on interactive elements */
+/* Click feedback — brief scale pulse on interactive elements */
+.btn:active,nav button:active,.toggle-group .btn:active,.btb-btn:active,.chevron-shape:active,.chevron-sub-item:active,.home-plan-card:active{transform:scale(.97);transition:transform .05s ease}
+.stat-card:active{transform:scale(.98)}
+/* Focus-visible ring for keyboard navigation */
+.btn:focus-visible,nav button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 /* Controls & Button variants — unified family */
 .controls{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px;align-items:center}
 .btn{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text-dim);cursor:pointer;font-size:.82rem;font-weight:500;font-family:inherit;letter-spacing:.01em}
