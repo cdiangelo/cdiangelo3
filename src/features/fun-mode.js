@@ -27,24 +27,25 @@ export function initFunMode(){try{
   const hovC=()=>isDark()?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.25)';
   const bgC=()=>isDark()?'rgba(255,255,255,0.03)':'rgba(0,0,0,0.02)';
 
-  // Fun button
+  // Fun button — inside guide panel, very subtle
+  const guidePanel=document.getElementById('guideSlidePanel');
   const btn=document.createElement('button');
-  btn.innerHTML='&#9654;';
+  btn.innerHTML='&#9654; Media';
   btn.title='Media';
-  btn.style.cssText=`position:fixed;bottom:8px;right:8px;z-index:9999;background:${bgC()};border:1px solid ${dimC()};color:${dimC()};font-size:.6rem;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.2`;
-  btn.addEventListener('mouseenter',()=>{btn.style.opacity='0.45'});
-  btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.opacity='0.2'});
-  new MutationObserver(()=>{btn.style.background=bgC();btn.style.borderColor=dimC();if(funState<0){btn.style.color=dimC();btn.style.opacity='0.35'}}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
-  document.body.appendChild(btn);
+  btn.style.cssText=`display:block;margin-top:24px;background:transparent;border:1px solid ${dimC()};color:${dimC()};font-size:.6rem;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;opacity:.25;letter-spacing:.04em`;
+  btn.addEventListener('mouseenter',()=>{btn.style.opacity='0.5'});
+  btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.opacity='0.25'});
+  if(guidePanel)guidePanel.appendChild(btn);
+  else document.body.appendChild(btn);
 
-  // Editor button (gear icon above fun button)
+  // Editor button (gear icon next to fun button)
   const editBtn=document.createElement('button');
   editBtn.innerHTML='&#9881;';
-  editBtn.style.cssText=`position:fixed;bottom:28px;right:8px;z-index:9999;background:${bgC()};border:1px solid ${dimC()};color:${dimC()};font-size:.65rem;padding:2px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;-webkit-tap-highlight-color:transparent;width:24px;text-align:center;opacity:.2`;
+  editBtn.style.cssText=`display:inline-block;margin-top:4px;background:transparent;border:1px solid ${dimC()};color:${dimC()};font-size:.6rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;opacity:.2`;
   editBtn.addEventListener('mouseenter',()=>{editBtn.style.opacity='0.45'});
   editBtn.addEventListener('mouseleave',()=>{editBtn.style.opacity='0.2'});
-  new MutationObserver(()=>{editBtn.style.background=bgC();editBtn.style.color=dimC()}).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
-  document.body.appendChild(editBtn);
+  if(guidePanel)guidePanel.appendChild(editBtn);
+  else document.body.appendChild(editBtn);
 
   let editorPanel=null;
 
