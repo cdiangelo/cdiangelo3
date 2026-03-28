@@ -1,8 +1,9 @@
-// ── Unified Pivot Analysis ──
-// Consolidates employee roster pivot + vendor spend pivot into one tab.
+// ── Unified P&L Pivot Analysis ──
+// Full P&L accounts: EBITDA, OpEx, Total Investment, CapEx, D&A
+// Combines: C&B (employees), OAO (vendor spend), D&A (depreciation)
 
 import { state } from '../lib/state.js';
-import { fmt, CURRENT_YEAR, FUNCTIONS, COUNTRIES } from '../lib/constants.js';
+import { fmt, CURRENT_YEAR } from '../lib/constants.js';
 import { getMonthlyComp, getMonthlyCapEx } from '../lib/proration.js';
 
 const getChartColors = () => window.getChartColors();
@@ -10,113 +11,124 @@ const hexToRgba = (...a) => window.hexToRgba(...a);
 const getEmpProject = (...a) => window.getEmpProject ? window.getEmpProject(...a) : null;
 
 let pivotChart = null;
+let currentAccount = 'ebitda';
 
-// ── Employee dimension helpers ──
-const EMP_DIMS = {
-  'function':  { label: 'Function',  get: e => e.function || 'Unknown' },
-  'seniority': { label: 'Seniority', get: e => e.seniority || 'Unknown' },
-  'country':   { label: 'Country',   get: e => e.country || 'Unknown' },
-  'category':  { label: 'Product Category', get: e => { const p = getEmpProject(e); return p ? p.category || 'Unassigned' : 'Unassigned'; } },
-  'product':   { label: 'Product', get: e => { const p = getEmpProject(e); return p ? p.product || 'Unassigned' : 'Unassigned'; } },
-  'bizline':   { label: 'Business Line', get: e => e.bizLine || 'Unassigned' },
+// ── P&L Row dimensions (unified across all sources) ──
+const PNL_DIMS = {
+  'account':    { label: 'Account (C&B / OAO / D&A)', get: (type) => type },
+  'function':   { label: 'Function' },
+  'seniority':  { label: 'Seniority' },
+  'country':    { label: 'Country' },
+  'category':   { label: 'Product Category' },
+  'product':    { label: 'Product' },
+  'vendorType': { label: 'Vendor Type' },
+  'parentCo':   { label: 'Parent Company' },
+  'businessUnit':{ label: 'Business Unit' },
 };
 
-const EMP_METRICS = {
-  'hc':    { label: 'Headcount',  get: () => 1, isCurrency: false },
-  'comp':  { label: 'Total Comp', get: e => { let s=0; for(let m=0;m<12;m++) s+=getMonthlyComp(e,m); return s; }, isCurrency: true },
-  'opex':  { label: 'OpEx',       get: e => { let c=0,x=0; for(let m=0;m<12;m++){c+=getMonthlyComp(e,m);x+=getMonthlyCapEx(e,m)} return c-x; }, isCurrency: true },
-  'capex': { label: 'CapEx',      get: e => { let s=0; for(let m=0;m<12;m++) s+=getMonthlyCapEx(e,m); return s; }, isCurrency: true },
-};
-
-// ── Vendor dimension helpers ──
-const VENDOR_DIMS = {
-  'vendorType':   { label: 'Vendor Type',   get: r => r.vendorType || 'Unknown' },
-  'parentCo':     { label: 'Parent Company', get: r => r.parentCo || 'Unknown' },
-  'businessUnit': { label: 'Business Unit',  get: r => r.businessUnit || 'Unknown' },
-  'bizLine':      { label: 'Business Line',  get: r => r.bizLine || 'Unknown' },
-  'market':       { label: 'Market',         get: r => r.market || 'Unknown' },
-  'acctDesc':     { label: 'Account',        get: r => r.acctDesc || 'Unknown' },
-  'vendorName':   { label: 'Vendor Name',    get: r => r.vendorName || 'Unknown' },
-};
-
-// ── Populate dimension dropdowns based on source ──
+// ── Populate dimension dropdowns ──
 function populateDims() {
-  const src = document.getElementById('pivotSource').value;
   const rowSel = document.getElementById('pivotRowDim');
   const colSel = document.getElementById('pivotColDim');
-  const metricWrap = document.getElementById('pivotMetricWrap');
-  const bandWrap = document.getElementById('pivotBandWrap');
-  const dims = src === 'employees' ? EMP_DIMS : VENDOR_DIMS;
-
-  rowSel.innerHTML = Object.entries(dims).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
-  colSel.innerHTML = Object.entries(dims).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
-
-  // Default: first two different dims
-  const keys = Object.keys(dims);
-  if (keys.length > 1) colSel.value = keys[1];
-
-  // Show metric selector for employees, band selector for vendor
-  metricWrap.style.display = src === 'employees' ? '' : 'none';
-  bandWrap.style.display = src === 'vendor' ? '' : 'none';
+  rowSel.innerHTML = Object.entries(PNL_DIMS).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
+  colSel.innerHTML = Object.entries(PNL_DIMS).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
+  rowSel.value = 'account';
+  colSel.value = 'function';
 }
 
-// ── Build pivot data ──
+// ── Get employee dimension value ──
+function getEmpDim(e, dim) {
+  if (dim === 'function') return e.function || 'Unknown';
+  if (dim === 'seniority') return e.seniority || 'Unknown';
+  if (dim === 'country') return e.country || 'Unknown';
+  if (dim === 'category') { const p = getEmpProject(e); return p ? p.category || 'Unassigned' : 'Unassigned'; }
+  if (dim === 'product') { const p = getEmpProject(e); return p ? p.product || 'Unassigned' : 'Unassigned'; }
+  if (dim === 'businessUnit') return e.businessUnit || 'Unknown';
+  return 'Unknown';
+}
+
+// ── Get vendor dimension value ──
+function getVendorDim(r, dim) {
+  if (dim === 'vendorType') return r.vendorType || 'Unknown';
+  if (dim === 'parentCo') return r.parentCo || 'Unknown';
+  if (dim === 'businessUnit') return r.businessUnit || 'Unknown';
+  if (dim === 'country') return r.market || 'Unknown';
+  if (dim === 'category') return r.acctDesc || 'Unknown';
+  if (dim === 'product') return r.vendorName || 'Unknown';
+  if (dim === 'function') return r.vendorType || 'Unknown';
+  if (dim === 'seniority') return r.acctDesc || 'Unknown';
+  return 'Unknown';
+}
+
+// ── Build P&L pivot data ──
 function buildPivotData() {
-  const src = document.getElementById('pivotSource').value;
   const rowDim = document.getElementById('pivotRowDim').value;
   const colDim = document.getElementById('pivotColDim').value;
-  const pivot = {}; // pivot[rowVal][colVal] = number
+  const acct = currentAccount;
+  const pivot = {};
   const rowTotals = {};
   const colSet = new Set();
 
-  if (src === 'employees') {
-    const metric = document.getElementById('pivotMetric').value;
-    const metricFn = EMP_METRICS[metric] || EMP_METRICS.hc;
-    const dimRow = EMP_DIMS[rowDim] || EMP_DIMS['function'];
-    const dimCol = EMP_DIMS[colDim] || EMP_DIMS['seniority'];
+  function addVal(rk, ck, val) {
+    colSet.add(ck);
+    if (!pivot[rk]) pivot[rk] = {};
+    pivot[rk][ck] = (pivot[rk][ck] || 0) + val;
+    rowTotals[rk] = (rowTotals[rk] || 0) + val;
+  }
 
+  function getDimVal(type, item, dim) {
+    if (dim === 'account') return type;
+    return type === 'C&B' ? getEmpDim(item, dim) : getVendorDim(item, dim);
+  }
+
+  // ── C&B from employees ──
+  const includesCB = ['ebitda', 'opex', 'totinv'].includes(acct);
+  const includesCapEx = ['capex', 'totinv'].includes(acct);
+  if (includesCB || includesCapEx) {
     (state.employees || []).forEach(e => {
       if (e.termDate) {
         const td = new Date(e.termDate);
         if (td.getFullYear() <= CURRENT_YEAR && td.getMonth() < 11) return;
       }
-      const rk = dimRow.get(e);
-      const ck = dimCol.get(e);
-      const val = metricFn.get(e);
-      colSet.add(ck);
-      if (!pivot[rk]) pivot[rk] = {};
-      pivot[rk][ck] = (pivot[rk][ck] || 0) + val;
-      rowTotals[rk] = (rowTotals[rk] || 0) + val;
+      let val = 0;
+      for (let m = 0; m < 12; m++) {
+        const comp = getMonthlyComp(e, m);
+        const capex = getMonthlyCapEx(e, m);
+        if (acct === 'ebitda') val += comp; // EBITDA = total comp (before capex split)
+        else if (acct === 'opex') val += comp - capex;
+        else if (acct === 'totinv') val += comp;
+        else if (acct === 'capex') val += capex;
+      }
+      if (val === 0) return;
+      const rk = getDimVal('C&B', e, rowDim);
+      const ck = getDimVal('C&B', e, colDim);
+      addVal(rk, ck, val);
     });
-
-    return { pivot, rowTotals, cols: [...colSet].sort(), isCurrency: metricFn.isCurrency };
   }
 
-  // Vendor source
-  const band = document.querySelector('#pivotBandBtns .btn.active')?.dataset.band || 'all';
-  const dimRow = VENDOR_DIMS[rowDim] || VENDOR_DIMS['vendorType'];
-  const dimCol = VENDOR_DIMS[colDim] || VENDOR_DIMS['businessUnit'];
+  // ── OAO from vendor rows ──
+  const includesOAO = ['ebitda', 'opex', 'totinv'].includes(acct);
+  if (includesOAO) {
+    const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    (state.vendorRows || []).forEach(r => {
+      let fy = 0;
+      for (let m = 0; m < 12; m++) fy += (r[months[m]] || 0);
+      if (fy === 0) return;
+      const rk = getDimVal('OAO', r, rowDim);
+      const ck = getDimVal('OAO', r, colDim);
+      addVal(rk, ck, fy);
+    });
+  }
 
-  (state.vendorRows || []).forEach(r => {
-    let fy = 0;
-    for (let m = 0; m < 12; m++) fy += (r[['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'][m]] || 0);
-    if (fy === 0) return;
-
-    // Band filter
-    if (band !== 'all') {
-      const parts = band.split('-');
-      const lo = parseInt(parts[0]) || 0;
-      const hi = parts[1] ? parseInt(parts[1]) : Infinity;
-      if (fy < lo || fy >= hi) return;
+  // ── D&A (depreciation) ──
+  if (acct === 'da' || acct === 'ebitda') {
+    const daTotal = window.getDepreciationTotal ? window.getDepreciationTotal() : 0;
+    if (daTotal > 0) {
+      const rk = rowDim === 'account' ? 'D&A' : 'Depreciation';
+      const ck = colDim === 'account' ? 'D&A' : 'Depreciation';
+      addVal(rk, ck, acct === 'ebitda' ? -daTotal : daTotal); // D&A is subtracted in EBITDA
     }
-
-    const rk = dimRow.get(r);
-    const ck = dimCol.get(r);
-    colSet.add(ck);
-    if (!pivot[rk]) pivot[rk] = {};
-    pivot[rk][ck] = (pivot[rk][ck] || 0) + fy;
-    rowTotals[rk] = (rowTotals[rk] || 0) + fy;
-  });
+  }
 
   return { pivot, rowTotals, cols: [...colSet].sort(), isCurrency: true };
 }
@@ -129,11 +141,11 @@ function renderPivotChart(data) {
   if (pivotChart) pivotChart.destroy();
 
   const { pivot, rowTotals, cols, isCurrency } = data;
-  const rows = Object.keys(rowTotals).sort((a, b) => rowTotals[b] - rowTotals[a]);
+  const rows = Object.keys(rowTotals).sort((a, b) => Math.abs(rowTotals[b]) - Math.abs(rowTotals[a]));
   const colors = getChartColors();
 
   const datasets = rows.map((rk, i) => ({
-    label: rk.length > 20 ? rk.slice(0, 18) + '…' : rk,
+    label: rk.length > 25 ? rk.slice(0, 23) + '…' : rk,
     data: cols.map(ck => (pivot[rk] && pivot[rk][ck]) || 0),
     backgroundColor: hexToRgba(colors[i % colors.length], 0.7),
     borderColor: colors[i % colors.length],
@@ -156,7 +168,7 @@ function renderPivotChart(data) {
           stacked: true,
           ticks: {
             font: { size: 11 },
-            callback: v => isCurrency ? '$' + (Math.abs(v) / 1e6).toFixed(1) + 'M' : v
+            callback: v => '$' + (Math.abs(v) / 1e6).toFixed(1) + 'M'
           }
         }
       }
@@ -170,23 +182,20 @@ function renderPivotTable(data) {
   const tbody = document.getElementById('pivotTbody');
   if (!thead || !tbody) return;
 
-  const { pivot, rowTotals, cols, isCurrency } = data;
-  const rows = Object.keys(rowTotals).sort((a, b) => rowTotals[b] - rowTotals[a]);
+  const { pivot, rowTotals, cols } = data;
+  const rows = Object.keys(rowTotals).sort((a, b) => Math.abs(rowTotals[b]) - Math.abs(rowTotals[a]));
   const colors = getChartColors();
   const fmtVal = v => {
     if (!v) return '—';
-    if (isCurrency) return fmt(v);
-    return Math.round(v * 10) / 10;
+    return fmt(v);
   };
 
-  // Header
   thead.innerHTML = `<tr>
     <th style="position:sticky;left:0;z-index:3;background:var(--bg-elevated);min-width:160px"></th>
     ${cols.map(c => `<th style="text-align:right;min-width:80px">${c}</th>`).join('')}
     <th style="text-align:right;font-weight:700;min-width:80px">Total</th>
   </tr>`;
 
-  // Body
   tbody.innerHTML = rows.map((rk, i) => {
     const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colors[i % colors.length]};margin-right:6px"></span>`;
     const cells = cols.map(ck => {
@@ -200,7 +209,6 @@ function renderPivotTable(data) {
     </tr>`;
   }).join('');
 
-  // Total row
   const grandTotal = Object.values(rowTotals).reduce((a, b) => a + b, 0);
   const colTotals = cols.map(ck => {
     let sum = 0;
@@ -223,28 +231,26 @@ function renderPivot() {
 
 // ── Init ──
 function initPivot() {
-  const srcEl = document.getElementById('pivotSource');
-  if (!srcEl) return;
+  const rowSel = document.getElementById('pivotRowDim');
+  if (!rowSel) return;
 
   populateDims();
-  srcEl.addEventListener('change', () => { populateDims(); renderPivot(); });
-  document.getElementById('pivotRowDim').addEventListener('change', renderPivot);
-  document.getElementById('pivotColDim').addEventListener('change', renderPivot);
-  document.getElementById('pivotMetric').addEventListener('change', renderPivot);
-  document.getElementById('pivotRefresh').addEventListener('click', renderPivot);
 
-  // Band buttons
-  document.querySelectorAll('#pivotBandBtns .btn').forEach(btn => {
+  // Account toggle
+  document.querySelectorAll('#pivotAccountToggle .btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#pivotBandBtns .btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#pivotAccountToggle .btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      currentAccount = btn.dataset.pacct;
       renderPivot();
     });
   });
+
+  rowSel.addEventListener('change', renderPivot);
+  document.getElementById('pivotColDim').addEventListener('change', renderPivot);
+  document.getElementById('pivotRefresh').addEventListener('click', renderPivot);
 }
 
 window.initPivot = initPivot;
 window.renderPivot = renderPivot;
-
-// Auto-init when module loads
 initPivot();

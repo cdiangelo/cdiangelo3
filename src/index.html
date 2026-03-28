@@ -636,12 +636,20 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Filter bar — thick middle section -->
 <div style="background:var(--bg-elevated);border:1px solid var(--border);border-top:none;border-bottom:none;padding:16px 24px;display:flex;flex-wrap:wrap;gap:12px;align-items:end">
 <div>
-<label style="font-size:.68rem">Data Source</label>
-<select id="pivotSource" style="width:auto;padding:5px 28px 5px 8px;font-size:.78rem">
-<option value="employees">Headcount &amp; Compensation</option>
-<option value="vendor">Vendor Spend, T&amp;E, Other</option>
-</select>
+<label style="font-size:.68rem">P&amp;L Account</label>
+<div class="toggle-group" id="pivotAccountToggle" style="font-size:.72rem">
+<button class="btn active" data-pacct="ebitda" style="padding:3px 10px;font-size:.72rem">EBITDA</button>
+<button class="btn" data-pacct="opex" style="padding:3px 10px;font-size:.72rem">OpEx</button>
+<button class="btn" data-pacct="totinv" style="padding:3px 10px;font-size:.72rem">Tot Inv</button>
+<button class="btn" data-pacct="capex" style="padding:3px 10px;font-size:.72rem">CapEx</button>
+<button class="btn" data-pacct="da" style="padding:3px 10px;font-size:.72rem">D&amp;A</button>
 </div>
+</div>
+<!-- Hidden selects for JS compat -->
+<select id="pivotSource" style="display:none"><option value="pnl" selected>P&amp;L</option></select>
+<select id="pivotMetric" style="display:none"><option value="ebitda">EBITDA</option></select>
+<div id="pivotMetricWrap" style="display:none"></div>
+<div id="pivotBandWrap" style="display:none"></div>
 <div>
 <label style="font-size:.68rem">Rows</label>
 <select id="pivotRowDim" style="width:auto;padding:5px 28px 5px 8px;font-size:.78rem"></select>
@@ -650,31 +658,11 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <label style="font-size:.68rem">Columns</label>
 <select id="pivotColDim" style="width:auto;padding:5px 28px 5px 8px;font-size:.78rem"></select>
 </div>
-<div id="pivotMetricWrap">
-<label style="font-size:.68rem">Metric</label>
-<select id="pivotMetric" style="width:auto;padding:5px 28px 5px 8px;font-size:.78rem">
-<option value="hc">Headcount</option>
-<option value="comp">Total Comp</option>
-<option value="opex">OpEx</option>
-<option value="capex">CapEx</option>
-</select>
-</div>
-<div id="pivotBandWrap" style="display:none">
-<label style="font-size:.68rem">Spend Range</label>
-<div style="display:flex;gap:3px;flex-wrap:wrap" id="pivotBandBtns">
-<button class="btn btn-sm active" data-band="all" style="padding:3px 10px;font-size:.68rem">All</button>
-<button class="btn btn-sm" data-band="0-50000" style="padding:3px 10px;font-size:.68rem">$0–$50K</button>
-<button class="btn btn-sm" data-band="50000-100000" style="padding:3px 10px;font-size:.68rem">$50K–$100K</button>
-<button class="btn btn-sm" data-band="100000-500000" style="padding:3px 10px;font-size:.68rem">$100K–$500K</button>
-<button class="btn btn-sm" data-band="500000-1000000" style="padding:3px 10px;font-size:.68rem">$500K–$1M</button>
-<button class="btn btn-sm" data-band="1000000-" style="padding:3px 10px;font-size:.68rem">$1M+</button>
-</div>
-</div>
 <button class="btn btn-sm btn-primary" id="pivotRefresh" style="margin-left:auto">Refresh</button>
 </div>
 
 <!-- Table area — bottom -->
-<div class="card" style="border-radius:0 0 12px 12px;margin-top:0;padding:0;overflow:hidden">
+<div class="card" style="border-radius:0 0 12px 12px;margin-top:0;padding:0;overflow:hidden;margin-bottom:60px">
 <div class="table-wrap" style="border:none;border-radius:0;max-height:50vh;overflow:auto">
 <table id="pivotTable" style="font-size:.82rem">
 <thead id="pivotThead"></thead>
