@@ -45,6 +45,7 @@ import './features/depreciation.js';
 import './features/assets-capex.js';
 import './features/revenue.js';
 import './features/pivot.js';
+import './features/mapping-rules.js';
 import './features/calendar.js';
 import './features/landing.js';
 import './features/chevron-nav.js';

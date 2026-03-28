@@ -8,7 +8,7 @@ document.querySelectorAll('#mainNav button').forEach(b=>{
     document.getElementById('tab-'+b.dataset.tab).classList.add('active');
     if(b.dataset.tab==='dashboard')window.renderDashboard();
     if(b.dataset.tab==='employees')window.renderEmployees();
-    if(b.dataset.tab==='projects')window.renderProjects();
+    if(b.dataset.tab==='projects'){window.renderProjects();if(window._refreshDimMgmt)window._refreshDimMgmt()}
     if(b.dataset.tab==='benchmarks')window.renderBenchmarkTables();
     if(b.dataset.tab==='monthly')window.renderMonthly();
     if(b.dataset.tab==='forecast')window.renderForecast();

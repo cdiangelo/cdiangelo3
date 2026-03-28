@@ -56,7 +56,8 @@ import { state, saveState } from '../lib/state.js';
     for(let d=1;d<=daysInMonth;d++){
       const key=dateKey(viewYear,viewMonth,d);
       const isToday=d===now.getDate()&&viewMonth===now.getMonth()&&viewYear===now.getFullYear();
-      const itemCount=(items[key]?items[key].length:0)+(notes[key]?1:0);
+      const dayItems=items[key]||[];
+      const itemCount=dayItems.length+(notes[key]?1:0);
       const isSelected=selectedDate===key;
       let cls='cal-day';
       if(isToday)cls+=' today';
@@ -64,9 +65,19 @@ import { state, saveState } from '../lib/state.js';
       else if(itemCount>1)cls+=' has-multi';
       if(notes[key])cls+=' has-note';
       if(isSelected)cls+=' selected';
-      // Build tooltip preview from note
-      const tipText=hasNote?esc(notes[key].length>60?notes[key].slice(0,60)+'…':notes[key]):'';
-      html+=`<div class="${cls}" data-date="${key}" ${tipText?'title="'+tipText+'"':''}>${d}</div>`;
+      // Soft color tint from first milestone's color
+      let inlineStyle='';
+      if(dayItems.length>0){
+        const c=dayItems[0].color||'var(--accent)';
+        // Use the color as a very soft transparent background
+        if(c.startsWith('#')){
+          inlineStyle=`background:${c}CC`; // ~80% opacity via hex alpha
+        } else if(c.startsWith('var(')){
+          inlineStyle=`background:${c.replace(')','-soft)')}`.replace('var(--accent-soft)','var(--accent-soft)');
+        }
+      }
+      const tipText=notes[key]?esc(notes[key].length>60?notes[key].slice(0,60)+'…':notes[key]):'';
+      html+=`<div class="${cls}" data-date="${key}" style="${inlineStyle}" ${tipText?'title="'+tipText+'"':''}>${d}</div>`;
     }
     const totalCells=startDay+daysInMonth;
     const remaining=totalCells%7===0?0:7-(totalCells%7);
@@ -212,7 +223,7 @@ import { state, saveState } from '../lib/state.js';
   window._showCalendar=function(){
     if(calEl)calEl.style.display='flex';
     if(toggleBtn){toggleBtn.style.display='';toggleBtn.textContent='Hide Calendar'}
-    render();
+    try{render()}catch(e){console.error('Calendar render error:',e)}
   };
   window._hideCalendar=function(){
     if(calEl)calEl.style.display='none';

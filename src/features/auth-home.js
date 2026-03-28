@@ -11,16 +11,26 @@ function setUser(u){localStorage.setItem(USER_KEY,JSON.stringify(u))}
 function clearUser(){localStorage.removeItem(USER_KEY)}
 
 // API-backed plan file operations
+let _planCache=null;let _planCacheTime=0;
 async function fetchPlans(accountId){
-  try{const r=await fetch('/api/plan-files?accountId='+accountId);if(r.ok)return await r.json();return[]}catch(e){console.warn('Failed to fetch plans:',e);return[]}
+  // Return cached data if less than 30s old
+  if(_planCache&&Date.now()-_planCacheTime<30000)return _planCache;
+  try{
+    const r=await fetch('/api/plan-files?accountId='+accountId);
+    if(r.ok){_planCache=await r.json();_planCacheTime=Date.now();return _planCache}
+    return[];
+  }catch(e){console.warn('Failed to fetch plans:',e);return _planCache||[]}
 }
+function invalidatePlanCache(){_planCache=null;_planCacheTime=0}
 async function createPlanApi(data){
+  invalidatePlanCache();
   try{const r=await fetch('/api/plan-files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(r.ok)return await r.json();return null}catch(e){console.warn('Failed to create plan:',e);return null}
 }
 async function loadPlanState(planId){
   try{const r=await fetch('/api/plan-files/'+planId);if(r.ok)return await r.json();return null}catch(e){console.warn('Failed to load plan:',e);return null}
 }
 async function deletePlanApi(planId){
+  invalidatePlanCache();
   try{await fetch('/api/plan-files/'+planId,{method:'DELETE'})}catch(e){console.warn('Failed to delete plan:',e)}
 }
 async function loginApi(email){
@@ -131,12 +141,12 @@ async function renderPlanList(){
   const user=getUser();
   const list=document.getElementById('homePlanList');
 
-  // Show loading state
-  list.innerHTML='<div class="home-plan-empty" style="color:var(--tertiary)">Loading plans...</div>';
-
-  // Fetch from server if user has server id, otherwise empty
-  let plans=[];
+  // Show cached data immediately if available, fetch in background
+  let plans=_planCache||[];
   if(user&&user.id){
+    if(!plans.length){
+      list.innerHTML='<div class="home-plan-empty" style="color:var(--tertiary)">Loading plans...</div>';
+    }
     plans=await fetchPlans(user.id);
   }
   _cachedPlans=plans;
@@ -281,17 +291,33 @@ async function openPlan(plan){
   // Update bottom toolbar
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 
-  // Show side panels, calendar, and landing page
+  // Show side panels, calendar, and LANDING PAGE (chevron nav)
   setSidePanelVisibility(true);
-  if(window._showCalendar)window._showCalendar();
-  if(window.showLanding)window.showLanding();
+
+  // EXPLICITLY hide all modules and show only chevron nav
+  ['appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  const _chb2=document.getElementById('compHeaderBar');if(_chb2)_chb2.style.display='none';
+
+  // Show landing page with chevron nav visible
+  const lp=document.getElementById('landingPage');if(lp)lp.style.display='';
+  const chevNav=document.getElementById('chevronNav');if(chevNav)chevNav.style.display='';
+  const sumContent=document.getElementById('landingSummaryContent');if(sumContent)sumContent.style.display='none';
+  const oldHdr=document.getElementById('landingHeaderOld');if(oldHdr)oldHdr.style.display='none';
+
+  // Show plan header bar + bottom toolbar
+  if(window._showCalendar)try{window._showCalendar()}catch(e){}
+  if(window._updateBottomToolbar)window._updateBottomToolbar();
+  // Force bottom toolbar visible
+  const btb=document.getElementById('bottomToolbar');if(btb)btb.style.display='flex';
+
+  // Render landing content
   if(window.initDropdowns)try{window.initDropdowns()}catch(e){}
-  // Only render landing-specific content — exec/modules render when navigated to
   if(window.renderPnlWalk)try{window.renderPnlWalk()}catch(e){}
   if(window.renderLandingCharts)try{window.renderLandingCharts()}catch(e){}
-  // Ensure appShell stays hidden on landing page (safety net)
-  document.getElementById('appShell').style.display='none';
-  const _chb2=document.getElementById('compHeaderBar');if(_chb2)_chb2.style.display='none';
+
+  // appShell now properly wraps <main> so display:none works correctly
 
   // Back to home
   document.getElementById('planBackHome').onclick=()=>{

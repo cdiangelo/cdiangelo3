@@ -81,14 +81,14 @@ function toggleBandFilter(btn,groupId){
 let pnlFilterProduct='',pnlFilterCategory='';
 
 function hideAllModules(){
-  document.getElementById('landingPage').style.display='none';
-  document.getElementById('appShell').style.display='none';
-  document.getElementById('vendorModule').style.display='none';
-  document.getElementById('depreciationModule').style.display='none';
-  document.getElementById('revenueModule').style.display='none';
-  document.getElementById('ltfModule').style.display='none';
-  // Also hide the exec header bar
+  // Hide every module container
+  ['landingPage','appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  // Hide exec header bar
   const chb=document.getElementById('compHeaderBar');if(chb)chb.style.display='none';
+  // Deactivate all tab-content inside appShell to prevent bleed
+  document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'));
 }
 function showLanding(){
   hideAllModules();
@@ -105,7 +105,6 @@ function showLanding(){
 function showApp(){
   hideAllModules();
   document.getElementById('appShell').style.display='';
-  renderAll();
   if(window._updateGlobalToolbar)window._updateGlobalToolbar();
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
@@ -284,155 +283,250 @@ function renderPnlWalk(){
   populatePnlFilters();
   const emps=getPnlFilteredEmps();
   const tbl=document.getElementById('pnlWalkTable');
+  const row1Sel=document.getElementById('fysRow1');
+  const row2Sel=document.getElementById('fysRow2');
+  const colToggle=document.querySelector('#fysColToggle .btn.active');
+  const row1Dim=row1Sel?row1Sel.value:'category';
+  const row2Dim=row2Sel?row2Sel.value:'';
+  const colMode=colToggle?colToggle.dataset.fyscol:'collapsed';
+  const chartViewBtn=document.querySelector('#landingChartViewToggle .btn.active');
+  const isTotInvView=chartViewBtn&&chartViewBtn.dataset.lcview==='total';
 
-  // Build matrix: rows = product categories, with product drill-down
-  // Group employees by category → product
-  const catGroups={};
-  emps.forEach(e=>{
+  // Dimension getter
+  function getDim(e,dim){
     const p=getEmpProject(e);
-    const cat=p?p.category||'Uncategorized':'Uncategorized';
-    const prod=p?p.product||'Unassigned':'Unassigned';
-    if(!catGroups[cat])catGroups[cat]={emps:[],products:{}};
-    catGroups[cat].emps.push(e);
-    if(!catGroups[cat].products[prod])catGroups[cat].products[prod]=[];
-    catGroups[cat].products[prod].push(e);
-  });
-  const catKeys=Object.keys(catGroups).sort();
-
-  // Compute P&L data for a group of employees
-  function computePnl(empList){
-    let comp=0,capex=0;
-    empList.forEach(e=>{for(let mi=0;mi<12;mi++){comp+=getMonthlyComp(e,mi);capex+=getMonthlyCapEx(e,mi)}});
-    return {hc:empList.length,cbOpex:comp-capex,capex};
+    if(dim==='category')return p?p.category||'Uncategorized':'Uncategorized';
+    if(dim==='product')return p?p.product||'Unassigned':'Unassigned';
+    if(dim==='function')return e.function||'Unknown';
+    if(dim==='country')return e.country||'Unknown';
+    if(dim==='bizline')return e.bizLine||e.businessLine||'Unassigned';
+    if(dim==='market'){const m=getEmpMarkets(e);return m&&m[0]?m[0].code:'Unknown'}
+    return 'Unknown';
   }
 
-  // Compute per-category and per-product P&L data
-  const catData={};
-  const prodData={};
-  const totals={hc:0,cbOpex:0,oao:0,adjEbitda:0,da:0,totalOpex:0,capex:0,totInv:0};
-  catKeys.forEach(cat=>{
-    catData[cat]=computePnl(catGroups[cat].emps);
-    totals.hc+=catData[cat].hc;totals.cbOpex+=catData[cat].cbOpex;totals.capex+=catData[cat].capex;
-    prodData[cat]={};
-    Object.keys(catGroups[cat].products).sort().forEach(prod=>{
-      prodData[cat][prod]=computePnl(catGroups[cat].products[prod]);
-    });
+  // Group employees by Row1 → Row2
+  const groups={};
+  emps.forEach(e=>{
+    const k1=getDim(e,row1Dim);
+    if(!groups[k1])groups[k1]={emps:[],children:{}};
+    groups[k1].emps.push(e);
+    if(row2Dim){
+      const k2=getDim(e,row2Dim);
+      if(!groups[k1].children[k2])groups[k1].children[k2]=[];
+      groups[k1].children[k2].push(e);
+    }
   });
+  const groupKeys=Object.keys(groups).sort();
 
-  // Distribute vendor/T&E/contractor OAO across categories/products proportionally by HC
-  // Note: contractor CapEx is NOT included in the comp plan P&L — only in landing page summaries
-  const oaoTotal=getFilteredOaoTotal();
+  // Compute P&L — split existing vs hires
+  function isHire(e){
+    if(!e.hireDate)return false;
+    const hd=new Date(e.hireDate);
+    return hd.getFullYear()>=CURRENT_YEAR;
+  }
+  function computePnl(empList){
+    let cb=0,cbCapex=0,hires=0,hiresCapex=0,hc=0,hiresHc=0;
+    empList.forEach(e=>{
+      let comp=0,capx=0;
+      for(let mi=0;mi<12;mi++){comp+=getMonthlyComp(e,mi);capx+=getMonthlyCapEx(e,mi)}
+      if(isHire(e)){hires+=comp;hiresCapex+=capx;hiresHc++}
+      else{cb+=comp;cbCapex+=capx}
+      hc++;
+    });
+    return {hc,cb,cbCapex,hires,hiresCapex,hiresHc};
+  }
+
+  // OAO breakdown: vendor spend, T&E, other
+  const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  let oaoVendor=0,oaoTE=0,oaoOther=0;
+  (state.vendorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoVendor+=fy});
+  (state.teRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoTE+=fy});
+  // "Other" = contractor spend + any misc
+  (state.contractorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoOther+=fy});
+  const oaoTotal=oaoVendor+oaoTE+oaoOther;
+  const ctrCapexTotal=window.getContractorCapExTotal?window.getContractorCapExTotal():0;
   const daTotal=getDepreciationTotal();
-  const revenueTotal=getRevenueTotal();
   const revenueEnabled=localStorage.getItem('compPlanRevenue')!=='0';
   const isRevMode=revenueEnabled&&(state.landingPnlMode||'cost')==='revenue';
-  function enrichWithOao(d,totalHc){
+  const revenueTotal=isRevMode?getRevenueTotal():0;
+
+  function enrich(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
-    d.oao=Math.round(oaoTotal*share);
-    d.adjEbitda=d.cbOpex+d.oao;
+    d.oao=Math.round(oaoVendor*share);
+    d.te=Math.round(oaoTE*share);
+    d.other=Math.round(oaoOther*share);
+    d.cbOpex=d.cb-d.cbCapex;
+    d.hiresOpex=d.hires-d.hiresCapex;
+    d.ebitda=d.cbOpex+d.hiresOpex+d.oao+d.te+d.other;
     d.da=Math.round(daTotal*share);
-    d.totalOpex=d.adjEbitda+d.da;
-    d.totInv=d.totalOpex+d.capex;
-    if(isRevMode){
-      d.revenue=Math.round(revenueTotal*share);
-      // In revenue mode: revenue positive, costs negative = profitability
-      d.cbOpex=-Math.abs(d.cbOpex);
-      d.oao=-Math.abs(d.oao);
-      d.adjEbitda=d.revenue+d.cbOpex+d.oao;
-      d.da=-Math.abs(d.da);
-      d.totalOpex=d.adjEbitda+d.da;
-      d.capex=-Math.abs(d.capex);
-      d.totInv=d.totalOpex+d.capex;
+    d.opex=d.ebitda+d.da;
+    d.ctrCapex=Math.round(ctrCapexTotal*share);
+    d.capex=d.cbCapex+d.hiresCapex+d.ctrCapex;
+    d.totinv=d.opex+d.capex;
+    return d;
+  }
+
+  // Build group data
+  const totalHc=emps.length;
+  const gData={};const gChildData={};
+  const totals={hc:0,cb:0,cbCapex:0,hires:0,hiresCapex:0,hiresHc:0,oao:0,te:0,other:0,ebitda:0,da:0,opex:0,capex:0,totinv:0,cbOpex:0,hiresOpex:0};
+  groupKeys.forEach(k=>{
+    gData[k]=enrich(computePnl(groups[k].emps),totalHc);
+    Object.keys(gData[k]).forEach(f=>{if(typeof totals[f]==='number')totals[f]+=gData[k][f]});
+    gChildData[k]={};
+    if(row2Dim){
+      Object.keys(groups[k].children).sort().forEach(k2=>{
+        gChildData[k][k2]=enrich(computePnl(groups[k].children[k2]),totalHc);
+      });
     }
-  }
-  catKeys.forEach(cat=>{
-    enrichWithOao(catData[cat],totals.hc);
-    Object.keys(prodData[cat]).forEach(prod=>enrichWithOao(prodData[cat][prod],totals.hc));
   });
-  if(isRevMode){
-    totals.revenue=revenueTotal;
-    totals.cbOpex=-Math.abs(totals.cbOpex);
-    totals.oao=-Math.abs(oaoTotal);
-    totals.adjEbitda=revenueTotal+totals.cbOpex+totals.oao;
-    totals.da=-Math.abs(daTotal);
-    totals.totalOpex=totals.adjEbitda+totals.da;
-    totals.capex=-Math.abs(totals.capex);
-    totals.totInv=totals.totalOpex+totals.capex;
+  // Fix totals for distributed amounts
+  totals.oao=oaoVendor;totals.te=oaoTE;totals.other=oaoOther;
+  totals.cbOpex=totals.cb-totals.cbCapex;totals.hiresOpex=totals.hires-totals.hiresCapex;
+  totals.ebitda=totals.cbOpex+totals.hiresOpex+oaoVendor+oaoTE+oaoOther;
+  totals.da=daTotal;totals.opex=totals.ebitda+totals.da;
+  totals.ctrCapex=ctrCapexTotal;totals.capex=totals.cbCapex+totals.hiresCapex+ctrCapexTotal;
+  totals.totinv=totals.opex+totals.capex;
+
+  // Column definitions
+  let cols;
+  if(colMode==='expanded'&&isTotInvView){
+    // Detail + Total Inv: skip D&A and OPEX
+    cols=[
+      {key:'hc',label:'HC',narrow:true,isHC:true},
+      {key:'cb',label:'C&B'},
+      {key:'hires',label:'HIRES'},
+      {key:'oao',label:'OAO'},
+      {key:'te',label:'T&E'},
+      {key:'other',label:'OTHER'},
+      {key:'ebitda',label:'EBITDA',cls:'subtotal'},
+      {key:'cbCapex',label:'C&B CAP'},
+      {key:'hiresCapex',label:'HIRES CAP'},
+      {key:'ctrCapex',label:'CTR CAP'},
+      {key:'capex',label:'CAPEX',cls:'sub2'},
+      {key:'totinv',label:'TOT INV',cls:'total'},
+    ];
+  } else if(colMode==='expanded'){
+    // Detail + P&L/Cost: full columns
+    cols=[
+      {key:'hc',label:'HC',narrow:true,isHC:true},
+      {key:'cb',label:'C&B'},
+      {key:'hires',label:'HIRES'},
+      {key:'oao',label:'OAO'},
+      {key:'te',label:'T&E'},
+      {key:'other',label:'OTHER'},
+      {key:'ebitda',label:'EBITDA',cls:'subtotal'},
+      {key:'da',label:'D&A'},
+      {key:'opex',label:'OPEX',cls:'subtotal'},
+      {key:'cbCapex',label:'C&B CAP'},
+      {key:'hiresCapex',label:'HIRES CAP'},
+      {key:'ctrCapex',label:'CTR CAP'},
+      {key:'capex',label:'CAPEX',cls:'sub2'},
+      {key:'totinv',label:'TOT INV',cls:'total'},
+    ];
+  } else if(isTotInvView){
+    // Summary + Total Inv
+    cols=[
+      {key:'hc',label:'HC',narrow:true,isHC:true},
+      {key:'ebitda',label:'EBITDA',cls:'subtotal'},
+      {key:'totinv',label:'TOT INV',cls:'total'},
+    ];
   } else {
-    totals.oao=oaoTotal;totals.adjEbitda=totals.cbOpex+oaoTotal;totals.da=daTotal;
-    totals.totalOpex=totals.adjEbitda+totals.da;totals.totInv=totals.totalOpex+totals.capex;
+    // Summary + P&L/Cost
+    cols=[
+      {key:'hc',label:'HC',narrow:true,isHC:true},
+      {key:'ebitda',label:'EBITDA',cls:'subtotal'},
+      {key:'opex',label:'OPEX',cls:'subtotal'},
+      {key:'totinv',label:'TOT INV',cls:'total'},
+    ];
   }
 
-  // Columns = P&L line items
-  const cols=[];
-  if(isRevMode)cols.push({key:'revenue',label:'Revenue',isCurrency:true,cls:'revenue'});
-  cols.push(
-    {key:'hc',label:'HC',isCurrency:false},
-    {key:'cbOpex',label:'C&B',isCurrency:true},
-    {key:'oao',label:'OAO',isCurrency:true},
-    {key:'adjEbitda',label:isRevMode?'Gross Margin':'Adj EBITDA',isCurrency:true,cls:'subtotal'},
-    {key:'da',label:'D&A',isCurrency:true},
-    {key:'totalOpex',label:isRevMode?'EBITDA':'OpEx',isCurrency:true,cls:'subtotal'},
-    {key:'capex',label:'CapEx',isCurrency:true},
-    {key:'totInv',label:isRevMode?'Net Income':'Tot Inv',isCurrency:true,cls:'total'}
-  );
-
-  const fmtM=v=>{const a=Math.abs(v);if(a>=1e5)return(v<0?'-':'')+'$'+(v/1e6).toFixed(2)+'M';return fmt(v)};
+  // Format — drop $M suffix since header says "(in $M)"
+  function fv(v,isHC){
+    if(isHC)return v||'—';
+    if(!v)return '—';
+    // Always show in $M since header says "(in $M)"
+    const abs=Math.abs(v);const sign=v<0?'-':'';
+    return sign+'$'+(abs/1e6).toFixed(2);
+  }
   function fmtCell(c,v){
-    const style=c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':'';
-    return `<td class="num" style="${style}">${c.isCurrency?fmtM(v):v}</td>`;
+    let style='padding:5px 6px;font-size:.78rem';
+    if(c.cls==='subtotal')style+=';font-weight:700;color:var(--accent);border-left:1px solid var(--border-light)';
+    else if(c.cls==='total')style+=';font-weight:700;border-left:1px solid var(--border-light)';
+    else if(c.cls==='sub2')style+=';font-weight:700;color:var(--accent);border-right:1px solid var(--border-light)';
+    if(c.narrow)style+=';width:36px';
+    return `<td class="num" style="${style}">${c.isHC?fv(v,true):fv(v)}</td>`;
   }
 
-  let h='<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap">Product Category</th>';
-  cols.forEach(c=>{const wrap=c.label.length>12?'white-space:normal;max-width:70px':'white-space:nowrap';h+=`<th style="text-align:right;${wrap}">${c.label}</th>`});
+  // Row1 label
+  const row1Label=row1Sel?row1Sel.options[row1Sel.selectedIndex].text:'CATEGORY';
+
+  let h=`<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap;min-width:140px">${esc(row1Label.toUpperCase())}</th>`;
+  cols.forEach(c=>{
+    let w=c.narrow?'width:36px;':'min-width:55px;';
+    let extra='';
+    if(c.cls==='subtotal'){w='min-width:65px;';extra='font-weight:700;color:var(--accent);border-left:1px solid var(--border-light);'}
+    else if(c.cls==='total'){w='min-width:65px;';extra='font-weight:700;border-left:1px solid var(--border-light);'}
+    else if(c.cls==='sub2'){w='min-width:65px;';extra='font-weight:700;color:var(--accent);border-right:1px solid var(--border-light);'}
+    h+=`<th style="text-align:right;${w}${extra}white-space:nowrap;padding:5px 6px;font-size:.68rem">${c.label}</th>`;
+  });
   h+='</tr></thead><tbody>';
 
-  catKeys.forEach(cat=>{
-    const d=catData[cat];
-    const prodKeys=Object.keys(catGroups[cat].products).sort();
-    const hasProducts=prodKeys.length>1||(prodKeys.length===1&&prodKeys[0]!==cat);
-    const expanded=pnlExpandedCats.has(cat);
-    const arrow=hasProducts?(expanded?'▼':'▶'):'';
-    const arrowStyle=hasProducts?'cursor:pointer;user-select:none':'';
-    h+=`<tr class="pnl-cat-row" data-cat="${esc(cat)}"><td style="font-weight:600;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1;${arrowStyle}"><span class="pnl-cat-arrow" style="font-size:.65rem;margin-right:4px;display:inline-block;width:10px;color:var(--text-dim)">${arrow}</span>${esc(cat)}</td>`;
+  groupKeys.forEach(k=>{
+    const d=gData[k];
+    const childKeys=row2Dim?Object.keys(groups[k].children).sort():[];
+    const hasChildren=childKeys.length>1||(childKeys.length===1&&childKeys[0]!==k);
+    const expanded=pnlExpandedCats.has(k);
+    const arrow=hasChildren?(expanded?'▼':'▶'):'';
+    h+=`<tr class="pnl-cat-row" data-cat="${esc(k)}"><td style="font-weight:600;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1;cursor:${hasChildren?'pointer':'default'}"><span style="font-size:.6rem;margin-right:4px;display:inline-block;width:10px;color:var(--text-dim)">${arrow}</span>${esc(k)}</td>`;
     cols.forEach(c=>h+=fmtCell(c,d[c.key]));
     h+='</tr>';
-    // Product sub-rows (shown when expanded)
-    if(hasProducts&&expanded){
-      prodKeys.forEach(prod=>{
-        const pd=prodData[cat][prod];
-        h+=`<tr class="pnl-prod-row" style="background:var(--panel-inset)"><td style="padding-left:28px;white-space:nowrap;position:sticky;left:0;background:var(--panel-inset);z-index:1;font-size:.78rem;color:var(--text-dim)">${esc(prod)}</td>`;
-        cols.forEach(c=>h+=`<td class="num" style="font-size:.78rem;color:var(--text-dim);${c.cls==='subtotal'?'font-weight:600;color:var(--accent)':c.cls==='total'?'font-weight:600':''}">${c.isCurrency?fmtM(pd[c.key]):pd[c.key]}</td>`);
+    if(hasChildren&&expanded){
+      childKeys.forEach(k2=>{
+        const cd=gChildData[k][k2];
+        h+=`<tr style="background:var(--panel-inset)"><td style="padding-left:24px;white-space:nowrap;position:sticky;left:0;background:var(--panel-inset);z-index:1;font-size:.76rem;color:var(--text-dim)">${esc(k2)}</td>`;
+        cols.forEach(c=>{
+          let cs='font-size:.76rem;color:var(--text-dim)';
+          if(c.cls==='subtotal')cs+=';font-weight:600;color:var(--accent);border-left:1px solid var(--border-light)';
+          else if(c.cls==='total')cs+=';font-weight:600;border-left:1px solid var(--border-light)';
+          else if(c.cls==='sub2')cs+=';font-weight:600;color:var(--accent);border-right:1px solid var(--border-light)';
+          h+=`<td class="num" style="${cs}">${c.isHC?fv(cd[c.key],true):fv(cd[c.key])}</td>`;
+        });
         h+='</tr>';
       });
     }
   });
 
-  // Total row
   h+=`<tr class="total"><td style="position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:10px;margin-right:4px"></span>Total</td>`;
-  cols.forEach(c=>h+=`<td class="num">${c.isCurrency?fmtM(totals[c.key]):totals[c.key]}</td>`);
+  cols.forEach(c=>h+=`<td class="num">${c.isHC?fv(totals[c.key],true):fv(totals[c.key])}</td>`);
   h+='</tr></tbody>';
-  tbl.innerHTML=h;
-  tbl.classList.remove('compact');
+  tbl.innerHTML=h;tbl.classList.remove('compact');
 
-  // Bind expand/collapse clicks on category rows
+  // Bind clicks
   tbl.querySelectorAll('.pnl-cat-row').forEach(tr=>{
     tr.addEventListener('click',()=>{
       const cat=tr.dataset.cat;
-      const prodKeys=Object.keys(catGroups[cat]?.products||{});
-      const hasProducts=prodKeys.length>1||(prodKeys.length===1&&prodKeys[0]!==cat);
-      if(!hasProducts)return;
       if(pnlExpandedCats.has(cat))pnlExpandedCats.delete(cat);else pnlExpandedCats.add(cat);
       renderPnlWalk();
     });
   });
 }
 
+// Full Year Summary row/column change handlers
+const _fysRow1=document.getElementById('fysRow1');
+const _fysRow2=document.getElementById('fysRow2');
+if(_fysRow1)_fysRow1.addEventListener('change',()=>{pnlExpandedCats.clear();renderPnlWalk()});
+if(_fysRow2)_fysRow2.addEventListener('change',()=>{pnlExpandedCats.clear();renderPnlWalk()});
+document.querySelectorAll('#fysColToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#fysColToggle .btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');renderPnlWalk();
+}));
+
 let landingBudgetChartInst=null,landingForecastChartInst=null,landingRevenueChartInst=null,landingRevFcChartInst=null,landingChartView='pnl';
 
 document.querySelectorAll('#landingChartViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#landingChartViewToggle .btn').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');landingChartView=b.dataset.lcview;renderLandingCharts();
+  b.classList.add('active');landingChartView=b.dataset.lcview;renderLandingCharts();renderPnlWalk();
 }));
 
 function renderLandingCharts(){

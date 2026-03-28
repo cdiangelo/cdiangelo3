@@ -40,8 +40,9 @@
 .cal-grid .cal-day{padding:6px 2px;border-radius:6px;cursor:pointer;color:var(--text-dim);position:relative}
 .cal-grid .cal-day:hover{background:var(--accent-glow)}
 .cal-grid .cal-day.today{font-weight:700;color:var(--accent)}
-/* Single item: subtle full-cell highlight */
-.cal-grid .cal-day.has-single{background:var(--accent-soft)}
+/* Single item: uses inline style with item's color at ~10% opacity */
+/* Fallback if no inline color set */
+.cal-grid .cal-day.has-single:not([style*="background"]){background:var(--accent-soft)}
 /* Multiple items: dots indicator */
 .cal-grid .cal-day.has-multi::after{content:'••';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:.45rem;letter-spacing:1px;color:var(--accent);line-height:1}
 .cal-grid .cal-day.selected{background:var(--accent-soft);color:var(--text)}
