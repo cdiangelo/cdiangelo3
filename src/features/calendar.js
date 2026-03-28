@@ -170,17 +170,23 @@ import { state, saveState } from '../lib/state.js';
       let rows='';
       if(dateItems.length){
         rows+=dateItems.map(item=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:3px 0">
-            <span style="width:5px;height:5px;border-radius:50%;background:${item.color||'var(--accent)'};flex-shrink:0"></span>
+          <div style="display:flex;align-items:center;gap:6px;padding:3px 0">
             <span style="font-size:.78rem;color:var(--text)">${esc(item.text)}</span>
           </div>`).join('');
       }
       if(dateNote){
         const preview=dateNote.length>60?dateNote.slice(0,60)+'…':dateNote;
-        rows+=`<div style="font-size:.72rem;color:var(--text-dim);padding:3px 0 0 13px;font-style:italic;cursor:default" title="${esc(dateNote)}">${esc(preview)}</div>`;
+        rows+=`<div style="font-size:.72rem;color:var(--text-dim);padding:3px 0 0 0;font-style:italic;cursor:default" title="${esc(dateNote)}">${esc(preview)}</div>`;
       }
-      const cardBg=primaryColor.startsWith('#')?primaryColor+'B0':'var(--accent-soft)';
-      return `<div style="padding:10px 14px;border-radius:8px;background:${cardBg};margin-bottom:6px">
+      // Soft tint matching day cell color — convert hex to rgba at ~18% opacity
+      let cardBg='var(--accent-soft)';
+      let cardBorder='var(--accent-soft)';
+      if(primaryColor.startsWith('#')){
+        const r=parseInt(primaryColor.slice(1,3),16),g=parseInt(primaryColor.slice(3,5),16),b=parseInt(primaryColor.slice(5,7),16);
+        cardBg=`rgba(${r},${g},${b},0.18)`;
+        cardBorder=`rgba(${r},${g},${b},0.30)`;
+      }
+      return `<div style="padding:10px 14px;border-radius:8px;background:${cardBg};border:1px solid ${cardBorder};margin-bottom:6px">
         <div style="font-size:.65rem;font-weight:600;color:var(--text);letter-spacing:.08em;margin-bottom:4px;opacity:.7">${dateLabel}</div>
         ${rows}
       </div>`;
