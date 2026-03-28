@@ -173,6 +173,16 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="btn" onclick="document.getElementById('templateBanner').style.display='none'" title="Dismiss">&times;</button>
 </div>
 
+<!-- Executive Summary Header Bar — before landingPage so it renders on top -->
+<div class="module-header-bar" id="compHeaderBar" style="display:none">
+<h2 class="module-title">Executive Summary</h2>
+<div class="nav-group-btns" id="execSubNav">
+<button class="btn active" id="execSubOverview">Overview</button>
+<button class="btn" id="execSubComp">Exec Comp</button>
+<button class="btn" id="execSubPivot">Pivot</button>
+</div>
+</div>
+
 <!-- LANDING PAGE -->
 <div id="landingPage" style="display:none">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;display:none" id="landingHeaderOld">
@@ -376,16 +386,6 @@ document.getElementById('overviewViewToggle').addEventListener('click',function(
 <div class="expand-chart-title">Revenue Long-Term Forecast</div>
 <div class="chart-wrap"><canvas id="expandRevFcChart"></canvas></div>
 </div>
-</div>
-</div>
-
-<!-- Executive Summary Header Bar — outside appShell so it stays visible in Overview -->
-<div class="module-header-bar" id="compHeaderBar" style="display:none">
-<h2 class="module-title">Executive Summary</h2>
-<div class="nav-group-btns" id="execSubNav">
-<button class="btn active" id="execSubOverview">Overview</button>
-<button class="btn" id="execSubComp">Exec Comp</button>
-<button class="btn" id="execSubPivot">Pivot</button>
 </div>
 </div>
 
