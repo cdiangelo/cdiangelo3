@@ -274,7 +274,7 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- LANDING PAGE -->
 <div id="landingPage" style="display:none">
-<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;display:none" id="landingHeaderOld">
 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
 <div>
 <h2>Budgeting &amp; Long Term Planning</h2>
@@ -305,34 +305,47 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="landingCodeError" style="width:100%;color:var(--danger);font-size:.8rem;display:none"></div>
 </div>
 
-<div class="landing-modules">
-<div class="landing-module" id="modCompPlan">
-<h3><span class="mod-icon">&#9733;</span> Compensation Planning</h3>
-<p>Full employee roster, compensation modeling, CapEx/OpEx allocation, project mapping, and executive reporting.</p>
-<span class="mod-badge active">Active</span>
+<!-- Legacy module cards (hidden, kept for JS references) -->
+<div class="landing-modules" style="display:none">
+<div class="landing-module" id="modCompPlan"></div>
+<div class="landing-module" id="modVendor"></div>
+<div class="landing-module" id="modDepreciation"></div>
+<div class="landing-module" id="modLtf"></div>
+<div class="landing-module" id="modRevenue"></div>
 </div>
-<div class="landing-module" id="modVendor">
-<h3><span class="mod-icon">&#9830;</span> Vendor Spend, T&amp;E &amp; Other</h3>
-<p>Track vendor contracts, travel &amp; entertainment expenses, and other non-compensation operating costs.</p>
-<span class="mod-badge active">Active</span>
+
+<!-- ═══ CHEVRON NAV ═══ -->
+<div class="chevron-nav" id="chevronNav">
+<div class="chevron-item" id="chevExecSummary" data-target="exec">
+<div class="chevron-shape">
+<span class="chevron-label">Executive Summary</span>
 </div>
-<div class="landing-module" id="modDepreciation">
-<h3><span class="mod-icon">&#9670;</span> Depreciation, CapEx &amp; Asset Summary</h3>
-<p>Depreciation schedules, capital expenditure tracking, and consolidated asset reporting.</p>
-<span class="mod-badge coming">In Development</span>
 </div>
-<div class="landing-module" id="modLtf">
-<h3><span class="mod-icon">&#9670;</span> Long-Term Forecast</h3>
-<p>Multi-year P&amp;L projection with C&amp;B, OAO, and D&amp;A forecasting, independent growth modeling, and Y/Y analysis.</p>
-<span class="mod-badge active">Active</span>
+<div class="chevron-item has-submenu" id="chevBudget" data-target="budget">
+<div class="chevron-shape">
+<span class="chevron-label">Budget</span>
+<span class="chevron-expand-icon">&#9655;</span>
 </div>
-<div class="landing-module" id="modRevenue" style="display:none">
-<h3><span class="mod-icon">&#9734;</span> Tech Revenue</h3>
-<p>Client revenue tracking, subscription metrics, contract management, forecasting, and revenue analysis.</p>
-<span class="mod-badge coming">In Development</span>
+<div class="chevron-submenu" id="chevBudgetMenu">
+<div class="chevron-sub-item" data-module="comp">Headcount &amp; Compensation</div>
+<div class="chevron-sub-item" data-module="vendor">Vendor Spend, T&amp;E, Other</div>
+<div class="chevron-sub-item" data-module="depreciation">Depreciation, Capex, Assets</div>
+</div>
+</div>
+<div class="chevron-item has-submenu" id="chevForecast" data-target="forecast">
+<div class="chevron-shape">
+<span class="chevron-label">Forecast</span>
+<span class="chevron-expand-icon">&#9655;</span>
+</div>
+<div class="chevron-submenu" id="chevForecastMenu">
+<div class="chevron-sub-item" data-module="comp">Headcount &amp; Compensation</div>
+<div class="chevron-sub-item" data-module="vendor">Vendor Spend, T&amp;E, Other</div>
+<div class="chevron-sub-item" data-module="depreciation">Depreciation, Capex, Assets</div>
+</div>
 </div>
 </div>
 
+<div style="display:none" id="landingSummaryContent">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px" id="landingPnlGrid">
 <!-- Left: P&L by Product Category matrix -->
 <div class="pnl-walk" style="margin-bottom:0">
@@ -400,6 +413,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </div>
+</div><!-- /landingSummaryContent -->
 </div>
 
 <div id="chartExpandPane">
@@ -3089,6 +3103,20 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" id="msCancelBtn">Cancel</button>
 <button class="btn btn-primary" id="msSaveBtn">Save</button>
 </div>
+</div>
+</div>
+
+<!-- ═══ BOTTOM TOOLBAR ═══ -->
+<div id="bottomToolbar" style="display:none">
+<div class="btb-left">
+<span class="btb-plan-name" id="btbPlanName">Name:</span>
+<span class="btb-plan-version" id="btbPlanVersion">Version:</span>
+</div>
+<div class="btb-right">
+<button class="btb-btn" id="btbGuide">guide</button>
+<button class="btb-btn" id="btbSettings">settings</button>
+<button class="btb-btn" id="btbScenario">scenario comp.</button>
+<button class="btb-btn" id="btbData">data &amp; dimensions</button>
 </div>
 </div>
 
