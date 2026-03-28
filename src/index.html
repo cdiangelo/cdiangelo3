@@ -802,52 +802,91 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- PROJECT / MARKET MAPPING -->
 <div id="tab-projects" class="tab-content">
+
+<!-- ═══ SECTION 1: DIMENSIONS ═══ -->
 <div class="card" style="margin-bottom:20px">
-<h3 class="section-title">Add Project</h3>
-<div class="form-grid">
-<div class="form-group"><label>Project Code</label><input id="projCode" placeholder="e.g. PRJ-001"></div>
-<div class="form-group"><label>Market Code</label><select id="projMarket"><option value="">Select…</option></select></div>
-<div class="form-group"><label>Product</label><input id="projProduct" placeholder="e.g. Analytics Suite"></div>
-<div class="form-group"><label>Product Category</label><input id="projCategory" placeholder="e.g. Enterprise Software"></div>
-<div class="form-group"><label>Description</label><input id="projDesc" placeholder="Brief description"></div>
+<h3 class="section-title">Dimensions</h3>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:16px">Manage the building blocks used across all cost categories. Add products, categories, markets, and business lines here.</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+<!-- Products & Categories -->
+<div>
+<h4 style="font-size:.82rem;color:var(--accent);margin-bottom:8px">Products &amp; Categories</h4>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+<input id="dimProduct" placeholder="Product name" style="flex:1;min-width:120px;padding:6px 10px;font-size:.78rem">
+<input id="dimCategory" placeholder="Category" style="flex:1;min-width:120px;padding:6px 10px;font-size:.78rem">
+<button class="btn btn-sm btn-primary" id="btnAddDimProduct" style="white-space:nowrap">+ Add</button>
 </div>
-<div style="margin-top:16px;display:flex;gap:8px">
-<button class="btn btn-primary" id="btnAddProject">Add Project</button>
+<div id="dimProductList" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:3px"></div>
+</div>
+
+<!-- Markets -->
+<div>
+<h4 style="font-size:.82rem;color:var(--accent);margin-bottom:8px">Markets</h4>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+<input id="mktCode" placeholder="Code (e.g. JP0011)" maxlength="6" style="width:100px;padding:6px 10px;font-size:.78rem;text-transform:uppercase">
+<input id="mktName" placeholder="Market name" style="flex:1;min-width:100px;padding:6px 10px;font-size:.78rem">
+<button class="btn btn-sm btn-primary" id="btnAddMarket" style="white-space:nowrap">+ Add</button>
+</div>
+<div class="table-wrap" style="max-height:200px;overflow-y:auto"><table id="marketsTable" style="font-size:.78rem"><thead><tr>
+<th>Code</th><th>Name</th><th>Projects</th><th></th>
+</tr></thead><tbody></tbody></table></div>
 </div>
 </div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px">
+<!-- Business Lines -->
+<div>
+<h4 style="font-size:.82rem;color:var(--accent);margin-bottom:8px">Business Lines</h4>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+<input id="bizCode" placeholder="Code (e.g. 800000)" maxlength="6" style="width:100px;padding:6px 10px;font-size:.78rem">
+<input id="bizName" placeholder="Line name" style="flex:1;min-width:100px;padding:6px 10px;font-size:.78rem">
+<button class="btn btn-sm btn-primary" id="btnAddBizLine" style="white-space:nowrap">+ Add</button>
+</div>
+<div class="table-wrap" style="max-height:200px;overflow-y:auto"><table id="bizLinesTable" style="font-size:.78rem"><thead><tr>
+<th>Code</th><th>Name</th><th>Employees</th><th></th>
+</tr></thead><tbody></tbody></table></div>
+</div>
+<div></div>
+</div>
+</div>
+
+<!-- ═══ SECTION 2: PROJECTS ═══ -->
+<div class="card" style="margin-bottom:20px">
+<h3 class="section-title">Projects</h3>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Create project codes. Assign products, categories, markets, and business lines to each. Employees and costs are allocated to projects.</p>
+<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:end">
+<div><label style="font-size:.68rem">Code</label><input id="projCode" placeholder="PRJ-001" style="width:90px;padding:6px 10px;font-size:.78rem"></div>
+<div><label style="font-size:.68rem">Product</label><input id="projProduct" placeholder="Product" style="width:130px;padding:6px 10px;font-size:.78rem"></div>
+<div><label style="font-size:.68rem">Category</label><input id="projCategory" placeholder="Category" style="width:130px;padding:6px 10px;font-size:.78rem"></div>
+<div><label style="font-size:.68rem">Market</label><select id="projMarket" style="padding:6px 10px;font-size:.78rem;width:auto"><option value="">—</option></select></div>
+<div><label style="font-size:.68rem">Description</label><input id="projDesc" placeholder="Optional" style="width:140px;padding:6px 10px;font-size:.78rem"></div>
+<button class="btn btn-sm btn-primary" id="btnAddProject">Add Project</button>
+</div>
+<div class="table-wrap"><table id="projectsTable" style="font-size:.78rem"><thead><tr>
+<th>Code</th><th>Market</th><th>Biz Line</th><th>Product</th><th>Category</th><th>Description</th><th>FTE</th><th>Cost</th><th></th>
+</tr></thead><tbody></tbody></table></div>
+</div>
+
+<!-- ═══ SECTION 3: MAPPING RULES ═══ -->
 <div class="card">
-<h3 class="section-title">Project / Market Directory</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Map each project code to a market code, product, and category. Each project has a 1:1 market assignment. Assign employees to projects in the Employees tab.</p>
-<div class="table-wrap"><table id="projectsTable"><thead><tr>
-<th>Project Code</th><th>Market Code</th><th>Biz Line</th><th>Product</th><th>Product Category</th><th>Description</th><th>Allocated FTE</th><th>Allocated Cost</th><th>Actions</th>
-</tr></thead><tbody></tbody></table></div>
+<h3 class="section-title">Mapping Rules</h3>
+<p style="color:var(--text-dim);font-size:.82rem;margin-bottom:12px">Define rules to auto-populate dimensions across cost categories. When a rule matches, fields are filled automatically. If no rules are added, fields must be selected manually.</p>
+
+<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:end">
+<div><label style="font-size:.68rem">When Project</label><select id="ruleProject" style="padding:6px 10px;font-size:.78rem;width:auto"><option value="">Select project...</option></select></div>
+<div><label style="font-size:.68rem">→ Set Market</label><select id="ruleMarket" style="padding:6px 10px;font-size:.78rem;width:auto"><option value="">—</option></select></div>
+<div><label style="font-size:.68rem">→ Set Biz Line</label><select id="ruleBizLine" style="padding:6px 10px;font-size:.78rem;width:auto"><option value="">—</option></select></div>
+<div><label style="font-size:.68rem">→ Set Product</label><input id="ruleProduct" placeholder="Product" style="width:120px;padding:6px 10px;font-size:.78rem"></div>
+<div><label style="font-size:.68rem">→ Set Category</label><input id="ruleCategory" placeholder="Category" style="width:120px;padding:6px 10px;font-size:.78rem"></div>
+<button class="btn btn-sm btn-primary" id="btnAddRule">Add Rule</button>
 </div>
 
-<div class="card" style="margin-top:24px">
-<h3 class="section-title">Market Codes</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Manage market codes (2-letter region + 3-digit number). Market codes map to geographic regions or cost centers.</p>
-<div class="form-grid" style="margin-bottom:16px">
-<div class="form-group"><label>Market Code</label><input id="mktCode" placeholder="e.g. JP011" maxlength="6" style="text-transform:uppercase"></div>
-<div class="form-group"><label>Market Name</label><input id="mktName" placeholder="e.g. Japan"></div>
-<div class="form-group" style="align-self:end"><button class="btn btn-primary" id="btnAddMarket">Add Market</button></div>
+<div id="mappingRulesList" style="display:flex;flex-direction:column;gap:4px">
+<div style="font-size:.78rem;color:var(--tertiary);padding:8px;text-align:center">No mapping rules defined. All dimensions must be selected manually.</div>
 </div>
-<div class="table-wrap"><table id="marketsTable"><thead><tr>
-<th>Code</th><th>Name</th><th>Projects</th><th>Employees</th><th>Actions</th>
-</tr></thead><tbody></tbody></table></div>
 </div>
 
-<div class="card" style="margin-top:24px">
-<h3 class="section-title">Business Lines</h3>
-<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px">Manage business line codes. Each code is a numeric identifier tied to a specific service or product provided/developed.</p>
-<div class="form-grid" style="margin-bottom:16px">
-<div class="form-group"><label>Line Code</label><input id="bizCode" placeholder="e.g. 800000" maxlength="6"></div>
-<div class="form-group"><label>Line Name</label><input id="bizName" placeholder="e.g. AI/ML Services"></div>
-<div class="form-group" style="align-self:end"><button class="btn btn-primary" id="btnAddBizLine">Add Business Line</button></div>
-</div>
-<div class="table-wrap"><table id="bizLinesTable"><thead><tr>
-<th>Code</th><th>Name</th><th>Employees</th><th>Actions</th>
-</tr></thead><tbody></tbody></table></div>
-</div>
 </div>
 
 <!-- COMP BENCHMARKS -->
