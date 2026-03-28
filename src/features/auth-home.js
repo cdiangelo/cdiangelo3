@@ -100,8 +100,8 @@ function showHomePage(){
 
   renderPlanList();
 
-  // Create plan
-  document.getElementById('homeCreatePlan').addEventListener('click',async()=>{
+  // Create plan (use onclick to prevent duplicate handlers)
+  document.getElementById('homeCreatePlan').onclick=async()=>{
     const name=document.getElementById('homePlanName').value.trim();
     const year=document.getElementById('homePlanYear').value;
     const type=document.getElementById('homePlanType').value;
@@ -114,16 +114,16 @@ function showHomePage(){
       document.getElementById('homePlanName').value='';
       renderPlanList();
     } else {alert('Failed to create plan')}
-  });
+  };
 
   // Sign out
-  document.getElementById('homeSignOut').addEventListener('click',()=>{
+  document.getElementById('homeSignOut').onclick=()=>{
     clearUser();
     document.getElementById('homePage').style.display='none';
     document.getElementById('authPage').style.display='';
     document.getElementById('authEmail').value='';
     document.querySelector('.auth-card').classList.remove('typing');
-  });
+  };
 }
 
 let _cachedPlans=[];
@@ -191,9 +191,11 @@ async function renderPlanList(){
 
     list.querySelectorAll('.home-plan-card').forEach(card=>{
       card.addEventListener('click',(e)=>{
-        if(e.target.classList.contains('plan-menu-btn'))return;
+        if(e.target.closest('.plan-menu-btn'))return;
         const idx=+card.dataset.planIdx;
-        openPlan(_cachedPlans[idx]);
+        const plan=_cachedPlans[idx];
+        if(!plan){console.error('Plan not found at index',idx,_cachedPlans);return}
+        openPlan(plan).catch(err=>console.error('openPlan failed:',err));
       });
     });
 
@@ -215,8 +217,10 @@ async function renderPlanList(){
 
 let _planSaveTimer=null;
 async function openPlan(plan){
-  if(!plan)return;
+  if(!plan){console.error('openPlan called with null plan');return}
   const user=getUser();
+  if(!user){console.error('openPlan: no user');return}
+  console.log('Opening plan:',plan.name,plan.id);
 
   // Store active plan reference
   window._activePlan=plan;
