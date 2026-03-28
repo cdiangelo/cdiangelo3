@@ -408,17 +408,8 @@ function renderPnlWalk(){
   } else {
     cols=[
       {key:'hc',label:'HC',narrow:true,isHC:true},
-      {key:'cb',label:'C&B'},
-      {key:'hires',label:'HIRES'},
-      {key:'oao',label:'OAO'},
-      {key:'te',label:'T&E'},
-      {key:'other',label:'OTHER'},
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'opex',label:'OPEX',cls:'subtotal'},
-      {key:'cbCapex',label:'C&B CAP'},
-      {key:'hiresCapex',label:'HIRES CAP'},
-      {key:'ctrCapex',label:'CTR CAP'},
-      {key:'capex',label:'CAPEX',cls:'subtotal'},
       {key:'totinv',label:'TOT INV',cls:'total'},
     ];
   }
