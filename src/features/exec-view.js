@@ -413,27 +413,36 @@ function renderExecView(){
     if(!isQuarterly&&!isAnnual&&execSelectedMonths.size>0){
       monthlyData[g]=periodMonths.map(mi=>transformed[mi]);
     } else if(isAllYears&&!isAnnual){
-      // All years monthly: current year months + forecast years months
+      // All years: build raw monthly data for each year, then apply YTD/QTD per-year
       const gEmps=splitGroups[g];
       const fcRows=projectForecast(gEmps);
-      let allData=[...transformed]; // current year 12 months
-      // For forecast years, distribute annual total evenly across months
+      // Use RAW (non-cumulative) current year data for pattern
+      let allRaw=[...raw];
+      const curTotal=raw.reduce((a,v)=>a+v,0);
       for(let yi=1;yi<=FORECAST_YEARS.length;yi++){
         const fr=fcRows[yi];
         const annualVal=fr?(execView==='opex'?fr.opex:fr.total):0;
-        // Distribute using current year's monthly pattern
-        const curTotal=transformed.reduce((a,v)=>a+v,0);
         for(let mi=0;mi<12;mi++){
-          const share=curTotal>0?transformed[mi]/curTotal:1/12;
-          allData.push(Math.round(annualVal*share));
+          const share=curTotal>0?raw[mi]/curTotal:1/12;
+          allRaw.push(Math.round(annualVal*share));
         }
       }
-      // Filter to selected months across all years
+      // Apply YTD/QTD transform per-year (resets each January)
+      let allData=[];
+      const nYears=Math.ceil(allRaw.length/12);
+      for(let yr=0;yr<nYears;yr++){
+        const ys=allRaw.slice(yr*12,(yr+1)*12);
+        if(execPeriod==='ytd'){
+          const c=[];ys.forEach((v,i)=>c.push((c[i-1]||0)+v));allData.push(...c);
+        } else if(execPeriod==='qtd'){
+          const c=[];ys.forEach((v,i)=>{const qi=i%3;c.push(qi===0?v:(c[i-1]||0)+v)});allData.push(...c);
+        } else {
+          allData.push(...ys);
+        }
+      }
       if(execSelectedMonths.size>0&&execSelectedMonths.size<12){
         const filtered=[];
-        for(let yr=0;yr<allData.length/12;yr++){
-          periodMonths.forEach(mi=>filtered.push(allData[yr*12+mi]));
-        }
+        for(let yr=0;yr<nYears;yr++){periodMonths.forEach(mi=>filtered.push(allData[yr*12+mi]))}
         monthlyData[g]=filtered;
       } else {
         monthlyData[g]=allData;
