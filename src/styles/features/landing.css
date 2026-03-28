@@ -40,7 +40,10 @@
 .cal-grid .cal-day{padding:6px 2px;border-radius:6px;cursor:pointer;color:var(--text-dim);position:relative}
 .cal-grid .cal-day:hover{background:var(--accent-glow)}
 .cal-grid .cal-day.today{font-weight:700;color:var(--accent)}
-.cal-grid .cal-day.has-items::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent)}
+/* Single item: subtle full-cell highlight */
+.cal-grid .cal-day.has-single{background:var(--accent-soft)}
+/* Multiple items: dots indicator */
+.cal-grid .cal-day.has-multi::after{content:'••';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:.45rem;letter-spacing:1px;color:var(--accent);line-height:1}
 .cal-grid .cal-day.selected{background:var(--accent-soft);color:var(--text)}
 .cal-grid .cal-day.other-month{color:var(--tertiary);opacity:.4}
 .cal-item{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-size:.74rem;background:var(--bg-elevated)}

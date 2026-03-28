@@ -56,13 +56,13 @@ import { state, saveState } from '../lib/state.js';
     for(let d=1;d<=daysInMonth;d++){
       const key=dateKey(viewYear,viewMonth,d);
       const isToday=d===now.getDate()&&viewMonth===now.getMonth()&&viewYear===now.getFullYear();
-      const hasItems=(items[key]&&items[key].length>0);
-      const hasNote=!!notes[key];
+      const itemCount=(items[key]?items[key].length:0)+(notes[key]?1:0);
       const isSelected=selectedDate===key;
       let cls='cal-day';
       if(isToday)cls+=' today';
-      if(hasItems)cls+=' has-items';
-      if(hasNote)cls+=' has-note';
+      if(itemCount===1)cls+=' has-single';
+      else if(itemCount>1)cls+=' has-multi';
+      if(notes[key])cls+=' has-note';
       if(isSelected)cls+=' selected';
       // Build tooltip preview from note
       const tipText=hasNote?esc(notes[key].length>60?notes[key].slice(0,60)+'…':notes[key]):'';
@@ -151,23 +151,25 @@ import { state, saveState } from '../lib/state.js';
     }
     summaryList.innerHTML=sorted.map(date=>{
       const dateObj=new Date(date+'T00:00:00');
-      const dateLabel=dateObj.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      const dateLabel=dateObj.toLocaleDateString(undefined,{month:'short',day:'numeric'}).toUpperCase();
+      const dateItems=items[date]||[];
+      const dateNote=notes[date]||'';
+      // Get primary color from first item for card accent
+      const primaryColor=dateItems.length?dateItems[0].color||'var(--accent)':'var(--accent)';
       let rows='';
-      // Milestones
-      if(items[date]){
-        rows+=items[date].map(item=>`
-          <div style="display:flex;align-items:center;gap:6px;padding:4px 0">
-            <span style="width:6px;height:6px;border-radius:50%;background:${item.color||'var(--accent)'};flex-shrink:0"></span>
-            <span style="font-size:.76rem;color:var(--text)">${esc(item.text)}</span>
+      if(dateItems.length){
+        rows+=dateItems.map(item=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:3px 0">
+            <span style="width:5px;height:5px;border-radius:50%;background:${item.color||'var(--accent)'};flex-shrink:0"></span>
+            <span style="font-size:.78rem;color:var(--text)">${esc(item.text)}</span>
           </div>`).join('');
       }
-      // Note
-      if(notes[date]){
-        const preview=notes[date].length>50?notes[date].slice(0,50)+'…':notes[date];
-        rows+=`<div style="font-size:.72rem;color:var(--text-dim);padding:2px 0 2px 12px;font-style:italic;cursor:default" title="${esc(notes[date])}">${esc(preview)}</div>`;
+      if(dateNote){
+        const preview=dateNote.length>60?dateNote.slice(0,60)+'…':dateNote;
+        rows+=`<div style="font-size:.72rem;color:var(--text-dim);padding:3px 0 0 13px;font-style:italic;cursor:default" title="${esc(dateNote)}">${esc(preview)}</div>`;
       }
-      return `<div style="padding:6px 8px;border-radius:6px;background:var(--bg-elevated);margin-bottom:4px">
-        <div style="font-size:.66rem;font-weight:500;color:var(--tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">${dateLabel}</div>
+      return `<div style="padding:10px 12px;border-radius:8px;background:var(--bg-elevated);margin-bottom:6px;border-left:3px solid ${primaryColor}">
+        <div style="font-size:.65rem;font-weight:600;color:var(--accent);letter-spacing:.08em;margin-bottom:4px">${dateLabel}</div>
         ${rows}
       </div>`;
     }).join('');
