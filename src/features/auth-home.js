@@ -50,14 +50,6 @@ function initAuthPage(){
   const errorEl=document.getElementById('authError');
   const card=document.querySelector('.auth-card');
 
-  // Check if already logged in
-  const existing=getUser();
-  if(existing){
-    authPage.style.display='none';
-    showHomePage();
-    return;
-  }
-
   // Typing glow effect
   emailInput.addEventListener('input',()=>{
     card.classList.toggle('typing',emailInput.value.length>0);
@@ -81,8 +73,16 @@ function initAuthPage(){
     showHomePage();
   }
 
+  // Always attach handlers (even if already logged in — needed after sign out)
   continueBtn.addEventListener('click',doLogin);
   emailInput.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+  // Check if already logged in
+  const existing=getUser();
+  if(existing){
+    authPage.style.display='none';
+    showHomePage();
+  }
 }
 
 // ── TIER 2: Home Page ──
