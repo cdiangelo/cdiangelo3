@@ -281,8 +281,9 @@ async function openPlan(plan){
   // Update bottom toolbar
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 
-  // Show side panels and landing page
+  // Show side panels, calendar, and landing page
   setSidePanelVisibility(true);
+  if(window._showCalendar)window._showCalendar();
   if(window.showLanding)window.showLanding();
   if(window.initDropdowns)try{window.initDropdowns()}catch(e){}
   if(window.renderAll)try{window.renderAll()}catch(e){}
@@ -304,6 +305,7 @@ async function openPlan(plan){
     // Close any open side panels
     try{if(window.closeAllSidePanels)window.closeAllSidePanels()}catch(e){}
     setSidePanelVisibility(false);
+    if(window._hideCalendar)window._hideCalendar();
     document.getElementById('homePage').style.display='';
     try{renderPlanList()}catch(e){console.error('renderPlanList error:',e)}
   };
@@ -551,6 +553,7 @@ if(_homeBtn){
     });
     try{if(window.closeAllSidePanels)window.closeAllSidePanels()}catch(e){}
     document.body.classList.remove('scenario-open','data-open','guide-open');
+    if(window._hideCalendar)window._hideCalendar();
     document.getElementById('homePage').style.display='';
     if(typeof renderPlanList==='function')try{renderPlanList()}catch(e){}
   });

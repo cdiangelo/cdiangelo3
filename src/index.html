@@ -225,9 +225,8 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="landing-module" id="modRevenue"></div>
 </div>
 
-<!-- ═══ CHEVRON NAV + CALENDAR ═══ -->
-<div style="display:flex;gap:32px;align-items:flex-start;padding:48px 0 40px 48px">
-<div class="chevron-nav" id="chevronNav" style="padding:0;margin:0">
+<!-- ═══ CHEVRON NAV ═══ -->
+<div class="chevron-nav" id="chevronNav">
 <div class="chevron-item has-submenu" id="chevExecSummary" data-target="exec">
 <div class="chevron-shape">
 <span class="chevron-label">Executive Summary</span>
@@ -263,31 +262,53 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 
-<!-- ═══ SIDE CALENDAR ═══ -->
-<div class="plan-calendar" id="planCalendar">
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-<button class="cal-nav" id="calPrev" style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:1rem;padding:4px 8px">&#8249;</button>
-<span id="calMonthLabel" style="font-size:.88rem;font-weight:600;color:var(--text)"></span>
-<button class="cal-nav" id="calNext" style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:1rem;padding:4px 8px">&#8250;</button>
+<!-- ═══ SIDE CALENDAR (fixed right) ═══ -->
+<div class="plan-calendar" id="planCalendar" style="display:none">
+<!-- View toggle: Calendar / Summary -->
+<div style="display:flex;gap:0;margin-bottom:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+<button class="cal-view-btn active" data-calview="calendar" style="flex:1;padding:5px;font-size:.7rem;font-weight:500;background:var(--accent-soft);color:var(--accent);border:none;cursor:pointer;font-family:inherit">Calendar</button>
+<button class="cal-view-btn" data-calview="summary" style="flex:1;padding:5px;font-size:.7rem;font-weight:500;background:var(--panel);color:var(--text-dim);border:none;border-left:1px solid var(--border);cursor:pointer;font-family:inherit">Summary</button>
+</div>
+
+<!-- Calendar View -->
+<div id="calCalendarView">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<button class="cal-nav" id="calPrev" style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:1.1rem;padding:2px 8px">&#8249;</button>
+<span id="calMonthLabel" style="font-size:.84rem;font-weight:600;color:var(--text)"></span>
+<button class="cal-nav" id="calNext" style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:1.1rem;padding:2px 8px">&#8250;</button>
 </div>
 <div class="cal-grid" id="calGrid"></div>
-<div style="margin-top:12px">
-<div id="calItems" style="display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto"></div>
+<div style="margin-top:10px">
+<div id="calItems" style="display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto"></div>
 <div style="display:flex;gap:4px;margin-top:8px">
-<input id="calNewItem" placeholder="Add milestone..." style="flex:1;padding:5px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
-<select id="calNewColor" style="width:auto;padding:3px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
+<input id="calNewItem" placeholder="Add milestone..." style="flex:1;padding:5px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
+<select id="calNewColor" style="width:auto;padding:3px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
 <option value="var(--accent)">Accent</option>
 <option value="var(--success)">Green</option>
 <option value="var(--warning)">Amber</option>
 <option value="var(--danger)">Red</option>
 <option value="var(--secondary)">Blue</option>
 </select>
-<button class="btn btn-sm" id="calAddBtn" style="padding:3px 10px;font-size:.72rem">+</button>
+<button class="btn btn-sm" id="calAddBtn" style="padding:3px 10px;font-size:.7rem">+</button>
 </div>
 </div>
-<button id="calHideBtn" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:.68rem;color:var(--tertiary);text-align:center;width:100%">Hide Calendar</button>
 </div>
-</div><!-- /flex wrapper -->
+
+<!-- Summary View -->
+<div id="calSummaryView" style="display:none">
+<div id="calSummaryList" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto">
+<div style="font-size:.78rem;color:var(--tertiary);padding:8px;text-align:center">No milestones yet</div>
+</div>
+</div>
+
+<!-- Notes field — clean when empty, editable -->
+<div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--border-light)">
+<div id="calNotes" contenteditable="true" style="min-height:48px;font-size:.78rem;color:var(--text);outline:none;padding:8px;border-radius:6px;line-height:1.5;transition:background .15s" data-placeholder="Notes..."></div>
+</div>
+
+</div>
+<!-- Toggle button outside calendar -->
+<button id="calToggleBtn" style="display:none">Show Calendar</button>
 
 <div style="display:none" id="landingSummaryContent">
 <!-- View toggle bar -->
