@@ -152,7 +152,7 @@ export function stackedBarDatalabels(datasets,tickColor,fontSize){
 // Y/Y arrows plugin
 export const yoyArrowsPlugin={
   id:'yoyArrows',
-  afterDraw(chart){
+  afterDatasetsDraw(chart){
     if(!chart.options.plugins.yoyArrows)return;
     const opts=chart.options.plugins.yoyArrows;
     const ctx=chart.ctx;
@@ -177,7 +177,7 @@ export const yoyArrowsPlugin={
     let visMetaIdx=0;
     for(let di=0;di<datasets.length;di++){if(!chart.getDatasetMeta(di).hidden){visMetaIdx=di;break}}
     const chartW=area.right-area.left;
-    const baseFontSize=Math.max(10,Math.min(14,chartW/(nLabels*5)));
+    const baseFontSize=Math.max(8,Math.min(11,chartW/(nLabels*6)));
     const fontSize=opts.fontSize||baseFontSize;
     const isLight=document.documentElement.getAttribute('data-theme')==='light';
     const arrowColor=opts.color||(isLight?'rgba(15,23,42,.3)':'rgba(148,163,184,.4)');
@@ -215,9 +215,9 @@ export const yoyArrowsPlugin={
       ctx.moveTo(x2,y2);
       ctx.lineTo(x2-headLen*Math.cos(angle+0.4),y2-headLen*Math.sin(angle+0.4));
       ctx.strokeStyle=arrowColor;ctx.lineWidth=1.5;ctx.stroke();
-      ctx.font=`600 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
+      ctx.font=`500 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
       const tw=ctx.measureText(pctStr).width;
-      const pad=3;
+      const pad=2;
       const bgColor=pct>=0?(isLight?'rgba(5,150,105,.1)':'rgba(16,185,129,.2)'):(isLight?'rgba(220,38,38,.1)':'rgba(239,68,68,.2)');
       const labelColor=pct>=0?(isLight?'#059669':'#10b981'):(isLight?'#dc2626':'#ef4444');
       ctx.fillStyle=bgColor;
