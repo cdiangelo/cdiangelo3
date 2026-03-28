@@ -142,11 +142,11 @@
   }
   if (btbSettings) {
     btbSettings.addEventListener('click', () => {
-      const toolbar = document.getElementById('globalToolbar');
-      if (toolbar) {
-        const isHidden = toolbar.style.display === 'none';
-        toolbar.style.display = isHidden ? 'flex' : 'none';
-        document.getElementById('globalToolbarSpacer').style.display = isHidden ? '' : 'none';
+      // Settings panel toggle is handled by dark-mode.js
+      const panel = document.getElementById('settingsSlidePanel');
+      if (panel) {
+        const isOpen = panel.style.transform === 'translateX(0px)' || panel.style.transform === 'translateX(0%)';
+        panel.style.transform = isOpen ? 'translateX(100%)' : 'translateX(0)';
       }
     });
   }
