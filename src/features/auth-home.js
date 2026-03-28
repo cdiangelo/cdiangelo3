@@ -281,17 +281,31 @@ async function openPlan(plan){
   // Update bottom toolbar
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 
-  // Show side panels, calendar, and landing page
+  // Show side panels, calendar, and LANDING PAGE (chevron nav)
   setSidePanelVisibility(true);
-  if(window._showCalendar)window._showCalendar();
-  if(window.showLanding)window.showLanding();
+
+  // EXPLICITLY hide all modules and show only chevron nav
+  ['appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  const _chb2=document.getElementById('compHeaderBar');if(_chb2)_chb2.style.display='none';
+
+  // Show landing page with chevron nav visible
+  const lp=document.getElementById('landingPage');if(lp)lp.style.display='';
+  const chevNav=document.getElementById('chevronNav');if(chevNav)chevNav.style.display='';
+  const sumContent=document.getElementById('landingSummaryContent');if(sumContent)sumContent.style.display='none';
+  const oldHdr=document.getElementById('landingHeaderOld');if(oldHdr)oldHdr.style.display='none';
+
+  // Show plan header bar + bottom toolbar
+  if(window._showCalendar)try{window._showCalendar()}catch(e){}
+  if(window._updateBottomToolbar)window._updateBottomToolbar();
+  // Force bottom toolbar visible
+  const btb=document.getElementById('bottomToolbar');if(btb)btb.style.display='flex';
+
+  // Render landing content
   if(window.initDropdowns)try{window.initDropdowns()}catch(e){}
-  // Only render landing-specific content — exec/modules render when navigated to
   if(window.renderPnlWalk)try{window.renderPnlWalk()}catch(e){}
   if(window.renderLandingCharts)try{window.renderLandingCharts()}catch(e){}
-  // Ensure appShell stays hidden on landing page (safety net)
-  document.getElementById('appShell').style.display='none';
-  const _chb2=document.getElementById('compHeaderBar');if(_chb2)_chb2.style.display='none';
 
   // Back to home
   document.getElementById('planBackHome').onclick=()=>{
