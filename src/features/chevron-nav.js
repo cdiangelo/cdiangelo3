@@ -54,29 +54,34 @@
   });
 
   function navigateToExecSummary() {
-    // Show landing summary content (P&L overview) + exec view inside appShell
     const chevNav = document.getElementById('chevronNav');
-    const sumContent = document.getElementById('landingSummaryContent');
     if (chevNav) chevNav.style.display = 'none';
-    if (sumContent) sumContent.style.display = '';
 
-    // Also show appShell with exec tab
+    // Show appShell
     const appShell = document.getElementById('appShell');
     if (appShell) appShell.style.display = '';
     if (window.renderAll) window.renderAll();
+    if (window.renderPnlWalk) try { window.renderPnlWalk() } catch(e) {}
+    if (window.renderLandingCharts) try { window.renderLandingCharts() } catch(e) {}
 
-    // Activate exec tab
-    const execBtn = document.querySelector('#mainNav button[data-tab="exec"]');
-    if (execBtn) execBtn.click();
-
+    // Default to Overview tab
+    showOverviewTab();
     if (window._updateGlobalToolbar) window._updateGlobalToolbar();
   }
 
   function navigateToModule(module) {
     if (module === 'comp') {
       if (window.showApp) window.showApp();
+      // Hide overview content, show employees tab
+      if (sumContent) sumContent.style.display = 'none';
       const empBtn = document.querySelector('#mainNav button[data-tab="employees"]');
       if (empBtn) empBtn.click();
+      // Update header
+      const title = document.querySelector('#compHeaderBar .module-title');
+      if (title) title.textContent = 'Compensation & Benefits';
+      // Deactivate exec sub-nav
+      if (overviewBtn) overviewBtn.classList.remove('active');
+      if (compBtn) compBtn.classList.remove('active');
     } else if (module === 'vendor') {
       if (window.showVendor) window.showVendor();
     } else if (module === 'depreciation') {
@@ -85,6 +90,39 @@
       if (window.showLtf) window.showLtf();
     }
   }
+
+  // ── Exec Summary sub-nav: Overview vs Exec Comp ──
+  const overviewBtn = document.getElementById('execSubOverview');
+  const compBtn = document.getElementById('execSubComp');
+  const sumContent = document.getElementById('landingSummaryContent');
+
+  function showOverviewTab() {
+    if (overviewBtn) overviewBtn.classList.add('active');
+    if (compBtn) compBtn.classList.remove('active');
+    // Show P&L summary, hide exec tab content
+    if (sumContent) sumContent.style.display = '';
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    // Update header title
+    const title = document.querySelector('#compHeaderBar .module-title');
+    if (title) title.textContent = 'Executive Summary';
+  }
+
+  function showExecCompTab() {
+    if (compBtn) compBtn.classList.add('active');
+    if (overviewBtn) overviewBtn.classList.remove('active');
+    // Hide P&L summary, show exec tab
+    if (sumContent) sumContent.style.display = 'none';
+    const execTab = document.getElementById('tab-exec');
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    if (execTab) execTab.classList.add('active');
+    if (window.renderExecView) window.renderExecView();
+    // Update header title
+    const title = document.querySelector('#compHeaderBar .module-title');
+    if (title) title.textContent = 'Executive Summary';
+  }
+
+  if (overviewBtn) overviewBtn.addEventListener('click', showOverviewTab);
+  if (compBtn) compBtn.addEventListener('click', showExecCompTab);
 
   // ── Bottom toolbar ──
   const bottomToolbar = document.getElementById('bottomToolbar');

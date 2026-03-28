@@ -456,23 +456,21 @@ Template Mode &mdash; changes saved in this browser only.
 
 <div id="appShell" style="display:none">
 <div class="module-header-bar" id="compHeaderBar">
-<h2 class="module-title">Compensation &amp; Benefits</h2>
-<nav id="mainNav">
-<div class="nav-group">
-<div class="nav-group-btns">
+<h2 class="module-title">Executive Summary</h2>
+<div class="nav-group-btns" id="execSubNav">
+<button class="btn active" id="execSubOverview">Overview</button>
+<button class="btn" id="execSubComp">Exec Comp</button>
+</div>
+<!-- Hidden main nav — tabs still accessible via JS -->
+<nav id="mainNav" style="display:none">
+<div class="nav-group"><div class="nav-group-btns">
 <button class="active" data-tab="exec">Exec View</button>
 <button data-tab="employees">Employees</button>
 <button data-tab="monthly">Monthly Spread</button>
-<button data-tab="scratch" style="display:none">Scratch Pad</button>
-</div>
-</div>
-<div class="nav-group">
-<div class="nav-group-btns">
 <button data-tab="projects">Dimension Mgmt</button>
-</div>
-</div>
+<button data-tab="scratch">Scratch Pad</button>
+</div></div>
 </nav>
-<div class="presence-bar" id="presenceBar" style="display:none"></div>
 </div>
 <main class="container">
 
