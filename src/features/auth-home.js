@@ -285,6 +285,7 @@ async function openPlan(plan){
     try{if(window.saveState)window.saveState()}catch(e){}
     try{disconnectPlanWebSocket()}catch(e){}
     document.getElementById('planHeaderBar').style.display='none';
+    const _chb=document.getElementById('compHeaderBar');if(_chb)_chb.style.display='none';
     try{document.getElementById('globalToolbar').style.display='none'}catch(e){}
     try{document.getElementById('globalToolbarSpacer').style.display='none'}catch(e){}
     const btb=document.getElementById('bottomToolbar');if(btb)btb.style.display='none';
@@ -530,6 +531,7 @@ if(_homeBtn){
   _homeBtn.addEventListener('click',()=>{
     try{if(window.saveState)window.saveState()}catch(e){}
     document.getElementById('planHeaderBar').style.display='none';
+    const _chb=document.getElementById('compHeaderBar');if(_chb)_chb.style.display='none';
     try{document.getElementById('globalToolbar').style.display='none'}catch(e){}
     try{document.getElementById('globalToolbarSpacer').style.display='none'}catch(e){}
     const btb=document.getElementById('bottomToolbar');if(btb)btb.style.display='none';

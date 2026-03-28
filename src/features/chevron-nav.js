@@ -62,6 +62,8 @@
   const backToNavBtn=document.getElementById('planBackToNav');
   if(backToNavBtn){
     backToNavBtn.addEventListener('click',()=>{
+      // Hide header bar
+      const hb=document.getElementById('compHeaderBar');if(hb)hb.style.display='none';
       if(window.showLanding)window.showLanding();
       backToNavBtn.style.display='none';
     });
@@ -72,7 +74,11 @@
     if (chevNav) chevNav.style.display = 'none';
     showBackToPlan();
 
-    // Show appShell
+    // Show header bar (outside appShell now)
+    const headerBar = document.getElementById('compHeaderBar');
+    if (headerBar) headerBar.style.display = '';
+
+    // Show appShell for exec comp / pivot content
     const appShell = document.getElementById('appShell');
     if (appShell) appShell.style.display = '';
     if (window.renderAll) window.renderAll();
@@ -135,12 +141,18 @@
   function showOverviewTab() {
     clearExecSubNav();
     if (overviewBtn) overviewBtn.classList.add('active');
+    // Show header bar
+    const headerBar = document.getElementById('compHeaderBar');
+    if (headerBar) headerBar.style.display = '';
     // landingSummaryContent is inside #landingPage — need to show parent too
     const landingPage = document.getElementById('landingPage');
     const chevNav = document.getElementById('chevronNav');
     if (landingPage) landingPage.style.display = '';
     if (chevNav) chevNav.style.display = 'none';
     if (sumContent) sumContent.style.display = '';
+    // Hide appShell content (exec/pivot tabs) but keep appShell for potential renders
+    const appShell = document.getElementById('appShell');
+    if (appShell) appShell.style.display = 'none';
     // Hide the old landing header
     const oldHdr = document.getElementById('landingHeaderOld');
     if (oldHdr) oldHdr.style.display = 'none';
@@ -152,6 +164,11 @@
   function showExecCompTab() {
     clearExecSubNav();
     if (compBtn) compBtn.classList.add('active');
+    // Show header bar and appShell
+    const headerBar = document.getElementById('compHeaderBar');
+    if (headerBar) headerBar.style.display = '';
+    const appShell = document.getElementById('appShell');
+    if (appShell) appShell.style.display = '';
     const execTab = document.getElementById('tab-exec');
     if (execTab) execTab.classList.add('active');
     if (window.renderExecView) window.renderExecView();
@@ -163,6 +180,11 @@
   function showPivotTab() {
     clearExecSubNav();
     if (pivotBtn) pivotBtn.classList.add('active');
+    // Show header bar and appShell
+    const headerBar = document.getElementById('compHeaderBar');
+    if (headerBar) headerBar.style.display = '';
+    const appShell = document.getElementById('appShell');
+    if (appShell) appShell.style.display = '';
     const pivotTab = document.getElementById('tab-pivot');
     if (pivotTab) pivotTab.classList.add('active');
     if (window.renderPivot) window.renderPivot();

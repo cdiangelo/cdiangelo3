@@ -252,8 +252,15 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 
 <div style="display:none" id="landingSummaryContent">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px" id="landingPnlGrid">
-<!-- Left: P&L by Product Category matrix -->
+<!-- View toggle bar -->
+<div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden" id="overviewViewToggle">
+<button class="overview-view-btn active" data-view="pnl" style="flex:1;padding:10px 16px;font-size:.82rem;font-weight:600;background:var(--accent-soft);color:var(--accent);border:none;border-right:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all .15s">P&amp;L by Product Category</button>
+<button class="overview-view-btn" data-view="budget" style="flex:1;padding:10px 16px;font-size:.82rem;font-weight:500;background:var(--panel);color:var(--text-dim);border:none;border-right:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all .15s">Monthly Budget</button>
+<button class="overview-view-btn" data-view="forecast" style="flex:1;padding:10px 16px;font-size:.82rem;font-weight:500;background:var(--panel);color:var(--text-dim);border:none;cursor:pointer;font-family:inherit;transition:all .15s">Long-Term Forecast</button>
+</div>
+
+<!-- P&L View (default) -->
+<div id="overviewPnlView">
 <div class="pnl-walk" style="margin-bottom:0">
 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px">
 <h3 style="margin-bottom:0;font-size:.95rem">P&amp;L by Product Category <span style="font-weight:400;font-size:.72rem;color:var(--text-dim)">(in $M)</span></h3>
@@ -275,20 +282,37 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 <div class="table-wrap"><table class="pnl-walk-table" id="pnlWalkTable"></table></div>
 </div>
-<!-- Right: Charts stacked vertically -->
-<div style="display:flex;flex-direction:column;gap:16px">
-<div class="landing-chart-card">
+</div>
+
+<!-- Monthly Budget View -->
+<div id="overviewBudgetView" style="display:none">
+<div class="landing-chart-card" style="padding:20px 24px">
 <button class="chart-expand-btn" data-expand-target="expandBudget" title="Expand">&#x26F6;</button>
 <div class="landing-chart-title">Monthly Budget <span style="font-weight:400;font-size:.7rem;color:var(--text-dim)">(in $M)</span></div>
-<div class="chart-wrap"><canvas id="landingBudgetChart"></canvas></div>
+<div class="chart-wrap" style="height:55vh;min-height:350px"><canvas id="landingBudgetChart"></canvas></div>
 </div>
-<div class="landing-chart-card">
+</div>
+
+<!-- Long-Term Forecast View -->
+<div id="overviewForecastView" style="display:none">
+<div class="landing-chart-card" style="padding:20px 24px">
 <button class="chart-expand-btn" data-expand-target="expandForecast" title="Expand">&#x26F6;</button>
 <div class="landing-chart-title">Long-Term Forecast <span style="font-weight:400;font-size:.7rem;color:var(--text-dim)">(in $M)</span></div>
-<div class="chart-wrap"><canvas id="landingForecastChart"></canvas></div>
+<div class="chart-wrap" style="height:55vh;min-height:350px"><canvas id="landingForecastChart"></canvas></div>
 </div>
 </div>
-</div>
+
+<script>
+document.getElementById('overviewViewToggle').addEventListener('click',function(e){
+  var btn=e.target.closest('.overview-view-btn');if(!btn)return;
+  document.querySelectorAll('.overview-view-btn').forEach(function(b){b.classList.remove('active');b.style.background='var(--panel)';b.style.color='var(--text-dim)';b.style.fontWeight='500'});
+  btn.classList.add('active');btn.style.background='var(--accent-soft)';btn.style.color='var(--accent)';btn.style.fontWeight='600';
+  var v=btn.dataset.view;
+  document.getElementById('overviewPnlView').style.display=v==='pnl'?'':'none';
+  document.getElementById('overviewBudgetView').style.display=v==='budget'?'':'none';
+  document.getElementById('overviewForecastView').style.display=v==='forecast'?'':'none';
+});
+</script>
 
 <!-- Toggleable Revenue Summary Pane -->
 <div id="landingRevenuePane" style="margin-bottom:24px;display:none">
@@ -354,14 +378,17 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 
-<div id="appShell" style="display:none">
-<div class="module-header-bar" id="compHeaderBar">
+<!-- Executive Summary Header Bar — outside appShell so it stays visible in Overview -->
+<div class="module-header-bar" id="compHeaderBar" style="display:none">
 <h2 class="module-title">Executive Summary</h2>
 <div class="nav-group-btns" id="execSubNav">
 <button class="btn active" id="execSubOverview">Overview</button>
 <button class="btn" id="execSubComp">Exec Comp</button>
 <button class="btn" id="execSubPivot">Pivot</button>
 </div>
+</div>
+
+<div id="appShell" style="display:none">
 <!-- Hidden main nav — tabs still accessible via JS -->
 <nav id="mainNav" style="display:none">
 <div class="nav-group"><div class="nav-group-btns">
