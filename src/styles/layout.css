@@ -32,9 +32,12 @@ nav button.active{background:var(--accent);border-color:var(--accent);color:#fff
 .color-scheme-label{width:36px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
 
 /* Toolbar icon buttons */
-.toolbar-icon-btn{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:5px 12px;border:1px solid var(--border);color:var(--text-dim)}
+.toolbar-icon-btn{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:5px 12px;border:1px solid var(--toolbar-border);color:var(--toolbar-text-dim);background:transparent}
 .toolbar-icon-btn svg{flex-shrink:0;opacity:.7}
-.toolbar-icon-btn:hover svg{opacity:1;color:var(--accent)}
+.toolbar-icon-btn:hover{color:var(--accent-light);border-color:var(--accent)}
+.toolbar-icon-btn:hover svg{opacity:1}
+#globalToolbar .btn{background:transparent;border-color:var(--toolbar-border);color:var(--toolbar-text-dim)}
+#globalToolbar .btn:hover{color:var(--accent-light);border-color:var(--accent)}
 
 /* Left-side toggle buttons — hidden, replaced by bottom toolbar */
 .scenario-toggle-btn,.guide-toggle-btn,.data-toggle-btn{display:none!important}
