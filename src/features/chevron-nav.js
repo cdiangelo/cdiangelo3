@@ -147,6 +147,7 @@
     if (pivotBtn) pivotBtn.classList.add('active');
     const pivotTab = document.getElementById('tab-pivot');
     if (pivotTab) pivotTab.classList.add('active');
+    if (window.renderPivot) window.renderPivot();
     const title = document.querySelector('#compHeaderBar .module-title');
     if (title) title.textContent = 'Executive Summary';
   }
