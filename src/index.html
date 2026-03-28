@@ -6,7 +6,7 @@
 <title>Webplan</title>
 <script>
 (function(){
-  var accent=localStorage.getItem('webplan-theme-accent')||'iron-dusk';
+  var accent=localStorage.getItem('webplan-theme-accent')||'traverse-cloud';
   var mode=localStorage.getItem('webplan-theme')||'light';
   document.documentElement.setAttribute('data-accent',accent);
   if(mode==='light')document.documentElement.setAttribute('data-theme','light');
@@ -518,7 +518,7 @@ document.getElementById('overviewViewToggle').addEventListener('click',function(
 </div>
 
 <!-- EXEC VIEW -->
-<div id="tab-exec" class="tab-content">
+<div id="tab-exec" class="tab-content" style="padding-top:56px">
 <div class="filter-row controls" style="margin-bottom:12px" id="execFilters">
 <div class="form-group"><label>Product</label><select id="execFilterProduct"><option value="">All Products</option></select></div>
 <div class="form-group"><label>Category</label><select id="execFilterCategory"><option value="">All Categories</option></select></div>
@@ -633,7 +633,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <!-- PIVOT TAB (Executive Summary) -->
-<div id="tab-pivot" class="tab-content" style="padding-top:24px">
+<div id="tab-pivot" class="tab-content" style="padding-top:56px">
 
 <!-- P&L header + view toggle + filters -->
 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px">
@@ -678,7 +678,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <!-- EMPLOYEES -->
-<div id="tab-employees" class="tab-content">
+<div id="tab-employees" class="tab-content" style="padding-top:56px">
 <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px">
 <!-- Left: Add Employee form (tightened) -->
 <div class="card" style="padding:14px">
@@ -3189,11 +3189,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Accent Theme Picker -->
 <div style="margin-bottom:24px">
 <h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Theme</h4>
-<div id="accentPicker" style="display:flex;gap:8px;align-items:center;padding:6px 8px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:20px">
-<button class="accent-dot" data-accent="iron-dusk" style="width:14px;height:14px;border-radius:50%;background:#9e8e76;border:none;cursor:pointer" title="Iron Dusk"></button>
-<button class="accent-dot" data-accent="celadon" style="width:14px;height:14px;border-radius:50%;background:#7a9e88;border:none;cursor:pointer" title="Celadon"></button>
-<button class="accent-dot" data-accent="tide" style="width:14px;height:14px;border-radius:50%;background:#4a8a90;border:none;cursor:pointer" title="Tide"></button>
-<button class="accent-dot" data-accent="obsidian-violet" style="width:14px;height:14px;border-radius:50%;background:#7868a8;border:none;cursor:pointer" title="Obsidian Violet"></button>
+<div id="accentPicker" style="display:flex;gap:8px;align-items:center;padding:6px 8px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:20px;flex-wrap:wrap">
+<button class="accent-dot" data-accent="slate-steel" style="width:14px;height:14px;border-radius:50%;background:#64748C;border:none;cursor:pointer" title="Slate &amp; Steel"></button>
+<button class="accent-dot" data-accent="ember-court" style="width:14px;height:14px;border-radius:50%;background:#EA641C;border:none;cursor:pointer" title="Ember Court"></button>
+<span style="width:1px;height:14px;background:var(--border);flex-shrink:0"></span>
+<button class="accent-dot" data-accent="traverse-cloud" style="width:14px;height:14px;border-radius:50%;background:#3B7DD8;border:none;cursor:pointer" title="Traverse Cloud"></button>
+<button class="accent-dot" data-accent="traverse-midnight" style="width:14px;height:14px;border-radius:50%;background:#8B2020;border:none;cursor:pointer" title="Traverse Midnight"></button>
 </div>
 </div>
 

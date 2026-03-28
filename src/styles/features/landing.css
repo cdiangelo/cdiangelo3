@@ -108,6 +108,6 @@ body.scenario-open #chartExpandPane,body.data-open #chartExpandPane{left:0}
 .pnl-walk-table td{padding:6px 10px;font-size:.82rem;border-bottom:1px solid var(--border-light)}
 .pnl-walk-table tr.subtotal td{font-weight:700;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);color:var(--accent);background:var(--panel-inset);padding:5px 10px;font-size:.82rem}
 .pnl-walk-table tr.total td{font-weight:700;border-top:3px double var(--accent);color:var(--text-dark);font-size:.84rem;background:var(--panel-inset);padding:5px 10px}
-.pnl-walk-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pnl-walk-table td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--font-mono);font-size:.76rem}
 .pnl-walk-table td.label-cell{color:var(--text-dim);padding-left:20px;font-size:.84rem}
 .pnl-walk-table td.section-label{font-weight:600;color:var(--text-dark)}
