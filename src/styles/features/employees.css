@@ -9,7 +9,7 @@
 #empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:150px;z-index:2;background:var(--panel);min-width:160px;white-space:nowrap}
 #empTable th:nth-child(1),#empTable th:nth-child(2){z-index:3}
 #empTable td:nth-child(2)::after,#empTable th:nth-child(2)::after{content:'';position:absolute;top:0;right:0;bottom:0;width:2px;background:var(--border)}
-#empTable tr:hover td:nth-child(1),#empTable tr:hover td:nth-child(2){background:rgba(139,32,32,.03)}
+#empTable tr:hover td:nth-child(1),#empTable tr:hover td:nth-child(2){background:var(--accent-glow)}
 
 /* Pivot table styles (lines 86-103) */
 #vPivotWrap,#tePivotWrap{scrollbar-width:thin}
@@ -20,14 +20,14 @@
 #vPivotTable thead th:first-child,#tePivotTable thead th:first-child{z-index:5}
 /* Pivot refinement */
 .pivot-row-sel{cursor:pointer;transition:background .12s}
-.pivot-row-sel:hover{background:rgba(139,32,32,.04)}
-.pivot-row-sel.selected{background:rgba(37,99,235,.08)}
+.pivot-row-sel:hover{background:var(--accent-glow)}
+.pivot-row-sel.selected{background:var(--accent-soft)}
 .pivot-row-sel.selected td:first-child::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:6px}
 .pivot-adj-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel-inset);border-radius:6px;margin-top:10px;font-size:.78rem;flex-wrap:wrap}
 .pivot-adj-bar input[type=number]{width:60px;padding:3px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:4px}
 .pivot-impact{margin-top:8px;padding:8px 12px;border-radius:6px;font-size:.78rem}
-.pivot-impact.negative{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);color:#dc2626}
-.pivot-impact.positive{background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.2);color:#059669}
+.pivot-impact.negative{background:var(--danger-soft);border:1px solid var(--danger);color:var(--danger)}
+.pivot-impact.positive{background:var(--success-soft);border:1px solid var(--success);color:var(--success)}
 .pivot-impact.neutral{background:var(--panel-inset);border:1px solid var(--border);color:var(--text-dim)}
 
 /* Exec roster categories (lines 673-693) */

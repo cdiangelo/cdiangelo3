@@ -37,6 +37,12 @@
       const parentTarget = sub.closest('.chevron-item').dataset.target;
       window.planContext = parentTarget;
 
+      // Forecast sub-items all go to LTF module
+      if (parentTarget === 'forecast') {
+        navigateToModule('ltf');
+        return;
+      }
+
       if (module === 'comp') {
         navigateToModule('comp');
       } else if (module === 'vendor') {
@@ -75,6 +81,8 @@
       if (window.showVendor) window.showVendor();
     } else if (module === 'depreciation') {
       if (window.showDepreciation) window.showDepreciation();
+    } else if (module === 'ltf') {
+      if (window.showLtf) window.showLtf();
     }
   }
 
@@ -90,10 +98,21 @@
     const nameEl = document.getElementById('planHdrName');
     const badgeEl = document.getElementById('planHdrBadge');
     if (nameEl) {
-      document.getElementById('btbPlanName').textContent = 'Name: ' + (nameEl.textContent || '');
+      document.getElementById('btbPlanName').textContent = nameEl.textContent || '';
     }
     if (badgeEl) {
-      document.getElementById('btbPlanVersion').textContent = 'Version: ' + (badgeEl.textContent || '');
+      document.getElementById('btbPlanVersion').textContent = badgeEl.textContent || '';
+    }
+    // Populate email from stored user
+    const emailEl = document.getElementById('btbEmail');
+    if (emailEl) {
+      try {
+        const raw = localStorage.getItem('compPlanUser');
+        if (raw) {
+          const u = JSON.parse(raw);
+          emailEl.textContent = u.email || '';
+        }
+      } catch(e) {}
     }
   };
 
@@ -123,11 +142,16 @@
   }
   if (btbSettings) {
     btbSettings.addEventListener('click', () => {
-      const toolbar = document.getElementById('globalToolbar');
-      if (toolbar) {
-        const isHidden = toolbar.style.display === 'none';
-        toolbar.style.display = isHidden ? 'flex' : 'none';
-        document.getElementById('globalToolbarSpacer').style.display = isHidden ? '' : 'none';
+      const panel = document.getElementById('settingsSlidePanel');
+      if (panel) {
+        const isOpen = panel.classList.contains('open');
+        if (isOpen) {
+          panel.classList.remove('open');
+          panel.style.transform = 'translateX(100%)';
+        } else {
+          panel.classList.add('open');
+          panel.style.transform = 'translateX(0)';
+        }
       }
     });
   }

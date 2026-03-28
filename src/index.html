@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Webplan</title>
+<script>
+(function(){
+  var accent=localStorage.getItem('webplan-theme-accent')||'dusk-slate';
+  var mode=localStorage.getItem('webplan-theme')||
+    (matchMedia&&matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
+  document.documentElement.setAttribute('data-accent',accent);
+  if(mode==='light')document.documentElement.setAttribute('data-theme','light');
+  else document.documentElement.classList.add('dark');
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="window._chartFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="window._xlsxFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2" onerror="window._datalabelsFailed=true"></script>
@@ -80,8 +90,8 @@
 <div id="planHeaderBar" style="display:none">
 <div class="plan-hdr-left">
 <svg class="app-logo-icon" viewBox="0 0 100 88" width="20" height="18" style="flex-shrink:0"><rect x="2" y="2" width="96" height="84" rx="8" ry="8" fill="none" stroke="#4a9e8e" stroke-width="3"/><line x1="2" y1="20" x2="98" y2="20" stroke="#4a9e8e" stroke-width="2.5" opacity=".4"/><circle cx="14" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="24" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="34" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><path d="M12 55 Q30 30 50 52 Q70 74 88 45" fill="none" stroke="#4a9e8e" stroke-width="3.5" stroke-linecap="round"/></svg><button class="btn btn-sm" id="planBackHome">&#8592; Home</button>
-<span class="plan-hdr-name" id="planHdrName"></span>
-<span class="plan-hdr-badge" id="planHdrBadge"></span>
+<span class="plan-hdr-name" id="planHdrName" style="display:none"></span>
+<span class="plan-hdr-badge" id="planHdrBadge" style="display:none"></span>
 </div>
 <div class="plan-hdr-right">
 <span class="plan-hdr-saved" id="planHdrSaved">Saved</span>
@@ -232,10 +242,11 @@
 <span style="font-weight:600;font-size:.8rem;color:var(--accent)">Whiteboard</span>
 <div style="display:flex;gap:4px;align-items:center">
 <select id="wbPopoutShape" style="padding:1px 4px;font-size:.7rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">
-<option value="">Pen</option><option value="dot">Dot</option><option value="line">Line</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="text">Text</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option>
+<option value="">Pen</option><option value="line">Line</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="dot">Dot</option><option value="eraser">Eraser</option>
 </select>
 <input type="range" id="wbPopoutSize" min="1" max="12" value="3" style="width:50px;height:3px" title="Size">
 <span id="wbPopoutColors" style="display:flex;gap:2px"></span>
+<button id="wbPopoutGrid" style="border:none;background:none;cursor:pointer;font-size:.65rem;color:var(--text-dim);padding:1px 4px;border-radius:3px" title="Toggle Grid">Grid</button>
 <button id="wbPopoutUndo" style="border:none;background:none;cursor:pointer;font-size:.7rem;color:var(--text-dim)" title="Undo">↩</button>
 <button id="wbPopoutClear" style="border:none;background:none;cursor:pointer;font-size:.7rem;color:var(--danger)" title="Clear">✕</button>
 <button id="wbPopoutClose" style="border:none;background:none;cursor:pointer;font-size:1rem;color:var(--text-dim);line-height:1">&minus;</button>
@@ -253,16 +264,10 @@
 <!-- GLOBAL TOOLBAR — fixed controls across all panes -->
 <div id="globalToolbar" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);position:fixed;top:0;left:0;right:0;z-index:110;flex-wrap:wrap">
 <button class="btn btn-sm" id="globalBackBtn" style="display:none">Back to Overview</button>
-<label class="header-toggle" title="Toggle dark mode"><input type="checkbox" id="globalToggleDark"><span class="toggle-track"></span>Dark</label>
-<label class="header-toggle" title="Operations view hides individual comp values"><input type="checkbox" id="globalToggleOps"><span class="toggle-track"></span>Ops View</label>
-<div class="color-scheme-wrap" title="Chart color palette: Crisp / Muted / Neon">
-<input type="range" min="0" max="2" step="1" value="0" class="color-scheme-slider" id="globalColorSchemeSlider">
-<span class="color-scheme-label" id="globalColorSchemeLabel">Muted</span>
-</div>
 <div style="display:flex;gap:6px;margin-left:auto;align-items:center">
-<button class="btn btn-sm" id="toolbarNotesBtn" title="Notes" style="font-size:.78rem;padding:3px 8px;border:1px solid var(--border)">&#128196; Notes</button>
-<button class="btn btn-sm" id="toolbarWhiteboardBtn" title="Whiteboard" style="font-size:.78rem;padding:3px 8px;border:1px solid var(--border)">&#9999;&#65039; Board</button>
-<button class="btn btn-sm" id="toolbarTeamsBtn" title="Teams" style="font-size:.78rem;padding:3px 8px;border:1px solid var(--border)">&#128101; Teams</button>
+<button class="btn btn-sm toolbar-icon-btn" id="toolbarNotesBtn" title="Notes"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg> Notes</button>
+<button class="btn btn-sm toolbar-icon-btn" id="toolbarWhiteboardBtn" title="Whiteboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> Board</button>
+<button class="btn btn-sm toolbar-icon-btn" id="toolbarTeamsBtn" title="Teams"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Teams</button>
 </div>
 </div>
 <div id="globalToolbarSpacer" style="height:38px"></div>
@@ -452,25 +457,18 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="appShell" style="display:none">
 <header>
 <div class="container">
-<div style="display:flex;align-items:center;gap:8px"><h1 class="app-header-logo"><svg class="app-logo-icon" viewBox="0 0 100 88" width="24" height="21"><rect x="2" y="2" width="96" height="84" rx="8" ry="8" fill="none" stroke="#4a9e8e" stroke-width="3"/><line x1="2" y1="20" x2="98" y2="20" stroke="#4a9e8e" stroke-width="2.5" opacity=".4"/><circle cx="14" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="24" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="34" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><path d="M12 55 Q30 30 50 52 Q70 74 88 45" fill="none" stroke="#4a9e8e" stroke-width="3.5" stroke-linecap="round"/></svg><span class="app-logo-text">Webplan</span></h1>
-<span class="workspace-indicator" id="wsIndicator" style="margin-left:4px">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span><span class="save-indicator" id="saveIndicator" style="display:none"></span></span>
-</div>
 <nav id="mainNav">
 <div class="nav-group">
-<div class="nav-group-label">Webplan</div>
 <div class="nav-group-btns">
 <button class="active" data-tab="exec">Exec View</button>
-<button data-tab="dashboard">Dashboard</button>
 <button data-tab="employees">Employees</button>
 <button data-tab="monthly">Monthly Spread</button>
 <button data-tab="scratch" style="display:none">Scratch Pad</button>
 </div>
 </div>
 <div class="nav-group">
-<div class="nav-group-label">Dimension Management</div>
 <div class="nav-group-btns">
-<button data-tab="projects">Project / Market Mapping</button>
-<button data-tab="benchmarks">Comp Benchmarks</button>
+<button data-tab="projects">Dimension Mgmt</button>
 </div>
 </div>
 </nav>
@@ -3108,10 +3106,50 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <!-- ═══ BOTTOM TOOLBAR ═══ -->
+<!-- ═══ SETTINGS SLIDE PANEL ═══ -->
+<div class="settings-slide-panel" id="settingsSlidePanel" style="position:fixed;right:0;top:0;bottom:0;width:360px;background:var(--panel);border-left:1px solid var(--border);z-index:1060;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto;padding:24px;box-shadow:-4px 0 20px rgba(0,0,0,.12)">
+<button class="panel-close-btn" onclick="document.getElementById('settingsSlidePanel').classList.remove('open');document.getElementById('settingsSlidePanel').style.transform='translateX(100%)'">× Close Settings</button>
+
+<h3 style="margin-bottom:20px">Settings</h3>
+
+<!-- Dark/Light Mode -->
+<div style="margin-bottom:24px">
+<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Appearance</h4>
+<label class="header-toggle" style="margin-bottom:12px"><input type="checkbox" id="globalToggleDark" checked><span class="toggle-track"></span> Dark Mode</label>
+</div>
+
+<!-- Accent Theme Picker -->
+<div style="margin-bottom:24px">
+<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Theme</h4>
+<div id="accentPicker" style="display:flex;gap:8px;align-items:center">
+<button class="accent-dot" data-accent="obsidian-ember" style="width:28px;height:28px;border-radius:50%;background:#ea580c;border:2px solid transparent;cursor:pointer" title="Obsidian &amp; Ember"></button>
+<button class="accent-dot" data-accent="forest-ledger" style="width:28px;height:28px;border-radius:50%;background:#16a34a;border:2px solid transparent;cursor:pointer" title="Forest Ledger"></button>
+<button class="accent-dot" data-accent="dusk-slate" style="width:28px;height:28px;border-radius:50%;background:#c9a96e;border:2px solid transparent;cursor:pointer" title="Dusk Slate"></button>
+</div>
+</div>
+
+<!-- Ops View Toggle -->
+<div style="margin-bottom:24px">
+<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Privacy</h4>
+<label class="header-toggle" style="margin-bottom:8px"><input type="checkbox" id="globalToggleOps"><span class="toggle-track"></span> Ops View <span style="font-size:.72rem;color:var(--tertiary);margin-left:4px">(hides comp values)</span></label>
+</div>
+
+<!-- Admin: User Ops Mode Control -->
+<div style="margin-bottom:24px">
+<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Admin — Ops Mode Access</h4>
+<p style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px">Control which users are restricted to Ops View (comp values hidden) vs. who can toggle it freely.</p>
+<div id="adminOpsUserList" style="display:flex;flex-direction:column;gap:6px">
+<!-- Populated by JS -->
+</div>
+<button class="btn btn-sm" id="adminOpsAddUser" style="margin-top:8px;font-size:.75rem">+ Add User Rule</button>
+</div>
+</div>
+
 <div id="bottomToolbar" style="display:none">
 <div class="btb-left">
-<span class="btb-plan-name" id="btbPlanName">Name:</span>
-<span class="btb-plan-version" id="btbPlanVersion">Version:</span>
+<span class="btb-plan-name" id="btbPlanName"></span>
+<span class="btb-plan-version" id="btbPlanVersion"></span>
+<span class="btb-email" id="btbEmail"></span>
 </div>
 <div class="btb-right">
 <button class="btb-btn" id="btbGuide">guide</button>
