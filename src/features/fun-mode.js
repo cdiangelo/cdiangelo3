@@ -32,7 +32,7 @@ export function initFunMode(){try{
   const btn=document.createElement('button');
   btn.innerHTML='&#9654; Media';
   btn.title='Media';
-  btn.style.cssText=`display:block;margin-top:24px;background:transparent;border:1px solid ${dimC()};color:${dimC()};font-size:.6rem;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;opacity:.25;letter-spacing:.04em`;
+  btn.style.cssText=`position:absolute;top:12px;right:12px;background:transparent;border:1px solid ${dimC()};color:${dimC()};font-size:.55rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;opacity:.15;letter-spacing:.04em`;
   btn.addEventListener('mouseenter',()=>{btn.style.opacity='0.5'});
   btn.addEventListener('mouseleave',()=>{if(funState<0)btn.style.opacity='0.25'});
   if(guidePanel)guidePanel.appendChild(btn);
@@ -41,7 +41,7 @@ export function initFunMode(){try{
   // Editor button (gear icon next to fun button)
   const editBtn=document.createElement('button');
   editBtn.innerHTML='&#9881;';
-  editBtn.style.cssText=`display:inline-block;margin-top:4px;background:transparent;border:1px solid ${dimC()};color:${dimC()};font-size:.6rem;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;opacity:.2`;
+  editBtn.style.cssText=`position:absolute;top:12px;right:72px;background:transparent;border:1px solid ${dimC()};color:${dimC()};font-size:.55rem;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:inherit;transition:opacity .3s;opacity:.12`;
   editBtn.addEventListener('mouseenter',()=>{editBtn.style.opacity='0.45'});
   editBtn.addEventListener('mouseleave',()=>{editBtn.style.opacity='0.2'});
   if(guidePanel)guidePanel.appendChild(editBtn);
