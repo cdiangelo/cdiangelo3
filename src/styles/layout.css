@@ -37,6 +37,10 @@ nav button.active{background:var(--accent);border-color:var(--accent);color:#fff
 .color-scheme-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
 .color-scheme-label{width:36px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
 
+/* Accent theme dot picker */
+.accent-dot{transition:transform .15s ease,box-shadow .15s ease!important}
+.accent-dot:hover{transform:scale(1.2)}
+
 /* Toolbar icon buttons */
 .toolbar-icon-btn{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:5px 12px;border:1px solid var(--toolbar-border);color:var(--toolbar-text-dim);background:transparent}
 .toolbar-icon-btn svg{flex-shrink:0;opacity:.7}

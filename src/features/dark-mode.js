@@ -1,6 +1,6 @@
 // ── DARK MODE, ACCENT THEMES, OPS VIEW ── ES Module
 // Dark = default (:root). Light = [data-theme="light"].
-// Accent = data-accent attribute (obsidian-ember | forest-ledger | dusk-slate).
+// Accent = data-accent attribute (iron-dusk | celadon | tide | obsidian-violet).
 // All controls live in the settings slide panel.
 
 export function initDarkMode(){
