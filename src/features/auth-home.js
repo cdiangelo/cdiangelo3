@@ -74,6 +74,8 @@ function initAuthPage(){
     const serverAccount=await loginApi(email);
     const user=serverAccount?{...serverAccount,name:emailToName(email)}:{email,initials:emailToInitials(email),name:emailToName(email),createdAt:Date.now()};
     setUser(user);
+    // Track this user in known users list for admin panel
+    trackKnownUser(user);
     continueBtn.textContent='Continue';continueBtn.disabled=false;
     authPage.style.display='none';
     showHomePage();
@@ -459,6 +461,25 @@ function initWhiteboardPopout(){
   document.addEventListener('mousemove',e=>{if(!dragging)return;popout.style.left=(e.clientX-dx)+'px';popout.style.top=(e.clientY-dy)+'px';popout.style.right='auto';popout.style.bottom='auto'});
   document.addEventListener('mouseup',()=>{dragging=false});
 }
+
+// ── Track known users for admin panel ──
+const KNOWN_USERS_KEY='webplan-known-users';
+function trackKnownUser(user){
+  if(!user||!user.email)return;
+  try{
+    const known=JSON.parse(localStorage.getItem(KNOWN_USERS_KEY)||'[]');
+    const email=user.email.toLowerCase();
+    const existing=known.find(u=>u.email.toLowerCase()===email);
+    if(existing){
+      existing.name=user.name||existing.name;
+      existing.lastSeen=Date.now();
+    } else {
+      known.push({email:user.email,name:user.name||'',initials:user.initials||'',lastSeen:Date.now()});
+    }
+    localStorage.setItem(KNOWN_USERS_KEY,JSON.stringify(known));
+  }catch(e){}
+}
+window.trackKnownUser=trackKnownUser;
 
 // ── Init ──
 initAuthPage();
