@@ -455,8 +455,8 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 
 <div id="appShell" style="display:none">
-<header>
-<div class="container">
+<div class="module-header-bar" id="compHeaderBar">
+<h2 class="module-title">Compensation &amp; Benefits</h2>
 <nav id="mainNav">
 <div class="nav-group">
 <div class="nav-group-btns">
@@ -472,10 +472,8 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </nav>
+<div class="presence-bar" id="presenceBar" style="display:none"></div>
 </div>
-<!-- Presence Bar (inside sticky header) -->
-<div class="presence-bar" id="presenceBar"></div>
-</header>
 <main class="container">
 
 <!-- DASHBOARD -->
@@ -1143,21 +1141,17 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- VENDOR MODULE -->
 <div id="vendorModule" style="display:none">
-<header>
-<div class="container" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-<h1 style="font-size:1.3rem;color:var(--accent)">Vendor<span style="color:var(--secondary)">Spend</span></h1>
-<span class="workspace-indicator" id="vendorWsIndicator" style="margin-left:4px"></span>
-</div>
-</header>
-<main class="container" style="padding-top:24px">
-<!-- Vendor Nav Tabs -->
-<nav style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap" id="vendorNav">
+<div class="module-header-bar" id="vendorHeaderBar">
+<h2 class="module-title">Operating &amp; Admin</h2>
+<nav style="display:flex;gap:4px;flex-wrap:wrap" id="vendorNav">
 <button class="btn active" data-vtab="vendor-grid">Vendor Spend</button>
 <button class="btn" data-vtab="vendor-contractors">Contractors</button>
 <button class="btn" data-vtab="vendor-te">T&amp;E</button>
 <button class="btn" data-vtab="vendor-dims">Dimensions</button>
 <button class="btn" data-vtab="vendor-scratch" style="display:none">Scratch Pad</button>
 </nav>
+</div>
+<main class="container" style="padding-top:24px">
 
 <!-- Vendor Spend Grid Tab -->
 <div id="vtab-vendor-grid" class="vtab-content" style="display:block">
