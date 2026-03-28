@@ -325,9 +325,24 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Market</label><select id="pnlFilterMarket" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="">All</option></select></div>
 </div>
 
-<!-- P&L View (default) -->
+<!-- Full Year Summary View (default) -->
 <div id="overviewPnlView">
 <div class="pnl-walk" style="margin-bottom:0">
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+<h3 style="margin:0;font-size:.92rem">Full Year Summary <span style="font-weight:400;font-size:.7rem;color:var(--text-dim)">(in $M)</span></h3>
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.66rem">Row 1</label><select id="fysRow1" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto">
+<option value="category">Product Category</option><option value="product">Product</option><option value="function">Function</option><option value="bizline">Business Line</option><option value="country">Country</option><option value="market">Market</option>
+</select></div>
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.66rem">Row 2</label><select id="fysRow2" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto">
+<option value="">None</option><option value="product" selected>Product</option><option value="category">Product Category</option><option value="function">Function</option><option value="bizline">Business Line</option><option value="country">Country</option><option value="market">Market</option>
+</select></div>
+<div class="toggle-group" id="fysColToggle" style="font-size:.68rem">
+<button class="btn active" data-fyscol="collapsed" style="padding:2px 8px;font-size:.68rem">Summary</button>
+<button class="btn" data-fyscol="expanded" style="padding:2px 8px;font-size:.68rem">Detail</button>
+</div>
+</div>
+</div>
 <div class="table-wrap"><table class="pnl-walk-table" id="pnlWalkTable"></table></div>
 </div>
 </div>
