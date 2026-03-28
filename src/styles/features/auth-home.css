@@ -21,8 +21,9 @@
 .home-header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--panel);border-bottom:2px solid var(--border)}
 .home-header-left{display:flex;align-items:center;gap:16px}
 .home-header-right{display:flex;align-items:center;gap:12px}
-.home-logo{font-size:1.2rem;color:var(--accent);margin:0}
-.home-logo span{color:var(--secondary)}
+.home-logo{display:flex;align-items:center;gap:8px;margin:0}
+.app-logo-icon{flex-shrink:0}
+.app-logo-text{font-size:.85rem;font-weight:600;color:var(--text-dim);letter-spacing:.03em}
 .home-user{font-size:.82rem;color:var(--text-dim);display:flex;align-items:center;gap:6px}
 .home-body{display:grid;grid-template-columns:1fr 280px;gap:24px;padding:24px;max-width:1200px;margin:0 auto}
 .home-main{display:flex;flex-direction:column;gap:20px}
