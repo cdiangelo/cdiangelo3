@@ -65,7 +65,7 @@ import { state, saveState } from '../lib/state.js';
       if(notes[key])cls+=' has-note';
       if(isSelected)cls+=' selected';
       // Build tooltip preview from note
-      const tipText=hasNote?esc(notes[key].length>60?notes[key].slice(0,60)+'…':notes[key]):'';
+      const tipText=notes[key]?esc(notes[key].length>60?notes[key].slice(0,60)+'…':notes[key]):'';
       html+=`<div class="${cls}" data-date="${key}" ${tipText?'title="'+tipText+'"':''}>${d}</div>`;
     }
     const totalCells=startDay+daysInMonth;
