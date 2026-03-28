@@ -71,7 +71,7 @@ import { state, saveState } from '../lib/state.js';
         const c=dayItems[0].color||'var(--accent)';
         // Use the color as a very soft transparent background
         if(c.startsWith('#')){
-          inlineStyle=`background:${c}40`; // ~25% opacity via hex alpha
+          inlineStyle=`background:${c}90`; // ~56% opacity via hex alpha
         } else if(c.startsWith('var(')){
           inlineStyle=`background:${c.replace(')','-soft)')}`.replace('var(--accent-soft)','var(--accent-soft)');
         }
