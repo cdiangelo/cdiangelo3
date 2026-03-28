@@ -62,6 +62,7 @@
   const backToNavBtn=document.getElementById('planBackToNav');
   if(backToNavBtn){
     backToNavBtn.addEventListener('click',()=>{
+      resetSubNavLabels();
       const hb=document.getElementById('compHeaderBar');if(hb)hb.style.display='none';
       if(window.showLanding)window.showLanding();
       if(window._showCalendar)window._showCalendar();
@@ -71,6 +72,12 @@
 
   function hideCalendar(){
     if(window._hideCalendar)window._hideCalendar();
+  }
+
+  function resetSubNavLabels(){
+    if(overviewBtn){overviewBtn.textContent='Overview';overviewBtn.onclick=()=>showOverviewTab()}
+    if(compBtn){compBtn.textContent='Exec Comp';compBtn.onclick=()=>showExecCompTab()}
+    if(pivotBtn){pivotBtn.style.display='';pivotBtn.onclick=()=>showPivotTab()}
   }
 
   function navigateToExecSummary(tab) {
@@ -83,6 +90,9 @@
     }
     showBackToPlan();
     hideCalendar();
+
+    // Reset sub-nav labels to exec summary mode
+    resetSubNavLabels();
 
     // Show header bar
     const headerBar = document.getElementById('compHeaderBar');
@@ -114,16 +124,34 @@
     const hb=document.getElementById('compHeaderBar');if(hb)hb.style.display='none';
     if (module === 'comp') {
       if (window.showApp) window.showApp();
-      // Show comp header bar for this module
+      // Show comp header bar with Exec Comp + Employees tabs
       if(hb)hb.style.display='';
       const title=document.querySelector('#compHeaderBar .module-title');
       if(title)title.textContent='Compensation & Benefits';
       if (sumContent) sumContent.style.display = 'none';
-      const empBtn = document.querySelector('#mainNav button[data-tab="employees"]');
-      if (empBtn) empBtn.click();
-      if (overviewBtn) overviewBtn.classList.remove('active');
-      if (compBtn) compBtn.classList.remove('active');
-      // Broadcast: parent context determines BUD or FCAST prefix
+      // Update sub-nav to show Exec Comp + Employees
+      if(overviewBtn)overviewBtn.textContent='Exec Comp';
+      if(compBtn)compBtn.textContent='Employees';
+      if(pivotBtn)pivotBtn.style.display='none';
+      // Default to exec comp view
+      clearExecSubNav();
+      if(overviewBtn)overviewBtn.classList.add('active');
+      const execTab=document.getElementById('tab-exec');
+      if(execTab)execTab.classList.add('active');
+      if(window.renderExecView)try{window.renderExecView()}catch(e){}
+      // Wire temp click handlers for comp mode
+      if(overviewBtn)overviewBtn.onclick=()=>{
+        clearExecSubNav();
+        overviewBtn.classList.add('active');
+        const et=document.getElementById('tab-exec');if(et)et.classList.add('active');
+        if(window.renderExecView)try{window.renderExecView()}catch(e){}
+      };
+      if(compBtn)compBtn.onclick=()=>{
+        clearExecSubNav();
+        compBtn.classList.add('active');
+        const et=document.getElementById('tab-employees');if(et)et.classList.add('active');
+        if(window.renderEmployees)try{window.renderEmployees()}catch(e){}
+      };
       const prefix = window.planContext === 'forecast' ? 'FCAST' : 'BUD';
       if (window._broadcastTab) window._broadcastTab(prefix + ' - C&B');
     } else if (module === 'vendor') {
