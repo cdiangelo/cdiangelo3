@@ -38,7 +38,17 @@ document.querySelectorAll('#execViewToggle .btn').forEach(b=>b.addEventListener(
   document.querySelectorAll('#execViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execView=b.dataset.eview;renderExecView();
 }));
 document.querySelectorAll('#execPeriodToggle .btn').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('#execPeriodToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execPeriod=b.dataset.eperiod;renderExecView();
+  document.querySelectorAll('#execPeriodToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  // Deactivate period view toggle when main period is selected
+  document.querySelectorAll('#execPeriodViewToggle .btn').forEach(x=>x.classList.remove('active'));
+  execPeriod=b.dataset.eperiod;renderExecView();
+}));
+// Period View toggle (MTD/QTD/YTD) — replaces As-of Month
+document.querySelectorAll('#execPeriodViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#execPeriodViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  // Deactivate main period toggle when period view is selected
+  document.querySelectorAll('#execPeriodToggle .btn').forEach(x=>x.classList.remove('active'));
+  execPeriod=b.dataset.eperiod;renderExecView();
 }));
 // Year toggle for trend view
 function buildExecTrendYearToggle(){
@@ -269,11 +279,10 @@ function renderExecView(){
   // ── Period range ──
   const curMonth=window.currentMonth; // global as-of month override
   const isQuarterly=execPeriod==='quarterly';
-  // Always show all 12 months (like dashboard) — period only affects cumulative transforms & stat cards
-  // When exec month range is set, filter to those months only
+  const isAnnual=execPeriod==='annual';
   const allMonths=[0,1,2,3,4,5,6,7,8,9,10,11];
   const periodMonths=execSelectedMonths.size>0?allMonths.filter(m=>execSelectedMonths.has(m)):allMonths;
-  const periodLabels=isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
+  const periodLabels=isAnnual?['Full Year']:isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
   // For stat cards: compute the scoped month range
   let statStart=0,statEnd=11;
   if(execPeriod==='mtd'){statStart=curMonth;statEnd=curMonth}

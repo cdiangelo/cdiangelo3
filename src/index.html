@@ -558,9 +558,7 @@ document.getElementById('overviewViewToggle').addEventListener('click',function(
 <div class="toggle-group" id="execPeriodToggle">
 <button class="btn active" data-eperiod="full">Monthly</button>
 <button class="btn" data-eperiod="quarterly">Quarterly</button>
-<button class="btn" data-eperiod="mtd">MTD</button>
-<button class="btn" data-eperiod="qtd">QTD</button>
-<button class="btn" data-eperiod="ytd">YTD</button>
+<button class="btn" data-eperiod="annual">Annual</button>
 </div>
 </div>
 <div>
@@ -570,8 +568,13 @@ document.getElementById('overviewViewToggle').addEventListener('click',function(
 </div>
 </div>
 <div id="curMonthWrapExec">
-<label>As-of Month</label>
-<select id="curMonthSelExec" style="padding:5px 8px;font-size:.82rem;border:1px solid var(--border);border-radius:6px">
+<label>Period View</label>
+<div class="toggle-group" id="execPeriodViewToggle">
+<button class="btn" data-eperiod="mtd">MTD</button>
+<button class="btn" data-eperiod="qtd">QTD</button>
+<button class="btn" data-eperiod="ytd">YTD</button>
+</div>
+<select id="curMonthSelExec" style="padding:5px 8px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;display:none">
 <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
 </select>
 </div>
