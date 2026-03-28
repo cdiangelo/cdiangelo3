@@ -225,6 +225,11 @@ async function openPlan(plan){
   // Store active plan reference
   window._activePlan=plan;
 
+  // Ensure state is initialized before loading plan data
+  try{loadState()}catch(e){console.warn('loadState init:',e)}
+  ensureStateFields();
+  window.state=state;
+
   // Load state from server
   const serverPlan=await loadPlanState(plan.id);
   if(serverPlan&&serverPlan.state_data){

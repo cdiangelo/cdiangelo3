@@ -19,6 +19,7 @@ import { state, saveState } from '../lib/state.js';
   let selectedDate=null;
 
   function getItems(){
+    if(!state||typeof state!=='object')return {};
     if(!state.calendarItems)state.calendarItems={};
     return state.calendarItems;
   }
