@@ -68,7 +68,7 @@ export function initDarkMode(){
   if(!savedTheme&&localStorage.getItem('compPlanDark')==='0')applyTheme('light');
 
   // Restore accent
-  const savedAccent=localStorage.getItem('webplan-theme-accent')||'slate-steel';
+  const savedAccent=localStorage.getItem('webplan-theme-accent')||'traverse-cloud';
   applyAccent(savedAccent);
 
   // Restore ops
