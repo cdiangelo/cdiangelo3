@@ -424,10 +424,9 @@ function renderPnlWalk(){
   function fv(v,isHC){
     if(isHC)return v||'—';
     if(!v)return '—';
+    // Always show in $M since header says "(in $M)"
     const abs=Math.abs(v);const sign=v<0?'-':'';
-    if(abs>=1e6)return sign+'$'+(abs/1e6).toFixed(2);
-    if(abs>=1e3)return sign+'$'+(abs/1e3).toFixed(0)+'K';
-    return sign+'$'+Math.round(abs);
+    return sign+'$'+(abs/1e6).toFixed(2);
   }
   function fmtCell(c,v){
     const style=c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':'';

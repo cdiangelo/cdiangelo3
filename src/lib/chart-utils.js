@@ -187,7 +187,7 @@ export const yoyArrowsPlugin={
       const prev=totals[i],cur=totals[i+1];
       if(!prev)continue;
       const pct=((cur-prev)/Math.abs(prev))*100;
-      const pctStr=(pct>=0?'+':'')+pct.toFixed(1)+'%';
+      const pctStr=(pct>=0?'+':'')+((Math.abs(pct)>=5)?Math.round(pct):pct.toFixed(1))+'%';
       const meta0=chart.getDatasetMeta(visMetaIdx);
       if(!meta0||!meta0.data[i]||!meta0.data[i+1])continue;
       const barL=meta0.data[i];
