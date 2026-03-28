@@ -399,10 +399,10 @@ function renderPnlWalk(){
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'da',label:'D&A'},
       {key:'opex',label:'OPEX',cls:'subtotal'},
-      {key:'cbCapex',label:'C&B CAPEX'},
-      {key:'hiresCapex',label:'HIRES CAPEX'},
-      {key:'ctrCapex',label:'CTR CAPEX'},
-      {key:'capex',label:'CAPEX'},
+      {key:'cbCapex',label:'C&B CAP'},
+      {key:'hiresCapex',label:'HIRES CAP'},
+      {key:'ctrCapex',label:'CTR CAP'},
+      {key:'capex',label:'CAPEX',cls:'subtotal'},
       {key:'totinv',label:'TOT INV',cls:'total'},
     ];
   } else {
@@ -415,7 +415,10 @@ function renderPnlWalk(){
       {key:'other',label:'OTHER'},
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'opex',label:'OPEX',cls:'subtotal'},
-      {key:'capex',label:'CAPEX'},
+      {key:'cbCapex',label:'C&B CAP'},
+      {key:'hiresCapex',label:'HIRES CAP'},
+      {key:'ctrCapex',label:'CTR CAP'},
+      {key:'capex',label:'CAPEX',cls:'subtotal'},
       {key:'totinv',label:'TOT INV',cls:'total'},
     ];
   }
@@ -430,14 +433,17 @@ function renderPnlWalk(){
   }
   function fmtCell(c,v){
     const style=c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':'';
-    return `<td class="num" style="${style}${c.narrow?';width:45px':''}">${c.isHC?fv(v,true):fv(v)}</td>`;
+    return `<td class="num" style="${style};padding:5px 6px;font-size:.78rem${c.narrow?';width:36px':''}">${c.isHC?fv(v,true):fv(v)}</td>`;
   }
 
   // Row1 label
   const row1Label=row1Sel?row1Sel.options[row1Sel.selectedIndex].text:'CATEGORY';
 
-  let h=`<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap">${esc(row1Label.toUpperCase())}</th>`;
-  cols.forEach(c=>{h+=`<th style="text-align:right;${c.narrow?'width:45px;':'min-width:70px;'}white-space:nowrap">${c.label}</th>`});
+  let h=`<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap;min-width:140px">${esc(row1Label.toUpperCase())}</th>`;
+  cols.forEach(c=>{
+    const w=c.narrow?'width:36px;':c.cls==='subtotal'?'min-width:65px;font-weight:600;':'min-width:55px;';
+    h+=`<th style="text-align:right;${w}white-space:nowrap;padding:5px 6px;font-size:.68rem">${c.label}</th>`;
+  });
   h+='</tr></thead><tbody>';
 
   groupKeys.forEach(k=>{
