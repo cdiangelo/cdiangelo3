@@ -35,12 +35,13 @@ export function getChartFills(){
   ];
 }
 
-// Legacy compat exports — all point to the unified palette
-export const CHART_COLORS=getChartColors();
-export const CHART_COLORS_MUTED_DARK=getChartColors();
-export const CHART_COLORS_NEON=getChartColors();
-export const CHART_COLORS_CRISP=getChartColors();
-export const CHART_COLORS_CRISP_DARK=getChartColors();
+// Static fallback arrays for code that imports these at module load time
+const _fallback=['#ea580c','#f97316','#fb923c','#c2410c','#fdba74','#d97706','#fbbf24','#fde68a'];
+export const CHART_COLORS=_fallback;
+export const CHART_COLORS_MUTED_DARK=_fallback;
+export const CHART_COLORS_NEON=_fallback;
+export const CHART_COLORS_CRISP=_fallback;
+export const CHART_COLORS_CRISP_DARK=_fallback;
 
 // Tag colors — light and dark derived from chart palette
 export const TAG_COLORS_LIGHT=['#0f172a','#0f766e','#0284c7','#059669','#4338ca','#d97706','#2563eb','#dc2626','#0891b2','#7c3aed','#475569','#065f46'];
@@ -227,6 +228,17 @@ export const yoyArrowsPlugin={
 if(typeof Chart!=='undefined')Chart.register(yoyArrowsPlugin);
 
 // Removed: crispPatternPlugin (no longer needed without crisp scheme)
-// Legacy export stubs for any code that references drawCrispPattern
 export function drawCrispPattern(){}
 export const crispPatternPlugin={id:'crispPatternsLegacy'};
+
+// ── Window globals for non-module code ──
+window.getChartColors=getChartColors;
+window.getChartFills=getChartFills;
+window.hexToRgba=hexToRgba;
+window.getSparkColor=getSparkColor;
+window.getStatValueColor=getStatValueColor;
+window.fmtShort=fmtShort;
+window.setChartColorScheme=setChartColorScheme;
+window.stackedBarDatalabels=stackedBarDatalabels;
+window.getCrispDatalabelColor=getCrispDatalabelColor;
+window.FTE_TOOLTIP=FTE_TOOLTIP;
