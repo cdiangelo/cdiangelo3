@@ -90,10 +90,21 @@
     const nameEl = document.getElementById('planHdrName');
     const badgeEl = document.getElementById('planHdrBadge');
     if (nameEl) {
-      document.getElementById('btbPlanName').textContent = 'Name: ' + (nameEl.textContent || '');
+      document.getElementById('btbPlanName').textContent = nameEl.textContent || '';
     }
     if (badgeEl) {
-      document.getElementById('btbPlanVersion').textContent = 'Version: ' + (badgeEl.textContent || '');
+      document.getElementById('btbPlanVersion').textContent = badgeEl.textContent || '';
+    }
+    // Populate email from stored user
+    const emailEl = document.getElementById('btbEmail');
+    if (emailEl) {
+      try {
+        const raw = localStorage.getItem('compPlanUser');
+        if (raw) {
+          const u = JSON.parse(raw);
+          emailEl.textContent = u.email || '';
+        }
+      } catch(e) {}
     }
   };
 
