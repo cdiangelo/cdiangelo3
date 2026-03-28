@@ -613,7 +613,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- EMPLOYEES -->
 <div id="tab-employees" class="tab-content">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+<div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px">
 <!-- Left: Add Employee form (tightened) -->
 <div class="card" style="padding:14px">
 <h3 class="section-title" id="formTitle" style="font-size:.9rem;margin-bottom:8px">Add Employee</h3>
@@ -649,8 +649,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" id="btnCancelEmp" style="display:none;padding:4px 14px;font-size:.8rem">Cancel</button>
 </div>
 </div>
-<!-- Right: Employee Pivot -->
-<div class="card" style="padding:14px">
+<!-- Employee Pivot — moved to unified Pivot tab -->
+<div class="card" style="padding:14px;display:none">
 <div id="empPivotTopRow" style="display:grid;grid-template-columns:auto 1fr;gap:0;margin-bottom:4px">
 <!-- Left: title + filters above row labels -->
 <div id="empPivotControlsCol" style="display:flex;flex-direction:column;gap:3px;padding-right:8px;justify-content:flex-end">
@@ -1174,8 +1174,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 
-<!-- Vendor Spend Analysis — pivot + chart -->
-<div class="card" id="vendorTopSpendCard" style="margin-bottom:12px">
+<!-- Vendor Spend Analysis — moved to unified Pivot tab -->
+<div class="card" id="vendorTopSpendCard" style="margin-bottom:12px;display:none">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
 <h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('vendorAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Vendor Spend Analysis</h3>
 <div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
@@ -1358,8 +1358,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 
-<!-- T&E Spend Analysis — pivot + chart -->
-<div class="card" id="teTopSpendCard" style="margin-bottom:12px">
+<!-- T&E Spend Analysis — moved to unified Pivot tab -->
+<div class="card" id="teTopSpendCard" style="margin-bottom:12px;display:none">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
 <h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('teAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>T&amp;E Spend Analysis</h3>
 <div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
@@ -1525,8 +1525,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 
-<!-- Contractor Spend Analysis — pivot + chart -->
-<div class="card" id="contractorTopSpendCard" style="margin-bottom:12px">
+<!-- Contractor Spend Analysis — moved to unified Pivot tab -->
+<div class="card" id="contractorTopSpendCard" style="margin-bottom:12px;display:none">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
 <h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('contractorAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Contractor Spend Analysis</h3>
 <div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
@@ -1831,8 +1831,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 
-<!-- Depreciation Analysis — pivot + chart -->
-<div class="card" id="depTopSpendCard" style="margin-bottom:12px">
+<!-- Depreciation Analysis — moved to unified Pivot tab -->
+<div class="card" id="depTopSpendCard" style="margin-bottom:12px;display:none">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
 <h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('depAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Depreciation Analysis</h3>
 <div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
@@ -2247,8 +2247,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 
-<!-- Revenue Analysis — pivot + chart -->
-<div class="card" id="revTopSpendCard" style="margin-bottom:12px">
+<!-- Revenue Analysis — moved to unified Pivot tab -->
+<div class="card" id="revTopSpendCard" style="margin-bottom:12px;display:none">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:nowrap">
 <h3 class="section-title" style="margin:0;font-size:.92rem;white-space:nowrap;cursor:pointer;user-select:none" onclick="toggleAnalysisSection('revAnalysisBody',this)"><span class="analysis-arrow" style="display:inline-block;font-size:.7rem;transition:transform .2s;margin-right:4px;transform:rotate(90deg)">&#9654;</span>Revenue Analysis</h3>
 <div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;margin-left:auto">
