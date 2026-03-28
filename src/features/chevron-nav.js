@@ -76,9 +76,14 @@
     backToNavBtn.addEventListener('click',()=>{
       resetSubNavLabels();
       hideAppShell();
+      // Hide ALL other modules too
+      ['vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.style.display='none';
+      });
       if(window.showLanding)window.showLanding();
       if(window._showCalendar)window._showCalendar();
       backToNavBtn.style.display='none';
+      window.scrollTo(0,0);
     });
   }
 
@@ -111,6 +116,7 @@
     // Step 1: Hide EVERYTHING
     if(window.hideAllModules)window.hideAllModules();
     hideAppShell();
+    window.scrollTo(0,0);
 
     // Step 2: Setup
     showBackToPlan();
@@ -137,6 +143,7 @@
     hideAppShell();
     showBackToPlan();
     hideCalendar();
+    window.scrollTo(0,0);
 
     if(module==='comp'){
       // C&B: show appShell with exec comp view

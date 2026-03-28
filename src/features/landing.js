@@ -81,14 +81,14 @@ function toggleBandFilter(btn,groupId){
 let pnlFilterProduct='',pnlFilterCategory='';
 
 function hideAllModules(){
-  document.getElementById('landingPage').style.display='none';
-  document.getElementById('appShell').style.display='none';
-  document.getElementById('vendorModule').style.display='none';
-  document.getElementById('depreciationModule').style.display='none';
-  document.getElementById('revenueModule').style.display='none';
-  document.getElementById('ltfModule').style.display='none';
-  // Also hide the exec header bar
+  // Hide every module container
+  ['landingPage','appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  // Hide exec header bar
   const chb=document.getElementById('compHeaderBar');if(chb)chb.style.display='none';
+  // Deactivate all tab-content inside appShell to prevent bleed
+  document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'));
 }
 function showLanding(){
   hideAllModules();
@@ -105,7 +105,6 @@ function showLanding(){
 function showApp(){
   hideAllModules();
   document.getElementById('appShell').style.display='';
-  renderAll();
   if(window._updateGlobalToolbar)window._updateGlobalToolbar();
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
