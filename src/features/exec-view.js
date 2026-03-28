@@ -164,7 +164,7 @@ function renderExecFcSparkline(){
     }]},
     plugins:[sparkYoyPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},
-      plugins:{legend:{display:false},datalabels:{display:false},
+      plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false,
         tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
       scales:{
         x:{ticks:{font:{size:12,weight:'600'},color:sparkTickColor},grid:{display:false}},

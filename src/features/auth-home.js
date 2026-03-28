@@ -131,6 +131,9 @@ async function renderPlanList(){
   const user=getUser();
   const list=document.getElementById('homePlanList');
 
+  // Show loading state
+  list.innerHTML='<div class="home-plan-empty" style="color:var(--tertiary)">Loading plans...</div>';
+
   // Fetch from server if user has server id, otherwise empty
   let plans=[];
   if(user&&user.id){
@@ -323,11 +326,18 @@ function connectPlanWebSocket(plan,user){
           if(window.renderAll)try{window.renderAll()}catch(e){}
         }
         if(msg.type==='presence'){
-          // Update presence dots in plan header
+          // Update presence dots in plan header with tab labels
           const dots=document.getElementById('planHdrUsers');
           if(dots&&msg.users){
-            dots.innerHTML=msg.users.map(u=>`<div class="user-dot" style="background:${u.color||'#3a7d44'}" title="${u.initials}">${u.initials}</div>`).join('');
+            dots.innerHTML=msg.users.map(u=>{
+              const tabLabel=u.tab?`<span style="font-size:.55rem;color:var(--toolbar-text-dim);margin-left:2px">${u.tab}</span>`:'';
+              return `<div class="user-dot" style="background:${u.color||'#3a7d44'}" title="${u.initials}${u.tab?' — '+u.tab:''}">${u.initials}</div>${tabLabel}`;
+            }).join('');
           }
+        }
+        if(msg.type==='cursor'&&msg.fromAccountId!==user.id){
+          // Show other user's cell selection
+          showRemoteCursor(msg);
         }
       }catch(e){}
     };
@@ -348,6 +358,40 @@ function connectPlanWebSocket(plan,user){
     };
   }catch(e){console.warn('WebSocket connection failed:',e)}
 }
+// ── Remote cursor indicators on cells ──
+function showRemoteCursor(msg){
+  // Remove previous cursor from this user
+  document.querySelectorAll(`.remote-cursor[data-uid="${msg.fromAccountId}"]`).forEach(el=>el.remove());
+  if(!msg.cellId)return;
+  const cell=document.querySelector(`[data-cell-id="${msg.cellId}"]`)||document.getElementById(msg.cellId);
+  if(!cell)return;
+  // Add a small initials badge on the cell
+  const badge=document.createElement('span');
+  badge.className='remote-cursor';
+  badge.dataset.uid=msg.fromAccountId;
+  badge.style.cssText=`position:absolute;top:-8px;right:-4px;background:${msg.color||'var(--accent)'};color:#fff;font-size:.5rem;font-weight:700;padding:1px 3px;border-radius:3px;z-index:5;pointer-events:none;line-height:1`;
+  badge.textContent=msg.initials||'?';
+  cell.style.position='relative';
+  cell.appendChild(badge);
+  // Auto-remove after 5s
+  setTimeout(()=>badge.remove(),5000);
+}
+
+// ── Broadcast current tab to presence ──
+window._broadcastTab=function(tabName){
+  if(_planWs&&_planWs.readyState===1){
+    _planWs.send(JSON.stringify({type:'tab',tab:tabName}));
+  }
+};
+
+// ── Broadcast cell focus for collaboration ──
+window._broadcastCellFocus=function(cellId){
+  const user=getUser();
+  if(_planWs&&_planWs.readyState===1&&user){
+    _planWs.send(JSON.stringify({type:'cursor',cellId:cellId,initials:user.initials,color:user.color||'#3a7d44'}));
+  }
+};
+
 function disconnectPlanWebSocket(){
   if(_planWs){try{_planWs.close()}catch(e){}_planWs=null}
 }

@@ -53,9 +53,25 @@
     });
   });
 
+  // Show/hide the ← Plan back button
+  function showBackToPlan(){
+    const btn=document.getElementById('planBackToNav');
+    if(btn)btn.style.display='';
+  }
+
+  // Wire ← Plan button
+  const backToNavBtn=document.getElementById('planBackToNav');
+  if(backToNavBtn){
+    backToNavBtn.addEventListener('click',()=>{
+      if(window.showLanding)window.showLanding();
+      backToNavBtn.style.display='none';
+    });
+  }
+
   function navigateToExecSummary() {
     const chevNav = document.getElementById('chevronNav');
     if (chevNav) chevNav.style.display = 'none';
+    showBackToPlan();
 
     // Show appShell
     const appShell = document.getElementById('appShell');
@@ -70,6 +86,7 @@
   }
 
   function navigateToModule(module) {
+    showBackToPlan();
     if (module === 'comp') {
       if (window.showApp) window.showApp();
       // Hide overview content, show employees tab

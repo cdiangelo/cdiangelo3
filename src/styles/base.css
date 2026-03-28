@@ -164,3 +164,11 @@ body.ops-mode .ops-hide{display:none!important}
 /* Spreadsheet-style cell selection */
 td.spreadsheet-selected{outline:2px solid var(--accent);outline-offset:-1px;z-index:1;position:relative}
 input.spreadsheet-active{background:var(--accent-soft)!important;font-weight:600}
+
+/* Remote cursor badges for collaboration */
+.remote-cursor{animation:remoteCursorFade 5s ease forwards}
+@keyframes remoteCursorFade{0%{opacity:1}80%{opacity:1}100%{opacity:0}}
+
+/* User presence in header — compact with tab labels */
+.plan-hdr-users{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.plan-hdr-users .user-presence{display:inline-flex;align-items:center;gap:3px}
