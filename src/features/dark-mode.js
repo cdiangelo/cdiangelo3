@@ -1,6 +1,6 @@
 // ── DARK MODE, ACCENT THEMES, OPS VIEW ── ES Module
 // Dark = default (:root). Light = [data-theme="light"].
-// Accent = data-accent attribute (obsidian-ember | forest-ledger | dusk-slate).
+// Accent = data-accent attribute (iron-dusk | celadon | tide | obsidian-violet).
 // All controls live in the settings slide panel.
 
 export function initDarkMode(){
@@ -69,7 +69,7 @@ export function initDarkMode(){
   if(!savedTheme&&localStorage.getItem('compPlanDark')==='0')applyTheme('light');
 
   // Restore accent
-  const savedAccent=localStorage.getItem('webplan-theme-accent')||'dusk-slate';
+  const savedAccent=localStorage.getItem('webplan-theme-accent')||'iron-dusk';
   applyAccent(savedAccent);
 
   // Restore ops
@@ -149,43 +149,53 @@ function checkOpsRestriction(){
 
 function initAdminOpsControl(){
   const listEl=document.getElementById('adminOpsUserList');
-  const addBtn=document.getElementById('adminOpsAddUser');
-  if(!listEl||!addBtn)return;
+  if(!listEl)return;
 
-  function render(){
-    const rules=getOpsRules();
-    listEl.innerHTML='';
-    rules.forEach((rule,i)=>{
-      const row=document.createElement('div');
-      row.style.cssText='display:flex;gap:6px;align-items:center';
-      row.innerHTML=`
-        <input type="email" value="${rule.email||''}" placeholder="user@email.com" style="flex:1;padding:5px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
-        <select style="padding:5px 6px;font-size:.75rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);width:auto">
-          <option value="free"${rule.mode==='free'?' selected':''}>Can Toggle</option>
-          <option value="restricted"${rule.mode==='restricted'?' selected':''}>Restricted</option>
-        </select>
-        <button class="btn btn-sm" style="padding:3px 8px;font-size:.7rem;color:var(--danger)" title="Remove">×</button>`;
-      const emailInput=row.querySelector('input');
-      const modeSelect=row.querySelector('select');
-      const removeBtn=row.querySelector('button');
-      emailInput.addEventListener('change',()=>{rules[i].email=emailInput.value;saveOpsRules(rules)});
-      modeSelect.addEventListener('change',()=>{rules[i].mode=modeSelect.value;saveOpsRules(rules);checkOpsRestriction()});
-      removeBtn.addEventListener('click',()=>{rules.splice(i,1);saveOpsRules(rules);render()});
-      listEl.appendChild(row);
-    });
-    if(!rules.length){
-      listEl.innerHTML='<p style="font-size:.75rem;color:var(--tertiary)">No rules configured. All users can toggle Ops View freely.</p>';
-    }
+  function getKnownUsers(){
+    try{return JSON.parse(localStorage.getItem('webplan-known-users')||'[]')}catch(e){return[]}
   }
 
-  addBtn.addEventListener('click',()=>{
+  function render(){
+    const known=getKnownUsers();
     const rules=getOpsRules();
-    rules.push({email:'',mode:'free'});
-    saveOpsRules(rules);
-    render();
-  });
+    listEl.innerHTML='';
+    if(!known.length){
+      listEl.innerHTML='<p style="font-size:.75rem;color:var(--tertiary)">No users have logged in yet.</p>';
+      return;
+    }
+    known.forEach(u=>{
+      const email=u.email.toLowerCase();
+      const rule=rules.find(r=>r.email.toLowerCase()===email);
+      const isRestricted=rule&&rule.mode==='restricted';
+      const row=document.createElement('label');
+      row.style.cssText='display:flex;gap:10px;align-items:center;padding:6px 0;cursor:pointer;font-size:.78rem';
+      row.innerHTML=`
+        <input type="checkbox" ${isRestricted?'checked':''} style="accent-color:var(--accent);cursor:pointer">
+        <span style="flex:1;color:var(--text)">${u.name||u.email} <span style="color:var(--tertiary);font-size:.7rem">${u.email}</span></span>`;
+      const cb=row.querySelector('input');
+      cb.addEventListener('change',()=>{
+        const r=getOpsRules();
+        const idx=r.findIndex(x=>x.email.toLowerCase()===email);
+        if(cb.checked){
+          if(idx>=0)r[idx].mode='restricted';
+          else r.push({email:u.email,mode:'restricted'});
+        } else {
+          if(idx>=0)r.splice(idx,1);
+        }
+        saveOpsRules(r);
+        checkOpsRestriction();
+      });
+      listEl.appendChild(row);
+    });
+  }
 
   render();
+  // Re-render when settings panel opens (in case new users logged in)
+  const panel=document.getElementById('settingsSlidePanel');
+  if(panel){
+    const observer=new MutationObserver(()=>{if(panel.classList.contains('open'))render()});
+    observer.observe(panel,{attributes:true,attributeFilter:['class']});
+  }
 }
 
 initDarkMode();

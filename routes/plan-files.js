@@ -12,7 +12,9 @@ router.get('/', async (req, res) => {
     const plans = await db.prepare(`
       SELECT pf.id, pf.name, pf.year, pf.scenario_type as "scenarioType",
              pf.description, pf.created_at as "createdAt", pf.updated_at as "updatedAt",
-             a.initials as "creatorInitials", a.email as "creatorEmail"
+             a.initials as "creatorInitials", a.email as "creatorEmail",
+             pa.role,
+             (SELECT COUNT(*) FROM plan_access pa2 WHERE pa2.plan_file_id = pf.id) as "accessCount"
       FROM plan_files pf
       JOIN plan_access pa ON pa.plan_file_id = pf.id
       LEFT JOIN accounts a ON a.id = pf.created_by
@@ -79,6 +81,24 @@ router.delete('/:id', async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     console.error('Delete plan error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/plan-files/:id/access — list users with access
+router.get('/:id/access', async (req, res) => {
+  try {
+    const db = getDb();
+    const rows = await db.prepare(`
+      SELECT a.id, a.email, a.initials, a.color, pa.role
+      FROM plan_access pa
+      JOIN accounts a ON a.id = pa.account_id
+      WHERE pa.plan_file_id = ?
+      ORDER BY pa.granted_at
+    `).all(parseInt(req.params.id));
+    res.json(rows || []);
+  } catch (e) {
+    console.error('List plan access error:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -14,5 +14,7 @@ document.querySelectorAll('#mainNav button').forEach(b=>{
     if(b.dataset.tab==='forecast')window.renderForecast();
     if(b.dataset.tab==='exec'){window.renderExecView();if(!window._scenInited){window.initScenarioPane();window._scenInited=true}}
     if(b.dataset.tab==='scratch')window.initScratchPad();
+    // Broadcast active tab for collaboration presence
+    if(window._broadcastTab)window._broadcastTab(b.textContent||b.dataset.tab);
   });
 });

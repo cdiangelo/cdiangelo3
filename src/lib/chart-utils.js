@@ -35,12 +35,13 @@ export function getChartFills(){
   ];
 }
 
-// Legacy compat exports — all point to the unified palette
-export const CHART_COLORS=getChartColors();
-export const CHART_COLORS_MUTED_DARK=getChartColors();
-export const CHART_COLORS_NEON=getChartColors();
-export const CHART_COLORS_CRISP=getChartColors();
-export const CHART_COLORS_CRISP_DARK=getChartColors();
+// Static fallback arrays for code that imports these at module load time
+const _fallback=['#9e8e76','#5c7d9a','#b8aa94','#4a6580','#c4b49a','#7898b4','#7a6e5e','#3a5268'];
+export const CHART_COLORS=_fallback;
+export const CHART_COLORS_MUTED_DARK=_fallback;
+export const CHART_COLORS_NEON=_fallback;
+export const CHART_COLORS_CRISP=_fallback;
+export const CHART_COLORS_CRISP_DARK=_fallback;
 
 // Tag colors — light and dark derived from chart palette
 export const TAG_COLORS_LIGHT=['#0f172a','#0f766e','#0284c7','#059669','#4338ca','#d97706','#2563eb','#dc2626','#0891b2','#7c3aed','#475569','#065f46'];
@@ -114,6 +115,7 @@ export const FTE_TOOLTIP={
 };
 
 export function fmtShort(n){return (n<0?'-':'')+'$'+(Math.abs(n)/1e6).toFixed(2)+'M'}
+export function fmtShort1(n){return (n<0?'-':'')+'$'+(Math.abs(n)/1e6).toFixed(1)+'M'}
 
 export function stackedBarDatalabels(datasets,tickColor,fontSize){
   const fs=fontSize||11;
@@ -122,18 +124,24 @@ export function stackedBarDatalabels(datasets,tickColor,fontSize){
   const negStacks=datasets.filter(d=>d.stack==='neg');
   const topPosIdx=posStacks.length?datasets.indexOf(posStacks[posStacks.length-1]):-1;
   const bottomNegIdx=negStacks.length?datasets.indexOf(negStacks[negStacks.length-1]):-1;
+  // Auto-detect if labels will be crunched (>6 data points)
+  const nBars=(datasets[0]&&datasets[0].data)?datasets[0].data.length:0;
+  const crunched=nBars>6;
+  const fmt=crunched?fmtShort1:fmtShort;
+  const rotation=crunched?-90:0;
+  const labelFs=crunched?Math.max(9,fs-1):fs;
   datasets.forEach((ds,i)=>{
     if(i===topPosIdx){
-      ds.datalabels={display:true,anchor:'end',align:'end',color:dlColor,font:{size:fs,weight:'bold'},
+      ds.datalabels={display:true,anchor:'end',align:'end',rotation:rotation,color:dlColor,font:{size:labelFs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;posStacks.forEach(d=>{const val=d.data[ctx.dataIndex];if(val>0)sum+=val});
-          return sum?fmtShort(sum):'';
+          return sum?fmt(sum):'';
         }};
     } else if(i===bottomNegIdx){
-      ds.datalabels={display:true,anchor:'start',align:'start',color:dlColor,font:{size:fs,weight:'bold'},
+      ds.datalabels={display:true,anchor:'start',align:'start',rotation:rotation,color:dlColor,font:{size:labelFs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;negStacks.forEach(d=>{sum+=d.data[ctx.dataIndex]});
-          return sum<0?fmtShort(sum):'';
+          return sum<0?fmt(sum):'';
         }};
     } else {
       ds.datalabels={display:false};
@@ -144,7 +152,7 @@ export function stackedBarDatalabels(datasets,tickColor,fontSize){
 // Y/Y arrows plugin
 export const yoyArrowsPlugin={
   id:'yoyArrows',
-  afterDraw(chart){
+  afterDatasetsDraw(chart){
     if(!chart.options.plugins.yoyArrows)return;
     const opts=chart.options.plugins.yoyArrows;
     const ctx=chart.ctx;
@@ -169,7 +177,7 @@ export const yoyArrowsPlugin={
     let visMetaIdx=0;
     for(let di=0;di<datasets.length;di++){if(!chart.getDatasetMeta(di).hidden){visMetaIdx=di;break}}
     const chartW=area.right-area.left;
-    const baseFontSize=Math.max(10,Math.min(14,chartW/(nLabels*5)));
+    const baseFontSize=Math.max(8,Math.min(11,chartW/(nLabels*6)));
     const fontSize=opts.fontSize||baseFontSize;
     const isLight=document.documentElement.getAttribute('data-theme')==='light';
     const arrowColor=opts.color||(isLight?'rgba(15,23,42,.3)':'rgba(148,163,184,.4)');
@@ -207,9 +215,9 @@ export const yoyArrowsPlugin={
       ctx.moveTo(x2,y2);
       ctx.lineTo(x2-headLen*Math.cos(angle+0.4),y2-headLen*Math.sin(angle+0.4));
       ctx.strokeStyle=arrowColor;ctx.lineWidth=1.5;ctx.stroke();
-      ctx.font=`600 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
+      ctx.font=`500 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
       const tw=ctx.measureText(pctStr).width;
-      const pad=3;
+      const pad=2;
       const bgColor=pct>=0?(isLight?'rgba(5,150,105,.1)':'rgba(16,185,129,.2)'):(isLight?'rgba(220,38,38,.1)':'rgba(239,68,68,.2)');
       const labelColor=pct>=0?(isLight?'#059669':'#10b981'):(isLight?'#dc2626':'#ef4444');
       ctx.fillStyle=bgColor;
@@ -227,6 +235,18 @@ export const yoyArrowsPlugin={
 if(typeof Chart!=='undefined')Chart.register(yoyArrowsPlugin);
 
 // Removed: crispPatternPlugin (no longer needed without crisp scheme)
-// Legacy export stubs for any code that references drawCrispPattern
 export function drawCrispPattern(){}
 export const crispPatternPlugin={id:'crispPatternsLegacy'};
+
+// ── Window globals for non-module code ──
+window.getChartColors=getChartColors;
+window.getChartFills=getChartFills;
+window.hexToRgba=hexToRgba;
+window.getSparkColor=getSparkColor;
+window.getStatValueColor=getStatValueColor;
+window.fmtShort=fmtShort;
+window.fmtShort1=fmtShort1;
+window.setChartColorScheme=setChartColorScheme;
+window.stackedBarDatalabels=stackedBarDatalabels;
+window.getCrispDatalabelColor=getCrispDatalabelColor;
+window.FTE_TOOLTIP=FTE_TOOLTIP;

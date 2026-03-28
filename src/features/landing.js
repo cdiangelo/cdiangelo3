@@ -87,6 +87,8 @@ function hideAllModules(){
   document.getElementById('depreciationModule').style.display='none';
   document.getElementById('revenueModule').style.display='none';
   document.getElementById('ltfModule').style.display='none';
+  // Also hide the exec header bar
+  const chb=document.getElementById('compHeaderBar');if(chb)chb.style.display='none';
 }
 function showLanding(){
   hideAllModules();
@@ -1514,6 +1516,7 @@ function runInitSequence(){
 window.toggleAnalysisSection = toggleAnalysisSection;
 window.toggleDepBand = toggleDepBand;
 window.toggleRevBand = toggleRevBand;
+window.hideAllModules = hideAllModules;
 window.showLanding = showLanding;
 window.showApp = showApp;
 window.showVendor = showVendor;

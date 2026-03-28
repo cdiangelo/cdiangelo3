@@ -50,14 +50,6 @@ function initAuthPage(){
   const errorEl=document.getElementById('authError');
   const card=document.querySelector('.auth-card');
 
-  // Check if already logged in
-  const existing=getUser();
-  if(existing){
-    authPage.style.display='none';
-    showHomePage();
-    return;
-  }
-
   // Typing glow effect
   emailInput.addEventListener('input',()=>{
     card.classList.toggle('typing',emailInput.value.length>0);
@@ -74,13 +66,23 @@ function initAuthPage(){
     const serverAccount=await loginApi(email);
     const user=serverAccount?{...serverAccount,name:emailToName(email)}:{email,initials:emailToInitials(email),name:emailToName(email),createdAt:Date.now()};
     setUser(user);
+    // Track this user in known users list for admin panel
+    trackKnownUser(user);
     continueBtn.textContent='Continue';continueBtn.disabled=false;
     authPage.style.display='none';
     showHomePage();
   }
 
+  // Always attach handlers (even if already logged in — needed after sign out)
   continueBtn.addEventListener('click',doLogin);
   emailInput.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+  // Check if already logged in
+  const existing=getUser();
+  if(existing){
+    authPage.style.display='none';
+    showHomePage();
+  }
 }
 
 // ── TIER 2: Home Page ──
@@ -98,8 +100,8 @@ function showHomePage(){
 
   renderPlanList();
 
-  // Create plan
-  document.getElementById('homeCreatePlan').addEventListener('click',async()=>{
+  // Create plan (use onclick to prevent duplicate handlers)
+  document.getElementById('homeCreatePlan').onclick=async()=>{
     const name=document.getElementById('homePlanName').value.trim();
     const year=document.getElementById('homePlanYear').value;
     const type=document.getElementById('homePlanType').value;
@@ -112,22 +114,25 @@ function showHomePage(){
       document.getElementById('homePlanName').value='';
       renderPlanList();
     } else {alert('Failed to create plan')}
-  });
+  };
 
   // Sign out
-  document.getElementById('homeSignOut').addEventListener('click',()=>{
+  document.getElementById('homeSignOut').onclick=()=>{
     clearUser();
     document.getElementById('homePage').style.display='none';
     document.getElementById('authPage').style.display='';
     document.getElementById('authEmail').value='';
     document.querySelector('.auth-card').classList.remove('typing');
-  });
+  };
 }
 
 let _cachedPlans=[];
 async function renderPlanList(){
   const user=getUser();
   const list=document.getElementById('homePlanList');
+
+  // Show loading state
+  list.innerHTML='<div class="home-plan-empty" style="color:var(--tertiary)">Loading plans...</div>';
 
   // Fetch from server if user has server id, otherwise empty
   let plans=[];
@@ -139,40 +144,67 @@ async function renderPlanList(){
   if(!plans.length){
     list.innerHTML='<div class="home-plan-empty">No plans yet. Create one above.</div>';
   } else {
-    list.innerHTML=plans.map((p,i)=>{
+    // Split into shared (accessCount > 1) and private (accessCount == 1, owner only)
+    const shared=[];
+    const priv=[];
+    plans.forEach((p,i)=>{
+      p._idx=i; // preserve index for lookup
+      if((p.accessCount||1)>1){shared.push(p)}else{priv.push(p)}
+    });
+
+    function renderCard(p){
       const date=new Date(p.updatedAt||p.createdAt);
-      const timeStr=date.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+date.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+      const timeStr=date.toLocaleDateString(undefined,{month:'short',day:'numeric'});
       const type=p.scenarioType||p.type||'budget';
-      return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${i}">
-        <div class="plan-initials" style="background:${['#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#a38b5e'][i%5]}">${p.creatorInitials||p.creator||'?'}</div>
-        <div style="flex:1">
-          <div class="plan-name">${p.name}</div>
+      const isOwner=p.role==='owner'||!p.role;
+      const shareLabel=isOwner?'by me':'with me';
+      const shareArrow=isOwner?'↗':'↙';
+      const shareTag=`<span style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;color:var(--tertiary);margin-left:auto;white-space:nowrap">${shareArrow} ${shareLabel}</span>`;
+      return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${p._idx}">
+        <div style="flex:1;min-width:0">
+          <div class="plan-name" style="display:flex;align-items:center;gap:6px">${p.name}${(p.accessCount||1)>1?shareTag:''}</div>
           <div class="plan-meta">
             <span class="plan-badge ${type}">${type}</span>
             <span>${p.year}</span>
-            <span>Updated ${timeStr}</span>
+            <span>${timeStr}</span>
           </div>
         </div>
-        <span class="plan-delete" data-plan-id="${p.id}" title="Delete plan">&times;</span>
+        <button class="plan-menu-btn" data-plan-idx="${p._idx}" title="Share" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--tertiary);padding:4px 8px;border-radius:4px">⋯</button>
       </div>`;
-    }).join('');
+    }
+
+    let html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+    // Shared column
+    html+='<div>';
+    html+='<div style="font-size:.78rem;font-weight:600;color:var(--text-dim);padding:8px 12px;background:var(--panel-inset);border-radius:8px;margin-bottom:8px">Shared Versions</div>';
+    if(shared.length){html+=shared.map(renderCard).join('')}
+    else{html+='<div style="font-size:.78rem;color:var(--tertiary);padding:12px;text-align:center">No shared plans</div>'}
+    html+='</div>';
+    // Private column
+    html+='<div>';
+    html+='<div style="font-size:.78rem;font-weight:600;color:var(--text-dim);padding:8px 12px;background:var(--panel-inset);border-radius:8px;margin-bottom:8px">Private Versions</div>';
+    if(priv.length){html+=priv.map(renderCard).join('')}
+    else{html+='<div style="font-size:.78rem;color:var(--tertiary);padding:12px;text-align:center">No private plans</div>'}
+    html+='</div>';
+    html+='</div>';
+    list.innerHTML=html;
 
     list.querySelectorAll('.home-plan-card').forEach(card=>{
       card.addEventListener('click',(e)=>{
-        if(e.target.classList.contains('plan-delete'))return;
+        if(e.target.closest('.plan-menu-btn'))return;
         const idx=+card.dataset.planIdx;
-        openPlan(_cachedPlans[idx]);
+        const plan=_cachedPlans[idx];
+        if(!plan){console.error('Plan not found at index',idx,_cachedPlans);return}
+        openPlan(plan).catch(err=>console.error('openPlan failed:',err));
       });
     });
 
-    list.querySelectorAll('.plan-delete').forEach(btn=>{
-      btn.addEventListener('click',async(e)=>{
+    list.querySelectorAll('.plan-menu-btn').forEach(btn=>{
+      btn.addEventListener('click',(e)=>{
         e.stopPropagation();
-        const planId=btn.dataset.planId;
-        const plan=_cachedPlans.find(p=>String(p.id)===planId);
-        if(!plan||!confirm('Delete "'+plan.name+'"?'))return;
-        await deletePlanApi(planId);
-        renderPlanList();
+        const idx=+btn.dataset.planIdx;
+        const plan=_cachedPlans[idx];
+        if(plan)openShareModal(plan);
       });
     });
   }
@@ -185,11 +217,18 @@ async function renderPlanList(){
 
 let _planSaveTimer=null;
 async function openPlan(plan){
-  if(!plan)return;
+  if(!plan){console.error('openPlan called with null plan');return}
   const user=getUser();
+  if(!user){console.error('openPlan: no user');return}
+  console.log('Opening plan:',plan.name,plan.id);
 
   // Store active plan reference
   window._activePlan=plan;
+
+  // Ensure state is initialized before loading plan data
+  try{loadState()}catch(e){console.warn('loadState init:',e)}
+  ensureStateFields();
+  window.state=state;
 
   // Load state from server
   const serverPlan=await loadPlanState(plan.id);
@@ -237,28 +276,29 @@ async function openPlan(plan){
   // User dot
   document.getElementById('planHdrUsers').innerHTML=`<div class="user-dot" style="background:${user.color||'#3a7d44'}" title="${user.name}">${user.initials}</div>`;
 
-  // Show global toolbar below plan header
-  document.getElementById('globalToolbar').style.display='flex';
-  document.getElementById('globalToolbar').style.top='34px';
-  document.getElementById('globalToolbarSpacer').style.display='';
-  document.getElementById('globalToolbarSpacer').style.height='70px';
+  // Global toolbar hidden — controls moved to settings panel and bottom toolbar
 
   // Update bottom toolbar
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 
-  // Show side panels and landing page
+  // Show side panels, calendar, and landing page
   setSidePanelVisibility(true);
+  if(window._showCalendar)window._showCalendar();
   if(window.showLanding)window.showLanding();
   if(window.initDropdowns)try{window.initDropdowns()}catch(e){}
-  if(window.renderAll)try{window.renderAll()}catch(e){}
+  // Only render landing-specific content — exec/modules render when navigated to
   if(window.renderPnlWalk)try{window.renderPnlWalk()}catch(e){}
   if(window.renderLandingCharts)try{window.renderLandingCharts()}catch(e){}
+  // Ensure appShell stays hidden on landing page (safety net)
+  document.getElementById('appShell').style.display='none';
+  const _chb2=document.getElementById('compHeaderBar');if(_chb2)_chb2.style.display='none';
 
   // Back to home
   document.getElementById('planBackHome').onclick=()=>{
     try{if(window.saveState)window.saveState()}catch(e){}
     try{disconnectPlanWebSocket()}catch(e){}
     document.getElementById('planHeaderBar').style.display='none';
+    const _chb=document.getElementById('compHeaderBar');if(_chb)_chb.style.display='none';
     try{document.getElementById('globalToolbar').style.display='none'}catch(e){}
     try{document.getElementById('globalToolbarSpacer').style.display='none'}catch(e){}
     const btb=document.getElementById('bottomToolbar');if(btb)btb.style.display='none';
@@ -268,6 +308,7 @@ async function openPlan(plan){
     // Close any open side panels
     try{if(window.closeAllSidePanels)window.closeAllSidePanels()}catch(e){}
     setSidePanelVisibility(false);
+    if(window._hideCalendar)window._hideCalendar();
     document.getElementById('homePage').style.display='';
     try{renderPlanList()}catch(e){console.error('renderPlanList error:',e)}
   };
@@ -287,7 +328,7 @@ function connectPlanWebSocket(plan,user){
     _planWs.onmessage=(ev)=>{
       try{
         const msg=JSON.parse(ev.data);
-        if(msg.type==='state_sync'&&msg.fromAccountId!==user.id){
+        if(msg.type==='state_sync'&&String(msg.fromAccountId)!==String(user.id)){
           // Apply remote state
           const parsed=JSON.parse(msg.stateData);
           Object.keys(parsed).forEach(k=>{state[k]=parsed[k]});
@@ -296,11 +337,19 @@ function connectPlanWebSocket(plan,user){
           if(window.renderAll)try{window.renderAll()}catch(e){}
         }
         if(msg.type==='presence'){
-          // Update presence dots in plan header
           const dots=document.getElementById('planHdrUsers');
           if(dots&&msg.users){
-            dots.innerHTML=msg.users.map(u=>`<div class="user-dot" style="background:${u.color||'#3a7d44'}" title="${u.initials}">${u.initials}</div>`).join('');
+            dots.innerHTML=msg.users.map(u=>{
+              const tab=u.tab||'';
+              const c=u.color||'#3a7d44';
+              const tabBadge=tab?`<span style="font-size:.58rem;font-weight:600;color:#fff;background:${c}40;padding:2px 8px;border-radius:10px;margin-left:2px;letter-spacing:.03em;white-space:nowrap">${tab}</span>`:'';
+              return `<span style="display:inline-flex;align-items:center;gap:0;margin-right:4px"><div class="user-dot" style="background:${c}" title="${u.initials}${tab?' — '+tab:''}">${u.initials}</div>${tabBadge}</span>`;
+            }).join('');
           }
+        }
+        if(msg.type==='cursor'&&msg.fromAccountId!==user.id){
+          // Show other user's cell selection
+          showRemoteCursor(msg);
         }
       }catch(e){}
     };
@@ -313,39 +362,63 @@ function connectPlanWebSocket(plan,user){
         _planWs.send(JSON.stringify({type:'state_update',stateData:JSON.stringify(state),timestamp:Date.now()}));
       }
     };
-    // Hook into saveState to also broadcast
-    const prevSave=window.saveState;
-    window.saveState=function(){
-      if(prevSave)prevSave();
-      if(window._broadcastPlanState)window._broadcastPlanState();
-    };
+    // Hook into state.js broadcastStateChange so ALL modules' saveState calls broadcast
+    window.broadcastStateChange=window._broadcastPlanState;
+    // Also hook debouncedServerSave if not already set for plan files
+    if(!window._planDebouncedSave){
+      window._planDebouncedSave=true;
+      const existingDSS=window.debouncedServerSave;
+      window.debouncedServerSave=function(){
+        // Plan file HTTP save is handled by openPlan's saveState wrapper
+        // Just make sure it doesn't error if called from state.js
+        if(existingDSS)try{existingDSS()}catch(e){}
+      };
+    }
   }catch(e){console.warn('WebSocket connection failed:',e)}
 }
+// ── Remote cursor indicators on cells ──
+function showRemoteCursor(msg){
+  // Remove previous cursor from this user
+  document.querySelectorAll(`.remote-cursor[data-uid="${msg.fromAccountId}"]`).forEach(el=>el.remove());
+  if(!msg.cellId)return;
+  const cell=document.querySelector(`[data-cell-id="${msg.cellId}"]`)||document.getElementById(msg.cellId);
+  if(!cell)return;
+  // Add a small initials badge on the cell
+  const badge=document.createElement('span');
+  badge.className='remote-cursor';
+  badge.dataset.uid=msg.fromAccountId;
+  badge.style.cssText=`position:absolute;top:-8px;right:-4px;background:${msg.color||'var(--accent)'};color:#fff;font-size:.5rem;font-weight:700;padding:1px 3px;border-radius:3px;z-index:5;pointer-events:none;line-height:1`;
+  badge.textContent=msg.initials||'?';
+  cell.style.position='relative';
+  cell.appendChild(badge);
+  // Auto-remove after 5s
+  setTimeout(()=>badge.remove(),5000);
+}
+
+// ── Broadcast current tab to presence ──
+window._broadcastTab=function(tabName){
+  if(_planWs&&_planWs.readyState===1){
+    _planWs.send(JSON.stringify({type:'tab',tab:tabName}));
+  }
+};
+
+// ── Broadcast cell focus for collaboration ──
+window._broadcastCellFocus=function(cellId){
+  const user=getUser();
+  if(_planWs&&_planWs.readyState===1&&user){
+    _planWs.send(JSON.stringify({type:'cursor',cellId:cellId,initials:user.initials,color:user.color||'#3a7d44'}));
+  }
+};
+
 function disconnectPlanWebSocket(){
   if(_planWs){try{_planWs.close()}catch(e){}_planWs=null}
 }
 
-// ── Toolbar buttons: Notes, Whiteboard, Teams ──
+// ── Toolbar buttons ──
 function wireToolbarButtons(){
-  // Notes — toggle existing sticky note panel
   const notesBtn=document.getElementById('toolbarNotesBtn');
   if(notesBtn)notesBtn.addEventListener('click',()=>{
     const btn=document.getElementById('stickyNoteBtn');
-    if(btn)btn.click();
-  });
-  // Whiteboard — toggle popout pane
-  const wbBtn=document.getElementById('toolbarWhiteboardBtn');
-  if(wbBtn)wbBtn.addEventListener('click',()=>{
-    const popout=document.getElementById('whiteboardPopout');
-    if(!popout)return;
-    const show=popout.style.display==='none';
-    popout.style.display=show?'':'none';
-    if(show)initWhiteboardPopout();
-  });
-  // Teams — toggle existing teams panel
-  const teamsBtn=document.getElementById('toolbarTeamsBtn');
-  if(teamsBtn)teamsBtn.addEventListener('click',()=>{
-    const btn=document.getElementById('teamsBtn');
     if(btn)btn.click();
   });
 }
@@ -358,103 +431,136 @@ function setSidePanelVisibility(visible){
   });
 }
 
-// ── Whiteboard Popout ──
-let _wbPopoutInited=false;
-function initWhiteboardPopout(){
-  if(_wbPopoutInited)return;
-  _wbPopoutInited=true;
-  const canvas=document.getElementById('wbPopoutCanvas');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  let drawing=false,startX=0,startY=0,lastX=0,lastY=0,size=3,color='#1a1a1a';
-  let snapshots=[];  // ImageData history for undo
-  const shapeEl=document.getElementById('wbPopoutShape');
-
-  function resize(){canvas.width=canvas.clientWidth;canvas.height=canvas.clientHeight;if(snapshots.length)ctx.putImageData(snapshots[snapshots.length-1],0,0)}
-  function saveSnap(){if(canvas.width>0&&canvas.height>0)snapshots.push(ctx.getImageData(0,0,canvas.width,canvas.height));if(snapshots.length>50)snapshots.shift()}
-  function restoreSnap(){if(snapshots.length)ctx.putImageData(snapshots[snapshots.length-1],0,0);else ctx.clearRect(0,0,canvas.width,canvas.height)}
-  new ResizeObserver(resize).observe(canvas);
-  setTimeout(()=>{resize();saveSnap()},100);
-
-  function pos(e){const r=canvas.getBoundingClientRect();const sx=canvas.width/r.width;const sy=canvas.height/r.height;return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy}}
-  canvas.addEventListener('mousedown',e=>{
-    drawing=true;const p=pos(e);startX=p.x;startY=p.y;lastX=p.x;lastY=p.y;
-    const tool=shapeEl.value||'';
-    if(tool==='eraser'){const r=Math.max(8,size*3);ctx.save();ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.restore();return}
-    if(tool==='dot'){ctx.beginPath();ctx.fillStyle=color;ctx.arc(p.x,p.y,size,0,Math.PI*2);ctx.fill();drawing=false;saveSnap();return}
-  });
-  canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=pos(e);
-    const tool=shapeEl.value||'';
-    if(tool==='eraser'){const r=Math.max(8,size*3);ctx.save();ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.restore();return}
-    if(tool===''||tool==='pen'){
-      ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';
-      ctx.moveTo(lastX,lastY);ctx.lineTo(p.x,p.y);ctx.stroke();lastX=p.x;lastY=p.y;return;
-    }
-    // Shape preview — restore last snapshot then draw preview
-    restoreSnap();
-    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';
-    if(tool==='line'){ctx.moveTo(startX,startY);ctx.lineTo(p.x,p.y);ctx.stroke()}
-    else if(tool==='rect'){ctx.strokeRect(Math.min(startX,p.x),Math.min(startY,p.y),Math.abs(p.x-startX),Math.abs(p.y-startY))}
-    else if(tool==='circle'){const cx=(startX+p.x)/2,cy=(startY+p.y)/2,rx=Math.abs(p.x-startX)/2,ry=Math.abs(p.y-startY)/2;if(rx>0&&ry>0){ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.stroke()}}
-  });
-  canvas.addEventListener('mouseup',e=>{
-    if(!drawing)return;drawing=false;
-    const tool=shapeEl.value||'';
-    if(tool==='eraser'){saveSnap();return}
-    // Finalize shapes
-    if(tool==='line'||tool==='rect'||tool==='circle'){
-      const p=pos(e);
-      restoreSnap();
-      ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';
-      if(tool==='line'){ctx.moveTo(startX,startY);ctx.lineTo(p.x,p.y);ctx.stroke()}
-      else if(tool==='rect'){ctx.strokeRect(Math.min(startX,p.x),Math.min(startY,p.y),Math.abs(p.x-startX),Math.abs(p.y-startY))}
-      else if(tool==='circle'){const cx=(startX+p.x)/2,cy=(startY+p.y)/2,rx=Math.abs(p.x-startX)/2,ry=Math.abs(p.y-startY)/2;if(rx>0&&ry>0){ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.stroke()}}
-    }
-    saveSnap();
-  });
-  canvas.addEventListener('mouseleave',()=>{if(drawing){drawing=false;saveSnap()}});
-
-  document.getElementById('wbPopoutSize').addEventListener('input',function(){size=+this.value});
-  document.getElementById('wbPopoutUndo').addEventListener('click',()=>{if(snapshots.length>1){snapshots.pop();restoreSnap()}else{snapshots=[];ctx.clearRect(0,0,canvas.width,canvas.height)}});
-  document.getElementById('wbPopoutClear').addEventListener('click',()=>{snapshots=[];ctx.clearRect(0,0,canvas.width,canvas.height)});
-  document.getElementById('wbPopoutClose').addEventListener('click',()=>{document.getElementById('whiteboardPopout').style.display='none'});
-
-  // Grid toggle
-  let showGrid=false;
-  function drawGrid(){
-    if(!showGrid)return;
-    ctx.save();ctx.strokeStyle='rgba(148,163,184,0.15)';ctx.lineWidth=0.5;
-    for(let x=0;x<canvas.width;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke()}
-    for(let y=0;y<canvas.height;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke()}
-    ctx.restore();
+// ── Share Modal ──
+function openShareModal(plan){
+  let modal=document.getElementById('shareModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='shareModal';
+    modal.className='modal-overlay';
+    modal.innerHTML=`<div class="modal" style="max-width:440px">
+      <h3 id="shareModalTitle">Share Plan</h3>
+      <div id="shareModalBody"></div>
+      <div class="modal-actions"><button class="btn" onclick="document.getElementById('shareModal').classList.remove('show')">Close</button></div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',(e)=>{if(e.target===modal)modal.classList.remove('show')});
   }
-  const gridBtn=document.getElementById('wbPopoutGrid');
-  if(gridBtn)gridBtn.addEventListener('click',()=>{showGrid=!showGrid;gridBtn.style.color=showGrid?'var(--accent)':'var(--text-dim)';restoreSnap();drawGrid()});
+  document.getElementById('shareModalTitle').textContent='Share "'+plan.name+'"';
+  const body=document.getElementById('shareModalBody');
+  body.innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="email" id="shareEmailInput" placeholder="Enter email to share with..." style="flex:1">
+      <button class="btn btn-primary" id="shareAddBtn" style="white-space:nowrap">Share</button>
+    </div>
+    <div id="shareStatus" style="font-size:.78rem;margin-bottom:12px;min-height:20px"></div>
+    <h4 style="font-size:.78rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Shared With</h4>
+    <div id="shareUserList" style="display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:.78rem;color:var(--tertiary)">Loading...</div>
+    </div>`;
 
-  // Colors
-  const isDark=document.documentElement.classList.contains('dark');
-  const colors=isDark?['#ffffff','#c4a0a0','#a0b8c8','#5ab866','#b0a0c0','#ff6b6b','#ffa94d','#74c0fc']:['#1a1a1a','#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#dc2626','#ea580c','#2563eb'];
-  const colEl=document.getElementById('wbPopoutColors');
-  colors.forEach(c=>{
-    const dot=document.createElement('span');
-    dot.style.cssText=`width:12px;height:12px;border-radius:50%;background:${c};cursor:pointer;border:1px solid var(--border)`;
-    dot.addEventListener('click',()=>{color=c});
-    colEl.appendChild(dot);
-  });
+  const emailInput=document.getElementById('shareEmailInput');
+  const addBtn=document.getElementById('shareAddBtn');
+  const statusEl=document.getElementById('shareStatus');
 
-  // Draggable header
-  const hdr=document.getElementById('wbPopoutHeader');
-  const popout=document.getElementById('whiteboardPopout');
-  let dragging=false,dx=0,dy=0;
-  hdr.addEventListener('mousedown',e=>{dragging=true;dx=e.clientX-popout.offsetLeft;dy=e.clientY-popout.offsetTop;e.preventDefault()});
-  document.addEventListener('mousemove',e=>{if(!dragging)return;popout.style.left=(e.clientX-dx)+'px';popout.style.top=(e.clientY-dy)+'px';popout.style.right='auto';popout.style.bottom='auto'});
-  document.addEventListener('mouseup',()=>{dragging=false});
+  async function doShare(){
+    const email=emailInput.value.trim().toLowerCase();
+    if(!email||!email.includes('@')){statusEl.textContent='Please enter a valid email';statusEl.style.color='var(--danger)';return}
+    addBtn.disabled=true;addBtn.textContent='...';
+    try{
+      const r=await fetch('/api/plan-files/'+plan.id+'/share',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+      if(r.ok){
+        statusEl.textContent='Shared with '+email;statusEl.style.color='var(--success)';
+        emailInput.value='';
+        loadSharedUsers(plan.id);
+      } else {
+        const data=await r.json().catch(()=>({}));
+        statusEl.textContent=data.error||'Failed to share';statusEl.style.color='var(--danger)';
+      }
+    }catch(e){statusEl.textContent='Network error';statusEl.style.color='var(--danger)'}
+    addBtn.disabled=false;addBtn.textContent='Share';
+  }
+
+  addBtn.addEventListener('click',doShare);
+  emailInput.addEventListener('keydown',(e)=>{if(e.key==='Enter')doShare()});
+
+  loadSharedUsers(plan.id);
+  modal.classList.add('show');
 }
+
+async function loadSharedUsers(planId){
+  const listEl=document.getElementById('shareUserList');
+  if(!listEl)return;
+  try{
+    const r=await fetch('/api/plan-files/'+planId+'/access');
+    if(r.ok){
+      const users=await r.json();
+      if(!users.length){
+        listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Only you have access.</div>';
+        return;
+      }
+      listEl.innerHTML=users.map(u=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light)">
+          <div style="width:24px;height:24px;border-radius:50%;background:${u.color||'var(--accent)'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0">${u.initials||'?'}</div>
+          <div style="flex:1">
+            <div style="font-size:.82rem;font-weight:500;color:var(--text)">${u.email}</div>
+            <div style="font-size:.68rem;color:var(--tertiary)">${u.role||'editor'}</div>
+          </div>
+        </div>`).join('');
+    } else {
+      listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Could not load shared users.</div>';
+    }
+  }catch(e){
+    listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Could not load shared users.</div>';
+  }
+}
+
+// ── Track known users for admin panel ──
+const KNOWN_USERS_KEY='webplan-known-users';
+function trackKnownUser(user){
+  if(!user||!user.email)return;
+  try{
+    const known=JSON.parse(localStorage.getItem(KNOWN_USERS_KEY)||'[]');
+    const email=user.email.toLowerCase();
+    const existing=known.find(u=>u.email.toLowerCase()===email);
+    if(existing){
+      existing.name=user.name||existing.name;
+      existing.lastSeen=Date.now();
+    } else {
+      known.push({email:user.email,name:user.name||'',initials:user.initials||'',lastSeen:Date.now()});
+    }
+    localStorage.setItem(KNOWN_USERS_KEY,JSON.stringify(known));
+  }catch(e){}
+}
+window.trackKnownUser=trackKnownUser;
 
 // ── Init ──
 initAuthPage();
 setSidePanelVisibility(false); // Hidden until plan opened
 wireToolbarButtons();
+
+// ── Global Home button handler (failsafe — always wired) ──
+const _homeBtn=document.getElementById('planBackHome');
+if(_homeBtn){
+  _homeBtn.addEventListener('click',()=>{
+    try{if(window.saveState)window.saveState()}catch(e){}
+    document.getElementById('planHeaderBar').style.display='none';
+    const _chb=document.getElementById('compHeaderBar');if(_chb)_chb.style.display='none';
+    try{document.getElementById('globalToolbar').style.display='none'}catch(e){}
+    try{document.getElementById('globalToolbarSpacer').style.display='none'}catch(e){}
+    const btb=document.getElementById('bottomToolbar');if(btb)btb.style.display='none';
+    // Close settings panel
+    const sp=document.getElementById('settingsSlidePanel');if(sp){sp.classList.remove('open');sp.style.transform='translateX(100%)'}
+    ['landingPage','appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
+    try{if(window.closeAllSidePanels)window.closeAllSidePanels()}catch(e){}
+    document.body.classList.remove('scenario-open','data-open','guide-open');
+    if(window._hideCalendar)window._hideCalendar();
+    document.getElementById('homePage').style.display='';
+    if(typeof renderPlanList==='function')try{renderPlanList()}catch(e){}
+  });
+}
 
 // Expose for other modules
 window.getActiveUser=getUser;

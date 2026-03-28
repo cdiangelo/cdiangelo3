@@ -35,6 +35,9 @@ function setupWebSocket(server, db) {
         case 'cursor':
           handleCursor(ws, msg);
           break;
+        case 'tab':
+          handleTab(ws, msg, db);
+          break;
       }
     });
 
@@ -58,10 +61,15 @@ function setupWebSocket(server, db) {
 }
 
 async function handleAuth(ws, msg, db) {
-  const { sessionId, userId, userName, userColor, versionId } = msg;
+  // Support both session-based and plan-file-based auth
+  const sessionId = msg.sessionId || (msg.planFileId ? 'plan:'+msg.planFileId : null);
+  const userId = msg.userId || msg.accountId;
+  const userName = msg.userName || msg.initials || 'User';
+  const userColor = msg.userColor || msg.color || '#3a7d44';
+  const versionId = msg.versionId || (msg.planFileId ? 'main' : null);
   if (!sessionId || !userId || !versionId) return;
 
-  const clientInfo = { sessionId, userId, userName, userColor, versionId };
+  const clientInfo = { sessionId, userId, userName, userColor, versionId, isPlan:!!msg.planFileId };
   clients.set(ws, clientInfo);
 
   // Join room
@@ -69,19 +77,21 @@ async function handleAuth(ws, msg, db) {
   if (!rooms.has(roomKey)) rooms.set(roomKey, new Set());
   rooms.get(roomKey).add(ws);
 
-  // Update presence in DB
-  try {
-    await db.prepare(
-      `INSERT INTO presence (user_id, session_id, active_version_id, connected_at, last_ping)
-       VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-       ON CONFLICT (user_id) DO UPDATE SET
-         session_id = EXCLUDED.session_id,
-         active_version_id = EXCLUDED.active_version_id,
-         connected_at = CURRENT_TIMESTAMP,
-         last_ping = CURRENT_TIMESTAMP
-       RETURNING user_id`
-    ).run(userId, sessionId, versionId);
-  } catch (e) { console.error('WS DB error:', e.message) }
+  // Update presence in DB (skip for plan-file connections — they use in-memory presence)
+  if (!clientInfo.isPlan) {
+    try {
+      await db.prepare(
+        `INSERT INTO presence (user_id, session_id, active_version_id, connected_at, last_ping)
+         VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         ON CONFLICT (user_id) DO UPDATE SET
+           session_id = EXCLUDED.session_id,
+           active_version_id = EXCLUDED.active_version_id,
+           connected_at = CURRENT_TIMESTAMP,
+           last_ping = CURRENT_TIMESTAMP
+         RETURNING user_id`
+      ).run(userId, sessionId, versionId);
+    } catch (e) { console.error('WS DB error:', e.message) }
+  }
 
   // Broadcast presence to entire session
   await broadcastPresence(sessionId, db);
@@ -103,6 +113,7 @@ function handleStateUpdate(ws, msg, db) {
     type: 'state_sync',
     stateData,
     fromUserId: client.userId,
+    fromAccountId: client.userId, // plan-file compat
     fromUserName: client.userName,
     timestamp
   });
@@ -119,9 +130,18 @@ function handleStateUpdate(ws, msg, db) {
   savePending.set(saveKey, setTimeout(async () => {
     savePending.delete(saveKey);
     try {
-      await db.prepare(
-        "UPDATE versions SET state_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND session_id = ?"
-      ).run(stateData, client.versionId, client.sessionId);
+      if (client.isPlan) {
+        // Plan file — save to plan_files table
+        const planId = client.sessionId.replace('plan:', '');
+        await db.prepare(
+          "UPDATE plan_files SET state_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+        ).run(stateData, parseInt(planId));
+      } else {
+        // Session — save to versions table
+        await db.prepare(
+          "UPDATE versions SET state_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND session_id = ?"
+        ).run(stateData, client.versionId, client.sessionId);
+      }
     } catch (e) { console.error('WS DB error:', e.message) }
   }, 300));
 }
@@ -178,8 +198,10 @@ function handleCursor(ws, msg) {
   const outMsg = JSON.stringify({
     type: 'cursor',
     userId: client.userId,
-    userName: client.userName,
-    userColor: client.userColor,
+    fromAccountId: client.userId,
+    initials: client.userName,
+    color: client.userColor,
+    cellId: msg.cellId,
     tabName: msg.tabName,
     fieldId: msg.fieldId
   });
@@ -189,6 +211,13 @@ function handleCursor(ws, msg) {
       peer.send(outMsg);
     }
   });
+}
+
+async function handleTab(ws, msg, db) {
+  const client = clients.get(ws);
+  if (!client) return;
+  client.tab = msg.tab || '';
+  await broadcastPresence(client.sessionId, db);
 }
 
 async function handleDisconnect(ws, db) {
@@ -203,10 +232,12 @@ async function handleDisconnect(ws, db) {
     if (room.size === 0) rooms.delete(roomKey);
   }
 
-  // Remove presence
-  try {
-    await db.prepare('DELETE FROM presence WHERE user_id = ?').run(client.userId);
-  } catch (e) { console.error('WS DB error:', e.message) }
+  // Remove presence (skip for plan-file connections — they use in-memory presence)
+  if (!client.isPlan) {
+    try {
+      await db.prepare('DELETE FROM presence WHERE user_id = ?').run(client.userId);
+    } catch (e) { console.error('WS DB error:', e.message) }
+  }
 
   const sessionId = client.sessionId;
   clients.delete(ws);
@@ -215,7 +246,24 @@ async function handleDisconnect(ws, db) {
 }
 
 async function broadcastPresence(sessionId, db) {
-  // Get all online users for this session
+  // For plan-file connections, build presence from in-memory clients
+  if (sessionId.startsWith('plan:')) {
+    const users = [];
+    clients.forEach((info) => {
+      if (info.sessionId === sessionId) {
+        users.push({ id: info.userId, initials: info.userName, color: info.userColor, tab: info.tab || '' });
+      }
+    });
+    const outMsg = JSON.stringify({ type: 'presence', users });
+    clients.forEach((info, ws) => {
+      if (info.sessionId === sessionId && ws.readyState === 1) {
+        ws.send(outMsg);
+      }
+    });
+    return;
+  }
+
+  // Session-based presence (original)
   let users = [];
   try {
     users = await db.prepare(
@@ -229,8 +277,6 @@ async function broadcastPresence(sessionId, db) {
   } catch (e) { console.error('WS DB error:', e.message) }
 
   const outMsg = JSON.stringify({ type: 'presence', users });
-
-  // Send to all clients in this session (any version)
   clients.forEach((info, ws) => {
     if (info.sessionId === sessionId && ws.readyState === 1) {
       ws.send(outMsg);

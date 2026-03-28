@@ -38,7 +38,17 @@ document.querySelectorAll('#execViewToggle .btn').forEach(b=>b.addEventListener(
   document.querySelectorAll('#execViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execView=b.dataset.eview;renderExecView();
 }));
 document.querySelectorAll('#execPeriodToggle .btn').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('#execPeriodToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');execPeriod=b.dataset.eperiod;renderExecView();
+  document.querySelectorAll('#execPeriodToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  // Deactivate period view toggle when main period is selected
+  document.querySelectorAll('#execPeriodViewToggle .btn').forEach(x=>x.classList.remove('active'));
+  execPeriod=b.dataset.eperiod;renderExecView();
+}));
+// Period View toggle (MTD/QTD/YTD) — replaces As-of Month
+document.querySelectorAll('#execPeriodViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#execPeriodViewToggle .btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  // Deactivate main period toggle when period view is selected
+  document.querySelectorAll('#execPeriodToggle .btn').forEach(x=>x.classList.remove('active'));
+  execPeriod=b.dataset.eperiod;renderExecView();
 }));
 // Year toggle for trend view
 function buildExecTrendYearToggle(){
@@ -164,7 +174,7 @@ function renderExecFcSparkline(){
     }]},
     plugins:[sparkYoyPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},
-      plugins:{legend:{display:false},datalabels:{display:false},
+      plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false,
         tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)}}},
       scales:{
         x:{ticks:{font:{size:12,weight:'600'},color:sparkTickColor},grid:{display:false}},
@@ -269,11 +279,10 @@ function renderExecView(){
   // ── Period range ──
   const curMonth=window.currentMonth; // global as-of month override
   const isQuarterly=execPeriod==='quarterly';
-  // Always show all 12 months (like dashboard) — period only affects cumulative transforms & stat cards
-  // When exec month range is set, filter to those months only
+  const isAnnual=execPeriod==='annual';
   const allMonths=[0,1,2,3,4,5,6,7,8,9,10,11];
   const periodMonths=execSelectedMonths.size>0?allMonths.filter(m=>execSelectedMonths.has(m)):allMonths;
-  const periodLabels=isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
+  const periodLabels=isAnnual?['Full Year']:isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
   // For stat cards: compute the scoped month range
   let statStart=0,statEnd=11;
   if(execPeriod==='mtd'){statStart=curMonth;statEnd=curMonth}
@@ -289,7 +298,7 @@ function renderExecView(){
   let periodComp=0,periodCapEx=0;
   emps.forEach(e=>{statMonths.forEach(mi=>{periodComp+=getMonthlyComp(e,mi);periodCapEx+=getMonthlyCapEx(e,mi)})});
   const periodOpEx=periodComp-periodCapEx;
-  let periodLabel=execPeriod==='full'||isQuarterly?'Full Year':execPeriod.toUpperCase();
+  let periodLabel=execPeriod==='full'||isQuarterly||isAnnual?'Full Year':execPeriod.toUpperCase();
   if(execSelectedMonths.size>0&&execSelectedMonths.size<12){
     const sorted=[...execSelectedMonths].sort((a,b)=>a-b);
     periodLabel=MONTH_SHORT[sorted[0]]+(sorted.length>1?' \u2013 '+MONTH_SHORT[sorted[sorted.length-1]]:'');
@@ -381,8 +390,11 @@ function renderExecView(){
       transformed=raw.slice();
     }
     // Filter to selected months (non-quarterly only)
-    if(!isQuarterly&&execSelectedMonths.size>0){
+    if(!isQuarterly&&!isAnnual&&execSelectedMonths.size>0){
       monthlyData[g]=periodMonths.map(mi=>transformed[mi]);
+    } else if(isAnnual){
+      // Annual: sum all months into single value
+      monthlyData[g]=[transformed.reduce((a,v)=>a+v,0)];
     } else {
       monthlyData[g]=transformed;
     }
@@ -414,8 +426,13 @@ function renderExecView(){
     });
   }
   let monthlyFte,monthlyAvgAnnFteComp;
-  if(isQuarterly){
-    // Average FTE per quarter, average ann. comp per quarter
+  if(isAnnual){
+    // Annual: average FTE across year, average ann. comp
+    const avgFte=Math.round(monthlyFteFull.reduce((a,v)=>a+v,0)/12*100)/100;
+    const avgComp=Math.round(monthlyAvgAnnFteCompFull.reduce((a,v)=>a+v,0)/12);
+    monthlyFte=[avgFte];
+    monthlyAvgAnnFteComp=[avgComp];
+  } else if(isQuarterly){
     monthlyFte=[0,1,2,3].map(q=>{const s=monthlyFteFull[q*3]+monthlyFteFull[q*3+1]+monthlyFteFull[q*3+2];return Math.round(s/3*100)/100});
     monthlyAvgAnnFteComp=[0,1,2,3].map(q=>{const s=monthlyAvgAnnFteCompFull[q*3]+monthlyAvgAnnFteCompFull[q*3+1]+monthlyAvgAnnFteCompFull[q*3+2];return Math.round(s/3)});
   } else {

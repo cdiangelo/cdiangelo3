@@ -1,5 +1,11 @@
 /* Container, Header, Nav, Tabs (lines 35-48) */
 .container{max-width:100%;margin:0 auto;padding:0 80px}
+
+/* Module header bar — sticky, contains title + nav */
+.module-header-bar{position:sticky;top:44px;z-index:100;display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);box-shadow:0 1px 3px rgba(0,0,0,.04);flex-wrap:wrap}
+body.session-active .module-header-bar{top:62px}
+.module-title{font-size:.88rem;font-weight:600;color:var(--accent);white-space:nowrap;margin:0}
+
 header{background:var(--panel);border-bottom:1px solid var(--border-light);padding:0;height:56px;display:flex;align-items:center;position:sticky;top:32px;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 body.session-active header{top:62px}
 header .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
@@ -31,10 +37,17 @@ nav button.active{background:var(--accent);border-color:var(--accent);color:#fff
 .color-scheme-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
 .color-scheme-label{width:36px;text-align:center;font-weight:600;font-size:.68rem;text-transform:uppercase}
 
+/* Accent theme dot picker */
+.accent-dot{transition:transform .15s ease,box-shadow .15s ease!important}
+.accent-dot:hover{transform:scale(1.2)}
+
 /* Toolbar icon buttons */
-.toolbar-icon-btn{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:5px 12px;border:1px solid var(--border);color:var(--text-dim)}
+.toolbar-icon-btn{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;padding:5px 12px;border:1px solid var(--toolbar-border);color:var(--toolbar-text-dim);background:transparent}
 .toolbar-icon-btn svg{flex-shrink:0;opacity:.7}
-.toolbar-icon-btn:hover svg{opacity:1;color:var(--accent)}
+.toolbar-icon-btn:hover{color:var(--accent-light);border-color:var(--accent)}
+.toolbar-icon-btn:hover svg{opacity:1}
+#globalToolbar .btn{background:transparent;border-color:var(--toolbar-border);color:var(--toolbar-text-dim)}
+#globalToolbar .btn:hover{color:var(--accent-light);border-color:var(--accent)}
 
 /* Left-side toggle buttons — hidden, replaced by bottom toolbar */
 .scenario-toggle-btn,.guide-toggle-btn,.data-toggle-btn{display:none!important}
