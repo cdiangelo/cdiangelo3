@@ -243,6 +243,9 @@ async function openPlan(plan){
   document.getElementById('globalToolbarSpacer').style.display='';
   document.getElementById('globalToolbarSpacer').style.height='70px';
 
+  // Update bottom toolbar
+  if(window._updateBottomToolbar)window._updateBottomToolbar();
+
   // Show side panels and landing page
   setSidePanelVisibility(true);
   if(window.showLanding)window.showLanding();
@@ -262,6 +265,7 @@ async function openPlan(plan){
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
     setSidePanelVisibility(false);
+    if(window._updateBottomToolbar)window._updateBottomToolbar();
     document.getElementById('homePage').style.display='';
     renderPlanList();
   };

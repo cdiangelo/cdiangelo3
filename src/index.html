@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XXX</title>
+<title>Webplan</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="window._chartFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="window._xlsxFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2" onerror="window._datalabelsFailed=true"></script>
@@ -33,7 +33,7 @@
 <div id="homePage" style="display:none">
 <div class="home-header">
 <div class="home-header-left">
-<div class="home-logo"><svg class="app-logo-icon" viewBox="0 0 100 100" width="28" height="28"><circle cx="50" cy="50" r="46" fill="none" stroke="#4a9e8e" stroke-width="2" opacity=".3"/><circle cx="50" cy="50" r="40" fill="none" stroke="#4a9e8e" stroke-width="2.5" opacity=".55"/><path d="M25 72 Q40 68 50 52 Q60 36 72 24" fill="none" stroke="#4a9e8e" stroke-width="3.5" stroke-linecap="round"/><path d="M64 24 L73 23 L68 31" fill="none" stroke="#4a9e8e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="app-logo-text">XXX</span></div>
+<div class="home-logo"><svg class="app-logo-icon" viewBox="0 0 100 88" width="28" height="24"><rect x="2" y="2" width="96" height="84" rx="8" ry="8" fill="none" stroke="#4a9e8e" stroke-width="3"/><line x1="2" y1="20" x2="98" y2="20" stroke="#4a9e8e" stroke-width="2.5" opacity=".4"/><circle cx="14" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="24" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="34" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><path d="M12 55 Q30 30 50 52 Q70 74 88 45" fill="none" stroke="#4a9e8e" stroke-width="3.5" stroke-linecap="round"/></svg><span class="app-logo-text">Webplan</span></div>
 <span class="home-user" id="homeUserLabel"></span>
 </div>
 <div class="home-header-right">
@@ -79,7 +79,7 @@
 <!-- ═══ PLAN HEADER BAR (shows inside a plan) ═══ -->
 <div id="planHeaderBar" style="display:none">
 <div class="plan-hdr-left">
-<svg class="app-logo-icon" viewBox="0 0 100 100" width="22" height="22" style="flex-shrink:0"><circle cx="50" cy="50" r="46" fill="none" stroke="#4a9e8e" stroke-width="2" opacity=".3"/><circle cx="50" cy="50" r="40" fill="none" stroke="#4a9e8e" stroke-width="2.5" opacity=".55"/><path d="M25 72 Q40 68 50 52 Q60 36 72 24" fill="none" stroke="#4a9e8e" stroke-width="3.5" stroke-linecap="round"/><path d="M64 24 L73 23 L68 31" fill="none" stroke="#4a9e8e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><button class="btn btn-sm" id="planBackHome">&#8592; Home</button>
+<svg class="app-logo-icon" viewBox="0 0 100 88" width="20" height="18" style="flex-shrink:0"><rect x="2" y="2" width="96" height="84" rx="8" ry="8" fill="none" stroke="#4a9e8e" stroke-width="3"/><line x1="2" y1="20" x2="98" y2="20" stroke="#4a9e8e" stroke-width="2.5" opacity=".4"/><circle cx="14" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="24" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="34" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><path d="M12 55 Q30 30 50 52 Q70 74 88 45" fill="none" stroke="#4a9e8e" stroke-width="3.5" stroke-linecap="round"/></svg><button class="btn btn-sm" id="planBackHome">&#8592; Home</button>
 <span class="plan-hdr-name" id="planHdrName"></span>
 <span class="plan-hdr-badge" id="planHdrBadge"></span>
 </div>
@@ -274,7 +274,7 @@ Template Mode &mdash; changes saved in this browser only.
 
 <!-- LANDING PAGE -->
 <div id="landingPage" style="display:none">
-<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;display:none" id="landingHeaderOld">
 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
 <div>
 <h2>Budgeting &amp; Long Term Planning</h2>
@@ -305,34 +305,47 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="landingCodeError" style="width:100%;color:var(--danger);font-size:.8rem;display:none"></div>
 </div>
 
-<div class="landing-modules">
-<div class="landing-module" id="modCompPlan">
-<h3><span class="mod-icon">&#9733;</span> Compensation Planning</h3>
-<p>Full employee roster, compensation modeling, CapEx/OpEx allocation, project mapping, and executive reporting.</p>
-<span class="mod-badge active">Active</span>
+<!-- Legacy module cards (hidden, kept for JS references) -->
+<div class="landing-modules" style="display:none">
+<div class="landing-module" id="modCompPlan"></div>
+<div class="landing-module" id="modVendor"></div>
+<div class="landing-module" id="modDepreciation"></div>
+<div class="landing-module" id="modLtf"></div>
+<div class="landing-module" id="modRevenue"></div>
 </div>
-<div class="landing-module" id="modVendor">
-<h3><span class="mod-icon">&#9830;</span> Vendor Spend, T&amp;E &amp; Other</h3>
-<p>Track vendor contracts, travel &amp; entertainment expenses, and other non-compensation operating costs.</p>
-<span class="mod-badge active">Active</span>
+
+<!-- ═══ CHEVRON NAV ═══ -->
+<div class="chevron-nav" id="chevronNav">
+<div class="chevron-item" id="chevExecSummary" data-target="exec">
+<div class="chevron-shape">
+<span class="chevron-label">Executive Summary</span>
 </div>
-<div class="landing-module" id="modDepreciation">
-<h3><span class="mod-icon">&#9670;</span> Depreciation, CapEx &amp; Asset Summary</h3>
-<p>Depreciation schedules, capital expenditure tracking, and consolidated asset reporting.</p>
-<span class="mod-badge coming">In Development</span>
 </div>
-<div class="landing-module" id="modLtf">
-<h3><span class="mod-icon">&#9670;</span> Long-Term Forecast</h3>
-<p>Multi-year P&amp;L projection with C&amp;B, OAO, and D&amp;A forecasting, independent growth modeling, and Y/Y analysis.</p>
-<span class="mod-badge active">Active</span>
+<div class="chevron-item has-submenu" id="chevBudget" data-target="budget">
+<div class="chevron-shape">
+<span class="chevron-label">Budget</span>
+<span class="chevron-expand-icon">&#9655;</span>
 </div>
-<div class="landing-module" id="modRevenue" style="display:none">
-<h3><span class="mod-icon">&#9734;</span> Tech Revenue</h3>
-<p>Client revenue tracking, subscription metrics, contract management, forecasting, and revenue analysis.</p>
-<span class="mod-badge coming">In Development</span>
+<div class="chevron-submenu" id="chevBudgetMenu">
+<div class="chevron-sub-item" data-module="comp">Headcount &amp; Compensation</div>
+<div class="chevron-sub-item" data-module="vendor">Vendor Spend, T&amp;E, Other</div>
+<div class="chevron-sub-item" data-module="depreciation">Depreciation, Capex, Assets</div>
+</div>
+</div>
+<div class="chevron-item has-submenu" id="chevForecast" data-target="forecast">
+<div class="chevron-shape">
+<span class="chevron-label">Forecast</span>
+<span class="chevron-expand-icon">&#9655;</span>
+</div>
+<div class="chevron-submenu" id="chevForecastMenu">
+<div class="chevron-sub-item" data-module="comp">Headcount &amp; Compensation</div>
+<div class="chevron-sub-item" data-module="vendor">Vendor Spend, T&amp;E, Other</div>
+<div class="chevron-sub-item" data-module="depreciation">Depreciation, Capex, Assets</div>
+</div>
 </div>
 </div>
 
+<div style="display:none" id="landingSummaryContent">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px" id="landingPnlGrid">
 <!-- Left: P&L by Product Category matrix -->
 <div class="pnl-walk" style="margin-bottom:0">
@@ -400,6 +413,7 @@ Template Mode &mdash; changes saved in this browser only.
 </div>
 </div>
 </div>
+</div><!-- /landingSummaryContent -->
 </div>
 
 <div id="chartExpandPane">
@@ -437,12 +451,12 @@ Template Mode &mdash; changes saved in this browser only.
 <div id="appShell" style="display:none">
 <header>
 <div class="container">
-<div style="display:flex;align-items:center;gap:8px"><h1 class="app-header-logo"><svg class="app-logo-icon" viewBox="0 0 100 100" width="26" height="26"><circle cx="50" cy="50" r="46" fill="none" stroke="#4a9e8e" stroke-width="2" opacity=".3"/><circle cx="50" cy="50" r="40" fill="none" stroke="#4a9e8e" stroke-width="2.5" opacity=".55"/><path d="M25 72 Q40 68 50 52 Q60 36 72 24" fill="none" stroke="#4a9e8e" stroke-width="3.5" stroke-linecap="round"/><path d="M64 24 L73 23 L68 31" fill="none" stroke="#4a9e8e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="app-logo-text">XXX</span></h1>
+<div style="display:flex;align-items:center;gap:8px"><h1 class="app-header-logo"><svg class="app-logo-icon" viewBox="0 0 100 88" width="24" height="21"><rect x="2" y="2" width="96" height="84" rx="8" ry="8" fill="none" stroke="#4a9e8e" stroke-width="3"/><line x1="2" y1="20" x2="98" y2="20" stroke="#4a9e8e" stroke-width="2.5" opacity=".4"/><circle cx="14" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="24" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><circle cx="34" cy="11" r="2.8" fill="#4a9e8e" opacity=".45"/><path d="M12 55 Q30 30 50 52 Q70 74 88 45" fill="none" stroke="#4a9e8e" stroke-width="3.5" stroke-linecap="round"/></svg><span class="app-logo-text">Webplan</span></h1>
 <span class="workspace-indicator" id="wsIndicator" style="margin-left:4px">Workspace: <span class="ws-name" id="wsNameDisplay" onclick="openWorkspaceModal()" title="Click to manage workspaces">Default</span><span class="save-indicator" id="saveIndicator" style="display:none"></span></span>
 </div>
 <nav id="mainNav">
 <div class="nav-group">
-<div class="nav-group-label">XXX</div>
+<div class="nav-group-label">Webplan</div>
 <div class="nav-group-btns">
 <button class="active" data-tab="exec">Exec View</button>
 <button data-tab="dashboard">Dashboard</button>
@@ -3089,6 +3103,20 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" id="msCancelBtn">Cancel</button>
 <button class="btn btn-primary" id="msSaveBtn">Save</button>
 </div>
+</div>
+</div>
+
+<!-- ═══ BOTTOM TOOLBAR ═══ -->
+<div id="bottomToolbar" style="display:none">
+<div class="btb-left">
+<span class="btb-plan-name" id="btbPlanName">Name:</span>
+<span class="btb-plan-version" id="btbPlanVersion">Version:</span>
+</div>
+<div class="btb-right">
+<button class="btb-btn" id="btbGuide">guide</button>
+<button class="btb-btn" id="btbSettings">settings</button>
+<button class="btb-btn" id="btbScenario">scenario comp.</button>
+<button class="btb-btn" id="btbData">data &amp; dimensions</button>
 </div>
 </div>
 

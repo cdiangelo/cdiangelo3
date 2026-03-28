@@ -91,14 +91,21 @@ function hideAllModules(){
 function showLanding(){
   hideAllModules();
   document.getElementById('landingPage').style.display='';
+  // Show chevron nav, hide summary content
+  const chevNav=document.getElementById('chevronNav');
+  const sumContent=document.getElementById('landingSummaryContent');
+  if(chevNav)chevNav.style.display='';
+  if(sumContent)sumContent.style.display='none';
   renderPnlWalk();renderLandingCharts();renderLandingRevenue();
   if(window._updateGlobalToolbar)window._updateGlobalToolbar();
+  if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
 function showApp(){
   hideAllModules();
   document.getElementById('appShell').style.display='';
   renderAll();
   if(window._updateGlobalToolbar)window._updateGlobalToolbar();
+  if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
 let vendorModuleInited=false;
 function showVendor(){
@@ -107,6 +114,7 @@ function showVendor(){
   if(!vendorModuleInited){try{initVendorModule();vendorModuleInited=true}catch(e){console.error('Vendor init error:',e)}}
   else{window.renderVendorGridPublic()}
   if(window._updateGlobalToolbar)window._updateGlobalToolbar();
+  if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
 function showDepreciation(){
   hideAllModules();
@@ -115,6 +123,7 @@ function showDepreciation(){
   initAssetTab();
   setTimeout(initDepScratch,50);
   if(window._updateGlobalToolbar)window._updateGlobalToolbar();
+  if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
 function showRevenue(){
   hideAllModules();
