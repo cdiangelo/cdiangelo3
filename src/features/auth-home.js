@@ -326,8 +326,9 @@ function connectPlanWebSocket(plan,user){
           if(dots&&msg.users){
             dots.innerHTML=msg.users.map(u=>{
               const tab=u.tab||'';
-              const tabBadge=tab?`<span style="font-size:.58rem;font-weight:600;color:var(--toolbar-text-dim);background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;margin-left:3px;letter-spacing:.03em;white-space:nowrap">${tab}</span>`:'';
-              return `<span style="display:inline-flex;align-items:center;gap:2px;margin-right:6px"><div class="user-dot" style="background:${u.color||'#3a7d44'}" title="${u.initials}${tab?' — '+tab:''}">${u.initials}</div>${tabBadge}</span>`;
+              const c=u.color||'#3a7d44';
+              const tabBadge=tab?`<span style="font-size:.58rem;font-weight:600;color:#fff;background:${c}40;padding:2px 8px;border-radius:10px;margin-left:2px;letter-spacing:.03em;white-space:nowrap">${tab}</span>`:'';
+              return `<span style="display:inline-flex;align-items:center;gap:0;margin-right:4px"><div class="user-dot" style="background:${c}" title="${u.initials}${tab?' — '+tab:''}">${u.initials}</div>${tabBadge}</span>`;
             }).join('');
           }
         }
