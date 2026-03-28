@@ -1,4 +1,4 @@
-// ── Plan Calendar ── sidebar calendar with milestones saved to plan state
+// ── Plan Calendar ── sidebar calendar with milestones + per-day notes
 import { state, saveState } from '../lib/state.js';
 
 (function(){
@@ -27,13 +27,13 @@ import { state, saveState } from '../lib/state.js';
     if(!state.calendarItems)state.calendarItems={};
     return state.calendarItems;
   }
-
-  function getNotes(){
-    if(!state||typeof state!=='object')return '';
-    return state.calendarNotes||'';
+  function getDayNotes(){
+    if(!state||typeof state!=='object')return {};
+    if(!state.calendarDayNotes)state.calendarDayNotes={};
+    return state.calendarDayNotes;
   }
-
   function dateKey(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+  function esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
   function render(){
     const now=new Date();
@@ -45,6 +45,7 @@ import { state, saveState } from '../lib/state.js';
     const daysInMonth=new Date(viewYear,viewMonth+1,0).getDate();
     const daysInPrev=new Date(viewYear,viewMonth,0).getDate();
     const items=getItems();
+    const notes=getDayNotes();
 
     let html='';
     ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{html+=`<div class="cal-head">${d}</div>`});
@@ -55,13 +56,17 @@ import { state, saveState } from '../lib/state.js';
     for(let d=1;d<=daysInMonth;d++){
       const key=dateKey(viewYear,viewMonth,d);
       const isToday=d===now.getDate()&&viewMonth===now.getMonth()&&viewYear===now.getFullYear();
-      const hasItems=items[key]&&items[key].length>0;
+      const hasItems=(items[key]&&items[key].length>0);
+      const hasNote=!!notes[key];
       const isSelected=selectedDate===key;
       let cls='cal-day';
       if(isToday)cls+=' today';
       if(hasItems)cls+=' has-items';
+      if(hasNote)cls+=' has-note';
       if(isSelected)cls+=' selected';
-      html+=`<div class="${cls}" data-date="${key}">${d}</div>`;
+      // Build tooltip preview from note
+      const tipText=hasNote?esc(notes[key].length>60?notes[key].slice(0,60)+'…':notes[key]):'';
+      html+=`<div class="${cls}" data-date="${key}" ${tipText?'title="'+tipText+'"':''}>${d}</div>`;
     }
     const totalCells=startDay+daysInMonth;
     const remaining=totalCells%7===0?0:7-(totalCells%7);
@@ -84,18 +89,34 @@ import { state, saveState } from '../lib/state.js';
   function renderItems(){
     if(!selectedDate){itemsEl.innerHTML='<div style="font-size:.72rem;color:var(--tertiary);padding:4px">Select a day</div>';return}
     const items=getItems();
+    const notes=getDayNotes();
     const dayItems=items[selectedDate]||[];
-    if(!dayItems.length){
-      itemsEl.innerHTML='<div style="font-size:.72rem;color:var(--tertiary);padding:4px">No items</div>';
-      return;
+    const dayNote=notes[selectedDate]||'';
+
+    let html='';
+
+    // Milestones
+    if(dayItems.length){
+      html+=dayItems.map((item,i)=>`
+        <div class="cal-item">
+          <span class="cal-dot" style="background:${item.color||'var(--accent)'}"></span>
+          <span class="cal-item-text">${esc(item.text)}</span>
+          <button class="cal-item-del" data-idx="${i}">×</button>
+        </div>`).join('');
     }
-    itemsEl.innerHTML=dayItems.map((item,i)=>`
-      <div class="cal-item">
-        <span class="cal-dot" style="background:${item.color||'var(--accent)'}"></span>
-        <span class="cal-item-text">${item.text}</span>
-        <button class="cal-item-del" data-idx="${i}">×</button>
-      </div>
-    `).join('');
+
+    // Day note
+    html+=`<div style="margin-top:6px">
+      <textarea id="calDayNote" placeholder="Add a note for this day..." style="width:100%;min-height:40px;padding:6px 8px;font-size:.76rem;border:1px solid var(--border-light);border-radius:6px;background:transparent;color:var(--text);font-family:inherit;resize:vertical;outline:none;transition:border-color .15s,background .15s;line-height:1.4">${esc(dayNote)}</textarea>
+    </div>`;
+
+    if(!dayItems.length&&!dayNote){
+      html='<div style="font-size:.72rem;color:var(--tertiary);padding:4px">No items</div>'+html;
+    }
+
+    itemsEl.innerHTML=html;
+
+    // Wire delete buttons
     itemsEl.querySelectorAll('.cal-item-del').forEach(btn=>{
       btn.addEventListener('click',()=>{
         dayItems.splice(+btn.dataset.idx,1);
@@ -103,26 +124,52 @@ import { state, saveState } from '../lib/state.js';
         saveState();render();
       });
     });
+
+    // Wire note textarea
+    const noteTA=document.getElementById('calDayNote');
+    if(noteTA){
+      noteTA.addEventListener('focus',()=>{noteTA.style.borderColor='var(--accent)';noteTA.style.background='var(--bg-elevated)'});
+      noteTA.addEventListener('blur',()=>{
+        noteTA.style.borderColor='var(--border-light)';noteTA.style.background='transparent';
+        const val=noteTA.value.trim();
+        const dayNotes=getDayNotes();
+        if(val){dayNotes[selectedDate]=val}else{delete dayNotes[selectedDate]}
+        saveState();render();
+      });
+    }
   }
 
   function renderSummary(){
     if(!summaryList)return;
     const items=getItems();
-    const allDates=Object.keys(items).filter(k=>items[k]&&items[k].length).sort();
-    if(!allDates.length){
-      summaryList.innerHTML='<div style="font-size:.78rem;color:var(--tertiary);padding:8px;text-align:center">No milestones yet</div>';
+    const notes=getDayNotes();
+    const allDates=new Set([...Object.keys(items).filter(k=>items[k]&&items[k].length),...Object.keys(notes).filter(k=>notes[k])]);
+    const sorted=[...allDates].sort();
+    if(!sorted.length){
+      summaryList.innerHTML='<div style="font-size:.78rem;color:var(--tertiary);padding:8px;text-align:center">No milestones or notes yet</div>';
       return;
     }
-    summaryList.innerHTML=allDates.map(date=>{
+    summaryList.innerHTML=sorted.map(date=>{
       const dateObj=new Date(date+'T00:00:00');
-      const label=dateObj.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-      return items[date].map(item=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--bg-elevated)">
-          <span style="width:6px;height:6px;border-radius:50%;background:${item.color||'var(--accent)'};flex-shrink:0"></span>
-          <span style="flex:1;font-size:.78rem;color:var(--text)">${item.text}</span>
-          <span style="font-size:.68rem;color:var(--tertiary);white-space:nowrap">${label}</span>
-        </div>
-      `).join('');
+      const dateLabel=dateObj.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      let rows='';
+      // Milestones
+      if(items[date]){
+        rows+=items[date].map(item=>`
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 0">
+            <span style="width:6px;height:6px;border-radius:50%;background:${item.color||'var(--accent)'};flex-shrink:0"></span>
+            <span style="font-size:.76rem;color:var(--text)">${esc(item.text)}</span>
+          </div>`).join('');
+      }
+      // Note
+      if(notes[date]){
+        const preview=notes[date].length>50?notes[date].slice(0,50)+'…':notes[date];
+        rows+=`<div style="font-size:.72rem;color:var(--text-dim);padding:2px 0 2px 12px;font-style:italic;cursor:default" title="${esc(notes[date])}">${esc(preview)}</div>`;
+      }
+      return `<div style="padding:6px 8px;border-radius:6px;background:var(--bg-elevated);margin-bottom:4px">
+        <div style="font-size:.66rem;font-weight:500;color:var(--tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">${dateLabel}</div>
+        ${rows}
+      </div>`;
     }).join('');
   }
 
@@ -151,42 +198,22 @@ import { state, saveState } from '../lib/state.js';
   });
   newInput.addEventListener('keydown',e=>{if(e.key==='Enter')addBtn.click()});
 
-  // Notes — save on blur
-  if(notesEl){
-    notesEl.innerHTML=getNotes();
-    notesEl.addEventListener('blur',()=>{
-      if(state&&typeof state==='object'){
-        state.calendarNotes=notesEl.innerHTML;
-        saveState();
-      }
-    });
-  }
-
-  // Toggle show/hide — button is OUTSIDE the calendar
+  // Toggle show/hide
   if(toggleBtn){
     toggleBtn.addEventListener('click',()=>{
       const showing=calEl.style.display!=='none';
       calEl.style.display=showing?'none':'flex';
       toggleBtn.textContent=showing?'Show Calendar':'Hide Calendar';
-      // When showing, position toggle inside top-right of calendar
-      if(!showing){
-        toggleBtn.style.right='24px';
-        toggleBtn.style.top='56px';
-      }
     });
   }
 
-  // Show calendar when a plan is opened
   window._showCalendar=function(){
     if(calEl)calEl.style.display='flex';
     if(toggleBtn){toggleBtn.style.display='';toggleBtn.textContent='Hide Calendar'}
     render();
-    if(notesEl)notesEl.innerHTML=getNotes();
   };
   window._hideCalendar=function(){
     if(calEl)calEl.style.display='none';
     if(toggleBtn)toggleBtn.style.display='none';
   };
-
-  // Don't render on load — wait for plan open
 })();

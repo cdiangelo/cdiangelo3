@@ -48,9 +48,8 @@
 .cal-item .cal-item-text{flex:1;color:var(--text)}
 .cal-item .cal-item-del{background:none;border:none;cursor:pointer;color:var(--tertiary);font-size:.72rem;padding:0 2px}
 .cal-item .cal-item-del:hover{color:var(--danger)}
+.cal-grid .cal-day.has-note{text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px;text-decoration-thickness:1px}
 .cal-nav:hover{color:var(--accent)}
-#calNotes:empty::before{content:attr(data-placeholder);color:var(--tertiary);pointer-events:none}
-#calNotes:focus{background:var(--bg-elevated)}
 
 #landingPage h2{font-size:1.6rem;color:var(--accent);margin-bottom:8px}
 #landingPage .landing-subtitle{color:var(--text-dim);font-size:.9rem;margin-bottom:32px}
