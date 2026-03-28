@@ -99,12 +99,12 @@ function initVendorModule(){
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">%</label><input class="${prefix}-field ${prefix}-ri-pct" data-f="_rateIncPct" type="number" value="${riPct||''}" step="any" style="width:55px;font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
     h+=`<button class="btn btn-sm ${prefix}-apply-ri" data-vi="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply increase</button>`;
     h+=`</div></td>`;
+    h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
     MO.forEach(m=>{
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
       const displayed=scaleVal(parseFloat(raw)||0);
       h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="number" value="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right" step="any"></td>`;
     });
-    h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
     h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-vi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     return h;
   }
@@ -318,11 +318,12 @@ function initVendorModule(){
     const label=`TOTAL${hasFilter?' (filtered)':''}`;
     let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${label}</td>`;
     for(let c=1;c<colSpan;c++)ft+='<td></td>';
+    ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;font-weight:700">${fmtScaled(fyTotal)}</td>`;
     moTotals.forEach((t,mi)=>{
       const dim=hasFilter&&!monthFilter.has(mi)?'opacity:.35;':'';
       ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;${dim}">${fmtScaled(t)}</td>`;
     });
-    ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fyTotal)}</td><td></td></tr>`;
+    ft+=`<td></td></tr>`;
     tfootEl.innerHTML=ft;
   }
 
@@ -463,7 +464,7 @@ function initVendorModule(){
     if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    const headers=['Parent Co','Vendor Name','Vendor Type','Notes','Business Unit','Biz Line','Market','Project Code','Account Description','Account Code',...MO,'Full Year'];
+    const headers=['Parent Co','Vendor Name','Vendor Type','Notes','Business Unit','Biz Line','Market','Project Code','Account Description','Account Code','Full Year',...MO];
     const data=[headers];
     state.vendorRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
@@ -689,7 +690,7 @@ function initVendorModule(){
     if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    const headers=['Expense Type','Description','Notes','Business Unit','Biz Line','Market','Project Code','Account Description','Account Code',...MO,'Full Year'];
+    const headers=['Expense Type','Description','Notes','Business Unit','Biz Line','Market','Project Code','Account Description','Account Code','Full Year',...MO];
     const data=[headers];
     state.teRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
@@ -775,6 +776,15 @@ function initVendorModule(){
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">%</label><input class="cr-field cr-ri-pct" data-f="_rateIncPct" type="number" value="${riPct||''}" step="any" style="width:55px;font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
     h+=`<button class="btn btn-sm cr-apply-ri" data-ci="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply increase</button>`;
     h+=`</div></td>`;
+    // Full Year — before monthly columns
+    const rawFy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
+    let fyDisplay;
+    if(contractorView==='capex')fyDisplay=Math.round(rawFy*capPct/100);
+    else if(contractorView==='opex')fyDisplay=rawFy-Math.round(rawFy*capPct/100);
+    else fyDisplay=rawFy;
+    const fySuffix=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
+    const fyScaled=contractorAmtScale===1?fyDisplay:Math.round((fyDisplay/contractorAmtScale)*100)/100;
+    h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">$${fyScaled.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuffix}</td>`;
     // Monthly columns — display based on view toggle
     MO.forEach(m=>{
       const raw=parseFloat(row[m])||0;
@@ -787,15 +797,6 @@ function initVendorModule(){
       const isReadonly=contractorView!=='expense';
       h+=`<td><input class="cr-field cr-mo" data-f="${m}" type="number" value="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right${isReadonly?';color:var(--text-dim)':''}" step="any" ${isReadonly?'readonly':''}></td>`;
     });
-    // Full Year
-    const rawFy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
-    let fyDisplay;
-    if(contractorView==='capex')fyDisplay=Math.round(rawFy*capPct/100);
-    else if(contractorView==='opex')fyDisplay=rawFy-Math.round(rawFy*capPct/100);
-    else fyDisplay=rawFy;
-    const fySuffix=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
-    const fyScaled=contractorAmtScale===1?fyDisplay:Math.round((fyDisplay/contractorAmtScale)*100)/100;
-    h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">$${fyScaled.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuffix}</td>`;
     h+=`<td><button class="btn btn-sm btn-danger cr-del" data-ci="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     return h;
   }
@@ -818,15 +819,16 @@ function initVendorModule(){
     // Use individual <td>s instead of colspan to prevent column misalignment with data rows
     const totalLabel=`TOTAL${hasFilter?' (filtered)':''}${contractorView!=='expense'?' — '+contractorView.toUpperCase():''}`;
     let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${totalLabel}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>`;
+    const fySv=contractorAmtScale===1?fyTotal:Math.round((fyTotal/contractorAmtScale)*100)/100;
+    const fySuf=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
+    ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;font-weight:700">$${fySv.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuf}</td>`;
     moTotals.forEach((t,mi)=>{
       const dim=hasFilter&&!contractorSelectedMonths.has(mi)?'opacity:.35;':'';
       const sv=contractorAmtScale===1?t:Math.round((t/contractorAmtScale)*100)/100;
       const suf=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
       ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;${dim}">$${sv.toLocaleString('en-US',{maximumFractionDigits:2})}${suf}</td>`;
     });
-    const fySv=contractorAmtScale===1?fyTotal:Math.round((fyTotal/contractorAmtScale)*100)/100;
-    const fySuf=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
-    ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;font-weight:700">$${fySv.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuf}</td><td></td></tr>`;
+    ft+=`<td></td></tr>`;
     totalEl.innerHTML=ft;
   }
 
@@ -1007,7 +1009,7 @@ function initVendorModule(){
     if(typeof XLSX==='undefined'){alert('Excel library failed to load.');return}
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-    const headers=['Contractor Name','Vendor Name','Hourly Rate','Monthly Hours','CapEx %','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code',...MO,'Full Year'];
+    const headers=['Contractor Name','Vendor Name','Hourly Rate','Monthly Hours','CapEx %','Notes','Business Unit','Biz Line','Market','Project','Account Description','Account Code','Full Year',...MO];
     const data=[headers];
     state.contractorRows.forEach(r=>{
       const fy=moKeys.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
