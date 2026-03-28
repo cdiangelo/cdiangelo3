@@ -267,11 +267,7 @@ async function openPlan(plan){
   // User dot
   document.getElementById('planHdrUsers').innerHTML=`<div class="user-dot" style="background:${user.color||'#3a7d44'}" title="${user.name}">${user.initials}</div>`;
 
-  // Show global toolbar below plan header
-  document.getElementById('globalToolbar').style.display='flex';
-  document.getElementById('globalToolbar').style.top='34px';
-  document.getElementById('globalToolbarSpacer').style.display='';
-  document.getElementById('globalToolbarSpacer').style.height='70px';
+  // Global toolbar hidden — controls moved to settings panel and bottom toolbar
 
   // Update bottom toolbar
   if(window._updateBottomToolbar)window._updateBottomToolbar();

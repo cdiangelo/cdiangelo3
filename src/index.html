@@ -161,13 +161,11 @@
   <div class="stb-right" id="stbUsers"></div>
 </div>
 
-<!-- GLOBAL TOOLBAR — fixed controls across all panes -->
-<div id="globalToolbar" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 24px;background:var(--toolbar-bg);color:var(--toolbar-text);border-bottom:1px solid var(--toolbar-border);position:fixed;top:0;left:0;right:0;z-index:110;flex-wrap:wrap">
+<!-- GLOBAL TOOLBAR — hidden, controls moved to settings panel -->
+<div id="globalToolbar" style="display:none">
 <button class="btn btn-sm" id="globalBackBtn" style="display:none">Back to Overview</button>
-<div style="display:flex;gap:6px;margin-left:auto;align-items:center">
 </div>
-</div>
-<div id="globalToolbarSpacer" style="height:38px"></div>
+<div id="globalToolbarSpacer" style="display:none"></div>
 <div class="template-banner" id="templateBanner" style="display:none">
 Template Mode &mdash; changes saved in this browser only.
 <button class="btn btn-primary" onclick="openSessionModal()">Join a Session</button>

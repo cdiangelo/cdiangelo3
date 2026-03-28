@@ -126,13 +126,24 @@
     if (compBtn) compBtn.classList.remove('active');
     if (pivotBtn) pivotBtn.classList.remove('active');
     if (sumContent) sumContent.style.display = 'none';
+    // Hide landing page when not on Overview
+    const landingPage = document.getElementById('landingPage');
+    if (landingPage) landingPage.style.display = 'none';
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   }
 
   function showOverviewTab() {
     clearExecSubNav();
     if (overviewBtn) overviewBtn.classList.add('active');
+    // landingSummaryContent is inside #landingPage — need to show parent too
+    const landingPage = document.getElementById('landingPage');
+    const chevNav = document.getElementById('chevronNav');
+    if (landingPage) landingPage.style.display = '';
+    if (chevNav) chevNav.style.display = 'none';
     if (sumContent) sumContent.style.display = '';
+    // Hide the old landing header
+    const oldHdr = document.getElementById('landingHeaderOld');
+    if (oldHdr) oldHdr.style.display = 'none';
     const title = document.querySelector('#compHeaderBar .module-title');
     if (title) title.textContent = 'Executive Summary';
     if (window._broadcastTab) window._broadcastTab('EXEC');

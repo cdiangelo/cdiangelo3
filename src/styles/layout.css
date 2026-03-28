@@ -2,7 +2,7 @@
 .container{max-width:100%;margin:0 auto;padding:0 80px}
 
 /* Module header bar — sticky, contains title + nav */
-.module-header-bar{position:sticky;top:32px;z-index:100;display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);box-shadow:0 1px 3px rgba(0,0,0,.04);flex-wrap:wrap}
+.module-header-bar{position:sticky;top:44px;z-index:100;display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--panel);border-bottom:1px solid var(--border-light);box-shadow:0 1px 3px rgba(0,0,0,.04);flex-wrap:wrap}
 body.session-active .module-header-bar{top:62px}
 .module-title{font-size:.88rem;font-weight:600;color:var(--accent);white-space:nowrap;margin:0}
 
