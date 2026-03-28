@@ -2,24 +2,24 @@
 #landingPage{padding:40px 80px;max-width:100%;margin:0 auto;padding-bottom:80px}
 
 /* ═══ CHEVRON NAV ═══ */
-.chevron-nav{display:flex;flex-direction:column;gap:24px;width:55%;min-width:380px;max-width:560px;margin:0;padding:60px 0 40px 40px;position:relative}
+.chevron-nav{display:flex;flex-direction:column;gap:28px;width:55%;min-width:400px;max-width:580px;margin:0;padding:60px 0 40px 40px;position:relative}
 .chevron-item{position:relative}
-.chevron-shape{display:flex;align-items:center;padding:20px 32px;background:rgba(20,42,58,.7);cursor:pointer;transition:background .2s;position:relative;clip-path:polygon(0 4px,0 0,4px 0,91% 0,100% 50%,91% 100%,4px 100%,0 100%,0 calc(100% - 4px));min-height:54px}
+.chevron-shape{display:flex;align-items:center;padding:28px 36px;background:rgba(20,42,58,.7);cursor:pointer;transition:background .2s;position:relative;clip-path:polygon(0 4px,0 0,4px 0,91% 0,100% 50%,91% 100%,4px 100%,0 100%,0 calc(100% - 4px));min-height:72px}
 .chevron-shape:hover{background:rgba(26,52,72,.85)}
-.chevron-label{font-size:.86rem;font-weight:600;color:#a8c0cc;letter-spacing:.02em}
+.chevron-label{font-size:1.0rem;font-weight:600;color:#a8c0cc;letter-spacing:.02em}
 
 /* Hover-only white play arrow — hidden by default, sits just left of arrow tip */
-.chevron-hover-arrow{position:absolute;right:calc(9% + 10px);top:50%;transform:translateY(-50%);font-size:.68rem;color:rgba(255,255,255,.9);opacity:0;transition:opacity .15s;pointer-events:none}
+.chevron-hover-arrow{position:absolute;right:calc(9% + 10px);top:50%;transform:translateY(-50%);font-size:.8rem;color:rgba(255,255,255,.9);opacity:0;transition:opacity .15s;pointer-events:none}
 .chevron-shape:hover .chevron-hover-arrow{opacity:1}
 .chevron-item.expanded .chevron-hover-arrow{opacity:0}
 
 /* Expanded state */
 .chevron-item.expanded .chevron-shape{background:rgba(26,52,72,.85)}
 
-/* Sub-menu — to the right of the arrow tip, top-aligned */
-.chevron-submenu{display:none;flex-direction:column;gap:5px;position:absolute;left:calc(91% + 10px);top:-2px;width:220px;z-index:10}
+/* Sub-menu — overlaps arrow area, vertically centered so arrow tip points at middle */
+.chevron-submenu{display:none;flex-direction:column;gap:5px;position:absolute;left:calc(78%);top:50%;transform:translateY(-50%);width:230px;z-index:10}
 .chevron-item.expanded .chevron-submenu{display:flex}
-.chevron-sub-item{padding:10px 16px;background:rgba(16,34,48,.8);border:1px solid rgba(36,72,100,.45);border-radius:4px;cursor:pointer;font-size:.78rem;color:#90aab8;font-weight:500;transition:background .15s,border-color .15s,color .15s;position:relative}
+.chevron-sub-item{padding:11px 18px;background:rgba(16,34,48,.8);border:1px solid rgba(36,72,100,.45);border-radius:4px;cursor:pointer;font-size:.82rem;color:#90aab8;font-weight:500;transition:background .15s,border-color .15s,color .15s;position:relative}
 .chevron-sub-item:hover{background:rgba(22,48,68,.9);border-color:rgba(50,100,140,.55);color:#d0e0ea}
 .chevron-sub-item::after{content:'\25A1';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.6rem;color:rgba(140,180,200,.3);opacity:0;transition:opacity .15s}
 .chevron-sub-item:hover::after{opacity:1}
