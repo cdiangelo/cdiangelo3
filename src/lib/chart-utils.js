@@ -36,7 +36,7 @@ export function getChartFills(){
 }
 
 // Static fallback arrays for code that imports these at module load time
-const _fallback=['#ea580c','#d97706','#dc2626','#b45309','#0891b2','#7c3aed','#059669','#2563eb'];
+const _fallback=['#9e8e76','#5c7d9a','#b8aa94','#4a6580','#c4b49a','#7898b4','#7a6e5e','#3a5268'];
 export const CHART_COLORS=_fallback;
 export const CHART_COLORS_MUTED_DARK=_fallback;
 export const CHART_COLORS_NEON=_fallback;
