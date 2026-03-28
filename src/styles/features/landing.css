@@ -17,7 +17,7 @@
 .chevron-item.expanded .chevron-shape{background:rgba(26,52,72,.85)}
 
 /* Sub-menu — overlaps arrow area, vertically centered so arrow tip points at middle */
-.chevron-submenu{display:none;flex-direction:column;gap:5px;position:absolute;left:calc(78%);top:50%;transform:translateY(-50%);width:230px;z-index:10}
+.chevron-submenu{display:none;flex-direction:column;gap:5px;position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);width:230px;z-index:10}
 .chevron-item.expanded .chevron-submenu{display:flex}
 .chevron-sub-item{padding:11px 18px;background:rgba(16,34,48,.8);border:1px solid rgba(36,72,100,.45);border-radius:4px;cursor:pointer;font-size:.82rem;color:#90aab8;font-weight:500;transition:background .15s,border-color .15s,color .15s;position:relative}
 .chevron-sub-item:hover{background:rgba(22,48,68,.9);border-color:rgba(50,100,140,.55);color:#d0e0ea}
