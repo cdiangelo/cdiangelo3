@@ -289,6 +289,8 @@ function renderPnlWalk(){
   const row1Dim=row1Sel?row1Sel.value:'category';
   const row2Dim=row2Sel?row2Sel.value:'';
   const colMode=colToggle?colToggle.dataset.fyscol:'collapsed';
+  const chartViewBtn=document.querySelector('#landingChartViewToggle .btn.active');
+  const isTotInvView=chartViewBtn&&chartViewBtn.dataset.lcview==='total';
 
   // Dimension getter
   function getDim(e,dim){
@@ -388,7 +390,24 @@ function renderPnlWalk(){
 
   // Column definitions
   let cols;
-  if(colMode==='expanded'){
+  if(colMode==='expanded'&&isTotInvView){
+    // Detail + Total Inv: skip D&A and OPEX
+    cols=[
+      {key:'hc',label:'HC',narrow:true,isHC:true},
+      {key:'cb',label:'C&B'},
+      {key:'hires',label:'HIRES'},
+      {key:'oao',label:'OAO'},
+      {key:'te',label:'T&E'},
+      {key:'other',label:'OTHER'},
+      {key:'ebitda',label:'EBITDA',cls:'subtotal'},
+      {key:'cbCapex',label:'C&B CAP'},
+      {key:'hiresCapex',label:'HIRES CAP'},
+      {key:'ctrCapex',label:'CTR CAP'},
+      {key:'capex',label:'CAPEX',cls:'sub2'},
+      {key:'totinv',label:'TOT INV',cls:'total'},
+    ];
+  } else if(colMode==='expanded'){
+    // Detail + P&L/Cost: full columns
     cols=[
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
@@ -402,10 +421,18 @@ function renderPnlWalk(){
       {key:'cbCapex',label:'C&B CAP'},
       {key:'hiresCapex',label:'HIRES CAP'},
       {key:'ctrCapex',label:'CTR CAP'},
-      {key:'capex',label:'CAPEX',cls:'subtotal'},
+      {key:'capex',label:'CAPEX',cls:'sub2'},
+      {key:'totinv',label:'TOT INV',cls:'total'},
+    ];
+  } else if(isTotInvView){
+    // Summary + Total Inv
+    cols=[
+      {key:'hc',label:'HC',narrow:true,isHC:true},
+      {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'totinv',label:'TOT INV',cls:'total'},
     ];
   } else {
+    // Summary + P&L/Cost
     cols=[
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
@@ -423,8 +450,12 @@ function renderPnlWalk(){
     return sign+'$'+(abs/1e6).toFixed(2);
   }
   function fmtCell(c,v){
-    const style=c.cls==='subtotal'?'font-weight:700;color:var(--accent)':c.cls==='total'?'font-weight:700':'';
-    return `<td class="num" style="${style};padding:5px 6px;font-size:.78rem${c.narrow?';width:36px':''}">${c.isHC?fv(v,true):fv(v)}</td>`;
+    let style='padding:5px 6px;font-size:.78rem';
+    if(c.cls==='subtotal')style+=';font-weight:700;color:var(--accent);border-left:1px solid var(--border-light)';
+    else if(c.cls==='total')style+=';font-weight:700;border-left:1px solid var(--border-light)';
+    else if(c.cls==='sub2')style+=';font-weight:600;color:var(--text-dim)';
+    if(c.narrow)style+=';width:36px';
+    return `<td class="num" style="${style}">${c.isHC?fv(v,true):fv(v)}</td>`;
   }
 
   // Row1 label
@@ -432,8 +463,12 @@ function renderPnlWalk(){
 
   let h=`<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap;min-width:140px">${esc(row1Label.toUpperCase())}</th>`;
   cols.forEach(c=>{
-    const w=c.narrow?'width:36px;':c.cls==='subtotal'?'min-width:65px;font-weight:600;':'min-width:55px;';
-    h+=`<th style="text-align:right;${w}white-space:nowrap;padding:5px 6px;font-size:.68rem">${c.label}</th>`;
+    let w=c.narrow?'width:36px;':'min-width:55px;';
+    let extra='';
+    if(c.cls==='subtotal'){w='min-width:65px;';extra='font-weight:700;color:var(--accent);border-left:1px solid var(--border-light);'}
+    else if(c.cls==='total'){w='min-width:65px;';extra='font-weight:700;border-left:1px solid var(--border-light);'}
+    else if(c.cls==='sub2'){extra='font-weight:600;color:var(--text-dim);'}
+    h+=`<th style="text-align:right;${w}${extra}white-space:nowrap;padding:5px 6px;font-size:.68rem">${c.label}</th>`;
   });
   h+='</tr></thead><tbody>';
 
@@ -485,7 +520,7 @@ let landingBudgetChartInst=null,landingForecastChartInst=null,landingRevenueChar
 
 document.querySelectorAll('#landingChartViewToggle .btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#landingChartViewToggle .btn').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');landingChartView=b.dataset.lcview;renderLandingCharts();
+  b.classList.add('active');landingChartView=b.dataset.lcview;renderLandingCharts();renderPnlWalk();
 }));
 
 function renderLandingCharts(){
