@@ -1,51 +1,136 @@
-/* Reset & Root Variables (lines 14-32) */
+/* Reset & Root Variables — DARK MODE DEFAULT */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#e8ecee;
-  --panel:#f2f5f6;
-  --panel-inset:#eaeeef;
-  --accent:#3d9488;
-  --accent-light:#4aaa9d;
-  --secondary:#6b8a95;
-  --text:#2a3038;
-  --text-dim:#5a6a72;
-  --text-dark:#1a2028;
-  --border:#c4ced2;
-  --border-light:#d4dde0;
-  --danger:#c44040;
-  --success:#3a8a50;
-  --warning:#b8920b;
-  --flag-bg:#f0f8f6;
-  --flag-border:#88c4b8;
+  /* ── Page structure ── */
+  --bg:#0d1117;
+  --panel:#161f2e;
+  --panel-inset:#111827;
+  --bg-elevated:#1c2a3e;
+  --bg-overlay:#243447;
+  --bg-input:#1a2332;
+
+  /* ── Borders — rgba for softness ── */
+  --border:rgba(148,163,184,0.13);
+  --border-light:rgba(148,163,184,0.08);
+  --border-strong:rgba(148,163,184,0.22);
+  --border-accent:rgba(45,212,191,0.35);
+
+  /* ── Text ── */
+  --text:#e2e8f0;
+  --text-dim:#94a3b8;
+  --text-dark:#e2e8f0;
+  --tertiary:#64748b;
+
+  /* ── Primary accent: aquatic teal ── */
+  --accent:#2dd4bf;
+  --accent-light:#5eead4;
+  --accent-mid:rgba(45,212,191,0.55);
+  --accent-soft:rgba(45,212,191,0.12);
+  --accent-glow:rgba(45,212,191,0.08);
+  --accent-glow-lg:rgba(45,212,191,0.15);
+
+  /* ── Secondary: blue-indigo ── */
+  --secondary:#818cf8;
+  --secondary-soft:rgba(129,140,248,0.12);
+
+  /* ── Chart series — lines full, fills low opacity ── */
+  --chart-1:#2dd4bf; --chart-1-fill:rgba(45,212,191,0.18);
+  --chart-2:#38bdf8; --chart-2-fill:rgba(56,189,248,0.18);
+  --chart-3:#818cf8; --chart-3-fill:rgba(129,140,248,0.18);
+  --chart-4:#6366f1; --chart-4-fill:rgba(99,102,241,0.18);
+  --chart-5:#4f88c8; --chart-5-fill:rgba(79,136,200,0.18);
+  --chart-6:#a78bfa; --chart-6-fill:rgba(167,139,250,0.18);
+  --chart-7:#67e8f9; --chart-7-fill:rgba(103,232,249,0.18);
+  --chart-8:#86efac; --chart-8-fill:rgba(134,239,172,0.18);
+  --chart-grid:rgba(148,163,184,0.06);
+  --chart-axis:rgba(148,163,184,0.10);
+  --chart-tooltip-bg:rgba(28,42,62,0.96);
+
+  /* ── Semantic ── */
+  --success:#10b981;
+  --success-soft:rgba(16,185,129,0.12);
+  --warning:#f59e0b;
+  --warning-soft:rgba(245,158,11,0.12);
+  --danger:#ef4444;
+  --danger-soft:rgba(239,68,68,0.12);
+
+  /* ── Legacy compat ── */
+  --flag-bg:rgba(45,212,191,0.06);
+  --flag-border:rgba(45,212,191,0.2);
 }
 
-/* Body & Links (lines 33-34) */
+/* ── LIGHT MODE ── */
+[data-theme="light"]{
+  --bg:#f8fafc;
+  --panel:#ffffff;
+  --panel-inset:#f1f5f9;
+  --bg-elevated:#e8eef5;
+  --bg-overlay:#dde7f0;
+  --bg-input:#ffffff;
+
+  --border:rgba(15,23,42,0.11);
+  --border-light:rgba(15,23,42,0.07);
+  --border-strong:rgba(15,23,42,0.20);
+  --border-accent:rgba(15,118,110,0.35);
+
+  --text:#0f172a;
+  --text-dim:#475569;
+  --text-dark:#0f172a;
+  --tertiary:#94a3b8;
+
+  --accent:#0f766e;
+  --accent-light:#0d9488;
+  --accent-mid:rgba(15,118,110,0.60);
+  --accent-soft:rgba(15,118,110,0.09);
+  --accent-glow:rgba(15,118,110,0.06);
+  --accent-glow-lg:rgba(15,118,110,0.12);
+
+  --secondary:#4338ca;
+  --secondary-soft:rgba(67,56,202,0.09);
+
+  --chart-1:#0f766e; --chart-1-fill:rgba(15,118,110,0.12);
+  --chart-2:#0284c7; --chart-2-fill:rgba(2,132,199,0.12);
+  --chart-3:#4338ca; --chart-3-fill:rgba(67,56,202,0.12);
+  --chart-4:#2563eb; --chart-4-fill:rgba(37,99,235,0.12);
+  --chart-5:#0891b2; --chart-5-fill:rgba(8,145,178,0.12);
+  --chart-6:#7c3aed; --chart-6-fill:rgba(124,58,237,0.12);
+  --chart-7:#0369a1; --chart-7-fill:rgba(3,105,161,0.12);
+  --chart-8:#065f46; --chart-8-fill:rgba(6,95,70,0.12);
+  --chart-grid:rgba(15,23,42,0.05);
+  --chart-axis:rgba(15,23,42,0.08);
+  --chart-tooltip-bg:rgba(255,255,255,0.97);
+
+  --success:#059669;
+  --success-soft:rgba(5,150,105,0.09);
+  --warning:#d97706;
+  --warning-soft:rgba(217,119,6,0.09);
+  --danger:#dc2626;
+  --danger-soft:rgba(220,38,38,0.09);
+
+  --flag-bg:rgba(15,118,110,0.05);
+  --flag-border:rgba(15,118,110,0.2);
+}
+
+/* Body & Links */
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;letter-spacing:.01em}
 a{color:var(--accent)}
 
-/* Dark mode (lines 172-197) */
-html.dark{
-  --bg:#0e1820;--panel:#152028;--panel-inset:#121c24;
-  --accent:#4a9e8e;--accent-light:#5ab8a6;--secondary:#7a9aaa;
-  --text:#c0ccd2;--text-dim:#6a8090;--text-dark:#d8e2e8;
-  --border:#1e3040;--border-light:#182838;
-  --danger:#d05050;--success:#4aaa60;--warning:#d0a830;
-  --flag-bg:#1a2820;--flag-border:#2a5a3a;
-}
-html.dark select,html.dark input,html.dark textarea{background:#2a2a2e;border-color:var(--border);color:var(--text)}
-html.dark tr:hover{background:rgba(74,158,142,.05)}
-html.dark #empTable tr:hover td:nth-child(1),html.dark #empTable tr:hover td:nth-child(2){background:rgba(74,158,142,.05)}
-html.dark #empTable th:nth-child(1),html.dark #empTable td:nth-child(1),html.dark #empTable th:nth-child(2),html.dark #empTable td:nth-child(2){background:var(--panel)}
-html.dark .ws-list li:hover{background:rgba(74,158,142,.05)}
-html.dark .chart-container{background:rgba(255,255,255,.02);border-radius:8px;padding:8px}
-html.dark .modal-overlay{background:rgba(0,0,0,.7)}
-html.dark .scenario-slide-panel table td,html.dark .data-slide-panel table td{color:var(--text)}
-html.dark .scenario-slide-panel table th,html.dark .data-slide-panel table th{color:var(--text-dim)}
-html.dark .btn{background:var(--panel-inset);color:var(--text);border-color:var(--border)}
-html.dark .btn:hover{background:var(--border);color:var(--text-dark)}
-/* Left toggle buttons hidden — styled via bottom toolbar now */
+/* Light mode form elements */
+[data-theme="light"] select,[data-theme="light"] input,[data-theme="light"] textarea{background:var(--bg-input);border-color:var(--border);color:var(--text)}
 
-/* Operations mode (lines 198-201) */
+/* Dark mode (default) specifics */
+tr:hover{background:var(--accent-glow)}
+#empTable tr:hover td:nth-child(1),#empTable tr:hover td:nth-child(2){background:var(--accent-glow)}
+#empTable th:nth-child(1),#empTable td:nth-child(1),#empTable th:nth-child(2),#empTable td:nth-child(2){background:var(--panel)}
+.ws-list li:hover{background:var(--accent-glow)}
+.chart-container{background:rgba(255,255,255,.02);border-radius:8px;padding:8px}
+[data-theme="light"] .chart-container{background:transparent}
+.modal-overlay{background:rgba(0,0,0,.45)}
+[data-theme="light"] .modal-overlay{background:rgba(15,23,42,.30)}
+.scenario-slide-panel table td,.data-slide-panel table td{color:var(--text)}
+.scenario-slide-panel table th,.data-slide-panel table th{color:var(--text-dim)}
+
+/* Operations mode */
 body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
 body.ops-mode .comp-sensitive::selection{color:transparent}
 body.ops-mode .ops-hide{display:none!important}
@@ -57,4 +142,4 @@ body.ops-mode .ops-hide{display:none!important}
 
 /* Spreadsheet-style cell selection */
 td.spreadsheet-selected{outline:2px solid var(--accent);outline-offset:-1px;z-index:1;position:relative}
-input.spreadsheet-active{background:rgba(99,102,241,.06)!important;font-weight:600}
+input.spreadsheet-active{background:var(--accent-soft)!important;font-weight:600}

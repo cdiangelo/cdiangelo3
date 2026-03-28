@@ -1,89 +1,88 @@
 // ── DARK MODE & OPS VIEW ── ES Module
-// Uses global toolbar controls (#globalToggleDark, #globalToggleOps, #globalColorSchemeSlider)
+// Dark = default (:root). Light = [data-theme="light"].
+// Single toggle, no crisp/muted/neon.
 
 export function initDarkMode(){
   const toggleDark=document.getElementById('globalToggleDark');
   const toggleOps=document.getElementById('globalToggleOps');
-  function setDarkMode(on){
-    document.documentElement.classList.toggle('dark',on);
-    localStorage.setItem('compPlanDark',on?'1':'0');
-    toggleDark.checked=on;
-    window.renderForecast();window.renderExecView();window.renderDashboard();window.renderLandingCharts();window.renderBudgetScenarioChart();window.renderFcScenarioChart();
-    if(window.renderEmployees)window.renderEmployees();
-    if(window.renderLandingRevenue)window.renderLandingRevenue();
-    if(window.renderLtfChart)window.renderLtfChart();
-    colorSchemeCallbacks.forEach(fn=>fn());
-  }
-  toggleDark.addEventListener('change',()=>setDarkMode(toggleDark.checked));
-  toggleOps.addEventListener('change',()=>{
-    document.body.classList.toggle('ops-mode',toggleOps.checked);
-    localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
-    window.renderMonthly();
-    if(window.renderEmployees)window.renderEmployees();
-    if(window.syncFormCompVisibility)window.syncFormCompVisibility();
-  });
-  // Restore preferences
-  if(localStorage.getItem('compPlanDark')==='1'){toggleDark.checked=true;document.documentElement.classList.add('dark')}
-  if(localStorage.getItem('compPlanOps')==='1'){toggleOps.checked=true;document.body.classList.add('ops-mode');if(window.syncFormCompVisibility)window.syncFormCompVisibility()}
-  // Color scheme slider (single global instance)
-  const colorSchemeSlider=document.getElementById('globalColorSchemeSlider');
-  const colorSchemeLabel=document.getElementById('globalColorSchemeLabel');
-  const COLOR_SCHEME_NAMES=['Crisp','Muted','Neon'];
-  const COLOR_SCHEME_KEYS=['crisp','muted','neon'];
-  function applyColorSchemeClass(){
-    document.body.classList.remove('cs-muted','cs-neon','cs-crisp');
-    document.body.classList.add('cs-'+window.chartColorScheme);
-  }
-  function syncColorSchemeSliders(idx){
-    colorSchemeSlider.value=idx;colorSchemeLabel.textContent=COLOR_SCHEME_NAMES[idx];
-  }
-  const colorSchemeCallbacks=[];
-  window.colorSchemeCallbacks=colorSchemeCallbacks;
-  function getColorSchemeKey(){
-    const uid=window.sessionContext&&window.sessionContext.userId;
-    return uid?'compPlanColorScheme_'+uid:'compPlanColorScheme';
-  }
-  function loadUserColorScheme(){
-    const key=getColorSchemeKey();
-    const saved=localStorage.getItem(key);
-    if(saved&&COLOR_SCHEME_KEYS.includes(saved)){
-      window.chartColorScheme=saved;
-      if(window.setChartColorScheme)window.setChartColorScheme(saved);
-      const idx=COLOR_SCHEME_KEYS.indexOf(saved);
-      syncColorSchemeSliders(idx);
-      applyColorSchemeClass();
-    }
-  }
-  window.loadUserColorScheme=loadUserColorScheme;
-  function onColorSchemeChange(v){
-    window.chartColorScheme=COLOR_SCHEME_KEYS[v];
-    if(window.setChartColorScheme)window.setChartColorScheme(COLOR_SCHEME_KEYS[v]);
-    syncColorSchemeSliders(v);
-    localStorage.setItem(getColorSchemeKey(),window.chartColorScheme);
-    applyColorSchemeClass();
-    window.renderAll();window.renderLandingCharts();if(window.renderLtfChart)window.renderLtfChart();
-    colorSchemeCallbacks.forEach(fn=>fn());
-  }
-  colorSchemeSlider.addEventListener('input',()=>onColorSchemeChange(parseInt(colorSchemeSlider.value)));
-  // Load color scheme: try user-specific first, then global fallback
-  const savedScheme=localStorage.getItem('compPlanColorScheme');
-  if(savedScheme&&COLOR_SCHEME_KEYS.includes(savedScheme)){
-    window.chartColorScheme=savedScheme;
-    if(window.setChartColorScheme)window.setChartColorScheme(savedScheme);
-    const idx=COLOR_SCHEME_KEYS.indexOf(savedScheme);
-    syncColorSchemeSliders(idx);
-  }
-  applyColorSchemeClass();
 
-  // Global back button — show/hide based on current view and wire navigation
+  function applyTheme(theme){
+    if(theme==='light'){
+      document.documentElement.setAttribute('data-theme','light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      document.documentElement.classList.add('dark');
+    }
+    localStorage.setItem('webplan-theme',theme);
+    if(toggleDark)toggleDark.checked=(theme==='dark');
+    // Re-render charts with new colors
+    try{window.renderForecast()}catch(e){}
+    try{window.renderExecView()}catch(e){}
+    try{window.renderDashboard()}catch(e){}
+    try{window.renderLandingCharts()}catch(e){}
+    try{window.renderBudgetScenarioChart()}catch(e){}
+    try{window.renderFcScenarioChart()}catch(e){}
+    if(window.renderEmployees)try{window.renderEmployees()}catch(e){}
+    if(window.renderLandingRevenue)try{window.renderLandingRevenue()}catch(e){}
+    if(window.renderLtfChart)try{window.renderLtfChart()}catch(e){}
+    if(window.colorSchemeCallbacks)window.colorSchemeCallbacks.forEach(fn=>fn());
+  }
+
+  // Toggle handler
+  if(toggleDark){
+    toggleDark.addEventListener('change',()=>{
+      applyTheme(toggleDark.checked?'dark':'light');
+    });
+  }
+
+  // Ops view toggle
+  if(toggleOps){
+    toggleOps.addEventListener('change',()=>{
+      document.body.classList.toggle('ops-mode',toggleOps.checked);
+      localStorage.setItem('compPlanOps',toggleOps.checked?'1':'0');
+      window.renderMonthly();
+      if(window.renderEmployees)window.renderEmployees();
+      if(window.syncFormCompVisibility)window.syncFormCompVisibility();
+    });
+  }
+
+  // Restore preferences
+  const saved=localStorage.getItem('webplan-theme');
+  if(saved==='light'){
+    applyTheme('light');
+  } else if(saved==='dark'){
+    applyTheme('dark');
+  } else {
+    // Fallback: check prefers-color-scheme, default to dark
+    const preferLight=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;
+    applyTheme(preferLight?'light':'dark');
+  }
+
+  // Legacy compat: also check old key
+  if(!saved&&localStorage.getItem('compPlanDark')==='0'){
+    applyTheme('light');
+  }
+
+  if(localStorage.getItem('compPlanOps')==='1'&&toggleOps){
+    toggleOps.checked=true;document.body.classList.add('ops-mode');
+    if(window.syncFormCompVisibility)window.syncFormCompVisibility();
+  }
+
+  // Chart color scheme — single unified palette, no toggle needed
+  window.chartColorScheme='default';
+  if(window.setChartColorScheme)window.setChartColorScheme('default');
+  window.colorSchemeCallbacks=[];
+  window.loadUserColorScheme=function(){};
+
+  // Global back button
   const globalBackBtn=document.getElementById('globalBackBtn');
   window._updateGlobalToolbar=function(){
     const lp=document.getElementById('landingPage');
     const onLanding=lp&&lp.style.display!=='none';
-    globalBackBtn.style.display=onLanding?'none':'';
+    if(globalBackBtn)globalBackBtn.style.display=onLanding?'none':'';
   };
-  globalBackBtn.addEventListener('click',()=>{if(window.showLanding)window.showLanding()});
-  // Set initial state
+  if(globalBackBtn)globalBackBtn.addEventListener('click',()=>{if(window.showLanding)window.showLanding()});
   window._updateGlobalToolbar();
 }
 initDarkMode();

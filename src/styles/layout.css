@@ -74,7 +74,7 @@ body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptions
 .panel-close-btn:hover{background:var(--border)}
 
 /* Template banner, presence bar, session top bar, save indicator (lines 916-936) */
-.template-banner{background:var(--flag-bg);border-bottom:1px solid var(--flag-border);color:#856404;padding:8px 20px;text-align:center;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:12px}
+.template-banner{background:var(--flag-bg);border-bottom:1px solid var(--flag-border);color:var(--warning);padding:8px 20px;text-align:center;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:12px}
 .template-banner .btn{font-size:.78rem;padding:4px 12px}
 .presence-bar{display:none;padding:4px 20px;background:var(--panel-inset);border-top:1px solid var(--border-light);font-size:.78rem;align-items:center;justify-content:space-between}
 .presence-bar.active{display:flex}

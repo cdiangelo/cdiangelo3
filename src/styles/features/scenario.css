@@ -9,7 +9,7 @@
 .chat-msg.system{align-self:flex-start;background:var(--panel);border:1px solid var(--border);border-bottom-left-radius:2px}
 .chat-msg.system .chat-delta{margin-top:6px;padding:6px 8px;background:var(--panel-inset);border-radius:6px;font-size:.78rem;font-family:monospace}
 .chat-delta .up{color:var(--danger)}.chat-delta .down{color:var(--success)}.chat-delta .neutral{color:var(--text-dim)}
-.chat-msg.error{align-self:flex-start;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-bottom-left-radius:2px}
+.chat-msg.error{align-self:flex-start;background:var(--warning-soft);color:var(--warning);border:1px solid var(--warning);border-bottom-left-radius:2px}
 .chat-msg.hint{align-self:center;color:var(--text-dim);font-size:.75rem;font-style:italic;background:none;padding:4px}
 .chat-input-bar{display:flex;gap:6px;padding:8px;border-top:1px solid var(--border);background:var(--panel)}
 .chat-input-bar input{flex:1;padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;background:var(--bg)}
@@ -35,7 +35,7 @@
 .scen-history-entry .entry-content{flex:1;min-width:0}
 .scen-history-entry .entry-msg{font-size:.76rem;color:var(--text)}
 .scen-history-entry .entry-label{font-size:.65rem;font-weight:600;text-transform:uppercase;color:var(--accent);margin-right:4px}
-.scen-history-entry .entry-refinement{color:#8e6bc0;font-style:italic}
+.scen-history-entry .entry-refinement{color:var(--secondary);font-style:italic}
 .scen-action-pane{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--panel-inset)}
 .scen-filter-section{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .scen-filter-section>div:nth-child(n+4){grid-column:span 3}
