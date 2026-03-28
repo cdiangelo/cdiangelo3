@@ -1516,6 +1516,7 @@ function runInitSequence(){
 window.toggleAnalysisSection = toggleAnalysisSection;
 window.toggleDepBand = toggleDepBand;
 window.toggleRevBand = toggleRevBand;
+window.hideAllModules = hideAllModules;
 window.showLanding = showLanding;
 window.showApp = showApp;
 window.showVendor = showVendor;

@@ -70,18 +70,27 @@
   }
 
   function navigateToExecSummary(tab) {
-    const chevNav = document.getElementById('chevronNav');
-    if (chevNav) chevNav.style.display = 'none';
+    // Hide ALL modules first to prevent spillover
+    if (window.hideAllModules) window.hideAllModules();
+    else {
+      ['landingPage','appShell','vendorModule','depreciationModule','revenueModule','ltfModule'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.style.display='none';
+      });
+    }
     showBackToPlan();
 
-    // Show header bar (outside appShell now)
+    // Show header bar
     const headerBar = document.getElementById('compHeaderBar');
     if (headerBar) headerBar.style.display = '';
 
-    // Show appShell for exec comp / pivot content
-    const appShell = document.getElementById('appShell');
-    if (appShell) appShell.style.display = '';
-    if (window.renderAll) window.renderAll();
+    // Show landing page (for chevron nav area) but hide chevron nav itself
+    const landingPage = document.getElementById('landingPage');
+    if (landingPage) landingPage.style.display = '';
+    const chevNav = document.getElementById('chevronNav');
+    if (chevNav) chevNav.style.display = 'none';
+
+    // Render data
+    if (window.renderAll) try{window.renderAll()}catch(e){}
     if (window.renderPnlWalk) try { window.renderPnlWalk() } catch(e) {}
     if (window.renderLandingCharts) try { window.renderLandingCharts() } catch(e) {}
 
@@ -95,13 +104,17 @@
 
   function navigateToModule(module) {
     showBackToPlan();
+    // Hide header bar when navigating to non-exec modules
+    const hb=document.getElementById('compHeaderBar');if(hb)hb.style.display='none';
     if (module === 'comp') {
       if (window.showApp) window.showApp();
+      // Show comp header bar for this module
+      if(hb)hb.style.display='';
+      const title=document.querySelector('#compHeaderBar .module-title');
+      if(title)title.textContent='Compensation & Benefits';
       if (sumContent) sumContent.style.display = 'none';
       const empBtn = document.querySelector('#mainNav button[data-tab="employees"]');
       if (empBtn) empBtn.click();
-      const title = document.querySelector('#compHeaderBar .module-title');
-      if (title) title.textContent = 'Compensation & Benefits';
       if (overviewBtn) overviewBtn.classList.remove('active');
       if (compBtn) compBtn.classList.remove('active');
       // Broadcast: parent context determines BUD or FCAST prefix
