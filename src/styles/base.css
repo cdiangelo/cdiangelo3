@@ -43,10 +43,7 @@ html.dark .scenario-slide-panel table td,html.dark .data-slide-panel table td{co
 html.dark .scenario-slide-panel table th,html.dark .data-slide-panel table th{color:var(--text-dim)}
 html.dark .btn{background:var(--panel-inset);color:var(--text);border-color:var(--border)}
 html.dark .btn:hover{background:var(--border);color:var(--text-dark)}
-html.dark .scenario-toggle-btn{background:rgba(58,125,68,.45);border-color:rgba(255,255,255,.1)}
-html.dark .scenario-toggle-btn:hover{background:rgba(58,125,68,.7)}
-html.dark .data-toggle-btn{background:rgba(123,31,162,.4);border-color:rgba(255,255,255,.1)}
-html.dark .data-toggle-btn:hover{background:rgba(123,31,162,.65)}
+/* Left toggle buttons hidden — styled via bottom toolbar now */
 
 /* Operations mode (lines 198-201) */
 body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}
