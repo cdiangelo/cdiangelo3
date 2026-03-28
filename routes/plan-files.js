@@ -14,11 +14,11 @@ router.get('/', async (req, res) => {
              pf.description, pf.created_at as "createdAt", pf.updated_at as "updatedAt",
              a.initials as "creatorInitials", a.email as "creatorEmail",
              pa.role,
-             (SELECT COUNT(*) FROM plan_access pa2 WHERE pa2.plan_file_id = pf.id) as "accessCount"
+             COALESCE(ac.cnt, 1) as "accessCount"
       FROM plan_files pf
-      JOIN plan_access pa ON pa.plan_file_id = pf.id
+      JOIN plan_access pa ON pa.plan_file_id = pf.id AND pa.account_id = ?
       LEFT JOIN accounts a ON a.id = pf.created_by
-      WHERE pa.account_id = ?
+      LEFT JOIN (SELECT plan_file_id, COUNT(*) as cnt FROM plan_access GROUP BY plan_file_id) ac ON ac.plan_file_id = pf.id
       ORDER BY pf.updated_at DESC
     `).all(accountId);
     res.json(plans);

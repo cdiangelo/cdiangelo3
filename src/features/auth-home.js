@@ -11,16 +11,26 @@ function setUser(u){localStorage.setItem(USER_KEY,JSON.stringify(u))}
 function clearUser(){localStorage.removeItem(USER_KEY)}
 
 // API-backed plan file operations
+let _planCache=null;let _planCacheTime=0;
 async function fetchPlans(accountId){
-  try{const r=await fetch('/api/plan-files?accountId='+accountId);if(r.ok)return await r.json();return[]}catch(e){console.warn('Failed to fetch plans:',e);return[]}
+  // Return cached data if less than 30s old
+  if(_planCache&&Date.now()-_planCacheTime<30000)return _planCache;
+  try{
+    const r=await fetch('/api/plan-files?accountId='+accountId);
+    if(r.ok){_planCache=await r.json();_planCacheTime=Date.now();return _planCache}
+    return[];
+  }catch(e){console.warn('Failed to fetch plans:',e);return _planCache||[]}
 }
+function invalidatePlanCache(){_planCache=null;_planCacheTime=0}
 async function createPlanApi(data){
+  invalidatePlanCache();
   try{const r=await fetch('/api/plan-files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(r.ok)return await r.json();return null}catch(e){console.warn('Failed to create plan:',e);return null}
 }
 async function loadPlanState(planId){
   try{const r=await fetch('/api/plan-files/'+planId);if(r.ok)return await r.json();return null}catch(e){console.warn('Failed to load plan:',e);return null}
 }
 async function deletePlanApi(planId){
+  invalidatePlanCache();
   try{await fetch('/api/plan-files/'+planId,{method:'DELETE'})}catch(e){console.warn('Failed to delete plan:',e)}
 }
 async function loginApi(email){
@@ -131,12 +141,12 @@ async function renderPlanList(){
   const user=getUser();
   const list=document.getElementById('homePlanList');
 
-  // Show loading state
-  list.innerHTML='<div class="home-plan-empty" style="color:var(--tertiary)">Loading plans...</div>';
-
-  // Fetch from server if user has server id, otherwise empty
-  let plans=[];
+  // Show cached data immediately if available, fetch in background
+  let plans=_planCache||[];
   if(user&&user.id){
+    if(!plans.length){
+      list.innerHTML='<div class="home-plan-empty" style="color:var(--tertiary)">Loading plans...</div>';
+    }
     plans=await fetchPlans(user.id);
   }
   _cachedPlans=plans;
