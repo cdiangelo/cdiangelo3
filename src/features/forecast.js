@@ -673,13 +673,50 @@ function renderForecastProjection(){
         ds.datalabels={display:false};
       }
     });
+    // Y/Y % growth plugin for FTE chart (matches LTF sparkline style)
+    const fteVals=totalRows.map(r=>r.hc);
+    const fteYoyPlugin={
+      id:'fteYoy',
+      afterDraw(chart){
+        const meta=chart.getDatasetMeta(chart.data.datasets.length-1);
+        if(!meta||!meta.data||meta.data.length<2)return;
+        const ctx=chart.ctx;
+        ctx.save();
+        const fontSize=11;
+        ctx.font=`500 ${fontSize}px -apple-system,BlinkMacSystemFont,sans-serif`;
+        const lineColor=chart.data.datasets[chart.data.datasets.length-1].borderColor||window.getChartColors()[0];
+        ctx.textAlign='center';ctx.textBaseline='bottom';
+        for(let i=0;i<fteVals.length-1;i++){
+          const prev=fteVals[i],cur=fteVals[i+1];
+          if(!prev)continue;
+          const pct=((cur-prev)/Math.abs(prev))*100;
+          const pctStr=(pct>=0?'+':'')+pct.toFixed(1)+'%';
+          const p1=meta.data[i],p2=meta.data[i+1];
+          if(!p1||!p2)continue;
+          const midX=(p1.x+p2.x)/2;
+          const topY=Math.min(p1.y,p2.y)-8;
+          // Background pill
+          const tw=ctx.measureText(pctStr).width;
+          const pad=2;
+          const isLight=document.documentElement.getAttribute('data-theme')==='light';
+          ctx.fillStyle=pct>=0?(isLight?'rgba(5,150,105,.1)':'rgba(16,185,129,.2)'):(isLight?'rgba(220,38,38,.1)':'rgba(239,68,68,.2)');
+          const rx=midX-tw/2-pad,ry=topY-fontSize/2-pad-2,rw=tw+pad*2,rh=fontSize+pad*2;
+          if(ctx.roundRect)ctx.roundRect(rx,ry,rw,rh,3);else{ctx.beginPath();ctx.rect(rx,ry,rw,rh)}
+          ctx.fill();
+          ctx.fillStyle=pct>=0?(isLight?'#059669':'#10b981'):(isLight?'#dc2626':'#ef4444');
+          ctx.fillText(pctStr,midX,topY);
+        }
+        ctx.restore();
+      }
+    };
     window._forecastFteChart=new Chart(document.getElementById('forecastFteChart'),{
       type:'line',
       data:{labels:fteLabels,datasets:fcFteDatasets},
-      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-        plugins:{legend:{display:fcFteDatasets.length>1,position:'bottom',labels:{color:tickColor2,boxWidth:14,font:{size:13},padding:14}},datalabels:{},tooltip:window.FTE_TOOLTIP},
+      plugins:[fteYoyPlugin],
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},
+        plugins:{legend:{display:fcFteDatasets.length>1,position:'bottom',labels:{color:tickColor2,boxWidth:14,font:{size:13},padding:14}},datalabels:{display:false},yoyArrows:false,tooltip:window.FTE_TOOLTIP},
         scales:{
-          x:{ticks:{color:tickColor2,font:{size:12}},grid:{display:false},stacked:true},
+          x:{ticks:{color:tickColor2,font:{size:12,weight:'600'}},grid:{display:false},stacked:true},
           y:{beginAtZero:true,stacked:true,ticks:{color:tickColor2,font:{size:12}},grid:{color:gridColor2},title:{display:true,text:'Projected FTEs',color:tickColor2,font:{size:12}}}
         }
       }
