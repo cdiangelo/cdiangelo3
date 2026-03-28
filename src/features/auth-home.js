@@ -141,30 +141,54 @@ async function renderPlanList(){
   if(!plans.length){
     list.innerHTML='<div class="home-plan-empty">No plans yet. Create one above.</div>';
   } else {
-    list.innerHTML=plans.map((p,i)=>{
+    // Split into shared (accessCount > 1) and private (accessCount == 1, owner only)
+    const shared=[];
+    const priv=[];
+    plans.forEach((p,i)=>{
+      p._idx=i; // preserve index for lookup
+      if((p.accessCount||1)>1){shared.push(p)}else{priv.push(p)}
+    });
+
+    function renderCard(p){
       const date=new Date(p.updatedAt||p.createdAt);
-      const timeStr=date.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+date.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+      const timeStr=date.toLocaleDateString(undefined,{month:'short',day:'numeric'});
       const type=p.scenarioType||p.type||'budget';
       const isOwner=p.role==='owner'||!p.role;
-      const sharedTag=p.role==='editor'?'<span style="font-size:.6rem;color:var(--accent);margin-left:4px">shared with you</span>':'';
-      return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${i}">
-        <div class="plan-initials" style="background:${['#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#a38b5e'][i%5]}">${p.creatorInitials||p.creator||'?'}</div>
-        <div style="flex:1">
-          <div class="plan-name">${p.name}${sharedTag}</div>
+      const shareLabel=isOwner?'by me':'with me';
+      const shareArrow=isOwner?'↗':'↙';
+      const shareTag=`<span style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;color:var(--tertiary);margin-left:auto;white-space:nowrap">${shareArrow} ${shareLabel}</span>`;
+      return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${p._idx}">
+        <div style="flex:1;min-width:0">
+          <div class="plan-name" style="display:flex;align-items:center;gap:6px">${p.name}${(p.accessCount||1)>1?shareTag:''}</div>
           <div class="plan-meta">
             <span class="plan-badge ${type}">${type}</span>
             <span>${p.year}</span>
-            <span>Updated ${timeStr}</span>
+            <span>${timeStr}</span>
           </div>
         </div>
-        <button class="plan-menu-btn" data-plan-idx="${i}" title="More options" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--tertiary);padding:4px 8px;border-radius:4px">⋯</button>
-        <span class="plan-delete" data-plan-id="${p.id}" title="Delete plan">&times;</span>
+        <button class="plan-menu-btn" data-plan-idx="${p._idx}" title="Share" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--tertiary);padding:4px 8px;border-radius:4px">⋯</button>
       </div>`;
-    }).join('');
+    }
+
+    let html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+    // Shared column
+    html+='<div>';
+    html+='<div style="font-size:.78rem;font-weight:600;color:var(--text-dim);padding:8px 12px;background:var(--panel-inset);border-radius:8px;margin-bottom:8px">Shared Versions</div>';
+    if(shared.length){html+=shared.map(renderCard).join('')}
+    else{html+='<div style="font-size:.78rem;color:var(--tertiary);padding:12px;text-align:center">No shared plans</div>'}
+    html+='</div>';
+    // Private column
+    html+='<div>';
+    html+='<div style="font-size:.78rem;font-weight:600;color:var(--text-dim);padding:8px 12px;background:var(--panel-inset);border-radius:8px;margin-bottom:8px">Private Versions</div>';
+    if(priv.length){html+=priv.map(renderCard).join('')}
+    else{html+='<div style="font-size:.78rem;color:var(--tertiary);padding:12px;text-align:center">No private plans</div>'}
+    html+='</div>';
+    html+='</div>';
+    list.innerHTML=html;
 
     list.querySelectorAll('.home-plan-card').forEach(card=>{
       card.addEventListener('click',(e)=>{
-        if(e.target.classList.contains('plan-delete')||e.target.classList.contains('plan-menu-btn'))return;
+        if(e.target.classList.contains('plan-menu-btn'))return;
         const idx=+card.dataset.planIdx;
         openPlan(_cachedPlans[idx]);
       });
@@ -176,17 +200,6 @@ async function renderPlanList(){
         const idx=+btn.dataset.planIdx;
         const plan=_cachedPlans[idx];
         if(plan)openShareModal(plan);
-      });
-    });
-
-    list.querySelectorAll('.plan-delete').forEach(btn=>{
-      btn.addEventListener('click',async(e)=>{
-        e.stopPropagation();
-        const planId=btn.dataset.planId;
-        const plan=_cachedPlans.find(p=>String(p.id)===planId);
-        if(!plan||!confirm('Delete "'+plan.name+'"?'))return;
-        await deletePlanApi(planId);
-        renderPlanList();
       });
     });
   }

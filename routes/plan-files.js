@@ -12,7 +12,9 @@ router.get('/', async (req, res) => {
     const plans = await db.prepare(`
       SELECT pf.id, pf.name, pf.year, pf.scenario_type as "scenarioType",
              pf.description, pf.created_at as "createdAt", pf.updated_at as "updatedAt",
-             a.initials as "creatorInitials", a.email as "creatorEmail"
+             a.initials as "creatorInitials", a.email as "creatorEmail",
+             pa.role,
+             (SELECT COUNT(*) FROM plan_access pa2 WHERE pa2.plan_file_id = pf.id) as "accessCount"
       FROM plan_files pf
       JOIN plan_access pa ON pa.plan_file_id = pf.id
       LEFT JOIN accounts a ON a.id = pf.created_by
