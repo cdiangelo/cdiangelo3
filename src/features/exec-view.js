@@ -410,7 +410,25 @@ function renderExecView(){
       transformed=raw.slice();
     }
     // Filter to selected months (non-quarterly only)
-    if(!isQuarterly&&!isAnnual&&execSelectedMonths.size>0){
+    if(isAllYears&&isQuarterly){
+      // All years + quarterly: build quarterly data for each year
+      const gEmps=splitGroups[g];
+      const fcRows=projectForecast(gEmps);
+      const curTotal=raw.reduce((a,v)=>a+v,0);
+      let allQuarters=[...transformed]; // current year Q1-Q4
+      for(let yi=1;yi<=FORECAST_YEARS.length;yi++){
+        const fr=fcRows[yi];
+        const annualVal=fr?(execView==='opex'?fr.opex:fr.total):0;
+        // Distribute annual into quarters using current year pattern
+        const qTotals=transformed;
+        const qSum=qTotals.reduce((a,v)=>a+v,0);
+        for(let qi=0;qi<4;qi++){
+          const share=qSum>0?qTotals[qi]/qSum:0.25;
+          allQuarters.push(Math.round(annualVal*share));
+        }
+      }
+      monthlyData[g]=allQuarters;
+    } else if(!isQuarterly&&!isAnnual&&execSelectedMonths.size>0){
       monthlyData[g]=periodMonths.map(mi=>transformed[mi]);
     } else if(isAllYears&&!isAnnual){
       // All years: build raw monthly data for each year, then apply YTD/QTD per-year
@@ -491,22 +509,36 @@ function renderExecView(){
   }
   let monthlyFte,monthlyAvgAnnFteComp;
   if(isAllYears&&!isAnnual){
-    // All years monthly: current year FTE + forecast FTE (flat per year)
+    // All years: current year FTE + forecast FTE (flat per year)
     const fcRows=projectForecast(emps);
-    monthlyFte=[...monthlyFteFull];
-    monthlyAvgAnnFteComp=[...monthlyAvgAnnFteCompFull];
+    let allFte=[...monthlyFteFull];
+    let allComp=[...monthlyAvgAnnFteCompFull];
     for(let yi=1;yi<=FORECAST_YEARS.length;yi++){
       const fr=fcRows[yi];
       const hc=fr?fr.hc:emps.length;
       const avgComp=fr&&fr.hc>0?Math.round(fr.total/fr.hc):0;
-      for(let mi=0;mi<12;mi++){monthlyFte.push(hc);monthlyAvgAnnFteComp.push(avgComp)}
+      for(let mi=0;mi<12;mi++){allFte.push(hc);allComp.push(avgComp)}
     }
-    if(execSelectedMonths.size>0&&execSelectedMonths.size<12){
-      const filtFte=[];const filtComp=[];
-      for(let yr=0;yr<monthlyFte.length/12;yr++){
-        periodMonths.forEach(mi=>{filtFte.push(monthlyFte[yr*12+mi]);filtComp.push(monthlyAvgAnnFteComp[yr*12+mi])});
+    if(isQuarterly){
+      // Aggregate monthly FTE into quarterly (avg per quarter)
+      monthlyFte=[];monthlyAvgAnnFteComp=[];
+      const nYears=allFte.length/12;
+      for(let yr=0;yr<nYears;yr++){
+        for(let q=0;q<4;q++){
+          const s=yr*12+q*3;
+          monthlyFte.push(Math.round((allFte[s]+allFte[s+1]+allFte[s+2])/3*100)/100);
+          monthlyAvgAnnFteComp.push(Math.round((allComp[s]+allComp[s+1]+allComp[s+2])/3));
+        }
       }
-      monthlyFte=filtFte;monthlyAvgAnnFteComp=filtComp;
+    } else {
+      monthlyFte=allFte;monthlyAvgAnnFteComp=allComp;
+      if(execSelectedMonths.size>0&&execSelectedMonths.size<12){
+        const filtFte=[];const filtComp=[];
+        for(let yr=0;yr<monthlyFte.length/12;yr++){
+          periodMonths.forEach(mi=>{filtFte.push(monthlyFte[yr*12+mi]);filtComp.push(monthlyAvgAnnFteComp[yr*12+mi])});
+        }
+        monthlyFte=filtFte;monthlyAvgAnnFteComp=filtComp;
+      }
     }
   } else if(isAnnual){
     const fcRows=projectForecast(emps);
