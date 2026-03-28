@@ -115,6 +115,7 @@ export const FTE_TOOLTIP={
 };
 
 export function fmtShort(n){return (n<0?'-':'')+'$'+(Math.abs(n)/1e6).toFixed(2)+'M'}
+export function fmtShort1(n){return (n<0?'-':'')+'$'+(Math.abs(n)/1e6).toFixed(1)+'M'}
 
 export function stackedBarDatalabels(datasets,tickColor,fontSize){
   const fs=fontSize||11;
@@ -123,18 +124,24 @@ export function stackedBarDatalabels(datasets,tickColor,fontSize){
   const negStacks=datasets.filter(d=>d.stack==='neg');
   const topPosIdx=posStacks.length?datasets.indexOf(posStacks[posStacks.length-1]):-1;
   const bottomNegIdx=negStacks.length?datasets.indexOf(negStacks[negStacks.length-1]):-1;
+  // Auto-detect if labels will be crunched (>6 data points)
+  const nBars=(datasets[0]&&datasets[0].data)?datasets[0].data.length:0;
+  const crunched=nBars>6;
+  const fmt=crunched?fmtShort1:fmtShort;
+  const rotation=crunched?-90:0;
+  const labelFs=crunched?Math.max(9,fs-1):fs;
   datasets.forEach((ds,i)=>{
     if(i===topPosIdx){
-      ds.datalabels={display:true,anchor:'end',align:'end',color:dlColor,font:{size:fs,weight:'bold'},
+      ds.datalabels={display:true,anchor:'end',align:'end',rotation:rotation,color:dlColor,font:{size:labelFs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;posStacks.forEach(d=>{const val=d.data[ctx.dataIndex];if(val>0)sum+=val});
-          return sum?fmtShort(sum):'';
+          return sum?fmt(sum):'';
         }};
     } else if(i===bottomNegIdx){
-      ds.datalabels={display:true,anchor:'start',align:'start',color:dlColor,font:{size:fs,weight:'bold'},
+      ds.datalabels={display:true,anchor:'start',align:'start',rotation:rotation,color:dlColor,font:{size:labelFs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;negStacks.forEach(d=>{sum+=d.data[ctx.dataIndex]});
-          return sum<0?fmtShort(sum):'';
+          return sum<0?fmt(sum):'';
         }};
     } else {
       ds.datalabels={display:false};
@@ -238,6 +245,7 @@ window.hexToRgba=hexToRgba;
 window.getSparkColor=getSparkColor;
 window.getStatValueColor=getStatValueColor;
 window.fmtShort=fmtShort;
+window.fmtShort1=fmtShort1;
 window.setChartColorScheme=setChartColorScheme;
 window.stackedBarDatalabels=stackedBarDatalabels;
 window.getCrispDatalabelColor=getCrispDatalabelColor;
