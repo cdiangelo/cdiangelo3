@@ -2633,10 +2633,15 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Scenario Analysis Slide Panel -->
 <div class="scenario-slide-panel" id="scenarioSlidePanel">
 <button class="panel-close-btn" onclick="document.getElementById('scenarioToggleBtn').click()">&times; Close Scenario</button>
-<h3 style="color:#1a8a3e;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Scenario Analysis</h3>
+<h3 style="color:var(--accent);font-size:1.05rem;font-weight:600;margin:0 0 12px 0">Scenario Analysis</h3>
+<div style="display:flex;gap:4px;margin-bottom:16px">
+<button class="btn active" id="scenTabBudget" onclick="document.getElementById('scenBudgetPane').style.display='';document.getElementById('scenForecastPane').style.display='none';this.classList.add('active');document.getElementById('scenTabForecast').classList.remove('active')">Budget</button>
+<button class="btn" id="scenTabForecast" onclick="document.getElementById('scenForecastPane').style.display='';document.getElementById('scenBudgetPane').style.display='none';this.classList.add('active');document.getElementById('scenTabBudget').classList.remove('active')">Forecast</button>
+</div>
 <label class="scenario-link-toggle" style="font-size:.78rem;margin-bottom:12px;display:block"><input type="checkbox" id="scenLinkFilters"> Link filters between panels</label>
 
-<!-- Budget Section -->
+<!-- Budget Tab Pane -->
+<div id="scenBudgetPane">
 <div style="margin-bottom:16px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:4px">
 <h4 style="color:var(--accent);font-size:.88rem;margin:0">Current Year Budget</h4>
@@ -2789,8 +2794,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div id="scenBudgetPnl" style="margin-top:8px"></div>
+</div><!-- /scenBudgetPane -->
 
-<!-- Forecast Section -->
+<!-- Forecast Tab Pane -->
+<div id="scenForecastPane" style="display:none">
 <div style="margin-bottom:16px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
 <h4 style="color:var(--accent);font-size:.88rem;margin:0">Long Term Forecast</h4>
@@ -2892,6 +2899,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div id="scenFcPnl" style="margin-top:8px"></div>
+</div><!-- /scenForecastPane -->
 
 <!-- Saved Scenarios -->
 <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
