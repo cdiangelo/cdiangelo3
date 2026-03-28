@@ -659,7 +659,22 @@ function renderForecastProjection(){
           if(capData.some(v=>v<0))datasets.push({label:(g.length>18?g.slice(0,16)+'\u2026':g)+' (CapEx)',data:capData,backgroundColor:window.hexToRgba(window.getChartColors()[i%window.getChartColors().length],0.35),stack:'neg'});
         });
       }
-      window.stackedBarDatalabels(datasets,tickColor,null,'forecast');
+      // Datalabels: account split shows per-series Y/Y %, others show total
+      if(forecastSplit==='account'){
+        datasets.forEach(ds=>{
+          ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:9,weight:'400'},
+            formatter:(val,ctx)=>{
+              if(!val||ctx.dataIndex===0)return '';
+              const prev=ds.data[ctx.dataIndex-1];
+              if(!prev)return '';
+              const pct=((val-prev)/Math.abs(prev))*100;
+              const pctStr=(pct>=0?'+':'')+((Math.abs(pct)>=5)?Math.round(pct):pct.toFixed(1))+'%';
+              return ds.label+' '+pctStr;
+            }};
+        });
+      } else {
+        window.stackedBarDatalabels(datasets,tickColor,null,'forecast');
+      }
       forecastChart=new Chart(document.getElementById('forecastChart'),{
         type:'bar',
         data:{labels:yearLabels,datasets},
