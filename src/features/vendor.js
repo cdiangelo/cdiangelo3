@@ -103,7 +103,8 @@ function initVendorModule(){
     MO.forEach(m=>{
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
       const displayed=scaleVal(parseFloat(raw)||0);
-      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="number" value="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right" step="any"></td>`;
+      const formatted=vendorAmtScale===1&&displayed?'$'+Number(displayed).toLocaleString('en-US'):''+displayed;
+      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right" step="any"></td>`;
     });
     h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-vi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     return h;
@@ -123,11 +124,25 @@ function initVendorModule(){
     // Bind change/input
     tbodyEl.querySelectorAll(`.${prefix}-field`).forEach(el=>{
       const ev=el.tagName==='SELECT'?'change':'input';
+      // Monthly inputs: focus shows raw, blur formats with commas
+      if(el.classList.contains(`${prefix}-mo`)){
+        el.addEventListener('focus',()=>{
+          const raw=el.dataset.raw||el.value.replace(/[$,]/g,'');
+          el.value=raw;el.type='number';el.select();
+        });
+        el.addEventListener('blur',()=>{
+          const val=parseFloat(el.value)||0;
+          el.dataset.raw=val;el.type='text';
+          el.value=vendorAmtScale===1&&val?'$'+Number(val).toLocaleString('en-US'):''+val;
+        });
+      }
       el.addEventListener(ev,()=>{
         const i=+el.closest('tr').dataset.vi;
         const f=el.dataset.f;
         if(el.classList.contains(`${prefix}-mo`)){
-          dataArr[i][f]=unscaleVal(parseFloat(el.value)||0);
+          const rawVal=parseFloat(String(el.value).replace(/[$,]/g,''))||0;
+          el.dataset.raw=rawVal;
+          dataArr[i][f]=unscaleVal(rawVal);
         } else if(f==='_rateIncMonth'){
           dataArr[i][f]=parseInt(el.value);
         } else if(f==='_rateIncPct'){
@@ -795,7 +810,8 @@ function initVendorModule(){
       else if(contractorView==='opex')displayed=contractorAmtScale===1?opAmt:Math.round((opAmt/contractorAmtScale)*100)/100;
       else displayed=contractorAmtScale===1?raw:Math.round((raw/contractorAmtScale)*100)/100;
       const isReadonly=contractorView!=='expense';
-      h+=`<td><input class="cr-field cr-mo" data-f="${m}" type="number" value="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right${isReadonly?';color:var(--text-dim)':''}" step="any" ${isReadonly?'readonly':''}></td>`;
+      const fmtDisp=contractorAmtScale===1&&displayed?'$'+Number(displayed).toLocaleString('en-US'):''+displayed;
+      h+=`<td><input class="cr-field cr-mo" data-f="${m}" type="text" value="${isReadonly?fmtDisp:fmtDisp}" data-raw="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right${isReadonly?';color:var(--text-dim)':''}" step="any" ${isReadonly?'readonly':''}></td>`;
     });
     h+=`<td><button class="btn btn-sm btn-danger cr-del" data-ci="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     return h;
@@ -852,14 +868,29 @@ function initVendorModule(){
         else if(f&&row[f])sel.value=row[f];
       });
     });
+    // Monthly input formatting: focus=raw, blur=formatted
+    tbody.querySelectorAll('.cr-mo').forEach(el=>{
+      el.addEventListener('focus',()=>{
+        if(contractorView!=='expense')return;
+        const raw=el.dataset.raw||el.value.replace(/[$,]/g,'');
+        el.value=raw;el.type='number';el.select();
+      });
+      el.addEventListener('blur',()=>{
+        const val=parseFloat(el.value)||0;
+        el.dataset.raw=val;el.type='text';
+        el.value=contractorAmtScale===1&&val?'$'+Number(val).toLocaleString('en-US'):''+val;
+      });
+    });
     // Field changes
     tbody.querySelectorAll('.cr-field').forEach(el=>{
       el.addEventListener('change',()=>{
         const tr=el.closest('tr');const i=+tr.dataset.ci;
         const f=el.dataset.f;const row=state.contractorRows[i];if(!row)return;
         if(MO.includes(f)){
-          if(contractorView!=='expense')return;// readonly in capex/opex view
-          row[f]=Math.round((parseFloat(el.value)||0)*contractorAmtScale);
+          if(contractorView!=='expense')return;
+          const rawVal=parseFloat(String(el.value).replace(/[$,]/g,''))||0;
+          el.dataset.raw=rawVal;
+          row[f]=Math.round(rawVal*contractorAmtScale);
           // Recalc footer
           renderContractorFooter();
         } else if(f==='capPct'){
