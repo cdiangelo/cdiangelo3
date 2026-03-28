@@ -57,16 +57,6 @@ export function initDarkMode(){
     });
   }
 
-  // ── Settings Panel Toggle ──
-  const settingsBtn=document.getElementById('btbSettings');
-  const settingsPanel=document.getElementById('settingsSlidePanel');
-  if(settingsBtn&&settingsPanel){
-    settingsBtn.addEventListener('click',()=>{
-      const isOpen=settingsPanel.style.transform==='translateX(0px)'||settingsPanel.style.transform==='translateX(0%)';
-      settingsPanel.style.transform=isOpen?'translateX(100%)':'translateX(0)';
-    });
-  }
-
   // ── Restore Preferences ──
   const savedTheme=localStorage.getItem('webplan-theme');
   if(savedTheme==='light'){applyTheme('light')}
@@ -79,7 +69,7 @@ export function initDarkMode(){
   if(!savedTheme&&localStorage.getItem('compPlanDark')==='0')applyTheme('light');
 
   // Restore accent
-  const savedAccent=localStorage.getItem('webplan-theme-accent')||'obsidian-ember';
+  const savedAccent=localStorage.getItem('webplan-theme-accent')||'dusk-slate';
   applyAccent(savedAccent);
 
   // Restore ops

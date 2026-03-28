@@ -142,11 +142,16 @@
   }
   if (btbSettings) {
     btbSettings.addEventListener('click', () => {
-      // Settings panel toggle is handled by dark-mode.js
       const panel = document.getElementById('settingsSlidePanel');
       if (panel) {
-        const isOpen = panel.style.transform === 'translateX(0px)' || panel.style.transform === 'translateX(0%)';
-        panel.style.transform = isOpen ? 'translateX(100%)' : 'translateX(0)';
+        const isOpen = panel.classList.contains('open');
+        if (isOpen) {
+          panel.classList.remove('open');
+          panel.style.transform = 'translateX(100%)';
+        } else {
+          panel.classList.add('open');
+          panel.style.transform = 'translateX(0)';
+        }
       }
     });
   }
