@@ -307,6 +307,19 @@ async function openPlan(plan){
   if(window.renderPnlWalk)try{window.renderPnlWalk()}catch(e){}
   if(window.renderLandingCharts)try{window.renderLandingCharts()}catch(e){}
 
+  // FINAL safety: ensure appShell is hidden after ALL renders
+  // Use setTimeout to run after any async render callbacks
+  setTimeout(()=>{
+    const as=document.getElementById('appShell');
+    if(as&&document.getElementById('chevronNav')&&document.getElementById('chevronNav').style.display!=='none'){
+      as.style.display='none';
+    }
+    const chb=document.getElementById('compHeaderBar');
+    if(chb&&document.getElementById('chevronNav')&&document.getElementById('chevronNav').style.display!=='none'){
+      chb.style.display='none';
+    }
+  },100);
+
   // Back to home
   document.getElementById('planBackHome').onclick=()=>{
     try{if(window.saveState)window.saveState()}catch(e){}

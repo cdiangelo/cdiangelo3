@@ -212,7 +212,7 @@ import { state, saveState } from '../lib/state.js';
   window._showCalendar=function(){
     if(calEl)calEl.style.display='flex';
     if(toggleBtn){toggleBtn.style.display='';toggleBtn.textContent='Hide Calendar'}
-    render();
+    try{render()}catch(e){console.error('Calendar render error:',e)}
   };
   window._hideCalendar=function(){
     if(calEl)calEl.style.display='none';
