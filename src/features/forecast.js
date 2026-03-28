@@ -620,12 +620,39 @@ function renderForecastProjection(){
       const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
       const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
       if(forecastChart)forecastChart.destroy();
-      const datasets=groupNames.map((g,i)=>({
-        label:g.length>20?g.slice(0,18)+'\u2026':g,
-        data:yearLabels.map((_,yi)=>{const r=groupForecasts[g][yi];return r?(showOpex?r.opex:r.total):0}),
-        backgroundColor:window.getChartColors()[i%window.getChartColors().length],
-        stack:'pos'
-      }));
+
+      // Compute OAO and D&A yearly projections
+      const _oaoBase=window.getVendorOaoTotal?window.getVendorOaoTotal():0;
+      const _oaoGr=state.oaoGrowthPct||[5,5,5,5,5];
+      const _oaoYrs=[_oaoBase];for(let oi=0;oi<5;oi++)_oaoYrs.push(Math.round(_oaoYrs[oi]*(1+(_oaoGr[oi]||0)/100)));
+      const _cCapEx=window.getContractorCapExTotal?window.getContractorCapExTotal():0;
+      const _assetLife=state.daAssetLifeYrs||5;
+      const _daBase=window.getDepreciationTotal?window.getDepreciationTotal():0;
+      const cbCapex=totalRows.map(r=>r.capex);
+      const _tcby=cbCapex.map(cb=>cb+_cCapEx);
+      const _daYrs=[_daBase];
+      for(let yr=1;yr<=5;yr++){let yd=0;for(let v=0;v<yr;v++){if(yr-v<=_assetLife)yd+=Math.round(_tcby[v]/_assetLife)}yd+=Math.max(0,Math.round(_daBase*(1-yr/_assetLife)));_daYrs.push(yd)}
+
+      // Distribute OAO/D&A into groups by HC share (except for account/seniority splits)
+      const distributeOAO=forecastSplit!=='account';
+      const datasets=groupNames.map((g,i)=>{
+        const data=yearLabels.map((_,yi)=>{
+          const r=groupForecasts[g][yi];
+          let val=r?(showOpex?r.opex:r.total):0;
+          if(distributeOAO&&r){
+            const tr=totalRows[yi];
+            const share=tr&&tr.hc>0?r.hc/tr.hc:0;
+            val+=Math.round((_oaoYrs[yi]||0)*share);
+          }
+          return val;
+        });
+        return {
+          label:g.length>20?g.slice(0,18)+'\u2026':g,
+          data,
+          backgroundColor:window.getChartColors()[i%window.getChartColors().length],
+          stack:'pos'
+        };
+      });
       if(showOpex){
         groupNames.forEach((g,i)=>{
           const capData=yearLabels.map((_,yi)=>{const r=groupForecasts[g][yi];return r?-r.capex:0});
