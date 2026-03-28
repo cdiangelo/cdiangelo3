@@ -282,7 +282,9 @@ function renderExecView(){
   const isAnnual=execPeriod==='annual';
   const allMonths=[0,1,2,3,4,5,6,7,8,9,10,11];
   const periodMonths=execSelectedMonths.size>0?allMonths.filter(m=>execSelectedMonths.has(m)):allMonths;
-  const periodLabels=isAnnual?['Full Year']:isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
+  // Annual mode: show all years from forecast
+  const annualYears=isAnnual?[DISPLAY_BASE_YEAR,...FORECAST_YEARS]:[];
+  const periodLabels=isAnnual?annualYears.map(String):isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
   // For stat cards: compute the scoped month range
   let statStart=0,statEnd=11;
   if(execPeriod==='mtd'){statStart=curMonth;statEnd=curMonth}
@@ -393,8 +395,17 @@ function renderExecView(){
     if(!isQuarterly&&!isAnnual&&execSelectedMonths.size>0){
       monthlyData[g]=periodMonths.map(mi=>transformed[mi]);
     } else if(isAnnual){
-      // Annual: sum all months into single value
-      monthlyData[g]=[transformed.reduce((a,v)=>a+v,0)];
+      // Annual: one value per year (current + forecast years)
+      const gEmps=splitGroups[g];
+      const curYearTotal=transformed.reduce((a,v)=>a+v,0);
+      const fcRows=projectForecast(gEmps);
+      const yearTotals=[curYearTotal];
+      for(let yi=1;yi<=FORECAST_YEARS.length;yi++){
+        const fr=fcRows[yi];
+        if(fr){yearTotals.push(execView==='opex'?fr.opex:fr.total)}
+        else{yearTotals.push(0)}
+      }
+      monthlyData[g]=yearTotals;
     } else {
       monthlyData[g]=transformed;
     }
@@ -427,11 +438,16 @@ function renderExecView(){
   }
   let monthlyFte,monthlyAvgAnnFteComp;
   if(isAnnual){
-    // Annual: average FTE across year, average ann. comp
-    const avgFte=Math.round(monthlyFteFull.reduce((a,v)=>a+v,0)/12*100)/100;
-    const avgComp=Math.round(monthlyAvgAnnFteCompFull.reduce((a,v)=>a+v,0)/12);
-    monthlyFte=[avgFte];
-    monthlyAvgAnnFteComp=[avgComp];
+    // Annual: FTE and comp per year from forecast
+    const fcRows=projectForecast(emps);
+    const curAvgFte=Math.round(monthlyFteFull.reduce((a,v)=>a+v,0)/12*100)/100;
+    monthlyFte=[curAvgFte];
+    monthlyAvgAnnFteComp=[Math.round(monthlyAvgAnnFteCompFull.reduce((a,v)=>a+v,0)/12)];
+    for(let yi=1;yi<=FORECAST_YEARS.length;yi++){
+      const fr=fcRows[yi];
+      monthlyFte.push(fr?fr.hc:0);
+      monthlyAvgAnnFteComp.push(fr&&fr.hc>0?Math.round(fr.total/fr.hc):0);
+    }
   } else if(isQuarterly){
     monthlyFte=[0,1,2,3].map(q=>{const s=monthlyFteFull[q*3]+monthlyFteFull[q*3+1]+monthlyFteFull[q*3+2];return Math.round(s/3*100)/100});
     monthlyAvgAnnFteComp=[0,1,2,3].map(q=>{const s=monthlyAvgAnnFteCompFull[q*3]+monthlyAvgAnnFteCompFull[q*3+1]+monthlyAvgAnnFteCompFull[q*3+2];return Math.round(s/3)});
