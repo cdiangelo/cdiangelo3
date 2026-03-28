@@ -71,7 +71,7 @@ import { state, saveState } from '../lib/state.js';
         const c=dayItems[0].color||'var(--accent)';
         // Use the color as a very soft transparent background
         if(c.startsWith('#')){
-          inlineStyle=`background:${c}CC`; // ~80% opacity via hex alpha
+          inlineStyle=`background:${c}B0`; // ~69% opacity — solid tint
         } else if(c.startsWith('var(')){
           inlineStyle=`background:${c.replace(')','-soft)')}`.replace('var(--accent-soft)','var(--accent-soft)');
         }
@@ -179,8 +179,9 @@ import { state, saveState } from '../lib/state.js';
         const preview=dateNote.length>60?dateNote.slice(0,60)+'…':dateNote;
         rows+=`<div style="font-size:.72rem;color:var(--text-dim);padding:3px 0 0 13px;font-style:italic;cursor:default" title="${esc(dateNote)}">${esc(preview)}</div>`;
       }
-      return `<div style="padding:10px 12px;border-radius:8px;background:var(--bg-elevated);margin-bottom:6px;border-left:3px solid ${primaryColor}">
-        <div style="font-size:.65rem;font-weight:600;color:var(--accent);letter-spacing:.08em;margin-bottom:4px">${dateLabel}</div>
+      const cardBg=primaryColor.startsWith('#')?primaryColor+'B0':'var(--accent-soft)';
+      return `<div style="padding:10px 14px;border-radius:8px;background:${cardBg};margin-bottom:6px">
+        <div style="font-size:.65rem;font-weight:600;color:var(--text);letter-spacing:.08em;margin-bottom:4px;opacity:.7">${dateLabel}</div>
         ${rows}
       </div>`;
     }).join('');
