@@ -5,6 +5,8 @@ body.session-active header{top:62px}
 header .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 header h1{font-size:1.3rem;color:var(--accent)}
 header h1 span{color:var(--secondary)}
+.app-header-logo{display:flex;align-items:center;gap:8px;font-size:0}
+.app-header-logo .app-logo-text{font-size:.85rem;font-weight:600;color:var(--text-dim);letter-spacing:.03em}
 nav{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .nav-group{display:flex;flex-direction:column;gap:4px}
 .nav-group-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);font-weight:600;padding:0 4px;margin-bottom:2px}
