@@ -286,9 +286,12 @@ async function openPlan(plan){
   if(window._showCalendar)window._showCalendar();
   if(window.showLanding)window.showLanding();
   if(window.initDropdowns)try{window.initDropdowns()}catch(e){}
-  if(window.renderAll)try{window.renderAll()}catch(e){}
+  // Only render landing-specific content — exec/modules render when navigated to
   if(window.renderPnlWalk)try{window.renderPnlWalk()}catch(e){}
   if(window.renderLandingCharts)try{window.renderLandingCharts()}catch(e){}
+  // Ensure appShell stays hidden on landing page (safety net)
+  document.getElementById('appShell').style.display='none';
+  const _chb2=document.getElementById('compHeaderBar');if(_chb2)_chb2.style.display='none';
 
   // Back to home
   document.getElementById('planBackHome').onclick=()=>{
