@@ -7,8 +7,7 @@
 <script>
 (function(){
   var accent=localStorage.getItem('webplan-theme-accent')||'iron-dusk';
-  var mode=localStorage.getItem('webplan-theme')||
-    (matchMedia&&matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
+  var mode=localStorage.getItem('webplan-theme')||'light';
   document.documentElement.setAttribute('data-accent',accent);
   if(mode==='light')document.documentElement.setAttribute('data-theme','light');
   else document.documentElement.classList.add('dark');
@@ -3184,7 +3183,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Dark/Light Mode -->
 <div style="margin-bottom:24px">
 <h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Appearance</h4>
-<label class="header-toggle" style="margin-bottom:12px"><input type="checkbox" id="globalToggleDark" checked><span class="toggle-track"></span> Dark Mode</label>
+<label class="header-toggle" style="margin-bottom:12px"><input type="checkbox" id="globalToggleDark"><span class="toggle-track"></span> Dark Mode</label>
 </div>
 
 <!-- Accent Theme Picker -->

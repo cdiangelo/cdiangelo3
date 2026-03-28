@@ -62,8 +62,7 @@ export function initDarkMode(){
   if(savedTheme==='light'){applyTheme('light')}
   else if(savedTheme==='dark'){applyTheme('dark')}
   else{
-    const preferLight=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;
-    applyTheme(preferLight?'light':'dark');
+    applyTheme('light'); // default to light mode
   }
   // Legacy compat
   if(!savedTheme&&localStorage.getItem('compPlanDark')==='0')applyTheme('light');
