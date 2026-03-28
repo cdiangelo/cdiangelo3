@@ -1,16 +1,16 @@
 /* Card & Card-Inset (lines 49-50) */
-.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px}
-.card-inset{background:var(--panel-inset);border:1px solid var(--border-light);border-radius:8px;padding:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px}
+.card-inset{background:var(--panel-inset);border:1px solid var(--border-light);border-radius:10px;padding:18px}
 
 /* Stat Cards (lines 51-54) */
-.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:16px}
-.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
-.stat-card .label{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;line-height:1.2}
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.stat-card .label{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;line-height:1.2}
 .stat-card .value{font-size:1.15rem;font-weight:700;color:var(--accent)}
 
 /* Controls & Button variants (lines 55-63) */
 .controls{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:center}
-.btn{padding:8px 16px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-size:.85rem;transition:all .2s}
+.btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-size:.85rem;transition:all .2s;font-family:inherit}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.active,.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn-primary:hover{background:var(--accent-light)}
@@ -20,8 +20,8 @@
 .btn-sm{padding:5px 10px;font-size:.8rem}
 
 /* Select/Input/Textarea, Label (lines 64-66) */
-select,input,textarea{background:#fff;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:.875rem;width:100%}
-select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+select,input,textarea{background:#fff;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.875rem;width:100%;font-family:inherit;transition:border-color .15s}
+select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(74,158,142,.12)}
 label{font-size:.8rem;color:var(--text-dim);margin-bottom:4px;display:block}
 
 /* Table, th, td, tr, table-wrap (lines 67-79) */
@@ -119,6 +119,6 @@ tr:hover{background:rgba(139,32,32,.03)}
 /* Modal overlay & modal (lines 167-171) */
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
-.modal{background:var(--panel);border-radius:12px;padding:24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal{background:var(--panel);border-radius:14px;padding:28px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.2)}
 .modal h3{color:var(--accent);margin-bottom:16px;font-size:1.1rem}
 .modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}

@@ -1,42 +1,42 @@
 /* Reset & Root Variables (lines 14-32) */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#e8e8e8;
-  --panel:#f5f5f0;
-  --panel-inset:#edeee9;
-  --accent:#8b2020;
-  --accent-light:#a83232;
-  --secondary:#6b7a8d;
-  --text:#2d2d2d;
-  --text-dim:#5a5a5a;
-  --text-dark:#1a1a1a;
-  --border:#ccc;
-  --border-light:#ddd;
-  --danger:#b83030;
-  --success:#3a7d44;
-  --warning:#b8860b;
-  --flag-bg:#fff3cd;
-  --flag-border:#e6c65a;
+  --bg:#e8ecee;
+  --panel:#f2f5f6;
+  --panel-inset:#eaeeef;
+  --accent:#3d9488;
+  --accent-light:#4aaa9d;
+  --secondary:#6b8a95;
+  --text:#2a3038;
+  --text-dim:#5a6a72;
+  --text-dark:#1a2028;
+  --border:#c4ced2;
+  --border-light:#d4dde0;
+  --danger:#c44040;
+  --success:#3a8a50;
+  --warning:#b8920b;
+  --flag-bg:#f0f8f6;
+  --flag-border:#88c4b8;
 }
 
 /* Body & Links (lines 33-34) */
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;letter-spacing:.01em}
 a{color:var(--accent)}
 
 /* Dark mode (lines 172-197) */
 html.dark{
-  --bg:#1a1a1e;--panel:#252529;--panel-inset:#1e1e22;
-  --accent:#d4524d;--accent-light:#e06560;--secondary:#a8b8cc;
-  --text:#c8c8ce;--text-dim:#9a9aa2;--text-dark:#dcdce0;
-  --border:#3a3a3f;--border-light:#2f2f34;
-  --danger:#e06060;--success:#5ab866;--warning:#e0b840;
-  --flag-bg:#3a3020;--flag-border:#6a5a2a;
+  --bg:#0e1820;--panel:#152028;--panel-inset:#121c24;
+  --accent:#4a9e8e;--accent-light:#5ab8a6;--secondary:#7a9aaa;
+  --text:#c0ccd2;--text-dim:#6a8090;--text-dark:#d8e2e8;
+  --border:#1e3040;--border-light:#182838;
+  --danger:#d05050;--success:#4aaa60;--warning:#d0a830;
+  --flag-bg:#1a2820;--flag-border:#2a5a3a;
 }
 html.dark select,html.dark input,html.dark textarea{background:#2a2a2e;border-color:var(--border);color:var(--text)}
-html.dark tr:hover{background:rgba(212,82,77,.05)}
-html.dark #empTable tr:hover td:nth-child(1),html.dark #empTable tr:hover td:nth-child(2){background:rgba(212,82,77,.05)}
+html.dark tr:hover{background:rgba(74,158,142,.05)}
+html.dark #empTable tr:hover td:nth-child(1),html.dark #empTable tr:hover td:nth-child(2){background:rgba(74,158,142,.05)}
 html.dark #empTable th:nth-child(1),html.dark #empTable td:nth-child(1),html.dark #empTable th:nth-child(2),html.dark #empTable td:nth-child(2){background:var(--panel)}
-html.dark .ws-list li:hover{background:rgba(212,82,77,.05)}
+html.dark .ws-list li:hover{background:rgba(74,158,142,.05)}
 html.dark .chart-container{background:rgba(255,255,255,.02);border-radius:8px;padding:8px}
 html.dark .modal-overlay{background:rgba(0,0,0,.7)}
 html.dark .scenario-slide-panel table td,html.dark .data-slide-panel table td{color:var(--text)}

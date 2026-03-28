@@ -4,7 +4,7 @@
   const chevronNav = document.getElementById('chevronNav');
   if (!chevronNav) return;
 
-  // ── Chevron expand/collapse ──
+  // ── Chevron expand/collapse with vertical reflow ──
   document.querySelectorAll('.chevron-item').forEach(item => {
     const shape = item.querySelector('.chevron-shape');
     if (!shape) return;
@@ -14,7 +14,7 @@
 
       // Executive Summary — navigate directly
       if (target === 'exec') {
-        navigateToModule('exec');
+        navigateToExecSummary();
         return;
       }
 
@@ -34,9 +34,7 @@
   document.querySelectorAll('.chevron-sub-item').forEach(sub => {
     sub.addEventListener('click', () => {
       const module = sub.dataset.module;
-      const parentTarget = sub.closest('.chevron-item').dataset.target; // 'budget' or 'forecast'
-
-      // Store context so modules know if we're in budget vs forecast mode
+      const parentTarget = sub.closest('.chevron-item').dataset.target;
       window.planContext = parentTarget;
 
       if (module === 'comp') {
@@ -49,15 +47,27 @@
     });
   });
 
+  function navigateToExecSummary() {
+    // Show landing summary content (P&L overview) + exec view inside appShell
+    const chevNav = document.getElementById('chevronNav');
+    const sumContent = document.getElementById('landingSummaryContent');
+    if (chevNav) chevNav.style.display = 'none';
+    if (sumContent) sumContent.style.display = '';
+
+    // Also show appShell with exec tab
+    const appShell = document.getElementById('appShell');
+    if (appShell) appShell.style.display = '';
+    if (window.renderAll) window.renderAll();
+
+    // Activate exec tab
+    const execBtn = document.querySelector('#mainNav button[data-tab="exec"]');
+    if (execBtn) execBtn.click();
+
+    if (window._updateGlobalToolbar) window._updateGlobalToolbar();
+  }
+
   function navigateToModule(module) {
-    if (module === 'exec') {
-      // Show exec view (inside appShell)
-      if (window.showApp) window.showApp();
-      // Ensure exec tab is active
-      const execBtn = document.querySelector('#mainNav button[data-tab="exec"]');
-      if (execBtn) execBtn.click();
-    } else if (module === 'comp') {
-      // Show comp planning (employees tab inside appShell)
+    if (module === 'comp') {
       if (window.showApp) window.showApp();
       const empBtn = document.querySelector('#mainNav button[data-tab="employees"]');
       if (empBtn) empBtn.click();
@@ -71,14 +81,12 @@
   // ── Bottom toolbar ──
   const bottomToolbar = document.getElementById('bottomToolbar');
 
-  // Show/hide bottom toolbar when plan is open
   window._updateBottomToolbar = function() {
     if (!bottomToolbar) return;
     const planHeader = document.getElementById('planHeaderBar');
     const isInPlan = planHeader && planHeader.style.display !== 'none';
     bottomToolbar.style.display = isInPlan ? 'flex' : 'none';
 
-    // Sync plan name/version
     const nameEl = document.getElementById('planHdrName');
     const badgeEl = document.getElementById('planHdrBadge');
     if (nameEl) {
@@ -115,7 +123,6 @@
   }
   if (btbSettings) {
     btbSettings.addEventListener('click', () => {
-      // Toggle dark mode panel or open settings — for now toggle global toolbar visibility
       const toolbar = document.getElementById('globalToolbar');
       if (toolbar) {
         const isHidden = toolbar.style.display === 'none';
