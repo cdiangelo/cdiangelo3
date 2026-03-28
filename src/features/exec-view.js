@@ -55,12 +55,13 @@ function buildExecTrendYearToggle(){
   const wrap=document.getElementById('execTrendYearToggle');
   if(!wrap)return;
   const dYears=getDisplayYears();
-  wrap.innerHTML='<button class="btn'+(execTrendYear==='current'?' active':'')+'" data-etrendyr="current">'+DISPLAY_BASE_YEAR+'</button>'+
+  wrap.innerHTML='<button class="btn'+(execTrendYear==='all'?' active':'')+'" data-etrendyr="all">All</button>'+
+    '<button class="btn'+(execTrendYear==='current'?' active':'')+'" data-etrendyr="current">'+DISPLAY_BASE_YEAR+'</button>'+
     FORECAST_YEARS.map((y,i)=>'<button class="btn'+(execTrendYear===String(y)?' active':'')+'" data-etrendyr="'+y+'">'+dYears[i]+'</button>').join('');
   wrap.querySelectorAll('.btn').forEach(b=>b.addEventListener('click',()=>{
     wrap.querySelectorAll('.btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
     execTrendYear=b.dataset.etrendyr;
-    const yrLabel=execTrendYear==='current'?String(DISPLAY_BASE_YEAR):displayYear(execTrendYear);
+    const yrLabel=execTrendYear==='all'?'All Years':execTrendYear==='current'?String(DISPLAY_BASE_YEAR):displayYear(execTrendYear);
     document.getElementById('execTrendYearLabel').textContent=' \u2014 '+yrLabel;
     renderExecView();
   }));
@@ -271,10 +272,11 @@ function renderExecView(){
   const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
   // Sync trend year header label
-  const trendYrLabel=execTrendYear==='current'?String(DISPLAY_BASE_YEAR):displayYear(execTrendYear);
+  const trendYrLabel=execTrendYear==='all'?'All Years':execTrendYear==='current'?String(DISPLAY_BASE_YEAR):displayYear(execTrendYear);
   const trendYrEl=document.getElementById('execTrendYearLabel');
   if(trendYrEl)trendYrEl.textContent=' \u2014 '+trendYrLabel;
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const isAllYears=execTrendYear==='all';
 
   // ── Period range ──
   const curMonth=window.currentMonth; // global as-of month override
@@ -284,7 +286,23 @@ function renderExecView(){
   const periodMonths=execSelectedMonths.size>0?allMonths.filter(m=>execSelectedMonths.has(m)):allMonths;
   // Annual mode: show all years from forecast
   const annualYears=isAnnual?[DISPLAY_BASE_YEAR,...FORECAST_YEARS]:[];
-  const periodLabels=isAnnual?annualYears.map(String):isQuarterly?['Q1','Q2','Q3','Q4']:periodMonths.map(i=>MONTH_SHORT[i]);
+  // Build labels based on period + year selection
+  let periodLabels;
+  if(isAllYears&&!isAnnual&&!isQuarterly){
+    // All years + monthly: show "Jan'26, Feb'26, ..., Dec'31"
+    const allYrs=[DISPLAY_BASE_YEAR,...FORECAST_YEARS];
+    periodLabels=[];
+    allYrs.forEach(yr=>{periodMonths.forEach(mi=>{periodLabels.push(MONTH_SHORT[mi]+"'"+String(yr).slice(-2))})});
+  } else if(isAllYears&&isQuarterly){
+    const allYrs=[DISPLAY_BASE_YEAR,...FORECAST_YEARS];
+    periodLabels=[];allYrs.forEach(yr=>{['Q1','Q2','Q3','Q4'].forEach(q=>{periodLabels.push(q+"'"+String(yr).slice(-2))})});
+  } else if(isAnnual){
+    periodLabels=annualYears.map(String);
+  } else if(isQuarterly){
+    periodLabels=['Q1','Q2','Q3','Q4'];
+  } else {
+    periodLabels=periodMonths.map(i=>MONTH_SHORT[i]);
+  }
   // For stat cards: compute the scoped month range
   let statStart=0,statEnd=11;
   if(execPeriod==='mtd'){statStart=curMonth;statEnd=curMonth}
@@ -394,6 +412,32 @@ function renderExecView(){
     // Filter to selected months (non-quarterly only)
     if(!isQuarterly&&!isAnnual&&execSelectedMonths.size>0){
       monthlyData[g]=periodMonths.map(mi=>transformed[mi]);
+    } else if(isAllYears&&!isAnnual){
+      // All years monthly: current year months + forecast years months
+      const gEmps=splitGroups[g];
+      const fcRows=projectForecast(gEmps);
+      let allData=[...transformed]; // current year 12 months
+      // For forecast years, distribute annual total evenly across months
+      for(let yi=1;yi<=FORECAST_YEARS.length;yi++){
+        const fr=fcRows[yi];
+        const annualVal=fr?(execView==='opex'?fr.opex:fr.total):0;
+        // Distribute using current year's monthly pattern
+        const curTotal=transformed.reduce((a,v)=>a+v,0);
+        for(let mi=0;mi<12;mi++){
+          const share=curTotal>0?transformed[mi]/curTotal:1/12;
+          allData.push(Math.round(annualVal*share));
+        }
+      }
+      // Filter to selected months across all years
+      if(execSelectedMonths.size>0&&execSelectedMonths.size<12){
+        const filtered=[];
+        for(let yr=0;yr<allData.length/12;yr++){
+          periodMonths.forEach(mi=>filtered.push(allData[yr*12+mi]));
+        }
+        monthlyData[g]=filtered;
+      } else {
+        monthlyData[g]=allData;
+      }
     } else if(isAnnual){
       // Annual: one value per year (current + forecast years)
       const gEmps=splitGroups[g];
@@ -437,8 +481,25 @@ function renderExecView(){
     });
   }
   let monthlyFte,monthlyAvgAnnFteComp;
-  if(isAnnual){
-    // Annual: FTE and comp per year from forecast
+  if(isAllYears&&!isAnnual){
+    // All years monthly: current year FTE + forecast FTE (flat per year)
+    const fcRows=projectForecast(emps);
+    monthlyFte=[...monthlyFteFull];
+    monthlyAvgAnnFteComp=[...monthlyAvgAnnFteCompFull];
+    for(let yi=1;yi<=FORECAST_YEARS.length;yi++){
+      const fr=fcRows[yi];
+      const hc=fr?fr.hc:emps.length;
+      const avgComp=fr&&fr.hc>0?Math.round(fr.total/fr.hc):0;
+      for(let mi=0;mi<12;mi++){monthlyFte.push(hc);monthlyAvgAnnFteComp.push(avgComp)}
+    }
+    if(execSelectedMonths.size>0&&execSelectedMonths.size<12){
+      const filtFte=[];const filtComp=[];
+      for(let yr=0;yr<monthlyFte.length/12;yr++){
+        periodMonths.forEach(mi=>{filtFte.push(monthlyFte[yr*12+mi]);filtComp.push(monthlyAvgAnnFteComp[yr*12+mi])});
+      }
+      monthlyFte=filtFte;monthlyAvgAnnFteComp=filtComp;
+    }
+  } else if(isAnnual){
     const fcRows=projectForecast(emps);
     const curAvgFte=Math.round(monthlyFteFull.reduce((a,v)=>a+v,0)/12*100)/100;
     monthlyFte=[curAvgFte];
