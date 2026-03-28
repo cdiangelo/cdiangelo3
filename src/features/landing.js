@@ -316,14 +316,33 @@ function renderPnlWalk(){
   });
   const groupKeys=Object.keys(groups).sort();
 
-  // Compute P&L
+  // Compute P&L — split existing vs hires
+  function isHire(e){
+    if(!e.hireDate)return false;
+    const hd=new Date(e.hireDate);
+    return hd.getFullYear()>=CURRENT_YEAR;
+  }
   function computePnl(empList){
-    let comp=0,capex=0;
-    empList.forEach(e=>{for(let mi=0;mi<12;mi++){comp+=getMonthlyComp(e,mi);capex+=getMonthlyCapEx(e,mi)}});
-    return {hc:empList.length,cb:comp,cbCapex:capex,cbOpex:comp-capex};
+    let cb=0,cbCapex=0,hires=0,hiresCapex=0,hc=0,hiresHc=0;
+    empList.forEach(e=>{
+      let comp=0,capx=0;
+      for(let mi=0;mi<12;mi++){comp+=getMonthlyComp(e,mi);capx+=getMonthlyCapEx(e,mi)}
+      if(isHire(e)){hires+=comp;hiresCapex+=capx;hiresHc++}
+      else{cb+=comp;cbCapex+=capx}
+      hc++;
+    });
+    return {hc,cb,cbCapex,hires,hiresCapex,hiresHc};
   }
 
-  const oaoTotal=getFilteredOaoTotal();
+  // OAO breakdown: vendor spend, T&E, other
+  const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  let oaoVendor=0,oaoTE=0,oaoOther=0;
+  (state.vendorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoVendor+=fy});
+  (state.teRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoTE+=fy});
+  // "Other" = contractor spend + any misc
+  (state.contractorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoOther+=fy});
+  const oaoTotal=oaoVendor+oaoTE+oaoOther;
+  const ctrCapexTotal=window.getContractorCapExTotal?window.getContractorCapExTotal():0;
   const daTotal=getDepreciationTotal();
   const revenueEnabled=localStorage.getItem('compPlanRevenue')!=='0';
   const isRevMode=revenueEnabled&&(state.landingPnlMode||'cost')==='revenue';
@@ -331,11 +350,16 @@ function renderPnlWalk(){
 
   function enrich(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
-    d.oao=Math.round(oaoTotal*share);
-    d.ebitda=d.cbOpex+d.oao;
+    d.oao=Math.round(oaoVendor*share);
+    d.te=Math.round(oaoTE*share);
+    d.other=Math.round(oaoOther*share);
+    d.cbOpex=d.cb-d.cbCapex;
+    d.hiresOpex=d.hires-d.hiresCapex;
+    d.ebitda=d.cbOpex+d.hiresOpex+d.oao+d.te+d.other;
     d.da=Math.round(daTotal*share);
     d.opex=d.ebitda+d.da;
-    d.capex=d.cbCapex;
+    d.ctrCapex=Math.round(ctrCapexTotal*share);
+    d.capex=d.cbCapex+d.hiresCapex+d.ctrCapex;
     d.totinv=d.opex+d.capex;
     return d;
   }
@@ -343,7 +367,7 @@ function renderPnlWalk(){
   // Build group data
   const totalHc=emps.length;
   const gData={};const gChildData={};
-  const totals={hc:0,cb:0,cbCapex:0,cbOpex:0,oao:0,ebitda:0,da:0,opex:0,capex:0,totinv:0};
+  const totals={hc:0,cb:0,cbCapex:0,hires:0,hiresCapex:0,hiresHc:0,oao:0,te:0,other:0,ebitda:0,da:0,opex:0,capex:0,totinv:0,cbOpex:0,hiresOpex:0};
   groupKeys.forEach(k=>{
     gData[k]=enrich(computePnl(groups[k].emps),totalHc);
     Object.keys(gData[k]).forEach(f=>{if(typeof totals[f]==='number')totals[f]+=gData[k][f]});
@@ -354,9 +378,13 @@ function renderPnlWalk(){
       });
     }
   });
-  // Fix totals OAO/EBITDA/DA
-  totals.oao=oaoTotal;totals.ebitda=totals.cbOpex+oaoTotal;totals.da=daTotal;
-  totals.opex=totals.ebitda+totals.da;totals.totinv=totals.opex+totals.capex;
+  // Fix totals for distributed amounts
+  totals.oao=oaoVendor;totals.te=oaoTE;totals.other=oaoOther;
+  totals.cbOpex=totals.cb-totals.cbCapex;totals.hiresOpex=totals.hires-totals.hiresCapex;
+  totals.ebitda=totals.cbOpex+totals.hiresOpex+oaoVendor+oaoTE+oaoOther;
+  totals.da=daTotal;totals.opex=totals.ebitda+totals.da;
+  totals.ctrCapex=ctrCapexTotal;totals.capex=totals.cbCapex+totals.hiresCapex+ctrCapexTotal;
+  totals.totinv=totals.opex+totals.capex;
 
   // Column definitions
   let cols;
@@ -364,11 +392,16 @@ function renderPnlWalk(){
     cols=[
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
+      {key:'hires',label:'HIRES'},
       {key:'oao',label:'OAO'},
+      {key:'te',label:'T&E'},
+      {key:'other',label:'OTHER'},
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'da',label:'D&A'},
       {key:'opex',label:'OPEX',cls:'subtotal'},
-      {key:'cbCapex',label:'C&B CapEx'},
+      {key:'cbCapex',label:'C&B CAPEX'},
+      {key:'hiresCapex',label:'HIRES CAPEX'},
+      {key:'ctrCapex',label:'CTR CAPEX'},
       {key:'capex',label:'CAPEX'},
       {key:'totinv',label:'TOT INV',cls:'total'},
     ];
@@ -376,9 +409,11 @@ function renderPnlWalk(){
     cols=[
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
+      {key:'hires',label:'HIRES'},
       {key:'oao',label:'OAO'},
-      {key:'ebitda',label:'ADJ EBITDA',cls:'subtotal'},
-      {key:'da',label:'D&A'},
+      {key:'te',label:'T&E'},
+      {key:'other',label:'OTHER'},
+      {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'opex',label:'OPEX',cls:'subtotal'},
       {key:'capex',label:'CAPEX'},
       {key:'totinv',label:'TOT INV',cls:'total'},
