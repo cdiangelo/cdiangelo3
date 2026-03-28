@@ -25,7 +25,7 @@
 .chevron-sub-item:hover::after{opacity:1;transform:translateY(-50%) translateX(2px)}
 
 /* ═══ BOTTOM TOOLBAR ═══ */
-#bottomToolbar{position:fixed;bottom:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:var(--panel);border-top:1px solid var(--border-light);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 -1px 3px rgba(0,0,0,.04)}
+#bottomToolbar{position:fixed;bottom:0;left:0;right:0;z-index:1100;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:var(--panel);border-top:1px solid var(--border-light);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 -1px 3px rgba(0,0,0,.04)}
 .btb-left{display:flex;align-items:center;gap:10px}
 .btb-plan-name,.btb-plan-version,.btb-email{font-size:.78rem;font-weight:500;color:var(--accent);padding:5px 14px;background:var(--accent-soft);border:1px solid var(--border-accent);border-radius:8px}
 .btb-right{display:flex;align-items:center;gap:8px}

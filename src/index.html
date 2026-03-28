@@ -232,10 +232,11 @@
 <span style="font-weight:600;font-size:.8rem;color:var(--accent)">Whiteboard</span>
 <div style="display:flex;gap:4px;align-items:center">
 <select id="wbPopoutShape" style="padding:1px 4px;font-size:.7rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">
-<option value="">Pen</option><option value="dot">Dot</option><option value="line">Line</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="text">Text</option><option value="hand">Hand (Move)</option><option value="eraser">Eraser</option>
+<option value="">Pen</option><option value="line">Line</option><option value="rect">Rect</option><option value="circle">Circle</option><option value="dot">Dot</option><option value="eraser">Eraser</option>
 </select>
 <input type="range" id="wbPopoutSize" min="1" max="12" value="3" style="width:50px;height:3px" title="Size">
 <span id="wbPopoutColors" style="display:flex;gap:2px"></span>
+<button id="wbPopoutGrid" style="border:none;background:none;cursor:pointer;font-size:.65rem;color:var(--text-dim);padding:1px 4px;border-radius:3px" title="Toggle Grid">Grid</button>
 <button id="wbPopoutUndo" style="border:none;background:none;cursor:pointer;font-size:.7rem;color:var(--text-dim)" title="Undo">↩</button>
 <button id="wbPopoutClear" style="border:none;background:none;cursor:pointer;font-size:.7rem;color:var(--danger)" title="Clear">✕</button>
 <button id="wbPopoutClose" style="border:none;background:none;cursor:pointer;font-size:1rem;color:var(--text-dim);line-height:1">&minus;</button>
