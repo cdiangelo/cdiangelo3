@@ -298,7 +298,7 @@ function renderExecView(){
   let periodComp=0,periodCapEx=0;
   emps.forEach(e=>{statMonths.forEach(mi=>{periodComp+=getMonthlyComp(e,mi);periodCapEx+=getMonthlyCapEx(e,mi)})});
   const periodOpEx=periodComp-periodCapEx;
-  let periodLabel=execPeriod==='full'||isQuarterly?'Full Year':execPeriod.toUpperCase();
+  let periodLabel=execPeriod==='full'||isQuarterly||isAnnual?'Full Year':execPeriod.toUpperCase();
   if(execSelectedMonths.size>0&&execSelectedMonths.size<12){
     const sorted=[...execSelectedMonths].sort((a,b)=>a-b);
     periodLabel=MONTH_SHORT[sorted[0]]+(sorted.length>1?' \u2013 '+MONTH_SHORT[sorted[sorted.length-1]]:'');
@@ -390,8 +390,11 @@ function renderExecView(){
       transformed=raw.slice();
     }
     // Filter to selected months (non-quarterly only)
-    if(!isQuarterly&&execSelectedMonths.size>0){
+    if(!isQuarterly&&!isAnnual&&execSelectedMonths.size>0){
       monthlyData[g]=periodMonths.map(mi=>transformed[mi]);
+    } else if(isAnnual){
+      // Annual: sum all months into single value
+      monthlyData[g]=[transformed.reduce((a,v)=>a+v,0)];
     } else {
       monthlyData[g]=transformed;
     }
@@ -423,8 +426,13 @@ function renderExecView(){
     });
   }
   let monthlyFte,monthlyAvgAnnFteComp;
-  if(isQuarterly){
-    // Average FTE per quarter, average ann. comp per quarter
+  if(isAnnual){
+    // Annual: average FTE across year, average ann. comp
+    const avgFte=Math.round(monthlyFteFull.reduce((a,v)=>a+v,0)/12*100)/100;
+    const avgComp=Math.round(monthlyAvgAnnFteCompFull.reduce((a,v)=>a+v,0)/12);
+    monthlyFte=[avgFte];
+    monthlyAvgAnnFteComp=[avgComp];
+  } else if(isQuarterly){
     monthlyFte=[0,1,2,3].map(q=>{const s=monthlyFteFull[q*3]+monthlyFteFull[q*3+1]+monthlyFteFull[q*3+2];return Math.round(s/3*100)/100});
     monthlyAvgAnnFteComp=[0,1,2,3].map(q=>{const s=monthlyAvgAnnFteCompFull[q*3]+monthlyAvgAnnFteCompFull[q*3+1]+monthlyAvgAnnFteCompFull[q*3+2];return Math.round(s/3)});
   } else {

@@ -62,11 +62,15 @@
   const backToNavBtn=document.getElementById('planBackToNav');
   if(backToNavBtn){
     backToNavBtn.addEventListener('click',()=>{
-      // Hide header bar
       const hb=document.getElementById('compHeaderBar');if(hb)hb.style.display='none';
       if(window.showLanding)window.showLanding();
+      if(window._showCalendar)window._showCalendar();
       backToNavBtn.style.display='none';
     });
+  }
+
+  function hideCalendar(){
+    if(window._hideCalendar)window._hideCalendar();
   }
 
   function navigateToExecSummary(tab) {
@@ -78,6 +82,7 @@
       });
     }
     showBackToPlan();
+    hideCalendar();
 
     // Show header bar
     const headerBar = document.getElementById('compHeaderBar');
@@ -104,6 +109,7 @@
 
   function navigateToModule(module) {
     showBackToPlan();
+    hideCalendar();
     // Hide header bar when navigating to non-exec modules
     const hb=document.getElementById('compHeaderBar');if(hb)hb.style.display='none';
     if (module === 'comp') {
