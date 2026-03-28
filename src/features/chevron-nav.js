@@ -37,6 +37,12 @@
       const parentTarget = sub.closest('.chevron-item').dataset.target;
       window.planContext = parentTarget;
 
+      // Forecast sub-items all go to LTF module
+      if (parentTarget === 'forecast') {
+        navigateToModule('ltf');
+        return;
+      }
+
       if (module === 'comp') {
         navigateToModule('comp');
       } else if (module === 'vendor') {
@@ -75,6 +81,8 @@
       if (window.showVendor) window.showVendor();
     } else if (module === 'depreciation') {
       if (window.showDepreciation) window.showDepreciation();
+    } else if (module === 'ltf') {
+      if (window.showLtf) window.showLtf();
     }
   }
 
