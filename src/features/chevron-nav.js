@@ -182,9 +182,27 @@
 
     } else if(module==='vendor'){
       if(window.showVendor)window.showVendor();
-      // showVendor calls hideAllModules which hides appShell — safe
+      // Default to vendor spend tab
+      const vBtn=document.querySelector('#vendorNav [data-vtab="vendor-grid"]');
+      if(vBtn)vBtn.click();
       const prefix=window.planContext==='forecast'?'FCAST':'BUD';
       if(window._broadcastTab)window._broadcastTab(prefix+' - OAO');
+
+    } else if(module==='contractors'){
+      if(window.showVendor)window.showVendor();
+      // Switch to contractors tab
+      const cBtn=document.querySelector('#vendorNav [data-vtab="vendor-contractors"]');
+      if(cBtn)cBtn.click();
+      const prefix=window.planContext==='forecast'?'FCAST':'BUD';
+      if(window._broadcastTab)window._broadcastTab(prefix+' - CTR');
+
+    } else if(module==='te'){
+      if(window.showVendor)window.showVendor();
+      // Switch to T&E tab
+      const tBtn=document.querySelector('#vendorNav [data-vtab="vendor-te"]');
+      if(tBtn)tBtn.click();
+      const prefix=window.planContext==='forecast'?'FCAST':'BUD';
+      if(window._broadcastTab)window._broadcastTab(prefix+' - T&E');
 
     } else if(module==='depreciation'){
       if(window.showDepreciation)window.showDepreciation();
