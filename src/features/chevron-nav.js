@@ -65,6 +65,8 @@
 
       if (module === 'comp') navigateToModule('comp');
       else if (module === 'vendor') navigateToModule('vendor');
+      else if (module === 'contractors') navigateToModule('contractors');
+      else if (module === 'te') navigateToModule('te');
       else if (module === 'depreciation') navigateToModule('depreciation');
     });
   });
