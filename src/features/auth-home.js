@@ -145,25 +145,37 @@ async function renderPlanList(){
       const date=new Date(p.updatedAt||p.createdAt);
       const timeStr=date.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+date.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
       const type=p.scenarioType||p.type||'budget';
+      const isOwner=p.role==='owner'||!p.role;
+      const sharedTag=p.role==='editor'?'<span style="font-size:.6rem;color:var(--accent);margin-left:4px">shared with you</span>':'';
       return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${i}">
         <div class="plan-initials" style="background:${['#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#a38b5e'][i%5]}">${p.creatorInitials||p.creator||'?'}</div>
         <div style="flex:1">
-          <div class="plan-name">${p.name}</div>
+          <div class="plan-name">${p.name}${sharedTag}</div>
           <div class="plan-meta">
             <span class="plan-badge ${type}">${type}</span>
             <span>${p.year}</span>
             <span>Updated ${timeStr}</span>
           </div>
         </div>
+        <button class="plan-menu-btn" data-plan-idx="${i}" title="More options" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--tertiary);padding:4px 8px;border-radius:4px">⋯</button>
         <span class="plan-delete" data-plan-id="${p.id}" title="Delete plan">&times;</span>
       </div>`;
     }).join('');
 
     list.querySelectorAll('.home-plan-card').forEach(card=>{
       card.addEventListener('click',(e)=>{
-        if(e.target.classList.contains('plan-delete'))return;
+        if(e.target.classList.contains('plan-delete')||e.target.classList.contains('plan-menu-btn'))return;
         const idx=+card.dataset.planIdx;
         openPlan(_cachedPlans[idx]);
+      });
+    });
+
+    list.querySelectorAll('.plan-menu-btn').forEach(btn=>{
+      btn.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        const idx=+btn.dataset.planIdx;
+        const plan=_cachedPlans[idx];
+        if(plan)openShareModal(plan);
       });
     });
 
@@ -460,6 +472,90 @@ function initWhiteboardPopout(){
   hdr.addEventListener('mousedown',e=>{dragging=true;dx=e.clientX-popout.offsetLeft;dy=e.clientY-popout.offsetTop;e.preventDefault()});
   document.addEventListener('mousemove',e=>{if(!dragging)return;popout.style.left=(e.clientX-dx)+'px';popout.style.top=(e.clientY-dy)+'px';popout.style.right='auto';popout.style.bottom='auto'});
   document.addEventListener('mouseup',()=>{dragging=false});
+}
+
+// ── Share Modal ──
+function openShareModal(plan){
+  let modal=document.getElementById('shareModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='shareModal';
+    modal.className='modal-overlay';
+    modal.innerHTML=`<div class="modal" style="max-width:440px">
+      <h3 id="shareModalTitle">Share Plan</h3>
+      <div id="shareModalBody"></div>
+      <div class="modal-actions"><button class="btn" onclick="document.getElementById('shareModal').classList.remove('show')">Close</button></div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',(e)=>{if(e.target===modal)modal.classList.remove('show')});
+  }
+  document.getElementById('shareModalTitle').textContent='Share "'+plan.name+'"';
+  const body=document.getElementById('shareModalBody');
+  body.innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="email" id="shareEmailInput" placeholder="Enter email to share with..." style="flex:1">
+      <button class="btn btn-primary" id="shareAddBtn" style="white-space:nowrap">Share</button>
+    </div>
+    <div id="shareStatus" style="font-size:.78rem;margin-bottom:12px;min-height:20px"></div>
+    <h4 style="font-size:.78rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Shared With</h4>
+    <div id="shareUserList" style="display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:.78rem;color:var(--tertiary)">Loading...</div>
+    </div>`;
+
+  const emailInput=document.getElementById('shareEmailInput');
+  const addBtn=document.getElementById('shareAddBtn');
+  const statusEl=document.getElementById('shareStatus');
+
+  async function doShare(){
+    const email=emailInput.value.trim().toLowerCase();
+    if(!email||!email.includes('@')){statusEl.textContent='Please enter a valid email';statusEl.style.color='var(--danger)';return}
+    addBtn.disabled=true;addBtn.textContent='...';
+    try{
+      const r=await fetch('/api/plan-files/'+plan.id+'/share',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+      if(r.ok){
+        statusEl.textContent='Shared with '+email;statusEl.style.color='var(--success)';
+        emailInput.value='';
+        loadSharedUsers(plan.id);
+      } else {
+        const data=await r.json().catch(()=>({}));
+        statusEl.textContent=data.error||'Failed to share';statusEl.style.color='var(--danger)';
+      }
+    }catch(e){statusEl.textContent='Network error';statusEl.style.color='var(--danger)'}
+    addBtn.disabled=false;addBtn.textContent='Share';
+  }
+
+  addBtn.addEventListener('click',doShare);
+  emailInput.addEventListener('keydown',(e)=>{if(e.key==='Enter')doShare()});
+
+  loadSharedUsers(plan.id);
+  modal.classList.add('show');
+}
+
+async function loadSharedUsers(planId){
+  const listEl=document.getElementById('shareUserList');
+  if(!listEl)return;
+  try{
+    const r=await fetch('/api/plan-files/'+planId+'/access');
+    if(r.ok){
+      const users=await r.json();
+      if(!users.length){
+        listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Only you have access.</div>';
+        return;
+      }
+      listEl.innerHTML=users.map(u=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light)">
+          <div style="width:24px;height:24px;border-radius:50%;background:${u.color||'var(--accent)'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0">${u.initials||'?'}</div>
+          <div style="flex:1">
+            <div style="font-size:.82rem;font-weight:500;color:var(--text)">${u.email}</div>
+            <div style="font-size:.68rem;color:var(--tertiary)">${u.role||'editor'}</div>
+          </div>
+        </div>`).join('');
+    } else {
+      listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Could not load shared users.</div>';
+    }
+  }catch(e){
+    listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Could not load shared users.</div>';
+  }
 }
 
 // ── Track known users for admin panel ──

@@ -83,6 +83,24 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// GET /api/plan-files/:id/access — list users with access
+router.get('/:id/access', async (req, res) => {
+  try {
+    const db = getDb();
+    const rows = await db.prepare(`
+      SELECT a.id, a.email, a.initials, a.color, pa.role
+      FROM plan_access pa
+      JOIN accounts a ON a.id = pa.account_id
+      WHERE pa.plan_file_id = ?
+      ORDER BY pa.granted_at
+    `).all(parseInt(req.params.id));
+    res.json(rows || []);
+  } catch (e) {
+    console.error('List plan access error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // POST /api/plan-files/:id/share
 router.post('/:id/share', async (req, res) => {
   try {
