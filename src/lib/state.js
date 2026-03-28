@@ -205,7 +205,7 @@ export function ensureStateFields(){
 export function saveState(){
   if(window.state && window.state !== state) state = window.state;
   if(window.persistenceMode==='template'){localStorage.setItem('compPlanState_v2',JSON.stringify(state))}
-  else{window.debouncedServerSave();window.broadcastStateChange()}
+  else{if(window.debouncedServerSave)window.debouncedServerSave();if(window.broadcastStateChange)window.broadcastStateChange()}
 }
 
 /** Log an audit entry. action = short verb, detail = concise description.

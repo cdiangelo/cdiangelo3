@@ -317,7 +317,7 @@ function connectPlanWebSocket(plan,user){
     _planWs.onmessage=(ev)=>{
       try{
         const msg=JSON.parse(ev.data);
-        if(msg.type==='state_sync'&&msg.fromAccountId!==user.id){
+        if(msg.type==='state_sync'&&String(msg.fromAccountId)!==String(user.id)){
           // Apply remote state
           const parsed=JSON.parse(msg.stateData);
           Object.keys(parsed).forEach(k=>{state[k]=parsed[k]});
@@ -350,12 +350,18 @@ function connectPlanWebSocket(plan,user){
         _planWs.send(JSON.stringify({type:'state_update',stateData:JSON.stringify(state),timestamp:Date.now()}));
       }
     };
-    // Hook into saveState to also broadcast
-    const prevSave=window.saveState;
-    window.saveState=function(){
-      if(prevSave)prevSave();
-      if(window._broadcastPlanState)window._broadcastPlanState();
-    };
+    // Hook into state.js broadcastStateChange so ALL modules' saveState calls broadcast
+    window.broadcastStateChange=window._broadcastPlanState;
+    // Also hook debouncedServerSave if not already set for plan files
+    if(!window._planDebouncedSave){
+      window._planDebouncedSave=true;
+      const existingDSS=window.debouncedServerSave;
+      window.debouncedServerSave=function(){
+        // Plan file HTTP save is handled by openPlan's saveState wrapper
+        // Just make sure it doesn't error if called from state.js
+        if(existingDSS)try{existingDSS()}catch(e){}
+      };
+    }
   }catch(e){console.warn('WebSocket connection failed:',e)}
 }
 // ── Remote cursor indicators on cells ──
@@ -396,27 +402,11 @@ function disconnectPlanWebSocket(){
   if(_planWs){try{_planWs.close()}catch(e){}_planWs=null}
 }
 
-// ── Toolbar buttons: Notes, Whiteboard, Teams ──
+// ── Toolbar buttons ──
 function wireToolbarButtons(){
-  // Notes — toggle existing sticky note panel
   const notesBtn=document.getElementById('toolbarNotesBtn');
   if(notesBtn)notesBtn.addEventListener('click',()=>{
     const btn=document.getElementById('stickyNoteBtn');
-    if(btn)btn.click();
-  });
-  // Whiteboard — toggle popout pane
-  const wbBtn=document.getElementById('toolbarWhiteboardBtn');
-  if(wbBtn)wbBtn.addEventListener('click',()=>{
-    const popout=document.getElementById('whiteboardPopout');
-    if(!popout)return;
-    const show=popout.style.display==='none';
-    popout.style.display=show?'':'none';
-    if(show)initWhiteboardPopout();
-  });
-  // Teams — toggle existing teams panel
-  const teamsBtn=document.getElementById('toolbarTeamsBtn');
-  if(teamsBtn)teamsBtn.addEventListener('click',()=>{
-    const btn=document.getElementById('teamsBtn');
     if(btn)btn.click();
   });
 }
@@ -427,108 +417,6 @@ function setSidePanelVisibility(visible){
     const el=document.getElementById(id);
     if(el)el.style.display=visible?'':'none';
   });
-}
-
-// ── Whiteboard Popout ──
-let _wbPopoutInited=false;
-function initWhiteboardPopout(){
-  if(_wbPopoutInited)return;
-  _wbPopoutInited=true;
-  const canvas=document.getElementById('wbPopoutCanvas');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  let drawing=false,startX=0,startY=0,lastX=0,lastY=0,size=3,color='#1a1a1a';
-  let snapshots=[];  // ImageData history for undo
-  const shapeEl=document.getElementById('wbPopoutShape');
-
-  function resize(){
-    const w=canvas.clientWidth,h=canvas.clientHeight;
-    if(w<1||h<1)return;
-    const imgData=(canvas.width>0&&canvas.height>0)?ctx.getImageData(0,0,canvas.width,canvas.height):null;
-    canvas.width=w;canvas.height=h;
-    if(imgData)ctx.putImageData(imgData,0,0);
-  }
-  function saveSnap(){if(canvas.width>0&&canvas.height>0)snapshots.push(ctx.getImageData(0,0,canvas.width,canvas.height));if(snapshots.length>50)snapshots.shift()}
-  function restoreSnap(){if(snapshots.length)ctx.putImageData(snapshots[snapshots.length-1],0,0);else ctx.clearRect(0,0,canvas.width,canvas.height)}
-  new ResizeObserver(resize).observe(canvas);
-  setTimeout(()=>{resize();saveSnap()},200);
-
-  function pos(e){const r=canvas.getBoundingClientRect();const sx=canvas.width/r.width;const sy=canvas.height/r.height;return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy}}
-  canvas.addEventListener('mousedown',e=>{
-    e.preventDefault();
-    drawing=true;const p=pos(e);startX=p.x;startY=p.y;lastX=p.x;lastY=p.y;
-    const tool=shapeEl.value||'';
-    // Save snapshot before shape/pen starts so preview can restore to it
-    saveSnap();
-    if(tool==='eraser'){const r=Math.max(8,size*3);ctx.save();ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.restore();return}
-    if(tool==='dot'){ctx.beginPath();ctx.fillStyle=color;ctx.arc(p.x,p.y,size,0,Math.PI*2);ctx.fill();drawing=false;saveSnap();return}
-  });
-  canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=pos(e);
-    const tool=shapeEl.value||'';
-    if(tool==='eraser'){const r=Math.max(8,size*3);ctx.save();ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.restore();return}
-    if(tool===''||tool==='pen'){
-      ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';
-      ctx.moveTo(lastX,lastY);ctx.lineTo(p.x,p.y);ctx.stroke();lastX=p.x;lastY=p.y;return;
-    }
-    // Shape preview — restore last snapshot then draw preview
-    restoreSnap();
-    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';
-    if(tool==='line'){ctx.moveTo(startX,startY);ctx.lineTo(p.x,p.y);ctx.stroke()}
-    else if(tool==='rect'){ctx.strokeRect(Math.min(startX,p.x),Math.min(startY,p.y),Math.abs(p.x-startX),Math.abs(p.y-startY))}
-    else if(tool==='circle'){const cx=(startX+p.x)/2,cy=(startY+p.y)/2,rx=Math.abs(p.x-startX)/2,ry=Math.abs(p.y-startY)/2;if(rx>0&&ry>0){ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.stroke()}}
-  });
-  canvas.addEventListener('mouseup',e=>{
-    if(!drawing)return;drawing=false;
-    const tool=shapeEl.value||'';
-    // Finalize shapes — restore pre-drag snapshot, draw final shape, save
-    if(tool==='line'||tool==='rect'||tool==='circle'){
-      const p=pos(e);
-      restoreSnap();
-      ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';
-      if(tool==='line'){ctx.moveTo(startX,startY);ctx.lineTo(p.x,p.y);ctx.stroke()}
-      else if(tool==='rect'){ctx.strokeRect(Math.min(startX,p.x),Math.min(startY,p.y),Math.abs(p.x-startX),Math.abs(p.y-startY))}
-      else if(tool==='circle'){const cx=(startX+p.x)/2,cy=(startY+p.y)/2,rx=Math.abs(p.x-startX)/2,ry=Math.abs(p.y-startY)/2;if(rx>0&&ry>0){ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.stroke()}}
-    }
-    // Save final state (for pen this captures the freehand strokes, for shapes the finalized shape)
-    saveSnap();
-  });
-  canvas.addEventListener('mouseleave',()=>{if(drawing){drawing=false;saveSnap()}});
-
-  document.getElementById('wbPopoutSize').addEventListener('input',function(){size=+this.value});
-  document.getElementById('wbPopoutUndo').addEventListener('click',()=>{if(snapshots.length>1){snapshots.pop();restoreSnap()}else{snapshots=[];ctx.clearRect(0,0,canvas.width,canvas.height)}});
-  document.getElementById('wbPopoutClear').addEventListener('click',()=>{snapshots=[];ctx.clearRect(0,0,canvas.width,canvas.height)});
-  document.getElementById('wbPopoutClose').addEventListener('click',()=>{document.getElementById('whiteboardPopout').style.display='none'});
-
-  // Grid toggle
-  let showGrid=false;
-  function drawGrid(){
-    if(!showGrid)return;
-    ctx.save();ctx.strokeStyle='rgba(148,163,184,0.15)';ctx.lineWidth=0.5;
-    for(let x=0;x<canvas.width;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke()}
-    for(let y=0;y<canvas.height;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke()}
-    ctx.restore();
-  }
-  const gridBtn=document.getElementById('wbPopoutGrid');
-  if(gridBtn)gridBtn.addEventListener('click',()=>{showGrid=!showGrid;gridBtn.style.color=showGrid?'var(--accent)':'var(--text-dim)';restoreSnap();drawGrid()});
-
-  // Colors
-  const isDark=document.documentElement.classList.contains('dark');
-  const colors=isDark?['#ffffff','#c4a0a0','#a0b8c8','#5ab866','#b0a0c0','#ff6b6b','#ffa94d','#74c0fc']:['#1a1a1a','#8b5e5e','#6b8da3','#3a7d44','#7a6b8d','#dc2626','#ea580c','#2563eb'];
-  const colEl=document.getElementById('wbPopoutColors');
-  colors.forEach(c=>{
-    const dot=document.createElement('span');
-    dot.style.cssText=`width:12px;height:12px;border-radius:50%;background:${c};cursor:pointer;border:1px solid var(--border)`;
-    dot.addEventListener('click',()=>{color=c});
-    colEl.appendChild(dot);
-  });
-
-  // Draggable header
-  const hdr=document.getElementById('wbPopoutHeader');
-  const popout=document.getElementById('whiteboardPopout');
-  let dragging=false,dx=0,dy=0;
-  hdr.addEventListener('mousedown',e=>{dragging=true;dx=e.clientX-popout.offsetLeft;dy=e.clientY-popout.offsetTop;e.preventDefault()});
-  document.addEventListener('mousemove',e=>{if(!dragging)return;popout.style.left=(e.clientX-dx)+'px';popout.style.top=(e.clientY-dy)+'px';popout.style.right='auto';popout.style.bottom='auto'});
-  document.addEventListener('mouseup',()=>{dragging=false});
 }
 
 // ── Share Modal ──
