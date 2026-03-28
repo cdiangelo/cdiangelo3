@@ -56,6 +56,9 @@
       const parentTarget = sub.closest('.chevron-item').dataset.target;
       window.planContext = parentTarget;
 
+      // Collapse all chevrons when navigating to a sub-tab
+      document.querySelectorAll('.chevron-item.expanded').forEach(c => c.classList.remove('expanded'));
+
       if (parentTarget === 'exec') {
         if (module === 'exec-overview') navigateToExecSummary('overview');
         else if (module === 'exec-comp') navigateToExecSummary('comp');

@@ -453,7 +453,7 @@ function renderPnlWalk(){
     let style='padding:5px 6px;font-size:.78rem';
     if(c.cls==='subtotal')style+=';font-weight:700;color:var(--accent);border-left:1px solid var(--border-light)';
     else if(c.cls==='total')style+=';font-weight:700;border-left:1px solid var(--border-light)';
-    else if(c.cls==='sub2')style+=';font-weight:600;color:var(--text-dim)';
+    else if(c.cls==='sub2')style+=';font-weight:700;color:var(--accent);border-right:1px solid var(--border-light)';
     if(c.narrow)style+=';width:36px';
     return `<td class="num" style="${style}">${c.isHC?fv(v,true):fv(v)}</td>`;
   }
@@ -467,7 +467,7 @@ function renderPnlWalk(){
     let extra='';
     if(c.cls==='subtotal'){w='min-width:65px;';extra='font-weight:700;color:var(--accent);border-left:1px solid var(--border-light);'}
     else if(c.cls==='total'){w='min-width:65px;';extra='font-weight:700;border-left:1px solid var(--border-light);'}
-    else if(c.cls==='sub2'){extra='font-weight:600;color:var(--text-dim);'}
+    else if(c.cls==='sub2'){w='min-width:65px;';extra='font-weight:700;color:var(--accent);border-right:1px solid var(--border-light);'}
     h+=`<th style="text-align:right;${w}${extra}white-space:nowrap;padding:5px 6px;font-size:.68rem">${c.label}</th>`;
   });
   h+='</tr></thead><tbody>';
@@ -485,7 +485,13 @@ function renderPnlWalk(){
       childKeys.forEach(k2=>{
         const cd=gChildData[k][k2];
         h+=`<tr style="background:var(--panel-inset)"><td style="padding-left:24px;white-space:nowrap;position:sticky;left:0;background:var(--panel-inset);z-index:1;font-size:.76rem;color:var(--text-dim)">${esc(k2)}</td>`;
-        cols.forEach(c=>{h+=`<td class="num" style="font-size:.76rem;color:var(--text-dim);${c.cls==='subtotal'?'font-weight:600;color:var(--accent)':c.cls==='total'?'font-weight:600':''}">${c.isHC?fv(cd[c.key],true):fv(cd[c.key])}</td>`});
+        cols.forEach(c=>{
+          let cs='font-size:.76rem;color:var(--text-dim)';
+          if(c.cls==='subtotal')cs+=';font-weight:600;color:var(--accent);border-left:1px solid var(--border-light)';
+          else if(c.cls==='total')cs+=';font-weight:600;border-left:1px solid var(--border-light)';
+          else if(c.cls==='sub2')cs+=';font-weight:600;color:var(--accent);border-right:1px solid var(--border-light)';
+          h+=`<td class="num" style="${cs}">${c.isHC?fv(cd[c.key],true):fv(cd[c.key])}</td>`;
+        });
         h+='</tr>';
       });
     }
