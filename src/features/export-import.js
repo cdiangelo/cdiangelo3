@@ -92,6 +92,8 @@ export function readExcelFile(inputEl,callback){
   reader.onload=ev=>{
     try{
       const wb=XLSX.read(ev.target.result,{type:'array'});
+      // Helper: skip Reference Values sheets when finding data sheet
+      wb._dataSheets=wb.SheetNames.filter(n=>!n.toLowerCase().includes('reference'));
       callback(wb);
     }catch(err){alert('Could not parse file: '+err.message)}
   };
@@ -140,7 +142,7 @@ document.getElementById('btnDlRosterTemplate').addEventListener('click',()=>{
 document.getElementById('btnUploadRoster').addEventListener('click',()=>document.getElementById('rosterFileInput').click());
 document.getElementById('rosterFileInput').addEventListener('change',function(){
   readExcelFile(this,wb=>{
-    const ws=wb.Sheets[wb.SheetNames[0]];
+    const ws=wb.Sheets[wb._dataSheets[0]||wb.SheetNames[0]];
     const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
     let added=0,updated=0,skipped=0,errors=[];
     let currentEmp=null;
@@ -246,7 +248,7 @@ document.getElementById('btnDlBonusTemplate').addEventListener('click',()=>{
 document.getElementById('btnUploadBonus').addEventListener('click',()=>document.getElementById('bonusFileInput').click());
 document.getElementById('bonusFileInput').addEventListener('change',function(){
   readExcelFile(this,wb=>{
-    const ws=wb.Sheets[wb.SheetNames[0]];
+    const ws=wb.Sheets[wb._dataSheets[0]||wb.SheetNames[0]];
     const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
     let updated=0,errors=[];
     rows.forEach((r,ri)=>{
@@ -294,7 +296,7 @@ document.getElementById('benefitsFileInput').addEventListener('change',function(
   readExcelFile(this,wb=>{
     let matrixUpdated=0,countryUpdated=0,errors=[];
     // Sheet 1: Benefits matrix
-    const ws1=wb.Sheets[wb.SheetNames[0]];
+    const ws1=wb.Sheets[wb._dataSheets[0]||wb.SheetNames[0]];
     const matrixRows=XLSX.utils.sheet_to_json(ws1,{defval:''});
     matrixRows.forEach((r,ri)=>{
       const seniority=Object.values(r)[0]?.toString().trim();
@@ -312,8 +314,8 @@ document.getElementById('benefitsFileInput').addEventListener('change',function(
       });
     });
     // Sheet 2: Country multipliers (if present)
-    if(wb.SheetNames.length>1){
-      const ws2=wb.Sheets[wb.SheetNames[1]];
+    if(wb._dataSheets.length>1){
+      const ws2=wb.Sheets[wb._dataSheets[1]];
       const cRows=XLSX.utils.sheet_to_json(ws2,{defval:''});
       cRows.forEach((r,ri)=>{
         const country=(r['Country']||Object.values(r)[0]||'').toString().trim();
@@ -363,7 +365,7 @@ document.getElementById('baseCompFileInput').addEventListener('change',function(
     let senUpdated=0,funcUpdated=0,countryUpdated=0,errors=[];
     // Sheet 1: Seniority base salaries
     if(wb.SheetNames.length>=1){
-      const ws=wb.Sheets[wb.SheetNames[0]];
+      const ws=wb.Sheets[wb._dataSheets[0]||wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
       rows.forEach((r,ri)=>{
         const sen=(r['Seniority']||Object.values(r)[0]||'').toString().trim();
@@ -373,8 +375,8 @@ document.getElementById('baseCompFileInput').addEventListener('change',function(
       });
     }
     // Sheet 2: Function multipliers
-    if(wb.SheetNames.length>=2){
-      const ws=wb.Sheets[wb.SheetNames[1]];
+    if(wb._dataSheets.length>=2){
+      const ws=wb.Sheets[wb._dataSheets[1]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
       rows.forEach((r,ri)=>{
         const func=(r['Function']||Object.values(r)[0]||'').toString().trim();
@@ -384,8 +386,8 @@ document.getElementById('baseCompFileInput').addEventListener('change',function(
       });
     }
     // Sheet 3: Country multipliers
-    if(wb.SheetNames.length>=3){
-      const ws=wb.Sheets[wb.SheetNames[2]];
+    if(wb._dataSheets.length>=3){
+      const ws=wb.Sheets[wb._dataSheets[2]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
       rows.forEach((r,ri)=>{
         const country=(r['Country']||Object.values(r)[0]||'').toString().trim();

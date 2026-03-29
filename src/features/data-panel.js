@@ -186,6 +186,23 @@ function initDataPanel(){
       const ws2=XLSX.utils.aoa_to_sheet(annRows);
       ws2['!cols']=[{wch:6},{wch:16},{wch:14},{wch:14},{wch:14},{wch:10},{wch:10},{wch:12},{wch:5}];
       XLSX.utils.book_append_sheet(wb,ws2,'Annual Summary');
+      // Reference values sheet
+      const fns=window.FUNCTIONS||[];
+      const countries=window.COUNTRIES||[];
+      const bus=state.bizLines||[];
+      const mkts=state.markets||[];
+      const projs=state.projects||[];
+      const vTypes=window.VENDOR_TYPES||['Software & Licenses','Professional Services','Data & Analytics','Infrastructure','Other OpEx'];
+      const eTypes=['T&E','Meals','Travel','Events','Training','Subscriptions','Other'];
+      const refRows=[['Functions','Countries','Business Lines','Markets','Projects','Vendor Types','Expense Types','Accounts']];
+      const acctList=['C&B','Vendor Spend','Contractors','T&E','D&A','CapEx','Revenue'];
+      const maxR=Math.max(fns.length,countries.length,bus.length,mkts.length,projs.length,vTypes.length,eTypes.length,acctList.length);
+      for(let i=0;i<maxR;i++){
+        refRows.push([fns[i]||'',countries[i]||'',bus[i]?bus[i].code+' — '+bus[i].name:'',mkts[i]?mkts[i].code+' — '+mkts[i].name:'',projs[i]?projs[i].code:'',vTypes[i]||'',eTypes[i]||'',acctList[i]||'']);
+      }
+      const wsRef=XLSX.utils.aoa_to_sheet(refRows);
+      wsRef['!cols']=[{wch:28},{wch:18},{wch:32},{wch:24},{wch:12},{wch:22},{wch:16},{wch:16}];
+      XLSX.utils.book_append_sheet(wb,wsRef,'Reference Values');
       XLSX.writeFile(wb,'historicals_template.xlsx');
     });
   }
@@ -212,8 +229,9 @@ function initDataPanel(){
             const MO_MAP={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
               january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
             const wb=XLSX.read(e.target.result,{type:'array'});
-            // Try Monthly Detail sheet first, fall back to first sheet
-            const wsName=wb.SheetNames.find(n=>n.toLowerCase().includes('monthly'))||wb.SheetNames[0];
+            // Try Monthly Detail sheet first, fall back to first non-reference sheet
+            const dataSheets=wb.SheetNames.filter(n=>!n.toLowerCase().includes('reference'));
+            const wsName=dataSheets.find(n=>n.toLowerCase().includes('monthly'))||dataSheets[0];
             const ws=wb.Sheets[wsName];
             const rows=XLSX.utils.sheet_to_json(ws);
             const hasMonth=rows.some(r=>r.Month||r.month);
@@ -381,7 +399,7 @@ function initDataPanel(){
   document.getElementById('dataPanelTeFile').addEventListener('change',function(){
     // T&E import: reuse the readExcelFile pattern
     readExcelFile(this,wb=>{
-      const ws=wb.Sheets[wb.SheetNames[0]];
+      const ws=wb.Sheets[(wb._dataSheets||wb.SheetNames)[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
       if(!rows.length){alert('No data rows found.');return}
       const MO_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
