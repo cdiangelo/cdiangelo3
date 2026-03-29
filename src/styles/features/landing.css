@@ -47,7 +47,7 @@
 .cal-grid .cal-day.has-multi::after{content:'••';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:.45rem;letter-spacing:1px;color:var(--accent);line-height:1}
 .cal-grid .cal-day.selected{background:var(--accent-soft);color:var(--text)}
 .cal-grid .cal-day.other-month{color:var(--tertiary);opacity:.4}
-.cal-item{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-size:.74rem;background:var(--bg-elevated)}
+.cal-item{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-size:.74rem}
 .cal-item .cal-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .cal-item .cal-item-text{flex:1;color:var(--text)}
 .cal-item .cal-item-del{background:none;border:none;cursor:pointer;color:var(--tertiary);font-size:.72rem;padding:0 2px}
