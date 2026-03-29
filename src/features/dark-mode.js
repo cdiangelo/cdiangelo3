@@ -230,6 +230,17 @@ function checkModuleAccess(){
     }
   });
 }
+
+// Global check used by navigation to block restricted modules
+function isModuleAllowed(moduleKey){
+  const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
+  if(!user||!user.email)return true;
+  const rules=getModuleAccess();
+  const userRules=rules[user.email.toLowerCase()];
+  if(!userRules)return true;
+  return userRules[moduleKey]!==false;
+}
+window.isModuleAllowed=isModuleAllowed;
 window.checkModuleAccess=checkModuleAccess;
 window.checkOpsRestriction=checkOpsRestriction;
 

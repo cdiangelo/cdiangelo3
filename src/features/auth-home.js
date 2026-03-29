@@ -355,11 +355,12 @@ async function openPlan(plan){
     if(_planSaveTimer)clearTimeout(_planSaveTimer);
     _planSaveTimer=setTimeout(async()=>{
       try{
-        await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(state)})});
+        const s=window.state||state;
+        await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(s)})});
         const savedEl=document.getElementById('planHdrSaved');
         if(savedEl){savedEl.textContent='Saved';savedEl.style.color='var(--success)'}
       }catch(e){console.warn('Autosave failed:',e)}
-    },1000);
+    },500);
     // Update save indicator
     const savedEl=document.getElementById('planHdrSaved');
     if(savedEl){savedEl.textContent='Saving...';savedEl.style.color='var(--text-dim)'}

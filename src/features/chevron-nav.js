@@ -145,6 +145,14 @@
 
   function navigateToModule(module){
     // Step 1: Hide everything including appShell
+    // Check module access restrictions
+    const modKeyMap={comp:'comp',vendor:'vendor',contractors:'contractors',te:'te',depreciation:'vendor',ltf:'forecast'};
+    const modKey=modKeyMap[module];
+    if(modKey&&window.isModuleAllowed&&!window.isModuleAllowed(modKey)){
+      alert('You do not have access to this module.');
+      return;
+    }
+
     hideAppShell();
     showBackToPlan();
     hideCalendar();
