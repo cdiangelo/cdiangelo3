@@ -567,6 +567,23 @@ function renderExecView(){
     });
     if(execSplit!=='none'){window.stackedBarDatalabels(datasets,tickColor,null,'exec')}
     else{const _execDlC=window.getCrispDatalabelColor('exec')||tickColor;datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_execDlC,font:{size:window.chartColorScheme==='crisp'?13:11,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}})}
+    // CapEx bars stacked below when viewing total (show opex + capex split)
+    if(execView==='total'){
+      const capexData=periodLabels.map((_,pi)=>{
+        const mi=periodMonths[pi];
+        if(mi===undefined)return 0;
+        if(isQuarterly){
+          const qMonths=[mi*3,mi*3+1,mi*3+2];
+          return -emps.reduce((a,e)=>a+qMonths.reduce((s,m)=>s+getMonthlyCapEx(e,m),0),0);
+        }
+        return -emps.reduce((a,e)=>a+getMonthlyCapEx(e,mi),0);
+      });
+      if(capexData.some(v=>v!==0)){
+        const ecc0=window.getChartColors();
+        datasets.forEach(ds=>{if(ds.type!=='line')ds.stack='pos'});
+        datasets.push({label:'CapEx',data:capexData,backgroundColor:window.hexToRgba(ecc0[4]||'#888',0.4),borderColor:ecc0[4]||'#888',borderWidth:1,stack:'neg',yAxisID:'y',order:2,datalabels:{display:false}});
+      }
+    }
     // FTE count line
     const ecc=window.getChartColors();
     datasets.push({label:'Allocated FTE',data:monthlyFte,type:'line',borderColor:ecc[1],backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:ecc[1],yAxisID:'y1',tension:0.3,datalabels:{display:false},order:0});
@@ -584,8 +601,8 @@ function renderExecView(){
             return label+': '+(val<0?'-':'')+'$'+(Math.abs(val)/1e6).toFixed(2)+'M';
           }}}},
         scales:{
-          x:{stacked:execSplit!=='none',ticks:{color:tickColor},grid:{color:gridColor}},
-          y:{stacked:execSplit!=='none',beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}},
+          x:{stacked:true,ticks:{color:tickColor},grid:{color:gridColor}},
+          y:{stacked:true,beginAtZero:true,position:'left',ticks:{color:tickColor,callback:v=>(v<0?'-':'')+'$'+(Math.abs(v)/1e6).toFixed(2)+'M'},grid:{color:gridColor}},
           y1:{beginAtZero:true,position:'right',title:{display:true,text:'FTE',color:tickColor,font:{size:12}},ticks:{color:tickColor},grid:{drawOnChartArea:false}}
         }
       }

@@ -1742,7 +1742,8 @@ function initVendorModule(){
   }
 
   // Render vendor quick-adjust list
-  function renderVendorQaList(){
+  let vendorQaSortOrder=null; // cached sort order to prevent re-sort during adjustment
+  function renderVendorQaList(forceSort){
     populateVendorQaDropdowns();
     const search=(document.getElementById('vendorQaSearch').value||'').toLowerCase();
     const moSel=document.getElementById('vendorQaMo').value;
@@ -1761,7 +1762,17 @@ function initVendorModule(){
       grouped[name].fy+=vActiveMo.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
     });
     const list=document.getElementById('vendorQaList');
-    const entries=Object.entries(grouped).sort((a,b)=>b[1].fy-a[1].fy);
+    let entries=Object.entries(grouped);
+    if(forceSort||!vendorQaSortOrder){
+      entries.sort((a,b)=>b[1].fy-a[1].fy);
+      vendorQaSortOrder=entries.map(e=>e[0]);
+    } else {
+      // Preserve previous order
+      const orderMap=new Map(vendorQaSortOrder.map((n,i)=>[n,i]));
+      entries.sort((a,b)=>(orderMap.get(a[0])??999)-(orderMap.get(b[0])??999));
+      // Append any new entries
+      entries.forEach(e=>{if(!orderMap.has(e[0]))vendorQaSortOrder.push(e[0])});
+    }
     if(!entries.length){list.innerHTML='<div style="padding:12px;color:var(--text-dim);font-size:.8rem;text-align:center">No vendors found</div>';updateVendorQaTotal();return}
     const vRangeLabel=vendorSelectedMonths.size>0&&vendorSelectedMonths.size<12?'Range':'FY';
     let h='';
@@ -1840,12 +1851,14 @@ function initVendorModule(){
     saveState();renderVendorQaList();renderVendorGrid();refreshVendorPivot();
   });
 
-  // Vendor QA: search filter
-  document.getElementById('vendorQaSearch').addEventListener('input',renderVendorQaList);
-  document.getElementById('vendorQaMo').addEventListener('change',renderVendorQaList);
+  // Vendor QA: search filter (force re-sort on filter change)
+  document.getElementById('vendorQaSearch').addEventListener('input',()=>renderVendorQaList(true));
+  document.getElementById('vendorQaMo').addEventListener('change',()=>renderVendorQaList(true));
+  document.getElementById('vendorQaRefresh').addEventListener('click',()=>renderVendorQaList(true));
 
   // ── T&E Quick-Adjust ──
-  function renderTeQaList(){
+  let teQaSortOrder=null;
+  function renderTeQaList(forceSort){
     populateTeQaDropdowns();
     const search=(document.getElementById('teQaSearch').value||'').toLowerCase();
     const moSel=document.getElementById('teQaMo').value;
@@ -1863,7 +1876,15 @@ function initVendorModule(){
       grouped[name].fy+=tActiveMo.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
     });
     const list=document.getElementById('teQaList');
-    const entries=Object.entries(grouped).sort((a,b)=>b[1].fy-a[1].fy);
+    let entries=Object.entries(grouped);
+    if(forceSort||!teQaSortOrder){
+      entries.sort((a,b)=>b[1].fy-a[1].fy);
+      teQaSortOrder=entries.map(e=>e[0]);
+    } else {
+      const orderMap=new Map(teQaSortOrder.map((n,i)=>[n,i]));
+      entries.sort((a,b)=>(orderMap.get(a[0])??999)-(orderMap.get(b[0])??999));
+      entries.forEach(e=>{if(!orderMap.has(e[0]))teQaSortOrder.push(e[0])});
+    }
     if(!entries.length){list.innerHTML='<div style="padding:12px;color:var(--text-dim);font-size:.8rem;text-align:center">No T&amp;E entries found</div>';updateTeQaTotal();return}
     const tRangeLabel=teSelectedMonths.size>0&&teSelectedMonths.size<12?'Range':'FY';
     let h='';
@@ -1939,9 +1960,10 @@ function initVendorModule(){
     saveState();renderTeQaList();renderTeGrid();refreshTePivot();
   });
 
-  // T&E QA: search filter
-  document.getElementById('teQaSearch').addEventListener('input',renderTeQaList);
-  document.getElementById('teQaMo').addEventListener('change',renderTeQaList);
+  // T&E QA: search filter (force re-sort)
+  document.getElementById('teQaSearch').addEventListener('input',()=>renderTeQaList(true));
+  document.getElementById('teQaMo').addEventListener('change',()=>renderTeQaList(true));
+  document.getElementById('teQaRefresh').addEventListener('click',()=>renderTeQaList(true));
 
   // ── Contractor Quick-Adjust ──
   let contractorQaUndoStack=[], contractorQaHistory=[];
@@ -1954,7 +1976,8 @@ function initVendorModule(){
     acctSel.innerHTML='<option value="">—</option>'+state.accounts.filter(a=>(a.group||'vendor')==='vendor').map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
   }
 
-  function renderContractorQaList(){
+  let contractorQaSortOrder=null;
+  function renderContractorQaList(forceSort){
     populateContractorQaDropdowns();
     const search=(document.getElementById('contractorQaSearch').value||'').toLowerCase();
     const moSel=document.getElementById('contractorQaMo').value;
@@ -1972,7 +1995,15 @@ function initVendorModule(){
       grouped[name].fy+=cActiveMo.reduce((s,m)=>s+(parseFloat(r[m])||0),0);
     });
     const list=document.getElementById('contractorQaList');
-    const entries=Object.entries(grouped).sort((a,b)=>b[1].fy-a[1].fy);
+    let entries=Object.entries(grouped);
+    if(forceSort||!contractorQaSortOrder){
+      entries.sort((a,b)=>b[1].fy-a[1].fy);
+      contractorQaSortOrder=entries.map(e=>e[0]);
+    } else {
+      const orderMap=new Map(contractorQaSortOrder.map((n,i)=>[n,i]));
+      entries.sort((a,b)=>(orderMap.get(a[0])??999)-(orderMap.get(b[0])??999));
+      entries.forEach(e=>{if(!orderMap.has(e[0]))contractorQaSortOrder.push(e[0])});
+    }
     if(!entries.length){list.innerHTML='<div style="padding:12px;color:var(--text-dim);font-size:.8rem;text-align:center">No contractors found</div>';updateContractorQaTotal();return}
     const cRangeLabel=contractorSelectedMonths.size>0&&contractorSelectedMonths.size<12?'Range':'FY';
     let h='';
@@ -2048,8 +2079,9 @@ function initVendorModule(){
   });
 
   // Contractor QA: search filter
-  document.getElementById('contractorQaSearch').addEventListener('input',renderContractorQaList);
-  document.getElementById('contractorQaMo').addEventListener('change',renderContractorQaList);
+  document.getElementById('contractorQaSearch').addEventListener('input',()=>renderContractorQaList(true));
+  document.getElementById('contractorQaMo').addEventListener('change',()=>renderContractorQaList(true));
+  document.getElementById('contractorQaRefresh').addEventListener('click',()=>renderContractorQaList(true));
 
   // ── Vendor, T&E & Contractor Month Range Bars ──
   // Top-level bars (above tables)

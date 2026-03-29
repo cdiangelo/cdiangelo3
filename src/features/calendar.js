@@ -65,15 +65,15 @@ import { state, saveState } from '../lib/state.js';
       else if(itemCount>1)cls+=' has-multi';
       if(notes[key])cls+=' has-note';
       if(isSelected)cls+=' selected';
-      // Soft color tint from first milestone's color
+      // Color tint from first milestone's color
       let inlineStyle='';
       if(dayItems.length>0){
-        const c=dayItems[0].color||'var(--accent)';
-        // Use the color as a very soft transparent background
+        const c=dayItems[0].color||'';
         if(c.startsWith('#')){
-          inlineStyle=`background:${c}B0`; // ~69% opacity — solid tint
-        } else if(c.startsWith('var(')){
-          inlineStyle=`background:${c.replace(')','-soft)')}`.replace('var(--accent-soft)','var(--accent-soft)');
+          const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);
+          inlineStyle=`background:rgba(${r},${g},${b},0.45)`;
+        } else {
+          inlineStyle=`background:color-mix(in srgb, var(--accent) 45%, transparent)`;
         }
       }
       const tipText=notes[key]?esc(notes[key].length>60?notes[key].slice(0,60)+'…':notes[key]):'';
@@ -178,13 +178,15 @@ import { state, saveState } from '../lib/state.js';
         const preview=dateNote.length>60?dateNote.slice(0,60)+'…':dateNote;
         rows+=`<div style="font-size:.72rem;color:var(--text-dim);padding:3px 0 0 0;font-style:italic;cursor:default" title="${esc(dateNote)}">${esc(preview)}</div>`;
       }
-      // Soft tint matching day cell color — convert hex to rgba at ~18% opacity
-      let cardBg='var(--accent-soft)';
-      let cardBorder='var(--accent-soft)';
+      // Tint matching day cell color
+      let cardBg, cardBorder;
       if(primaryColor.startsWith('#')){
         const r=parseInt(primaryColor.slice(1,3),16),g=parseInt(primaryColor.slice(3,5),16),b=parseInt(primaryColor.slice(5,7),16);
-        cardBg=`rgba(${r},${g},${b},0.18)`;
-        cardBorder=`rgba(${r},${g},${b},0.30)`;
+        cardBg=`rgba(${r},${g},${b},0.38)`;
+        cardBorder=`rgba(${r},${g},${b},0.50)`;
+      } else {
+        cardBg=`color-mix(in srgb, var(--accent) 38%, transparent)`;
+        cardBorder=`color-mix(in srgb, var(--accent) 50%, transparent)`;
       }
       return `<div style="padding:10px 14px;border-radius:8px;background:${cardBg};border:1px solid ${cardBorder};margin-bottom:6px">
         <div style="font-size:.65rem;font-weight:600;color:var(--text);letter-spacing:.08em;margin-bottom:4px;opacity:.7">${dateLabel}</div>

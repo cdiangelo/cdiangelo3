@@ -77,7 +77,9 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const db = getDb();
-    await db.prepare('DELETE FROM plan_files WHERE id = ?').run(parseInt(req.params.id));
+    const pid = parseInt(req.params.id);
+    await db.prepare('DELETE FROM plan_access WHERE plan_file_id = ?').run(pid);
+    await db.prepare('DELETE FROM plan_files WHERE id = ?').run(pid);
     res.json({ ok: true });
   } catch (e) {
     console.error('Delete plan error:', e);
