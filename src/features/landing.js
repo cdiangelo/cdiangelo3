@@ -929,12 +929,16 @@ function initLtfModule(){
       list.innerHTML='<div style="font-size:.72rem;color:var(--text-dim)">No custom adjustments. Click + Add to create one.</div>';
       return;
     }
+    const ADJ_ACCOUNTS=[{key:'cb',label:'C&B'},{key:'oao',label:'OAO'},{key:'da',label:'D&A'}];
     list.innerHTML=state.ltfCustomAdj.map((adj,i)=>{
+      if(!adj.account)adj.account='oao'; // default
+      const acctLabel=ADJ_ACCOUNTS.find(a=>a.key===adj.account)?.label||adj.account.toUpperCase();
       const total=adj.amounts.reduce((s,v)=>s+(v||0),0);
       const totalM=(total/1e6).toFixed(2);
       const yrVals=years.map((yr,yi)=>{const v=adj.amounts[yi]||0;return (v/1e6).toFixed(1)}).join(', ');
       let h=`<div class="ltf-adj-row" data-ai="${i}" style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:6px;cursor:pointer">`;
-      h+=`<span style="font-size:.76rem;font-weight:600;color:var(--text);min-width:100px">${adj.label||'Adj '+(i+1)}</span>`;
+      h+=`<span style="font-size:.68rem;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:3px;flex-shrink:0">${acctLabel}</span>`;
+      h+=`<span style="font-size:.76rem;font-weight:600;color:var(--text);min-width:80px">${adj.label||'Adj '+(i+1)}</span>`;
       h+=`<span style="font-size:.72rem;color:var(--text-dim);font-family:var(--font-mono);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">$${totalM}M [${yrVals}]</span>`;
       h+=`<button class="btn btn-sm ltf-adj-del" data-ai="${i}" style="padding:1px 6px;font-size:.66rem;color:var(--danger);flex-shrink:0">×</button>`;
       h+=`</div>`;
@@ -952,13 +956,17 @@ function initLtfModule(){
         const edit=document.createElement('div');
         edit.className='ltf-adj-edit';
         edit.style.cssText='display:flex;flex-wrap:wrap;gap:4px;padding:6px 0 0;width:100%';
-        edit.innerHTML=`<input class="ltf-adj-label" data-ai="${ai}" value="${adj.label||''}" placeholder="Name" style="flex:1;min-width:100px;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
+        edit.innerHTML=`<select class="ltf-adj-acct" data-ai="${ai}" style="padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${ADJ_ACCOUNTS.map(a=>`<option value="${a.key}"${a.key===adj.account?' selected':''}>${a.label}</option>`).join('')}</select><input class="ltf-adj-label" data-ai="${ai}" value="${adj.label||''}" placeholder="Name" style="flex:1;min-width:100px;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
         years.forEach((yr,yi)=>{
           const dispVal=(adj.amounts[yi]||0)/1e6;
           edit.innerHTML+=`<input class="ltf-adj-amt" data-ai="${ai}" data-yi="${yi}" type="number" step="any" value="${dispVal||''}" placeholder="${yr}" title="${yr}" style="width:52px;padding:2px 4px;font-size:.72rem;text-align:right;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
         });
         row.style.flexWrap='wrap';
         row.appendChild(edit);
+        edit.querySelectorAll('.ltf-adj-acct').forEach(sel=>{
+          sel.addEventListener('change',()=>{state.ltfCustomAdj[+sel.dataset.ai].account=sel.value;saveState();renderLtfAdj();renderLtfChart()});
+          sel.addEventListener('click',e=>e.stopPropagation());
+        });
         edit.querySelectorAll('.ltf-adj-label').forEach(inp=>{
           inp.addEventListener('change',()=>{state.ltfCustomAdj[+inp.dataset.ai].label=inp.value;saveState();renderLtfAdj();renderLtfChart()});
           inp.addEventListener('click',e=>e.stopPropagation());
@@ -977,7 +985,7 @@ function initLtfModule(){
     });
   }
   document.getElementById('ltfAddAdj').addEventListener('click',()=>{
-    state.ltfCustomAdj.push({label:'',amounts:[0,0,0,0,0,0]});
+    state.ltfCustomAdj.push({label:'',account:'oao',amounts:[0,0,0,0,0,0]});
     saveState();renderLtfAdj();
   });
   renderLtfAdj();
