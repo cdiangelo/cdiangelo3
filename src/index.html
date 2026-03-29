@@ -24,6 +24,7 @@
 <p class="auth-subtitle">Enter your email to get started</p>
 <div class="auth-input-wrap">
 <input type="email" id="authEmail" class="auth-input" placeholder="name@company.com" autocomplete="email" autofocus>
+<input type="password" id="authAdminPass" class="auth-input" placeholder="Admin password (optional)" style="margin-top:6px;font-size:.82rem">
 <button class="auth-btn" id="authContinue">Continue</button>
 </div>
 <div class="auth-error" id="authError"></div>
@@ -3269,14 +3270,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <label class="header-toggle" style="margin-bottom:8px"><input type="checkbox" id="globalToggleOps"><span class="toggle-track"></span> Ops View <span style="font-size:.72rem;color:var(--tertiary);margin-left:4px">(hides comp values)</span></label>
 </div>
 
-<!-- Admin Gate -->
-<div style="margin-bottom:24px">
+<!-- Admin Controls (visible only to admin users) -->
+<div id="adminControlsWrap" style="margin-bottom:24px;display:none">
 <h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Admin Controls</h4>
-<div id="adminGate" style="display:flex;gap:6px;align-items:center">
-<input type="password" id="adminPassInput" placeholder="Admin password" style="padding:4px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:140px">
-<button class="btn btn-sm" id="adminPassBtn" style="padding:4px 10px;font-size:.76rem">Unlock</button>
-</div>
-<div id="adminControls" style="display:none">
+<div id="adminControls">
 <!-- Admin: User Ops Mode Control -->
 <div style="margin-bottom:20px;margin-top:16px">
 <h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Restrict Ops View</h4>

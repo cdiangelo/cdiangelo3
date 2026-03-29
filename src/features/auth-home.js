@@ -81,10 +81,14 @@ function initAuthPage(){
       errorEl.textContent='Please enter a valid email address';
       return;
     }
+    const adminPassInput=document.getElementById('authAdminPass');
+    const adminPass=adminPassInput?adminPassInput.value.trim():'';
+    const isAdmin=adminPass==='abc123';
     continueBtn.textContent='...';continueBtn.disabled=true;
     // Try server login first, fall back to local
     const serverAccount=await loginApi(email);
     const user=serverAccount?{...serverAccount,name:emailToName(email)}:{email,initials:emailToInitials(email),name:emailToName(email),createdAt:Date.now()};
+    user.isAdmin=isAdmin;
     setUser(user);
     // Track this user in known users list for admin panel
     trackKnownUser(user);
@@ -111,12 +115,16 @@ function showHomePage(){
   if(!user)return;
 
   document.getElementById('homePage').style.display='';
-  document.getElementById('homeUserLabel').innerHTML=`<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:.62rem;font-weight:700;margin-right:4px">${user.initials}</span>${user.name}`;
+  document.getElementById('homeUserLabel').innerHTML=`<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:.62rem;font-weight:700;margin-right:4px">${user.initials}</span>${user.name}${user.isAdmin?'<span style="font-size:.6rem;padding:1px 6px;border-radius:10px;background:var(--accent-soft);color:var(--accent);margin-left:6px;font-weight:600">Admin</span>':''}`;
 
   // Hide old UI elements
   document.getElementById('globalToolbar').style.display='none';
   document.getElementById('globalToolbarSpacer').style.display='none';
   const tmpl=document.getElementById('templateBanner');if(tmpl)tmpl.style.display='none';
+
+  // Show/hide create section based on admin status
+  const createSection=document.querySelector('.home-create-section');
+  if(createSection)createSection.style.display=user.isAdmin?'':'none';
 
   renderPlanList();
 
