@@ -910,8 +910,35 @@ function initLtfModule(){
   // Year range sliders
   const _yrStart=document.getElementById('ltfYearStart');
   const _yrEnd=document.getElementById('ltfYearEnd');
-  if(_yrStart)_yrStart.addEventListener('input',renderLtfChart);
-  if(_yrEnd)_yrEnd.addEventListener('input',renderLtfChart);
+  const _yrTrack=document.getElementById('ltfRangeTrack');
+  const _yrDots=document.getElementById('ltfRangeDots');
+  const _yrLabel=document.getElementById('ltfYearRangeLabel');
+  function updateYearRange(){
+    if(!_yrStart||!_yrEnd)return;
+    let s=parseInt(_yrStart.value),e=parseInt(_yrEnd.value);
+    if(s>e){const t=s;s=e;e=t}
+    const labels=window.getDisplayFcLabels?window.getDisplayFcLabels():['2026','2027','2028','2029','2030','2031'];
+    // Update track highlight
+    if(_yrTrack){
+      const pctL=(s/5)*100,pctR=(e/5)*100;
+      _yrTrack.style.left=pctL+'%';_yrTrack.style.width=(pctR-pctL)+'%';
+    }
+    // Render dots
+    if(_yrDots){
+      _yrDots.innerHTML=labels.map((yr,i)=>{
+        const active=i>=s&&i<=e;
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+          <div style="width:${active?8:6}px;height:${active?8:6}px;border-radius:50%;background:${active?'var(--accent)':'var(--border)'};transition:all .15s"></div>
+          <span style="font-size:.55rem;color:${active?'var(--text)':'var(--tertiary)'};font-weight:${active?'600':'400'}">${yr}</span>
+        </div>`;
+      }).join('');
+    }
+    // Update label
+    if(_yrLabel)_yrLabel.textContent=labels[s]+' – '+labels[e];
+    renderLtfChart();
+  }
+  if(_yrStart){_yrStart.addEventListener('input',updateYearRange);updateYearRange()}
+  if(_yrEnd)_yrEnd.addEventListener('input',updateYearRange);
 
   // Methodology toggle
   const methToggle=document.getElementById('ltfMethodToggle');
@@ -1378,12 +1405,7 @@ function renderLtfChart(){
   const yrEndEl=document.getElementById('ltfYearEnd');
   let sliceStart=yrStartEl?parseInt(yrStartEl.value):0;
   let sliceEnd=yrEndEl?parseInt(yrEndEl.value):5;
-  if(sliceEnd<sliceStart)sliceEnd=sliceStart;
-  // Update labels
-  const startLblEl=document.getElementById('ltfYearStartLabel');
-  const endLblEl=document.getElementById('ltfYearEndLabel');
-  if(startLblEl)startLblEl.textContent=yearLabels[sliceStart]||'';
-  if(endLblEl)endLblEl.textContent=yearLabels[sliceEnd]||'';
+  if(sliceEnd<sliceStart){const t=sliceStart;sliceStart=sliceEnd;sliceEnd=t}
 
   let chartLabels=yearLabels.slice(sliceStart,sliceEnd+1);
   datasets.forEach(ds=>{ds.data=ds.data.slice(sliceStart,sliceEnd+1)});

@@ -81,10 +81,14 @@ function initAuthPage(){
       errorEl.textContent='Please enter a valid email address';
       return;
     }
+    const adminPassInput=document.getElementById('authAdminPass');
+    const adminPass=adminPassInput?adminPassInput.value.trim():'';
+    const isAdmin=adminPass==='abc123';
     continueBtn.textContent='...';continueBtn.disabled=true;
     // Try server login first, fall back to local
     const serverAccount=await loginApi(email);
     const user=serverAccount?{...serverAccount,name:emailToName(email)}:{email,initials:emailToInitials(email),name:emailToName(email),createdAt:Date.now()};
+    user.isAdmin=isAdmin;
     setUser(user);
     // Track this user in known users list for admin panel
     trackKnownUser(user);
@@ -111,12 +115,16 @@ function showHomePage(){
   if(!user)return;
 
   document.getElementById('homePage').style.display='';
-  document.getElementById('homeUserLabel').innerHTML=`<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:.62rem;font-weight:700;margin-right:4px">${user.initials}</span>${user.name}`;
+  document.getElementById('homeUserLabel').innerHTML=`<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:.62rem;font-weight:700;margin-right:4px">${user.initials}</span>${user.name}${user.isAdmin?'<span style="font-size:.6rem;padding:1px 6px;border-radius:10px;background:var(--accent-soft);color:var(--accent);margin-left:6px;font-weight:600">Admin</span>':''}`;
 
   // Hide old UI elements
   document.getElementById('globalToolbar').style.display='none';
   document.getElementById('globalToolbarSpacer').style.display='none';
   const tmpl=document.getElementById('templateBanner');if(tmpl)tmpl.style.display='none';
+
+  // Show/hide create section based on admin status
+  const createSection=document.querySelector('.home-create-section');
+  if(createSection)createSection.style.display=user.isAdmin?'':'none';
 
   renderPlanList();
 
@@ -236,11 +244,12 @@ async function renderPlanList(){
         document.querySelectorAll('.plan-ctx-menu').forEach(m=>m.remove());
         const menu=document.createElement('div');
         menu.className='plan-ctx-menu';
-        menu.style.cssText='position:absolute;right:0;top:100%;z-index:999;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);min-width:120px;overflow:hidden';
+        const rect=btn.getBoundingClientRect();
+        menu.style.cssText=`position:fixed;left:${rect.right-120}px;top:${rect.bottom+4}px;z-index:9999;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);min-width:120px;overflow:hidden`;
         menu.innerHTML=`
           <div class="plan-ctx-item" data-action="share" style="padding:8px 14px;font-size:.8rem;cursor:pointer;color:var(--text);transition:background .1s">Share</div>
           <div class="plan-ctx-item" data-action="delete" style="padding:8px 14px;font-size:.8rem;cursor:pointer;color:var(--danger);transition:background .1s">Delete</div>`;
-        btn.parentElement.appendChild(menu);
+        document.body.appendChild(menu);
         menu.querySelector('[data-action="share"]').addEventListener('click',(ev)=>{ev.stopPropagation();menu.remove();openShareModal(plan)});
         menu.querySelector('[data-action="delete"]').addEventListener('click',async(ev)=>{
           ev.stopPropagation();menu.remove();
@@ -346,11 +355,12 @@ async function openPlan(plan){
     if(_planSaveTimer)clearTimeout(_planSaveTimer);
     _planSaveTimer=setTimeout(async()=>{
       try{
-        await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(state)})});
+        const s=window.state||state;
+        await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(s)})});
         const savedEl=document.getElementById('planHdrSaved');
         if(savedEl){savedEl.textContent='Saved';savedEl.style.color='var(--success)'}
       }catch(e){console.warn('Autosave failed:',e)}
-    },1000);
+    },500);
     // Update save indicator
     const savedEl=document.getElementById('planHdrSaved');
     if(savedEl){savedEl.textContent='Saving...';savedEl.style.color='var(--text-dim)'}
@@ -392,6 +402,10 @@ async function openPlan(plan){
   const chevNav=document.getElementById('chevronNav');if(chevNav)chevNav.style.display='';
   const sumContent=document.getElementById('landingSummaryContent');if(sumContent)sumContent.style.display='none';
   const oldHdr=document.getElementById('landingHeaderOld');if(oldHdr)oldHdr.style.display='none';
+
+  // Apply admin controls from plan state
+  if(window.checkOpsRestriction)try{window.checkOpsRestriction()}catch(e){}
+  if(window.checkModuleAccess)try{window.checkModuleAccess()}catch(e){}
 
   // Show plan header bar + bottom toolbar
   if(window._showCalendar)try{window._showCalendar()}catch(e){}
@@ -604,6 +618,9 @@ function openShareModal(plan){
 async function loadSharedUsers(planId){
   const listEl=document.getElementById('shareUserList');
   if(!listEl)return;
+  const currentUser=getUser();
+  const isAdmin=currentUser&&currentUser.isAdmin;
+  const MODS=[{key:'comp',label:'C&B'},{key:'vendor',label:'Vendor'},{key:'te',label:'T&E'},{key:'contractors',label:'CTR'},{key:'other',label:'Other'},{key:'depreciation',label:'D&A'},{key:'revenue',label:'Rev'},{key:'forecast',label:'LTF'}];
   try{
     const r=await fetch('/api/plan-files/'+planId+'/access');
     if(r.ok){
@@ -612,14 +629,55 @@ async function loadSharedUsers(planId){
         listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Only you have access.</div>';
         return;
       }
-      listEl.innerHTML=users.map(u=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light)">
-          <div style="width:24px;height:24px;border-radius:50%;background:${u.color||'var(--accent)'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0">${u.initials||'?'}</div>
-          <div style="flex:1">
-            <div style="font-size:.82rem;font-weight:500;color:var(--text)">${u.email}</div>
-            <div style="font-size:.68rem;color:var(--tertiary)">${u.role||'editor'}</div>
-          </div>
-        </div>`).join('');
+      const rules=window.state&&window.state.moduleAccess?window.state.moduleAccess:{};
+      listEl.innerHTML=users.map(u=>{
+        const email=u.email.toLowerCase();
+        const ur=rules[email]||{};
+        let h=`<div style="padding:8px 0;border-bottom:1px solid var(--border-light)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:24px;height:24px;border-radius:50%;background:${u.color||'var(--accent)'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0">${u.initials||'?'}</div>
+            <div style="flex:1">
+              <div style="font-size:.82rem;font-weight:500;color:var(--text)">${u.email}</div>
+              <div style="font-size:.68rem;color:var(--tertiary)">${u.role||'editor'}</div>
+            </div>
+            ${u.role!=='owner'&&isAdmin?`<button class="share-remove-btn" data-account-id="${u.id}" data-email="${email}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.9rem;padding:2px 6px;opacity:.5" title="Remove access">×</button>`:''}
+          </div>`;
+        if(isAdmin&&u.role!=='owner'){
+          h+=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;padding-left:32px">${MODS.map(m=>{
+            const allowed=ur[m.key]!==false;
+            return `<label style="display:flex;align-items:center;gap:2px;font-size:.6rem;cursor:pointer;color:var(--text-dim)"><input type="checkbox" class="share-mod-cb" data-email="${email}" data-mod="${m.key}" ${allowed?'checked':''} style="accent-color:var(--accent);width:12px;height:12px">${m.label}</label>`;
+          }).join('')}</div>`;
+        }
+        h+=`</div>`;
+        return h;
+      }).join('');
+      // Wire remove buttons
+      listEl.querySelectorAll('.share-remove-btn').forEach(btn=>{
+        btn.addEventListener('click',async()=>{
+          const accountId=btn.dataset.accountId;
+          const email=btn.dataset.email;
+          if(!confirm('Remove access for '+email+'?'))return;
+          try{
+            await fetch('/api/plan-files/'+planId+'/access/'+accountId,{method:'DELETE'});
+            loadSharedUsers(planId);
+          }catch(e){alert('Failed to remove access')}
+        });
+        btn.addEventListener('mouseenter',()=>btn.style.opacity='1');
+        btn.addEventListener('mouseleave',()=>btn.style.opacity='.5');
+      });
+      // Wire module access checkboxes in share modal
+      if(isAdmin){
+        listEl.querySelectorAll('.share-mod-cb').forEach(cb=>{
+          cb.addEventListener('change',()=>{
+            if(!window.state)return;
+            if(!window.state.moduleAccess)window.state.moduleAccess={};
+            const em=cb.dataset.email;
+            if(!window.state.moduleAccess[em])window.state.moduleAccess[em]={};
+            window.state.moduleAccess[em][cb.dataset.mod]=cb.checked;
+            if(window.saveState)window.saveState();
+          });
+        });
+      }
     } else {
       listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Could not load shared users.</div>';
     }

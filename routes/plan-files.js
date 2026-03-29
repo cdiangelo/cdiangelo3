@@ -133,4 +133,16 @@ router.post('/:id/share', async (req, res) => {
   }
 });
 
+// DELETE /api/plan-files/:id/access/:accountId — revoke user access
+router.delete('/:id/access/:accountId', async (req, res) => {
+  try {
+    const db = getDb();
+    await db.prepare('DELETE FROM plan_access WHERE plan_file_id = ? AND account_id = ?').run(parseInt(req.params.id), parseInt(req.params.accountId));
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Revoke access error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

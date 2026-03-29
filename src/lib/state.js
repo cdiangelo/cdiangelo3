@@ -155,7 +155,17 @@ export function ensureStateFields(){
     'IT':'Platform/Central','Operations':'Platform/Central','Security':'Platform/Central'
   };
   if(!state.cbOtherRows)state.cbOtherRows=[];
+  if(!state.cbOtherRows.length)state.cbOtherRows=[
+    {description:'Severance',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
+    {description:'Bonus - Discretionary',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
+    {description:'Other C&B',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}
+  ];
   if(!state.oaoOtherRows)state.oaoOtherRows=[];
+  if(!state.oaoOtherRows.length)state.oaoOtherRows=[
+    {description:'Office Supplies',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
+    {description:'Recruiting Fees',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
+    {description:'Misc Plug',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}
+  ];
   if(!state.ltfCustomAdj)state.ltfCustomAdj=[];
   if(!state.daAssetLifeYrs)state.daAssetLifeYrs=5;
   if(!state.vendorRows||!state.vendorRows.length){

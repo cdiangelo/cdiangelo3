@@ -31,8 +31,33 @@ export function initDarkMode(){
   // Check admin ops restrictions for current user
   checkOpsRestriction();
 
-  // ── Admin Ops Mode Control ──
-  initAdminOpsControl();
+  // ── Admin controls — show if user is admin ──
+  function showAdminIfAllowed(){
+    const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
+    const wrap=document.getElementById('adminControlsWrap');
+    if(wrap&&user&&user.isAdmin){
+      wrap.style.display='';
+      initAdminOpsControl();
+      initModuleAccessControl();
+    }
+  }
+  showAdminIfAllowed();
+  // Collapsible admin sections
+  document.querySelectorAll('.admin-collapse-toggle').forEach(h=>{
+    h.addEventListener('click',()=>{
+      const body=h.nextElementSibling;
+      if(!body)return;
+      const open=body.style.display!=='none';
+      body.style.display=open?'none':'';
+      h.innerHTML=(open?'&#9654; ':'&#9660; ')+h.textContent.replace(/^[▶▼]\s*/,'');
+    });
+  });
+  // Re-check when settings panel opens
+  const settingsPanel=document.getElementById('settingsSlidePanel');
+  if(settingsPanel){
+    const obs=new MutationObserver(()=>{if(settingsPanel.classList.contains('open'))showAdminIfAllowed()});
+    obs.observe(settingsPanel,{attributes:true,attributeFilter:['class']});
+  }
 
   // ── Chart color scheme compat ──
   window.chartColorScheme='default';
@@ -65,14 +90,13 @@ function reRenderCharts(){
 }
 
 // ── Admin Ops Mode Control ──
-const OPS_ADMIN_KEY='webplan-ops-admin';
-
+// Store rules in plan state (shared across users) with localStorage fallback
 function getOpsRules(){
-  try{return JSON.parse(localStorage.getItem(OPS_ADMIN_KEY))||[]}catch(e){return[]}
+  try{if(window.state&&window.state.opsRules)return window.state.opsRules;return JSON.parse(localStorage.getItem('webplan-ops-admin'))||[]}catch(e){return[]}
 }
-
 function saveOpsRules(rules){
-  localStorage.setItem(OPS_ADMIN_KEY,JSON.stringify(rules));
+  if(window.state){window.state.opsRules=rules;if(window.saveState)window.saveState()}
+  localStorage.setItem('webplan-ops-admin',JSON.stringify(rules));
 }
 
 function checkOpsRestriction(){
@@ -174,35 +198,80 @@ function initAdminOpsControl(){
 }
 
 // ── Module Access Control ──
-const MODULE_ACCESS_KEY='webplan-module-access';
 const MODULES=[
   {key:'comp',label:'C&B / Exec Comp'},
   {key:'vendor',label:'Vendor Spend'},
   {key:'te',label:'T&E'},
   {key:'contractors',label:'Contractors'},
   {key:'other',label:'Other (C&B/OAO)'},
+  {key:'depreciation',label:'Depreciation / Assets'},
+  {key:'revenue',label:'Revenue'},
   {key:'forecast',label:'Long-Term Forecast'}
 ];
 
 function getModuleAccess(){
-  try{return JSON.parse(localStorage.getItem(MODULE_ACCESS_KEY)||'{}')}catch(e){return{}}
+  try{if(window.state&&window.state.moduleAccess)return window.state.moduleAccess;return JSON.parse(localStorage.getItem('webplan-module-access')||'{}')}catch(e){return{}}
 }
-function saveModuleAccess(rules){localStorage.setItem(MODULE_ACCESS_KEY,JSON.stringify(rules))}
+function saveModuleAccess(rules){
+  if(window.state){window.state.moduleAccess=rules;if(window.saveState)window.saveState()}
+  localStorage.setItem('webplan-module-access',JSON.stringify(rules));
+}
 
 function checkModuleAccess(){
   const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
   if(!user||!user.email)return;
   const rules=getModuleAccess();
   const userRules=rules[user.email.toLowerCase()];
-  if(!userRules)return; // no restrictions
-  // Hide chevron nav items for restricted modules
+  if(!userRules)return;
+
+  // Hide chevron sub-items for restricted modules
   MODULES.forEach(m=>{
     if(userRules[m.key]===false){
+      // Hide chevron sub-items
       document.querySelectorAll(`[data-module="${m.key}"]`).forEach(el=>el.style.display='none');
     }
   });
+
+  // If ALL budget sub-modules restricted, hide entire Budget chevron
+  const budgetMods=['comp','vendor','contractors','te','depreciation'];
+  if(budgetMods.every(k=>userRules[k]===false)){
+    const chevBudget=document.getElementById('chevBudget');
+    if(chevBudget)chevBudget.style.display='none';
+  }
+
+  // If forecast restricted, hide entire Forecast chevron
+  if(userRules.forecast===false){
+    const chevFc=document.getElementById('chevForecast');
+    if(chevFc)chevFc.style.display='none';
+  }
+
+  // Hide depreciation chevron sub-item
+  if(userRules.depreciation===false)document.querySelectorAll('[data-module="depreciation"]').forEach(el=>el.style.display='none');
+
+  // Hide revenue pane toggle if restricted
+  if(userRules.revenue===false){
+    document.querySelectorAll('#revenueModule,.revenue-toggle,[data-pnlmode="revenue"]').forEach(el=>el.style.display='none');
+  }
+
+  // Also hide vtab buttons in vendor module
+  if(userRules.vendor===false)document.querySelectorAll('[data-vtab="vendor-grid"]').forEach(el=>el.style.display='none');
+  if(userRules.te===false)document.querySelectorAll('[data-vtab="vendor-te"]').forEach(el=>el.style.display='none');
+  if(userRules.contractors===false)document.querySelectorAll('[data-vtab="vendor-contractors"]').forEach(el=>el.style.display='none');
+  if(userRules.other===false)document.querySelectorAll('[data-vtab="vendor-other"]').forEach(el=>el.style.display='none');
 }
+
+// Global check used by navigation to block restricted modules
+function isModuleAllowed(moduleKey){
+  const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
+  if(!user||!user.email)return true;
+  const rules=getModuleAccess();
+  const userRules=rules[user.email.toLowerCase()];
+  if(!userRules)return true;
+  return userRules[moduleKey]!==false;
+}
+window.isModuleAllowed=isModuleAllowed;
 window.checkModuleAccess=checkModuleAccess;
+window.checkOpsRestriction=checkOpsRestriction;
 
 function initModuleAccessControl(){
   const listEl=document.getElementById('adminModuleAccessList');
@@ -246,6 +315,35 @@ function initModuleAccessControl(){
       });
       listEl.appendChild(row);
     });
+
+    // Add Apply button
+    const existingApply=listEl.parentElement.querySelector('.admin-apply-btn');
+    if(existingApply)existingApply.remove();
+    const applyBtn=document.createElement('button');
+    applyBtn.className='btn btn-primary btn-sm admin-apply-btn';
+    applyBtn.style.cssText='margin-top:12px;padding:6px 20px;font-size:.78rem;font-weight:600';
+    applyBtn.textContent='Apply Access Controls';
+    applyBtn.addEventListener('click',async()=>{
+      // Gather all checkbox states
+      const r={};
+      listEl.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+        if(!r[cb.dataset.email])r[cb.dataset.email]={};
+        r[cb.dataset.email][cb.dataset.mod]=cb.checked;
+      });
+      saveModuleAccess(r);
+      // Force immediate server save (no debounce)
+      const plan=window._activePlan;
+      if(plan&&plan.id&&window.state){
+        try{
+          await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(window.state)})});
+          applyBtn.textContent='Applied ✓';
+          applyBtn.style.background='var(--success)';
+          setTimeout(()=>{applyBtn.textContent='Apply Access Controls';applyBtn.style.background=''},2000);
+        }catch(e){applyBtn.textContent='Save failed';setTimeout(()=>{applyBtn.textContent='Apply Access Controls'},2000)}
+      }
+      checkModuleAccess();
+    });
+    listEl.parentElement.appendChild(applyBtn);
   }
 
   render();

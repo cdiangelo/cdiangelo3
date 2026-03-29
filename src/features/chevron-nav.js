@@ -87,6 +87,7 @@
       });
       if(window.showLanding)window.showLanding();
       if(window._showCalendar)window._showCalendar();
+      if(window.checkModuleAccess)window.checkModuleAccess();
       backToNavBtn.style.display='none';
       window.scrollTo(0,0);
     });
@@ -145,6 +146,14 @@
 
   function navigateToModule(module){
     // Step 1: Hide everything including appShell
+    // Check module access restrictions
+    const modKeyMap={comp:'comp',vendor:'vendor',contractors:'contractors',te:'te',depreciation:'depreciation',ltf:'forecast'};
+    const modKey=modKeyMap[module];
+    if(modKey&&window.isModuleAllowed&&!window.isModuleAllowed(modKey)){
+      alert('You do not have access to this module.');
+      return;
+    }
+
     hideAppShell();
     showBackToPlan();
     hideCalendar();
@@ -294,9 +303,10 @@
   if(btbData)btbData.addEventListener('click',()=>{const btn=document.getElementById('dataToggleBtn');if(btn)btn.click()});
   if(btbSettings)btbSettings.addEventListener('click',()=>{
     const panel=document.getElementById('settingsSlidePanel');
-    if(panel){const isOpen=panel.classList.contains('open');
-      if(isOpen){panel.classList.remove('open');panel.style.transform='translateX(100%)'}
-      else{panel.classList.add('open');panel.style.transform='translateX(0)'}
+    if(panel){
+      const isOpen=panel.classList.contains('open');
+      if(window.closeAllSidePanels)window.closeAllSidePanels();
+      if(!isOpen){panel.classList.add('open');panel.style.transform='translateX(0)'}
     }
   });
 })();
