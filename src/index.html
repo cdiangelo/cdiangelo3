@@ -834,17 +834,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
 <h4 style="font-size:.92rem;font-weight:600;color:var(--text);margin:0">C&B Other</h4>
 <span style="font-size:.72rem;color:var(--text-dim)">Severance, signing bonuses, equity, etc. — feeds into C&B totals</span>
-<div style="margin-left:auto;display:flex;gap:4px">
-<select id="cbOtherPreset" style="padding:3px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
-<option value="">Add row...</option>
-<option value="Severance">Severance</option>
-<option value="Bonus - Discretionary">Bonus - Discretionary</option>
-<option value="Other C&B">Other C&B</option>
-</select>
+<div style="margin-left:auto;display:flex;gap:4px;align-items:center">
+<input id="cbOtherNewName" placeholder="Row name..." style="padding:3px 8px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:150px">
 <button class="btn btn-sm" id="cbOtherAddBtn" style="padding:3px 10px;font-size:.74rem">+ Add</button>
 </div>
 </div>
-<div style="overflow-x:auto">
+<div style="overflow-x:auto;overflow-y:visible">
 <table class="comp-table" id="cbOtherTable" style="font-size:.8rem;min-width:1400px">
 <thead><tr>
 <th style="min-width:180px">Description</th>
@@ -1810,25 +1805,15 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- OAO Other Tab — monthly grid like T&E -->
 <div id="vtab-vendor-other" class="vtab-content" style="display:none">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
 <h4 style="font-size:.88rem;font-weight:600;color:var(--text);margin:0">OAO Other</h4>
 <span style="font-size:.7rem;color:var(--text-dim)">Misc operating expenses — feeds into OAO totals</span>
-<div style="margin-left:auto;display:flex;gap:4px">
-<select id="oaoOtherPreset" style="padding:3px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
-<option value="">Add row...</option>
-<option value="Office Supplies">Office Supplies</option>
-<option value="Facilities / Rent">Facilities / Rent</option>
-<option value="Insurance">Insurance</option>
-<option value="Legal">Legal</option>
-<option value="Recruiting Fees">Recruiting Fees</option>
-<option value="Professional Services">Professional Services</option>
-<option value="Telecom / Connectivity">Telecom / Connectivity</option>
-<option value="Misc Plug">Misc Plug</option>
-</select>
+<div style="margin-left:auto;display:flex;gap:4px;align-items:center">
+<input id="oaoOtherNewName" placeholder="Row name..." style="padding:3px 8px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:150px">
 <button class="btn btn-sm" id="oaoOtherAddBtn" style="padding:3px 10px;font-size:.74rem">+ Add</button>
 </div>
 </div>
-<div style="overflow-x:auto">
+<div style="overflow-x:auto;overflow-y:visible">
 <table class="comp-table" id="oaoOtherTable" style="font-size:.8rem;min-width:1400px">
 <thead><tr>
 <th style="min-width:180px">Description</th>

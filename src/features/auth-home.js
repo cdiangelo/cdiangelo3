@@ -393,6 +393,10 @@ async function openPlan(plan){
   const sumContent=document.getElementById('landingSummaryContent');if(sumContent)sumContent.style.display='none';
   const oldHdr=document.getElementById('landingHeaderOld');if(oldHdr)oldHdr.style.display='none';
 
+  // Apply admin controls from plan state
+  if(window.checkOpsRestriction)try{window.checkOpsRestriction()}catch(e){}
+  if(window.checkModuleAccess)try{window.checkModuleAccess()}catch(e){}
+
   // Show plan header bar + bottom toolbar
   if(window._showCalendar)try{window._showCalendar()}catch(e){}
   if(window._updateBottomToolbar)window._updateBottomToolbar();

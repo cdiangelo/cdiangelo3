@@ -65,14 +65,13 @@ function reRenderCharts(){
 }
 
 // ── Admin Ops Mode Control ──
-const OPS_ADMIN_KEY='webplan-ops-admin';
-
+// Store rules in plan state (shared across users) with localStorage fallback
 function getOpsRules(){
-  try{return JSON.parse(localStorage.getItem(OPS_ADMIN_KEY))||[]}catch(e){return[]}
+  try{if(window.state&&window.state.opsRules)return window.state.opsRules;return JSON.parse(localStorage.getItem('webplan-ops-admin'))||[]}catch(e){return[]}
 }
-
 function saveOpsRules(rules){
-  localStorage.setItem(OPS_ADMIN_KEY,JSON.stringify(rules));
+  if(window.state){window.state.opsRules=rules;if(window.saveState)window.saveState()}
+  localStorage.setItem('webplan-ops-admin',JSON.stringify(rules));
 }
 
 function checkOpsRestriction(){
@@ -174,7 +173,6 @@ function initAdminOpsControl(){
 }
 
 // ── Module Access Control ──
-const MODULE_ACCESS_KEY='webplan-module-access';
 const MODULES=[
   {key:'comp',label:'C&B / Exec Comp'},
   {key:'vendor',label:'Vendor Spend'},
@@ -185,24 +183,40 @@ const MODULES=[
 ];
 
 function getModuleAccess(){
-  try{return JSON.parse(localStorage.getItem(MODULE_ACCESS_KEY)||'{}')}catch(e){return{}}
+  try{if(window.state&&window.state.moduleAccess)return window.state.moduleAccess;return JSON.parse(localStorage.getItem('webplan-module-access')||'{}')}catch(e){return{}}
 }
-function saveModuleAccess(rules){localStorage.setItem(MODULE_ACCESS_KEY,JSON.stringify(rules))}
+function saveModuleAccess(rules){
+  if(window.state){window.state.moduleAccess=rules;if(window.saveState)window.saveState()}
+  localStorage.setItem('webplan-module-access',JSON.stringify(rules));
+}
 
 function checkModuleAccess(){
   const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
   if(!user||!user.email)return;
   const rules=getModuleAccess();
   const userRules=rules[user.email.toLowerCase()];
-  if(!userRules)return; // no restrictions
-  // Hide chevron nav items for restricted modules
+  if(!userRules)return;
+  // Map module keys to chevron nav selectors and tab selectors
+  const moduleMap={
+    comp:{chevron:'.chevron-item[data-module="comp"]',tabs:['#tab-exec','#tab-employees','#tab-cb-other']},
+    vendor:{chevron:'.chevron-item[data-module="vendor"]',vtabs:['[data-vtab="vendor-grid"]']},
+    te:{vtabs:['[data-vtab="vendor-te"]']},
+    contractors:{vtabs:['[data-vtab="vendor-contractors"]']},
+    other:{vtabs:['[data-vtab="vendor-other"]']},
+    forecast:{chevron:'.chevron-item[data-module="ltf"]'}
+  };
   MODULES.forEach(m=>{
     if(userRules[m.key]===false){
-      document.querySelectorAll(`[data-module="${m.key}"]`).forEach(el=>el.style.display='none');
+      const map=moduleMap[m.key];
+      if(!map)return;
+      if(map.chevron)document.querySelectorAll(map.chevron).forEach(el=>el.style.display='none');
+      if(map.tabs)map.tabs.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.style.display='none'));
+      if(map.vtabs)map.vtabs.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.style.display='none'));
     }
   });
 }
 window.checkModuleAccess=checkModuleAccess;
+window.checkOpsRestriction=checkOpsRestriction;
 
 function initModuleAccessControl(){
   const listEl=document.getElementById('adminModuleAccessList');
