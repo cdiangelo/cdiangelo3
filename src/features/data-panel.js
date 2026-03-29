@@ -172,12 +172,20 @@ function initDataPanel(){
     histDlBtn.addEventListener('click',()=>{
       if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}
       const wb=XLSX.utils.book_new();
-      const accounts=['HC','C&B','OAO','D&A','CapEx','Revenue'];
-      const rows=[['Year','Account','Amount']];
-      [2023,2024,2025].forEach(yr=>accounts.forEach(a=>rows.push([yr,a,0])));
-      const ws=XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols']=[{wch:8},{wch:12},{wch:14}];
-      XLSX.utils.book_append_sheet(wb,ws,'Historicals');
+      const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const accounts=['C&B','Vendor Spend','Contractors','T&E','D&A','CapEx','Revenue'];
+      // Monthly detail sheet
+      const moRows=[['Year','Month','Account','Amount','HC']];
+      [2023,2024,2025].forEach(yr=>MO.forEach(mo=>accounts.forEach(a=>moRows.push([yr,mo,a,0,a==='C&B'?0:'']))));
+      const ws1=XLSX.utils.aoa_to_sheet(moRows);
+      ws1['!cols']=[{wch:6},{wch:5},{wch:16},{wch:12},{wch:5}];
+      XLSX.utils.book_append_sheet(wb,ws1,'Monthly Detail');
+      // Annual summary sheet (auto-aggregated from monthly, but also accepted as input)
+      const annRows=[['Year','Account','Amount','HC']];
+      [2023,2024,2025].forEach(yr=>accounts.forEach(a=>annRows.push([yr,a,0,a==='C&B'?0:''])));
+      const ws2=XLSX.utils.aoa_to_sheet(annRows);
+      ws2['!cols']=[{wch:6},{wch:16},{wch:12},{wch:5}];
+      XLSX.utils.book_append_sheet(wb,ws2,'Annual Summary');
       XLSX.writeFile(wb,'historicals_template.xlsx');
     });
   }
@@ -201,21 +209,55 @@ function initDataPanel(){
         try{
           if(!state.historicals)state.historicals={enabled:false,years:{}};
           if(typeof XLSX!=='undefined'){
+            const MO_MAP={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+              january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
             const wb=XLSX.read(e.target.result,{type:'array'});
-            const ws=wb.Sheets[wb.SheetNames[0]];
+            // Try Monthly Detail sheet first, fall back to first sheet
+            const wsName=wb.SheetNames.find(n=>n.toLowerCase().includes('monthly'))||wb.SheetNames[0];
+            const ws=wb.Sheets[wsName];
             const rows=XLSX.utils.sheet_to_json(ws);
+            const hasMonth=rows.some(r=>r.Month||r.month);
+            function mapAcct(a){
+              const l=a.toLowerCase();
+              if(l==='hc'||l==='headcount')return 'hc';
+              if(l==='cb'||l==='c&b'||l==='comp')return 'cb';
+              if(l==='vendor spend'||l==='oao'||l==='vendor')return 'oao';
+              if(l==='contractors'||l==='ctr'||l==='contractor')return 'ctr';
+              if(l==='t&e'||l==='te'||l==='travel')return 'te';
+              if(l==='da'||l==='d&a'||l==='depreciation')return 'da';
+              if(l==='capex')return 'capex';
+              if(l==='revenue')return 'revenue';
+              return null;
+            }
+            function ensureYr(yr){
+              if(!state.historicals.years[yr])state.historicals.years[yr]={hc:0,cb:0,oao:0,ctr:0,te:0,da:0,capex:0,revenue:0,monthly:{}};
+              if(!state.historicals.years[yr].monthly)state.historicals.years[yr].monthly={};
+              return state.historicals.years[yr];
+            }
             rows.forEach(r=>{
               const yr=String(r.Year||r.year||'').trim();
-              const acct=(r.Account||r.account||'').trim().toLowerCase();
+              const acctRaw=(r.Account||r.account||'').trim();
+              const acct=mapAcct(acctRaw);
               const amt=parseFloat(r.Amount||r.amount||0);
+              const hcVal=parseFloat(r.HC||r.hc||0);
               if(!yr||!acct)return;
-              if(!state.historicals.years[yr])state.historicals.years[yr]={hc:0,cb:0,oao:0,da:0,capex:0,revenue:0};
-              if(acct==='hc'||acct==='headcount')state.historicals.years[yr].hc+=amt;
-              else if(acct==='cb'||acct==='c&b'||acct==='comp')state.historicals.years[yr].cb+=amt;
-              else if(acct==='oao')state.historicals.years[yr].oao+=amt;
-              else if(acct==='da'||acct==='d&a')state.historicals.years[yr].da+=amt;
-              else if(acct==='capex')state.historicals.years[yr].capex+=amt;
-              else if(acct==='revenue')state.historicals.years[yr].revenue+=amt;
+              const yd=ensureYr(yr);
+              if(hasMonth){
+                const mo=(r.Month||r.month||'').toString().trim().toLowerCase().slice(0,3);
+                const mi=MO_MAP[mo]??parseInt(mo)-1;
+                if(mi>=0&&mi<12){
+                  if(!yd.monthly[mi])yd.monthly[mi]={hc:0,cb:0,oao:0,ctr:0,te:0,da:0,capex:0,revenue:0};
+                  if(acct==='hc')yd.monthly[mi].hc+=hcVal||amt;
+                  else yd.monthly[mi][acct]+=amt;
+                }
+                // Also aggregate to annual
+                if(acct==='hc'){yd.hc=Math.max(yd.hc,hcVal||amt)}
+                else yd[acct]+=amt;
+              } else {
+                if(acct==='hc')yd.hc+=hcVal||amt;
+                else yd[acct]+=amt;
+              }
+              if(hcVal&&acct==='cb')yd.hc=Math.max(yd.hc,hcVal);
             });
             state.historicals.enabled=true;
             if(histToggle)histToggle.checked=true;
@@ -236,10 +278,10 @@ function initDataPanel(){
     const years=Object.keys(hist.years||{}).sort();
     if(!years.length){list.innerHTML='<div style="font-size:.74rem;color:var(--text-dim)">No historical data uploaded.</div>';return}
     const fv=v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':v?String(Math.round(v)):'—';
-    list.innerHTML=`<table style="width:100%;font-size:.72rem;border-collapse:collapse">
-      <thead><tr style="color:var(--text-dim)"><th style="text-align:left;padding:3px 6px">Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>D&A</th><th>CapEx</th><th style="text-align:right;padding:3px 4px">
-        <span style="cursor:pointer;color:var(--danger);font-size:.65rem" title="Clear all historicals" id="histClearAll">clear</span></th></tr></thead>
-      <tbody>${years.map(yr=>{const d=hist.years[yr];return `<tr><td style="font-weight:600;padding:3px 6px">${yr}</td><td class="num">${d.hc||'—'}</td><td class="num">${fv(d.cb)}</td><td class="num">${fv(d.oao)}</td><td class="num">${fv(d.da)}</td><td class="num">${fv(d.capex)}</td><td style="text-align:right;padding:3px 4px"><button class="hist-del-yr" data-yr="${yr}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.65rem">×</button></td></tr>`}).join('')}</tbody>
+    list.innerHTML=`<table style="width:100%;font-size:.7rem;border-collapse:collapse">
+      <thead><tr style="color:var(--text-dim)"><th style="text-align:left;padding:3px 4px">Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>CTR</th><th>T&E</th><th>D&A</th><th>CapEx</th><th style="text-align:right;padding:3px 4px">
+        <span style="cursor:pointer;color:var(--danger);font-size:.6rem" title="Clear all historicals" id="histClearAll">clear</span></th></tr></thead>
+      <tbody>${years.map(yr=>{const d=hist.years[yr];const hasMo=d.monthly&&Object.keys(d.monthly).length>0;return `<tr><td style="font-weight:600;padding:3px 4px">${yr}${hasMo?'<span style="color:var(--accent);font-size:.55rem;margin-left:2px" title="Monthly detail available">mo</span>':''}</td><td class="num">${d.hc||'—'}</td><td class="num">${fv(d.cb)}</td><td class="num">${fv(d.oao)}</td><td class="num">${fv(d.ctr||0)}</td><td class="num">${fv(d.te||0)}</td><td class="num">${fv(d.da)}</td><td class="num">${fv(d.capex)}</td><td style="text-align:right;padding:3px 4px"><button class="hist-del-yr" data-yr="${yr}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.6rem">×</button></td></tr>`}).join('')}</tbody>
     </table>`;
     list.querySelectorAll('.hist-del-yr').forEach(btn=>{
       btn.addEventListener('click',()=>{delete state.historicals.years[btn.dataset.yr];if(window.saveState)window.saveState();renderHistoricalsList()});
