@@ -2222,15 +2222,6 @@ function initOtherTab(){
   const cbTbody=document.getElementById('cbOtherTbody');
   const cbTfoot=document.getElementById('cbOtherTotalRow');
   if(cbTbody&&cbTfoot){
-    // Seed 3 default rows if empty
-    if(!state.cbOtherRows.length){
-      state.cbOtherRows=[
-        {description:'Severance',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
-        {description:'Bonus - Discretionary',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
-        {description:'Other C&B',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}
-      ];
-      saveState();
-    }
     renderOtherGrid('cbo',state.cbOtherRows,cbTbody,cbTfoot);
     const cbAddBtn=document.getElementById('cbOtherAddBtn');
     if(cbAddBtn)cbAddBtn.onclick=()=>{
@@ -2246,15 +2237,6 @@ function initOtherTab(){
   const oaoTbody=document.getElementById('oaoOtherTbody');
   const oaoTfoot=document.getElementById('oaoOtherTotalRow');
   if(oaoTbody&&oaoTfoot){
-    // Seed 3 default rows if empty
-    if(!state.oaoOtherRows.length){
-      state.oaoOtherRows=[
-        {description:'Office Supplies',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
-        {description:'Recruiting Fees',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
-        {description:'Misc Plug',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}
-      ];
-      saveState();
-    }
     renderOtherGrid('oaoo',state.oaoOtherRows,oaoTbody,oaoTfoot);
     const oaoAddBtn=document.getElementById('oaoOtherAddBtn');
     if(oaoAddBtn)oaoAddBtn.onclick=()=>{

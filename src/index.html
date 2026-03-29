@@ -3269,21 +3269,28 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <label class="header-toggle" style="margin-bottom:8px"><input type="checkbox" id="globalToggleOps"><span class="toggle-track"></span> Ops View <span style="font-size:.72rem;color:var(--tertiary);margin-left:4px">(hides comp values)</span></label>
 </div>
 
-<!-- Admin: User Ops Mode Control -->
+<!-- Admin Gate -->
 <div style="margin-bottom:24px">
-<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Admin — Restrict Ops View</h4>
+<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Admin Controls</h4>
+<div id="adminGate" style="display:flex;gap:6px;align-items:center">
+<input type="password" id="adminPassInput" placeholder="Admin password" style="padding:4px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:140px">
+<button class="btn btn-sm" id="adminPassBtn" style="padding:4px 10px;font-size:.76rem">Unlock</button>
+</div>
+<div id="adminControls" style="display:none">
+<!-- Admin: User Ops Mode Control -->
+<div style="margin-bottom:20px;margin-top:16px">
+<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Restrict Ops View</h4>
 <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px">Check users who should be restricted to Ops View (comp values always hidden).</p>
 <div id="adminOpsUserList" style="display:flex;flex-direction:column;gap:2px">
-<!-- Auto-populated from known users -->
 </div>
 </div>
-
 <!-- Admin: Module Access Control -->
-<div style="margin-bottom:24px">
-<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Admin — Module Access</h4>
+<div style="margin-bottom:20px">
+<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Module Access</h4>
 <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px">Control which modules each user can access. Summaries and totals remain visible.</p>
 <div id="adminModuleAccessList" style="display:flex;flex-direction:column;gap:6px">
-<!-- Auto-populated -->
+</div>
+</div>
 </div>
 </div>
 </div>

@@ -31,8 +31,23 @@ export function initDarkMode(){
   // Check admin ops restrictions for current user
   checkOpsRestriction();
 
-  // ── Admin Ops Mode Control ──
-  initAdminOpsControl();
+  // ── Admin password gate ──
+  const adminPassBtn=document.getElementById('adminPassBtn');
+  const adminPassInput=document.getElementById('adminPassInput');
+  if(adminPassBtn){
+    adminPassBtn.addEventListener('click',()=>{
+      if(adminPassInput&&adminPassInput.value==='abc123'){
+        document.getElementById('adminGate').style.display='none';
+        document.getElementById('adminControls').style.display='';
+        initAdminOpsControl();
+        initModuleAccessControl();
+      } else {
+        adminPassInput.style.borderColor='var(--danger)';
+        setTimeout(()=>{if(adminPassInput)adminPassInput.style.borderColor=''},1500);
+      }
+    });
+    if(adminPassInput)adminPassInput.addEventListener('keydown',e=>{if(e.key==='Enter')adminPassBtn.click()});
+  }
 
   // ── Chart color scheme compat ──
   window.chartColorScheme='default';
