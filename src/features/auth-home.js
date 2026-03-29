@@ -248,7 +248,7 @@ async function renderPlanList(){
           if(card)card.style.display='none';
           // Fire API in background, refresh list after
           fetch('/api/plan-files/'+plan.id,{method:'DELETE'}).then(r=>{
-            _cachedPlans=null;renderPlanList();
+            invalidatePlanCache();_cachedPlans=null;renderPlanList();
           }).catch(()=>{
             if(card)card.style.display='';
           });
