@@ -1301,7 +1301,7 @@ function renderLtfChart(){
     datasets.push({label:'OAO',data:oaoYears.slice(),backgroundColor:hexToRgba(lcc[1],0.6),stack:'pos'});
     if(isPnl){
       datasets.push({label:'D&A',data:daYears.slice(),backgroundColor:hexToRgba(lcc[2],0.6),stack:'pos'});
-      datasets.push({label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'});
+      datasets.push({label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'pos'});
     }
   } else if(ltfSplit==='comp'){
     // ── Split by Base / Bonus / Benefits ──
@@ -1312,7 +1312,7 @@ function renderLtfChart(){
         {label:'Benefits (OpEx)',data:cbRows.map(r=>Math.round(r.benefits*(1-r.capex/Math.max(r.total,1)))),backgroundColor:lcc[2],stack:'pos'},
         {label:'OAO',data:oaoYears.slice(),backgroundColor:hexToRgba(lcc[3]||lcc[1],0.6),stack:'pos'},
         {label:'D&A',data:daYears.slice(),backgroundColor:hexToRgba(lcc[4]||lcc[2],0.6),stack:'pos'},
-        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
+        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'pos'}
       ];
     } else {
       datasets=[
@@ -1329,7 +1329,7 @@ function renderLtfChart(){
         {label:'C&B',data:cbOpex.slice(),backgroundColor:lcc[0],stack:'pos'},
         {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'pos'},
         {label:'D&A',data:daYears.slice(),backgroundColor:lcc[2],stack:'pos'},
-        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
+        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'pos'}
       ];
     } else {
       datasets=[
@@ -1362,7 +1362,7 @@ function renderLtfChart(){
   }
 
   window.stackedBarDatalabels(datasets,tickColor,8,'ltf');
-  if(isPnl)datasets.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
+  if(isPnl)datasets.filter(d=>d.label==='CapEx').forEach(d=>{d.datalabels={display:false}});
 
   ltfChartInst=new Chart(canvas,{
     type:'bar',data:{labels:yearLabels,datasets},

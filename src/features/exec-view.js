@@ -581,7 +581,7 @@ function renderExecView(){
       if(capexData.some(v=>v!==0)){
         const ecc0=window.getChartColors();
         datasets.forEach(ds=>{if(ds.type!=='line')ds.stack='pos'});
-        datasets.push({label:'CapEx',data:capexData,backgroundColor:window.hexToRgba(ecc0[4]||'#888',0.4),borderColor:ecc0[4]||'#888',borderWidth:1,stack:'neg',yAxisID:'y',order:2,datalabels:{display:false}});
+        datasets.push({label:'CapEx',data:capexData,backgroundColor:window.hexToRgba(ecc0[4]||'#888',0.4),borderColor:ecc0[4]||'#888',borderWidth:1,stack:'pos',yAxisID:'y',order:2,datalabels:{display:false}});
       }
     }
     // FTE count line
@@ -703,7 +703,7 @@ function renderExecView(){
       const efc=window.getChartColors();
       const ds=showFcOpex?[
         {label:'OpEx',data:totalFcRows.map(r=>r.opex),backgroundColor:efc[4],stack:'pos'},
-        {label:'CapEx',data:totalFcRows.map(r=>-r.capex),backgroundColor:window.hexToRgba(efc[0],0.4),stack:'neg'}
+        {label:'CapEx',data:totalFcRows.map(r=>-r.capex),backgroundColor:window.hexToRgba(efc[0],0.4),stack:'pos'}
       ]:[
         {label:'Total Comp',data:totalFcRows.map(r=>r.total),backgroundColor:efc[0]}
       ];
