@@ -438,9 +438,55 @@ function renderPivotChart(data){
   }
 }
 
+// ── Scenario comparison ──
+let compState=null; // loaded comparison plan state
+let compPlanId='';
+
+async function populateScenarioSelects(){
+  const mainSel=document.getElementById('pivotScenarioMain');
+  const compSel=document.getElementById('pivotScenarioComp');
+  if(!mainSel||!compSel)return;
+  // Get user and fetch plans
+  const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
+  if(!user||!user.id)return;
+  try{
+    const r=await fetch('/api/plan-files?accountId='+user.id);
+    if(!r.ok)return;
+    const plans=await r.json();
+    const currentId=window._activePlan?.id;
+    const opts=plans.map(p=>`<option value="${p.id}"${p.id===currentId?' selected':''}>${p.name} (${p.year} ${p.scenarioType||'budget'})</option>`).join('');
+    mainSel.innerHTML=`<option value="_current">Current</option>`+opts;
+    compSel.innerHTML=`<option value="">None</option>`+plans.map(p=>`<option value="${p.id}">${p.name} (${p.year} ${p.scenarioType||'budget'})</option>`).join('');
+  }catch(e){}
+}
+
+async function loadCompPlan(planId){
+  if(!planId||planId===compPlanId)return;
+  if(!planId){compState=null;compPlanId='';return}
+  try{
+    const r=await fetch('/api/plan-files/'+planId);
+    if(r.ok){
+      const plan=await r.json();
+      compState=typeof plan.state_data==='string'?JSON.parse(plan.state_data):plan.state_data;
+      compPlanId=planId;
+    }
+  }catch(e){compState=null;compPlanId=''}
+}
+
 // ── Main render ──
-function renderPivot(){
+async function renderPivot(){
+  // Load comparison if selected
+  const compSel=document.getElementById('pivotScenarioComp');
+  const compId=compSel?compSel.value:'';
+  if(compId&&compId!==compPlanId){await loadCompPlan(compId)}
+  else if(!compId){compState=null;compPlanId=''}
+
   const data=buildPnlData();
+  // Build comparison data from compState if available
+  if(compState){
+    const compData=buildPnlData(compState);
+    data.compRows=compData.rows;
+  }
   renderPivotChart(data);
   renderPivotTable(data);
   // Update header label
@@ -481,6 +527,18 @@ function initPivot(){
   // Account filter for chart
   const acctSel=document.getElementById('pivotChartAccount');
   if(acctSel)acctSel.addEventListener('change',renderPivot);
+
+  // Scenario selectors
+  const compSelEl=document.getElementById('pivotScenarioComp');
+  if(compSelEl)compSelEl.addEventListener('change',()=>renderPivot());
+  // Populate scenarios when pivot tab is shown
+  populateScenarioSelects();
+  // Re-populate when tab becomes visible
+  const pivotTab=document.getElementById('tab-pivot');
+  if(pivotTab){
+    const obs=new MutationObserver(()=>{if(pivotTab.style.display!=='none')populateScenarioSelects()});
+    obs.observe(pivotTab,{attributes:true,attributeFilter:['style']});
+  }
 }
 
 window.initPivot=initPivot;
