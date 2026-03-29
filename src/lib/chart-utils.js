@@ -1,6 +1,9 @@
 // ── Chart utilities ──
 import { fmt } from './constants.js';
 
+// Format as $M for chart labels (consistent across all charts)
+function fmtChartM(n){if(!n)return '';const a=Math.abs(n);const s=n<0?'-':'';return s+'$'+(a/1e6).toFixed(2)+'M'}
+
 // Unified chart colors — read from CSS custom properties
 function getCSSVar(name){
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -135,13 +138,13 @@ export function stackedBarDatalabels(datasets,tickColor,fontSize){
       ds.datalabels={display:true,anchor:'end',align:'end',rotation:rotation,color:dlColor,font:{size:labelFs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;posStacks.forEach(d=>{const val=d.data[ctx.dataIndex];if(val>0)sum+=val});
-          return sum?fmt(sum):'';
+          return sum?fmtChartM(sum):'';
         }};
     } else if(i===bottomNegIdx){
       ds.datalabels={display:true,anchor:'start',align:'start',rotation:rotation,color:dlColor,font:{size:labelFs,weight:'bold'},
         formatter:(_,ctx)=>{
           let sum=0;negStacks.forEach(d=>{sum+=d.data[ctx.dataIndex]});
-          return sum<0?fmt(sum):'';
+          return sum<0?fmtChartM(sum):'';
         }};
     } else {
       ds.datalabels={display:false};

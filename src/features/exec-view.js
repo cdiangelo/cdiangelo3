@@ -12,7 +12,7 @@ import {
 } from '../lib/proration.js';
 import { projectForecast } from './forecast.js';
 
-function fmtM(n){const a=Math.abs(n);if(a>=1e5)return(n<0?'-':'')+'$'+(n/1e6).toFixed(2)+'M';return fmt(n)}
+function fmtM(n){if(!n)return '$0';const a=Math.abs(n);const s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(2)+'M';if(a>=1e3)return s+'$'+(a/1e6).toFixed(3)+'M';return s+'$'+(a/1e6).toFixed(4)+'M'}
 let execSplit='none',execView='total',execPeriod='full',execFcSplit='total',execFcView='total',execTrendYear='current';
 let execMonthlyChart=null,execForecastChart=null,execFcSparkChart=null;
 let execFcCollapsed=true;
@@ -566,7 +566,7 @@ function renderExecView(){
       return {label:g.length>25?g.slice(0,23)+'\u2026':g,data:monthlyData[g],backgroundColor:color,borderColor:color,borderWidth:execSplit==='none'?2:1,yAxisID:'y',order:2};
     });
     if(execSplit!=='none'){window.stackedBarDatalabels(datasets,tickColor,null,'exec')}
-    else{const _execDlC=window.getCrispDatalabelColor('exec')||tickColor;datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_execDlC,font:{size:window.chartColorScheme==='crisp'?13:11,weight:'bold'},formatter:v=>v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+Math.round(v)}})}
+    else{const _execDlC=window.getCrispDatalabelColor('exec')||tickColor;datasets.forEach(ds=>{ds.datalabels={display:true,anchor:'end',align:'end',color:_execDlC,font:{size:window.chartColorScheme==='crisp'?13:11,weight:'bold'},formatter:v=>'$'+(Math.abs(v)/1e6).toFixed(2)+'M'}})}
     // CapEx bars stacked below when viewing total (show opex + capex split)
     if(execView==='total'){
       const capexData=periodLabels.map((_,pi)=>{
@@ -618,9 +618,9 @@ function renderExecView(){
   if(execSplit==='none'){
     let html=`<thead style="position:sticky;top:0;z-index:2;background:var(--panel)"><tr><th>${periodColLabel}</th><th>Amount</th><th>FTE</th><th>Avg Ann. FTE Comp</th></tr></thead><tbody>`;
     let periodTotal=0;
-    for(let pi=0;pi<numDataPoints;pi++){const v=monthlyData['Total'][pi];periodTotal+=v;html+=`<tr><td>${dataPointLabels[pi]}</td><td style="text-align:right">${fmt(v)}</td><td style="text-align:right">${monthlyFte[pi]}</td><td style="text-align:right">${fmt(monthlyAvgAnnFteComp[pi])}</td></tr>`}
+    for(let pi=0;pi<numDataPoints;pi++){const v=monthlyData['Total'][pi];periodTotal+=v;html+=`<tr><td>${dataPointLabels[pi]}</td><td style="text-align:right">${fmtM(v)}</td><td style="text-align:right">${monthlyFte[pi]}</td><td style="text-align:right">${fmt(monthlyAvgAnnFteComp[pi])}</td></tr>`}
     const sumFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(sumFte/numDataPoints*100)/100;
-    html+=`</tbody><tfoot><tr><td>${periodLabel} Total</td><td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(periodTotal)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${periodTotal&&avgFte?fmt(Math.round(periodTotal/numDataPoints/avgFte*12)):'\u2014'}</td></tr></tfoot>`;
+    html+=`</tbody><tfoot><tr><td>${periodLabel} Total</td><td style="text-align:right;font-weight:700;color:var(--accent)">${fmtM(periodTotal)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${periodTotal&&avgFte?fmt(Math.round(periodTotal/numDataPoints/avgFte*12)):'\u2014'}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   } else {
     let html=`<thead style="position:sticky;top:0;z-index:2;background:var(--panel)"><tr><th>${periodColLabel}</th>`;
@@ -631,7 +631,7 @@ function renderExecView(){
     for(let pi=0;pi<numDataPoints;pi++){
       html+=`<tr><td>${dataPointLabels[pi]}</td>`;
       let rowTotal=0;
-      groupNames.forEach((g,gi)=>{const v=monthlyData[g][pi];annuals[gi]+=v;rowTotal+=v;html+=`<td style="text-align:right">${fmt(v)}</td>`});
+      groupNames.forEach((g,gi)=>{const v=monthlyData[g][pi];annuals[gi]+=v;rowTotal+=v;html+=`<td style="text-align:right">${fmtM(v)}</td>`});
       grandTotal+=rowTotal;
       html+=`<td style="text-align:right;font-weight:600" class="col-divider">${fmt(rowTotal)}</td><td style="text-align:right">${monthlyFte[pi]}</td><td style="text-align:right">${fmt(monthlyAvgAnnFteComp[pi])}</td></tr>`;
     }
@@ -694,7 +694,7 @@ function renderExecView(){
   if(!fcSplitGroups){
     // Total view
     let html='<thead style="position:sticky;top:0;z-index:2;background:var(--panel)"><tr><th>Year</th><th>HC</th><th>Total Comp</th><th>CapEx</th><th>OpEx</th></tr></thead><tbody>';
-    totalFcRows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${displayYear(r.year)}</td><td>${r.hc}</td><td>${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
+    totalFcRows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${displayYear(r.year)}</td><td>${r.hc}</td><td>${fmtM(r.total)}</td><td>${fmtM(r.capex)}</td><td style="color:var(--success)">${fmtM(r.opex)}</td></tr>`);
     html+='</tbody>';
     fcTbl.innerHTML=html;
 
@@ -739,7 +739,7 @@ function renderExecView(){
     html+='<th class="split-th col-divider">Total</th></tr></thead><tbody>';
     yearLabels.forEach((y,yi)=>{
       html+=`<tr><td style="font-weight:600;color:var(--accent)">${y}</td>`;
-      gNames.forEach(g=>{const r=gForecasts[g][yi];const v=r?(showFcOpex?r.opex:r.total):0;html+=`<td style="text-align:right">${fmt(v)}</td>`});
+      gNames.forEach(g=>{const r=gForecasts[g][yi];const v=r?(showFcOpex?r.opex:r.total):0;html+=`<td style="text-align:right">${fmtM(v)}</td>`});
       // Use independently-computed total to ensure consistency across split modes
       const tr=totalFcRows[yi];
       html+=`<td style="text-align:right;font-weight:600;color:var(--accent)" class="col-divider">${fmt(showFcOpex?tr.opex:tr.total)}</td></tr>`;
