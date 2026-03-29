@@ -195,24 +195,77 @@ function renderPivotChart(data){
   const tickFmt=isHC?v=>Math.round(v):v=>'$'+(Math.abs(v)/1e6).toFixed(1);
 
   if(pivotChartType==='bubble'){
-    // Bubble matrix: x=row index, y=account value, r=scaled size
-    const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
-    const maxVal=Math.max(...vals.map(Math.abs),1);
-    const bubbleData=vals.map((v,i)=>({x:i,y:v,r:Math.max(4,Math.sqrt(Math.abs(v)/maxVal)*40)}));
-    pivotChart=new Chart(canvas,{
-      type:'bubble',
-      data:{datasets:[{label:acctKey.toUpperCase(),data:bubbleData,backgroundColor:hexToRgba(colors[0],0.5),borderColor:colors[0],borderWidth:1}]},
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false,
-          tooltip:{callbacks:{label:ctx=>{const d=ctx.raw;return labels[d.x]+': '+(isHC?Math.round(d.y):('$'+(Math.abs(d.y)/1e6).toFixed(2)+'M'))}}}
-        },
-        scales:{
-          x:{type:'linear',ticks:{callback:v=>labels[Math.round(v)]||'',font:{size:10}},min:-0.5,max:rowNames.length-0.5},
-          y:{ticks:{font:{size:10},callback:tickFmt}}
-        }
-      }
+    // Bubble matrix: X = Row 1, Y = Row 2, size = account amount
+    const dim2El=document.getElementById('pivotRow2Dim');
+    const dim2=dim2El?dim2El.value:'';
+    // Collect all Row2 keys across all Row1 groups
+    const row2Set=new Set();
+    rowNames.forEach(name=>{
+      const children=rows[name].children||{};
+      Object.keys(children).forEach(k=>row2Set.add(k));
     });
+    const row2Names=[...row2Set].sort();
+
+    if(!dim2||row2Names.length===0){
+      // No Row 2 selected — fall back to simple bar-like bubbles on a single axis
+      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+      const maxVal=Math.max(...vals.map(Math.abs),1);
+      const bubbleData=vals.map((v,i)=>({x:i,y:0,r:Math.max(5,Math.sqrt(Math.abs(v)/maxVal)*35),_label:rowNames[i],_val:v}));
+      pivotChart=new Chart(canvas,{
+        type:'bubble',
+        data:{datasets:[{label:acctKey.toUpperCase(),data:bubbleData,backgroundColor:hexToRgba(colors[0],0.45),borderColor:colors[0],borderWidth:1}]},
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false,
+            tooltip:{callbacks:{label:ctx=>{const d=ctx.raw;return d._label+': '+(isHC?Math.round(d._val):('$'+(Math.abs(d._val)/1e6).toFixed(2)+'M'))}}}
+          },
+          scales:{
+            x:{type:'linear',ticks:{callback:v=>labels[Math.round(v)]||'',font:{size:9}},min:-0.5,max:rowNames.length-0.5},
+            y:{display:false}
+          }
+        }
+      });
+    } else {
+      // True matrix: Row1 × Row2
+      const bubbleData=[];
+      let maxVal=1;
+      rowNames.forEach(name=>{
+        const children=rows[name].children||{};
+        row2Names.forEach(k2=>{
+          if(children[k2]){
+            const r=calcDerived(children[k2],(daTotal/nRows)/Math.max(Object.keys(children).length,1));
+            const v=Math.abs(r[acctKey]||0);
+            if(v>maxVal)maxVal=v;
+          }
+        });
+      });
+      rowNames.forEach((name,xi)=>{
+        const children=rows[name].children||{};
+        row2Names.forEach((k2,yi)=>{
+          if(children[k2]){
+            const r=calcDerived(children[k2],(daTotal/nRows)/Math.max(Object.keys(children).length,1));
+            const v=r[acctKey]||0;
+            if(v!==0) bubbleData.push({x:xi,y:yi,r:Math.max(4,Math.sqrt(Math.abs(v)/maxVal)*30),_r1:name,_r2:k2,_val:v});
+          }
+        });
+      });
+      const row1Labels=rowNames.map(n=>n.length>14?n.slice(0,12)+'…':n);
+      const row2Labels=row2Names.map(n=>n.length>14?n.slice(0,12)+'…':n);
+      pivotChart=new Chart(canvas,{
+        type:'bubble',
+        data:{datasets:[{label:acctKey.toUpperCase(),data:bubbleData,backgroundColor:hexToRgba(colors[0],0.45),borderColor:colors[0],borderWidth:1}]},
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false,
+            tooltip:{callbacks:{label:ctx=>{const d=ctx.raw;const fmtV=isHC?Math.round(d._val):('$'+(Math.abs(d._val)/1e6).toFixed(2)+'M');return d._r1+' × '+d._r2+': '+fmtV}}}
+          },
+          scales:{
+            x:{type:'linear',ticks:{callback:v=>{const i=Math.round(v);return row1Labels[i]||''},font:{size:9},maxRotation:45},min:-0.5,max:rowNames.length-0.5,title:{display:true,text:document.getElementById('pivotRowDim').selectedOptions[0]?.text||'Row 1',font:{size:11}}},
+            y:{type:'linear',ticks:{callback:v=>{const i=Math.round(v);return row2Labels[i]||''},font:{size:9}},min:-0.5,max:row2Names.length-0.5,title:{display:true,text:document.getElementById('pivotRow2Dim').selectedOptions[0]?.text||'Row 2',font:{size:11}}}
+          }
+        }
+      });
+    }
   } else if(pivotChartType==='line'){
     // Single line showing the selected account across rows
     const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
