@@ -1,6 +1,10 @@
 // ── Plan Calendar ── sidebar calendar with milestones + per-day notes
 import { state, saveState } from '../lib/state.js';
 
+// Map CSS var colors or empty to hex fallbacks
+const COLOR_MAP={'var(--accent)':'#3a7d44','var(--success)':'#3a7d44','var(--warning)':'#d97706','var(--danger)':'#dc2626','':'#3a7d44'};
+function resolveColor(c){if(!c||COLOR_MAP[c])return COLOR_MAP[c||''];return c.startsWith('#')?c:'#3a7d44'}
+
 (function(){
   const grid=document.getElementById('calGrid');
   const label=document.getElementById('calMonthLabel');
@@ -68,13 +72,9 @@ import { state, saveState } from '../lib/state.js';
       // Color tint from first milestone's color
       let inlineStyle='';
       if(dayItems.length>0){
-        const c=dayItems[0].color||'';
-        if(c.startsWith('#')){
-          const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);
-          inlineStyle=`background:rgba(${r},${g},${b},0.45)`;
-        } else {
-          inlineStyle=`background:color-mix(in srgb, var(--accent) 45%, transparent)`;
-        }
+        const c=resolveColor(dayItems[0].color);
+        const cr=parseInt(c.slice(1,3),16),cg=parseInt(c.slice(3,5),16),cb=parseInt(c.slice(5,7),16);
+        inlineStyle=`background:rgba(${cr},${cg},${cb},0.35)`;
       }
       const tipText=notes[key]?esc(notes[key].length>60?notes[key].slice(0,60)+'…':notes[key]):'';
       html+=`<div class="${cls}" data-date="${key}" style="${inlineStyle}" ${tipText?'title="'+tipText+'"':''}>${d}</div>`;
@@ -108,12 +108,15 @@ import { state, saveState } from '../lib/state.js';
 
     // Milestones
     if(dayItems.length){
-      html+=dayItems.map((item,i)=>`
-        <div class="cal-item">
-          <span class="cal-dot" style="background:${item.color||'var(--accent)'}"></span>
+      html+=dayItems.map((item,i)=>{
+        const c=resolveColor(item.color);
+        const cr=parseInt(c.slice(1,3),16),cg=parseInt(c.slice(3,5),16),cb=parseInt(c.slice(5,7),16);
+        return `<div class="cal-item" style="background:rgba(${cr},${cg},${cb},0.12)">
+          <span class="cal-dot" style="background:${c}"></span>
           <span class="cal-item-text">${esc(item.text)}</span>
           <button class="cal-item-del" data-idx="${i}">×</button>
-        </div>`).join('');
+        </div>`;
+      }).join('');
     }
 
     // Day note
@@ -166,7 +169,7 @@ import { state, saveState } from '../lib/state.js';
       const dateItems=items[date]||[];
       const dateNote=notes[date]||'';
       // Get primary color from first item for card accent
-      const primaryColor=dateItems.length?dateItems[0].color||'var(--accent)':'var(--accent)';
+      const primaryColor=resolveColor(dateItems.length?dateItems[0].color:'');
       let rows='';
       if(dateItems.length){
         rows+=dateItems.map(item=>`
@@ -179,15 +182,9 @@ import { state, saveState } from '../lib/state.js';
         rows+=`<div style="font-size:.72rem;color:var(--text-dim);padding:3px 0 0 0;font-style:italic;cursor:default" title="${esc(dateNote)}">${esc(preview)}</div>`;
       }
       // Tint matching day cell color
-      let cardBg, cardBorder;
-      if(primaryColor.startsWith('#')){
-        const r=parseInt(primaryColor.slice(1,3),16),g=parseInt(primaryColor.slice(3,5),16),b=parseInt(primaryColor.slice(5,7),16);
-        cardBg=`rgba(${r},${g},${b},0.38)`;
-        cardBorder=`rgba(${r},${g},${b},0.50)`;
-      } else {
-        cardBg=`color-mix(in srgb, var(--accent) 38%, transparent)`;
-        cardBorder=`color-mix(in srgb, var(--accent) 50%, transparent)`;
-      }
+      const pr=parseInt(primaryColor.slice(1,3),16),pg=parseInt(primaryColor.slice(3,5),16),pb=parseInt(primaryColor.slice(5,7),16);
+      const cardBg=`rgba(${pr},${pg},${pb},0.15)`;
+      const cardBorder=`rgba(${pr},${pg},${pb},0.28)`;
       return `<div style="padding:10px 14px;border-radius:8px;background:${cardBg};border:1px solid ${cardBorder};margin-bottom:6px">
         <div style="font-size:.65rem;font-weight:600;color:var(--text);letter-spacing:.08em;margin-bottom:4px;opacity:.7">${dateLabel}</div>
         ${rows}

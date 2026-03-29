@@ -302,6 +302,7 @@ function renderPnlWalk(){
     if(dim==='country')return e.country||'Unknown';
     if(dim==='bizline')return e.bizLine||e.businessLine||'Unassigned';
     if(dim==='market'){const m=getEmpMarkets(e);return m&&m[0]?m[0].code:'Unknown'}
+    if(dim==='pillar'){const fn=(e.function||'').trim();const pillars=state.functionalPillars||{};return pillars[fn]||'Unassigned'}
     return 'Unknown';
   }
 
@@ -337,13 +338,17 @@ function renderPnlWalk(){
     return {hc,cb,cbCapex,hires,hiresCapex,hiresHc};
   }
 
-  // OAO breakdown: vendor spend, T&E, other
+  // OAO breakdown: vendor spend, T&E, contractors
   const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   let oaoVendor=0,oaoTE=0,oaoOther=0;
   (state.vendorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoVendor+=fy});
   (state.teRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoTE+=fy});
-  // "Other" = contractor spend + any misc
   (state.contractorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoOther+=fy});
+  // Add OAO Other rows to vendor OAO total
+  const oaoOtherAmt=window.getOaoOtherTotal?window.getOaoOtherTotal():0;
+  oaoVendor+=oaoOtherAmt;
+  // Add C&B Other to be distributed with C&B
+  const cbOtherAmt=window.getCbOtherTotal?window.getCbOtherTotal():0;
   const oaoTotal=oaoVendor+oaoTE+oaoOther;
   const ctrCapexTotal=window.getContractorCapExTotal?window.getContractorCapExTotal():0;
   const daTotal=getDepreciationTotal();
@@ -353,6 +358,7 @@ function renderPnlWalk(){
 
   function enrich(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
+    d.cb+=Math.round(cbOtherAmt*share); // C&B Other distributed by HC
     d.oao=Math.round(oaoVendor*share);
     d.te=Math.round(oaoTE*share);
     d.other=Math.round(oaoOther*share);
@@ -398,8 +404,8 @@ function renderPnlWalk(){
       {key:'cb',label:'C&B'},
       {key:'hires',label:'HIRES'},
       {key:'oao',label:'OAO'},
+      {key:'other',label:'CTR'},
       {key:'te',label:'T&E'},
-      {key:'other',label:'OTHER'},
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'cbCapex',label:'C&B CAP'},
       {key:'hiresCapex',label:'HIRES CAP'},
@@ -414,8 +420,8 @@ function renderPnlWalk(){
       {key:'cb',label:'C&B'},
       {key:'hires',label:'HIRES'},
       {key:'oao',label:'OAO'},
+      {key:'other',label:'CTR'},
       {key:'te',label:'T&E'},
-      {key:'other',label:'OTHER'},
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'da',label:'D&A'},
       {key:'opex',label:'OPEX',cls:'subtotal'},
@@ -588,7 +594,7 @@ function renderLandingCharts(){
         const opex=MO_SHORT.map((_,mi)=>{const c=groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=groups[g].reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
         const capex=MO_SHORT.map((_,mi)=>-groups[g].reduce((s,e)=>s+getMonthlyCapEx(e,mi),0));
         budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:opex,backgroundColor:getChartColors()[gi%getChartColors().length],stack:'pos'});
-        if(capex.some(v=>v<0))budgetDS.push({label:g+' (CapEx)',data:capex,backgroundColor:hexToRgba(getChartColors()[gi%getChartColors().length],0.35),stack:'neg'});
+        if(capex.some(v=>v<0))budgetDS.push({label:g+' (CapEx)',data:capex,backgroundColor:hexToRgba(getChartColors()[gi%getChartColors().length],0.35),stack:'pos'});
       } else {
         const data=MO_SHORT.map((_,mi)=>groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0));
         budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data,backgroundColor:getChartColors()[gi%getChartColors().length]});
@@ -604,7 +610,7 @@ function renderLandingCharts(){
       budgetDS.push({label:'C&B',data:cbOpex,backgroundColor:lcc[0],stack:'pos'});
       budgetDS.push({label:'OAO',data:oaoMo,backgroundColor:lcc[1],stack:'pos'});
       budgetDS.push({label:'D&A',data:daMo,backgroundColor:lcc[2],stack:'pos'});
-      budgetDS.push({label:'CapEx',data:capex,backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'});
+      budgetDS.push({label:'CapEx',data:capex,backgroundColor:hexToRgba(lcc[0],0.35),stack:'pos'});
     } else {
       const cbGross=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
       const oaoMo=MO_SHORT.map((_,mi)=>getVendorOaoByMonth(mi));
@@ -614,7 +620,7 @@ function renderLandingCharts(){
   }
   // Data labels — always show total on top of each bar
   window.stackedBarDatalabels(budgetDS,tickColor,8,'landing');
-  budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
+  budgetDS.filter(d=>d.label&&d.label.includes('CapEx')).forEach(d=>{d.datalabels={display:false}});
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
     plugins:[barTotalPlugin],
@@ -660,7 +666,7 @@ function renderLandingCharts(){
       {label:'C&B',data:_cbOpex.slice(),backgroundColor:lfc[0],stack:'pos'},
       {label:'OAO',data:_oaoYears.slice(),backgroundColor:lfc[1],stack:'pos'},
       {label:'D&A',data:_daYears.slice(),backgroundColor:lfc[2],stack:'pos'},
-      {label:'CapEx',data:_cbCapex.map(v=>-(v+_cCapEx)),backgroundColor:hexToRgba(lfc[0],0.35),stack:'neg'}
+      {label:'CapEx',data:_cbCapex.map(v=>-(v+_cCapEx)),backgroundColor:hexToRgba(lfc[0],0.35),stack:'pos'}
     ];
   } else {
     fcDS=[
@@ -901,6 +907,12 @@ function initLtfModule(){
     document.querySelectorAll('#ltfSplitToggle .btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');ltfSplit=b.dataset.split;renderLtfChart();
   }));
+  // Year range sliders
+  const _yrStart=document.getElementById('ltfYearStart');
+  const _yrEnd=document.getElementById('ltfYearEnd');
+  if(_yrStart)_yrStart.addEventListener('input',renderLtfChart);
+  if(_yrEnd)_yrEnd.addEventListener('input',renderLtfChart);
+
   // Methodology toggle
   const methToggle=document.getElementById('ltfMethodToggle');
   const methPanel=document.getElementById('ltfMethodPanel');
@@ -929,12 +941,16 @@ function initLtfModule(){
       list.innerHTML='<div style="font-size:.72rem;color:var(--text-dim)">No custom adjustments. Click + Add to create one.</div>';
       return;
     }
+    const ADJ_ACCOUNTS=[{key:'cb',label:'C&B'},{key:'oao',label:'OAO'},{key:'da',label:'D&A'}];
     list.innerHTML=state.ltfCustomAdj.map((adj,i)=>{
+      if(!adj.account)adj.account='oao'; // default
+      const acctLabel=ADJ_ACCOUNTS.find(a=>a.key===adj.account)?.label||adj.account.toUpperCase();
       const total=adj.amounts.reduce((s,v)=>s+(v||0),0);
       const totalM=(total/1e6).toFixed(2);
       const yrVals=years.map((yr,yi)=>{const v=adj.amounts[yi]||0;return (v/1e6).toFixed(1)}).join(', ');
       let h=`<div class="ltf-adj-row" data-ai="${i}" style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:6px;cursor:pointer">`;
-      h+=`<span style="font-size:.76rem;font-weight:600;color:var(--text);min-width:100px">${adj.label||'Adj '+(i+1)}</span>`;
+      h+=`<span style="font-size:.68rem;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:3px;flex-shrink:0">${acctLabel}</span>`;
+      h+=`<span style="font-size:.76rem;font-weight:600;color:var(--text);min-width:80px">${adj.label||'Adj '+(i+1)}</span>`;
       h+=`<span style="font-size:.72rem;color:var(--text-dim);font-family:var(--font-mono);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">$${totalM}M [${yrVals}]</span>`;
       h+=`<button class="btn btn-sm ltf-adj-del" data-ai="${i}" style="padding:1px 6px;font-size:.66rem;color:var(--danger);flex-shrink:0">×</button>`;
       h+=`</div>`;
@@ -952,13 +968,17 @@ function initLtfModule(){
         const edit=document.createElement('div');
         edit.className='ltf-adj-edit';
         edit.style.cssText='display:flex;flex-wrap:wrap;gap:4px;padding:6px 0 0;width:100%';
-        edit.innerHTML=`<input class="ltf-adj-label" data-ai="${ai}" value="${adj.label||''}" placeholder="Name" style="flex:1;min-width:100px;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
+        edit.innerHTML=`<select class="ltf-adj-acct" data-ai="${ai}" style="padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${ADJ_ACCOUNTS.map(a=>`<option value="${a.key}"${a.key===adj.account?' selected':''}>${a.label}</option>`).join('')}</select><input class="ltf-adj-label" data-ai="${ai}" value="${adj.label||''}" placeholder="Name" style="flex:1;min-width:100px;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
         years.forEach((yr,yi)=>{
           const dispVal=(adj.amounts[yi]||0)/1e6;
           edit.innerHTML+=`<input class="ltf-adj-amt" data-ai="${ai}" data-yi="${yi}" type="number" step="any" value="${dispVal||''}" placeholder="${yr}" title="${yr}" style="width:52px;padding:2px 4px;font-size:.72rem;text-align:right;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
         });
         row.style.flexWrap='wrap';
         row.appendChild(edit);
+        edit.querySelectorAll('.ltf-adj-acct').forEach(sel=>{
+          sel.addEventListener('change',()=>{state.ltfCustomAdj[+sel.dataset.ai].account=sel.value;saveState();renderLtfAdj();renderLtfChart()});
+          sel.addEventListener('click',e=>e.stopPropagation());
+        });
         edit.querySelectorAll('.ltf-adj-label').forEach(inp=>{
           inp.addEventListener('change',()=>{state.ltfCustomAdj[+inp.dataset.ai].label=inp.value;saveState();renderLtfAdj();renderLtfChart()});
           inp.addEventListener('click',e=>e.stopPropagation());
@@ -977,7 +997,7 @@ function initLtfModule(){
     });
   }
   document.getElementById('ltfAddAdj').addEventListener('click',()=>{
-    state.ltfCustomAdj.push({label:'',amounts:[0,0,0,0,0,0]});
+    state.ltfCustomAdj.push({label:'',account:'oao',amounts:[0,0,0,0,0,0]});
     saveState();renderLtfAdj();
   });
   renderLtfAdj();
@@ -1293,7 +1313,7 @@ function renderLtfChart(){
     datasets.push({label:'OAO',data:oaoYears.slice(),backgroundColor:hexToRgba(lcc[1],0.6),stack:'pos'});
     if(isPnl){
       datasets.push({label:'D&A',data:daYears.slice(),backgroundColor:hexToRgba(lcc[2],0.6),stack:'pos'});
-      datasets.push({label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'});
+      datasets.push({label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'pos'});
     }
   } else if(ltfSplit==='comp'){
     // ── Split by Base / Bonus / Benefits ──
@@ -1304,7 +1324,7 @@ function renderLtfChart(){
         {label:'Benefits (OpEx)',data:cbRows.map(r=>Math.round(r.benefits*(1-r.capex/Math.max(r.total,1)))),backgroundColor:lcc[2],stack:'pos'},
         {label:'OAO',data:oaoYears.slice(),backgroundColor:hexToRgba(lcc[3]||lcc[1],0.6),stack:'pos'},
         {label:'D&A',data:daYears.slice(),backgroundColor:hexToRgba(lcc[4]||lcc[2],0.6),stack:'pos'},
-        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
+        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'pos'}
       ];
     } else {
       datasets=[
@@ -1321,7 +1341,7 @@ function renderLtfChart(){
         {label:'C&B',data:cbOpex.slice(),backgroundColor:lcc[0],stack:'pos'},
         {label:'OAO',data:oaoYears.slice(),backgroundColor:lcc[1],stack:'pos'},
         {label:'D&A',data:daYears.slice(),backgroundColor:lcc[2],stack:'pos'},
-        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'}
+        {label:'CapEx',data:cbCapex.map((v)=>-(v+cCapEx)),backgroundColor:hexToRgba(lcc[0],0.35),stack:'pos'}
       ];
     } else {
       datasets=[
@@ -1331,24 +1351,70 @@ function renderLtfChart(){
     }
   }
 
-  // Add custom adjustments as separate datasets
+  // Embed custom adjustments into their respective account datasets
   if(state.ltfCustomAdj&&state.ltfCustomAdj.length){
-    state.ltfCustomAdj.forEach((adj,ai)=>{
+    state.ltfCustomAdj.forEach(adj=>{
+      const acct=adj.account||'oao';
       const adjData=yearLabels.map((_,yi)=>adj.amounts[yi]||0);
-      if(adjData.some(v=>v!==0)){
-        const adjColor=lcc[(3+ai)%lcc.length];
-        datasets.push({label:adj.label||'Adj '+(ai+1),data:adjData,backgroundColor:hexToRgba(adjColor,0.5),stack:'pos'});
-        // Include in acctData for Y/Y total calculation
-        acctData.push({label:adj.label||'Adj',data:adjData,color:adjColor});
+      if(!adjData.some(v=>v!==0))return;
+      // Find matching dataset and add amounts
+      const target=datasets.find(ds=>{
+        const l=ds.label.toLowerCase();
+        if(acct==='cb')return l==='c&b'||l==='c&b (opex)';
+        if(acct==='oao')return l==='oao';
+        if(acct==='da')return l==='d&a';
+        return false;
+      });
+      if(target){
+        target.data=target.data.map((v,yi)=>v+(adjData[yi]||0));
       }
+      // Include in acctData for Y/Y total calculation
+      acctData.push({label:adj.label||'Adj',data:adjData,color:lcc[0]});
     });
   }
 
+  // ── Year range filtering ──
+  const yrStartEl=document.getElementById('ltfYearStart');
+  const yrEndEl=document.getElementById('ltfYearEnd');
+  let sliceStart=yrStartEl?parseInt(yrStartEl.value):0;
+  let sliceEnd=yrEndEl?parseInt(yrEndEl.value):5;
+  if(sliceEnd<sliceStart)sliceEnd=sliceStart;
+  // Update labels
+  const startLblEl=document.getElementById('ltfYearStartLabel');
+  const endLblEl=document.getElementById('ltfYearEndLabel');
+  if(startLblEl)startLblEl.textContent=yearLabels[sliceStart]||'';
+  if(endLblEl)endLblEl.textContent=yearLabels[sliceEnd]||'';
+
+  let chartLabels=yearLabels.slice(sliceStart,sliceEnd+1);
+  datasets.forEach(ds=>{ds.data=ds.data.slice(sliceStart,sliceEnd+1)});
+  acctData.forEach(ad=>{ad.data=ad.data.slice(sliceStart,sliceEnd+1)});
+
+  // ── Prepend historicals if enabled ──
+  const hist=state.historicals;
+  if(hist&&hist.enabled&&hist.years){
+    const histYears=Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort();
+    if(histYears.length){
+      chartLabels=[...histYears,...chartLabels];
+      datasets.forEach(ds=>{
+        const l=ds.label.toLowerCase();
+        const histData=histYears.map(yr=>{
+          const h=hist.years[yr];
+          if(l==='c&b'||l==='c&b (opex)')return h.cb||0;
+          if(l==='oao')return h.oao||0;
+          if(l==='d&a')return h.da||0;
+          if(l==='capex')return -(h.capex||0);
+          return 0;
+        });
+        ds.data=[...histData,...ds.data];
+      });
+    }
+  }
+
   window.stackedBarDatalabels(datasets,tickColor,8,'ltf');
-  if(isPnl)datasets.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
+  if(isPnl)datasets.filter(d=>d.label==='CapEx').forEach(d=>{d.datalabels={display:false}});
 
   ltfChartInst=new Chart(canvas,{
-    type:'bar',data:{labels:yearLabels,datasets},
+    type:'bar',data:{labels:chartLabels,datasets},
     plugins:[ltfYoyPlugin,barTotalPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},
       plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:12},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:11},ltfYoy:{accountData:acctData,byAccount}},
@@ -1608,7 +1674,7 @@ function runInitSequence(){
   safeRun('initDropdowns',()=>initDropdowns());
   safeRun('initBizLines',()=>initBizLines());
   safeRun('renderAll',()=>renderAll());
-  safeRun('initScenarioPane',()=>{initScenarioPane();initDataPanel();window._scenInited=true});
+  safeRun('initScenarioPane',()=>{initScenarioPane();initDataPanel();if(window.initValidationPanel)window.initValidationPanel();window._scenInited=true});
   safeRun('initSessionModal',()=>initSessionModal());
   safeRun('renderPnlWalk',()=>renderPnlWalk());
   safeRun('renderLandingCharts',()=>renderLandingCharts());

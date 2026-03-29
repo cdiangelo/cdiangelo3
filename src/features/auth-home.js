@@ -132,6 +132,7 @@ function showHomePage(){
     btn.textContent='Create';btn.disabled=false;
     if(result){
       document.getElementById('homePlanName').value='';
+      logActivity('Created plan',name+' ('+year+' '+type+')');
       renderPlanList();
     } else {alert('Failed to create plan')}
   };
@@ -183,14 +184,16 @@ async function renderPlanList(){
       const timeAgo=formatTimeAgo(date);
       return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${p._idx}">
         <div style="flex:1;min-width:0">
-          <div class="plan-name" style="display:flex;align-items:center;gap:6px">${p.name}</div>
-          <div class="plan-meta" style="display:flex;align-items:center;gap:6px">
-            <span class="plan-badge ${type}">${type}</span>
-            <span>${p.year}</span>
+          <div class="plan-name" style="display:flex;align-items:baseline;gap:6px">
+            ${p.name}
+            <span class="plan-badge ${type}" style="flex-shrink:0">${type}</span>
+            <span style="font-size:.68rem;color:var(--tertiary)">${p.year}</span>
+          </div>
+          <div class="plan-meta">
             <span title="${date.toLocaleString()}">${timeAgo}</span>
           </div>
         </div>
-        ${(p.accessCount||1)>1?`<span style="display:flex;align-items:center;font-size:.68rem;color:var(--tertiary);white-space:nowrap;margin-right:4px">${shareArrow} ${shareLabel}</span>`:''}
+        ${(p.accessCount||1)>1?`<span style="display:flex;align-items:center;font-size:.66rem;color:var(--tertiary);white-space:nowrap;margin-right:2px">${shareArrow} ${shareLabel}</span>`:''}
         <div style="position:relative">
           <button class="plan-menu-btn" data-plan-idx="${p._idx}" title="Options" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--tertiary);padding:4px 8px;border-radius:4px">⋯</button>
         </div>
@@ -242,11 +245,15 @@ async function renderPlanList(){
         menu.querySelector('[data-action="delete"]').addEventListener('click',async(ev)=>{
           ev.stopPropagation();menu.remove();
           if(!confirm('Delete "'+plan.name+'"? This cannot be undone.'))return;
-          try{
-            const r=await fetch('/api/plan-files/'+plan.id,{method:'DELETE'});
-            if(r.ok){_cachedPlans=null;renderPlanList()}
-            else{alert('Failed to delete plan')}
-          }catch(err){alert('Network error')}
+          // Remove card from DOM immediately
+          const card=btn.closest('.home-plan-card');
+          if(card)card.style.display='none';
+          // Fire API in background, refresh list after
+          fetch('/api/plan-files/'+plan.id,{method:'DELETE'}).then(r=>{
+            invalidatePlanCache();_cachedPlans=null;renderPlanList();
+          }).catch(()=>{
+            if(card)card.style.display='';
+          });
         });
         menu.querySelectorAll('.plan-ctx-item').forEach(item=>{
           item.addEventListener('mouseenter',()=>item.style.background='var(--bg-elevated)');
@@ -262,7 +269,43 @@ async function renderPlanList(){
   const label=document.getElementById('homeStorageLabel');
   if(fill)fill.style.width=Math.min(100,plans.length*20)+'%';
   if(label)label.textContent=plans.length+' plan'+(plans.length!==1?'s':'');
+
+  // Render recent activity from audit logs across plans
+  renderHomeActivity(plans);
 }
+
+function renderHomeActivity(plans){
+  const list=document.getElementById('homeActivityList');
+  if(!list)return;
+  // Collect recent plan opens/edits from localStorage
+  const activities=[];
+  try{
+    const log=JSON.parse(localStorage.getItem('webplan-activity-log')||'[]');
+    activities.push(...log.slice(-30));
+  }catch(e){}
+  if(!activities.length){list.innerHTML='<div style="font-size:.76rem;color:var(--tertiary);text-align:center;padding:8px">No recent activity</div>';return}
+  activities.reverse();
+  list.innerHTML=activities.map(a=>{
+    const t=new Date(a.time);
+    const ago=formatTimeAgo(t);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.74rem">
+      <span style="color:var(--text-dim);min-width:55px;font-size:.68rem">${ago}</span>
+      <span style="color:var(--text)">${a.action}</span>
+      <span style="color:var(--tertiary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.detail||''}</span>
+    </div>`;
+  }).join('');
+}
+
+// Track activity
+function logActivity(action,detail){
+  try{
+    const log=JSON.parse(localStorage.getItem('webplan-activity-log')||'[]');
+    log.push({action,detail,time:Date.now()});
+    if(log.length>50)log.splice(0,log.length-50);
+    localStorage.setItem('webplan-activity-log',JSON.stringify(log));
+  }catch(e){}
+}
+window.logActivity=logActivity;
 
 let _planSaveTimer=null;
 async function openPlan(plan){
@@ -270,9 +313,14 @@ async function openPlan(plan){
   const user=getUser();
   if(!user){console.error('openPlan: no user');return}
   console.log('Opening plan:',plan.name,plan.id);
+  logActivity('Opened plan',plan.name);
 
   // Store active plan reference
   window._activePlan=plan;
+
+  // Set current year from plan
+  const planYear=parseInt(plan.year)||2026;
+  if(window.setCurrentYear)window.setCurrentYear(planYear);
 
   // Ensure state is initialized before loading plan data
   try{loadState()}catch(e){console.warn('loadState init:',e)}

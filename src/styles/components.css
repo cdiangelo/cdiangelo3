@@ -91,10 +91,10 @@ tr:hover{background:var(--bg-elevated)}
 /* Forecast section/grid/input/table (lines 132-149) */
 .forecast-section{margin-bottom:24px}
 .forecast-section h4{color:var(--accent);margin-bottom:12px;font-size:.95rem}
-.forecast-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-.forecast-input-group{display:flex;flex-direction:column;gap:4px}
-.forecast-input-group label{font-size:.75rem;color:var(--text-dim)}
-.forecast-input-group input{width:100%;text-align:center}
+.forecast-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:4px 6px}
+.forecast-input-group{display:flex;flex-direction:column;gap:1px}
+.forecast-input-group label{font-size:.65rem;color:var(--text-dim);text-align:center}
+.forecast-input-group input{width:100%;text-align:center;padding:3px 4px;font-size:.74rem}
 
 /* Toggle switches (lines 138-145) */
 .toggle-switch{position:relative;display:inline-block;width:40px;height:22px}
