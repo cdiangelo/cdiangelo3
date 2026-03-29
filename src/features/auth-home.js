@@ -236,11 +236,12 @@ async function renderPlanList(){
         document.querySelectorAll('.plan-ctx-menu').forEach(m=>m.remove());
         const menu=document.createElement('div');
         menu.className='plan-ctx-menu';
-        menu.style.cssText='position:absolute;right:0;top:100%;z-index:999;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);min-width:120px;overflow:hidden';
+        const rect=btn.getBoundingClientRect();
+        menu.style.cssText=`position:fixed;left:${rect.right-120}px;top:${rect.bottom+4}px;z-index:9999;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);min-width:120px;overflow:hidden`;
         menu.innerHTML=`
           <div class="plan-ctx-item" data-action="share" style="padding:8px 14px;font-size:.8rem;cursor:pointer;color:var(--text);transition:background .1s">Share</div>
           <div class="plan-ctx-item" data-action="delete" style="padding:8px 14px;font-size:.8rem;cursor:pointer;color:var(--danger);transition:background .1s">Delete</div>`;
-        btn.parentElement.appendChild(menu);
+        document.body.appendChild(menu);
         menu.querySelector('[data-action="share"]').addEventListener('click',(ev)=>{ev.stopPropagation();menu.remove();openShareModal(plan)});
         menu.querySelector('[data-action="delete"]').addEventListener('click',async(ev)=>{
           ev.stopPropagation();menu.remove();
