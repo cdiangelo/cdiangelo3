@@ -244,7 +244,7 @@ async function renderPlanList(){
           if(!confirm('Delete "'+plan.name+'"? This cannot be undone.'))return;
           try{
             const r=await fetch('/api/plan-files/'+plan.id,{method:'DELETE'});
-            if(r.ok){_cachedPlans=null;loadPlanList()}
+            if(r.ok){_cachedPlans=null;renderPlanList()}
             else{alert('Failed to delete plan')}
           }catch(err){alert('Network error')}
         });
