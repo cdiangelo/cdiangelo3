@@ -27,6 +27,7 @@ function getDimVal(e,dim){
   if(dim==='function')return t(e.function)||'Unknown';
   if(dim==='country')return t(e.country)||'Unknown';
   if(dim==='bizline')return t(e.bizLine||e.businessLine)||'Unassigned';
+  if(dim==='pillar'){const fn=t(e.function)||'';const pillars=state?.functionalPillars||{};return pillars[fn]||'Unassigned'}
   // Time dims return null — handled per-month in buildPnlData
   return 'Unknown';
 }

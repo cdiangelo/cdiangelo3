@@ -302,6 +302,7 @@ function renderPnlWalk(){
     if(dim==='country')return e.country||'Unknown';
     if(dim==='bizline')return e.bizLine||e.businessLine||'Unassigned';
     if(dim==='market'){const m=getEmpMarkets(e);return m&&m[0]?m[0].code:'Unknown'}
+    if(dim==='pillar'){const fn=(e.function||'').trim();const pillars=state.functionalPillars||{};return pillars[fn]||'Unassigned'}
     return 'Unknown';
   }
 

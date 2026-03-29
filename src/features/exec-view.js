@@ -616,14 +616,14 @@ function renderExecView(){
   const dataPointLabels=isQuarterly?QLABELS:periodMonths.map(i=>MONTH_SHORT[i]);
   const periodColLabel=isQuarterly?'Quarter':'Month';
   if(execSplit==='none'){
-    let html=`<thead><tr><th>${periodColLabel}</th><th>Amount</th><th>FTE</th><th>Avg Ann. FTE Comp</th></tr></thead><tbody>`;
+    let html=`<thead style="position:sticky;top:0;z-index:2;background:var(--panel)"><tr><th>${periodColLabel}</th><th>Amount</th><th>FTE</th><th>Avg Ann. FTE Comp</th></tr></thead><tbody>`;
     let periodTotal=0;
     for(let pi=0;pi<numDataPoints;pi++){const v=monthlyData['Total'][pi];periodTotal+=v;html+=`<tr><td>${dataPointLabels[pi]}</td><td style="text-align:right">${fmt(v)}</td><td style="text-align:right">${monthlyFte[pi]}</td><td style="text-align:right">${fmt(monthlyAvgAnnFteComp[pi])}</td></tr>`}
     const sumFte=monthlyFte.reduce((a,v)=>a+v,0);const avgFte=Math.round(sumFte/numDataPoints*100)/100;
     html+=`</tbody><tfoot><tr><td>${periodLabel} Total</td><td style="text-align:right;font-weight:700;color:var(--accent)">${fmt(periodTotal)}</td><td style="text-align:right;font-weight:700">${avgFte} avg</td><td style="text-align:right;font-weight:700">${periodTotal&&avgFte?fmt(Math.round(periodTotal/numDataPoints/avgFte*12)):'\u2014'}</td></tr></tfoot>`;
     tbl.innerHTML=html;
   } else {
-    let html=`<thead><tr><th>${periodColLabel}</th>`;
+    let html=`<thead style="position:sticky;top:0;z-index:2;background:var(--panel)"><tr><th>${periodColLabel}</th>`;
     groupNames.forEach(g=>html+=`<th class="split-th">${g}</th>`);
     html+='<th class="split-th col-divider">Total</th><th style="text-align:right">FTE</th><th style="text-align:right">Avg Ann. FTE</th></tr></thead><tbody>';
     const annuals=groupNames.map(()=>0);
@@ -693,7 +693,7 @@ function renderExecView(){
 
   if(!fcSplitGroups){
     // Total view
-    let html='<thead><tr><th>Year</th><th>HC</th><th>Total Comp</th><th>CapEx</th><th>OpEx</th></tr></thead><tbody>';
+    let html='<thead style="position:sticky;top:0;z-index:2;background:var(--panel)"><tr><th>Year</th><th>HC</th><th>Total Comp</th><th>CapEx</th><th>OpEx</th></tr></thead><tbody>';
     totalFcRows.forEach(r=>html+=`<tr><td style="font-weight:600;color:var(--accent)">${displayYear(r.year)}</td><td>${r.hc}</td><td>${fmt(r.total)}</td><td>${fmt(r.capex)}</td><td style="color:var(--success)">${fmt(r.opex)}</td></tr>`);
     html+='</tbody>';
     fcTbl.innerHTML=html;
@@ -734,7 +734,7 @@ function renderExecView(){
       }
     });
 
-    let html='<thead><tr><th>Year</th>';
+    let html='<thead style="position:sticky;top:0;z-index:2;background:var(--panel)"><tr><th>Year</th>';
     gNames.forEach(g=>html+=`<th class="split-th">${g}</th>`);
     html+='<th class="split-th col-divider">Total</th></tr></thead><tbody>';
     yearLabels.forEach((y,yi)=>{

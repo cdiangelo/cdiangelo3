@@ -146,6 +146,16 @@ export function ensureStateFields(){
   if(!state.guideChecked)state.guideChecked={};
   // Long-term forecast: OAO Y/Y growth, D&A asset lifecycle, custom adjustments
   if(!state.oaoGrowthPct)state.oaoGrowthPct=[5,5,5,5,5];
+  // Functional pillar mappings: function → pillar type
+  if(!state.functionalPillars)state.functionalPillars={
+    'Engineering':'Vertical','Product':'Vertical','Design':'Vertical',
+    'Data':'Vertical','Research':'Vertical',
+    'Sales':'Horizontal','Marketing':'Horizontal','Partnerships':'Horizontal',
+    'Finance':'Platform/Central','HR':'Platform/Central','Legal':'Platform/Central',
+    'IT':'Platform/Central','Operations':'Platform/Central','Security':'Platform/Central'
+  };
+  if(!state.cbOther)state.cbOther=[];
+  if(!state.oaoOther)state.oaoOther=[];
   if(!state.ltfCustomAdj)state.ltfCustomAdj=[];
   if(!state.daAssetLifeYrs)state.daAssetLifeYrs=5;
   if(!state.vendorRows||!state.vendorRows.length){

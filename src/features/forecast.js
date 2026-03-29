@@ -96,11 +96,11 @@ function renderForecastInputs(){
     const effectiveNote=(k,val)=>{
       if((k==='attrition'||k==='hires')&&getForecastMode(k)==='pct'){
         const eff=Math.round(baseHC*val/100);
-        return `<span style="display:block;font-size:.72rem;color:var(--text-dim);text-align:right;margin-top:1px">${eff} people</span>`;
+        return `<span style="display:block;font-size:.6rem;color:var(--tertiary);text-align:center;opacity:.7">${eff} hd</span>`;
       }
       if((k==='attrition'||k==='hires')&&getForecastMode(k)==='num'){
         const pctEff=baseHC?((val/baseHC)*100).toFixed(1):'0';
-        return `<span style="display:block;font-size:.72rem;color:var(--text-dim);text-align:right;margin-top:1px">${pctEff}%</span>`;
+        return `<span style="display:block;font-size:.6rem;color:var(--tertiary);text-align:center;opacity:.7">${pctEff}%</span>`;
       }
       return '';
     };
