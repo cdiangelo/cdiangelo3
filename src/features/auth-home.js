@@ -184,14 +184,14 @@ async function renderPlanList(){
       const timeAgo=formatTimeAgo(date);
       return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${p._idx}">
         <div style="flex:1;min-width:0">
-          <div class="plan-name" style="display:flex;align-items:center;gap:6px">${p.name}</div>
-          <div class="plan-meta" style="display:flex;align-items:center;gap:6px">
+          <div class="plan-name">${p.name}</div>
+          <div class="plan-meta">
             <span class="plan-badge ${type}">${type}</span>
             <span>${p.year}</span>
             <span title="${date.toLocaleString()}">${timeAgo}</span>
+            ${(p.accessCount||1)>1?`<span style="color:var(--tertiary)">${shareArrow} ${shareLabel}</span>`:''}
           </div>
         </div>
-        ${(p.accessCount||1)>1?`<span style="display:flex;align-items:center;font-size:.68rem;color:var(--tertiary);white-space:nowrap;margin-right:4px">${shareArrow} ${shareLabel}</span>`:''}
         <div style="position:relative">
           <button class="plan-menu-btn" data-plan-idx="${p._idx}" title="Options" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--tertiary);padding:4px 8px;border-radius:4px">⋯</button>
         </div>
