@@ -211,24 +211,33 @@ function checkModuleAccess(){
   const rules=getModuleAccess();
   const userRules=rules[user.email.toLowerCase()];
   if(!userRules)return;
-  // Map module keys to chevron sub-item selectors and tab/vtab selectors
-  const moduleMap={
-    comp:{chevron:'[data-module="comp"]',tabs:['#tab-exec','#tab-employees','#tab-cb-other']},
-    vendor:{chevron:'[data-module="vendor"]',vtabs:['[data-vtab="vendor-grid"]']},
-    te:{chevron:'[data-module="te"]',vtabs:['[data-vtab="vendor-te"]']},
-    contractors:{chevron:'[data-module="contractors"]',vtabs:['[data-vtab="vendor-contractors"]']},
-    other:{vtabs:['[data-vtab="vendor-other"]']},
-    forecast:{chevron:'#chevForecast'}
-  };
+
+  // Hide chevron sub-items for restricted modules
   MODULES.forEach(m=>{
     if(userRules[m.key]===false){
-      const map=moduleMap[m.key];
-      if(!map)return;
-      if(map.chevron)document.querySelectorAll(map.chevron).forEach(el=>el.style.display='none');
-      if(map.tabs)map.tabs.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.style.display='none'));
-      if(map.vtabs)map.vtabs.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.style.display='none'));
+      // Hide chevron sub-items
+      document.querySelectorAll(`[data-module="${m.key}"]`).forEach(el=>el.style.display='none');
     }
   });
+
+  // If ALL budget sub-modules restricted, hide entire Budget chevron
+  const budgetMods=['comp','vendor','contractors','te'];
+  if(budgetMods.every(k=>userRules[k]===false)){
+    const chevBudget=document.getElementById('chevBudget');
+    if(chevBudget)chevBudget.style.display='none';
+  }
+
+  // If forecast restricted, hide entire Forecast chevron
+  if(userRules.forecast===false){
+    const chevFc=document.getElementById('chevForecast');
+    if(chevFc)chevFc.style.display='none';
+  }
+
+  // Also hide vtab buttons in vendor module
+  if(userRules.vendor===false)document.querySelectorAll('[data-vtab="vendor-grid"]').forEach(el=>el.style.display='none');
+  if(userRules.te===false)document.querySelectorAll('[data-vtab="vendor-te"]').forEach(el=>el.style.display='none');
+  if(userRules.contractors===false)document.querySelectorAll('[data-vtab="vendor-contractors"]').forEach(el=>el.style.display='none');
+  if(userRules.other===false)document.querySelectorAll('[data-vtab="vendor-other"]').forEach(el=>el.style.display='none');
 }
 
 // Global check used by navigation to block restricted modules
@@ -286,6 +295,35 @@ function initModuleAccessControl(){
       });
       listEl.appendChild(row);
     });
+
+    // Add Apply button
+    const existingApply=listEl.parentElement.querySelector('.admin-apply-btn');
+    if(existingApply)existingApply.remove();
+    const applyBtn=document.createElement('button');
+    applyBtn.className='btn btn-primary btn-sm admin-apply-btn';
+    applyBtn.style.cssText='margin-top:12px;padding:6px 20px;font-size:.78rem;font-weight:600';
+    applyBtn.textContent='Apply Access Controls';
+    applyBtn.addEventListener('click',async()=>{
+      // Gather all checkbox states
+      const r={};
+      listEl.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+        if(!r[cb.dataset.email])r[cb.dataset.email]={};
+        r[cb.dataset.email][cb.dataset.mod]=cb.checked;
+      });
+      saveModuleAccess(r);
+      // Force immediate server save (no debounce)
+      const plan=window._activePlan;
+      if(plan&&plan.id&&window.state){
+        try{
+          await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(window.state)})});
+          applyBtn.textContent='Applied ✓';
+          applyBtn.style.background='var(--success)';
+          setTimeout(()=>{applyBtn.textContent='Apply Access Controls';applyBtn.style.background=''},2000);
+        }catch(e){applyBtn.textContent='Save failed';setTimeout(()=>{applyBtn.textContent='Apply Access Controls'},2000)}
+      }
+      checkModuleAccess();
+    });
+    listEl.parentElement.appendChild(applyBtn);
   }
 
   render();

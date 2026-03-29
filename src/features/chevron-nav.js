@@ -87,6 +87,7 @@
       });
       if(window.showLanding)window.showLanding();
       if(window._showCalendar)window._showCalendar();
+      if(window.checkModuleAccess)window.checkModuleAccess();
       backToNavBtn.style.display='none';
       window.scrollTo(0,0);
     });
