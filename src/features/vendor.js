@@ -31,6 +31,7 @@ function initVendorModule(){
       document.getElementById('vtab-'+b.dataset.vtab).style.display='block';
       if(b.dataset.vtab==='vendor-scratch')setTimeout(initVendorScratch,50);
       if(b.dataset.vtab==='vendor-dims')renderVendorDims();
+      if(b.dataset.vtab==='vendor-other')initOtherTab();
       if(b.dataset.vtab==='vendor-te'){renderTeGrid();refreshTePivot()}
       if(b.dataset.vtab==='vendor-contractors'){renderContractorGrid();refreshContractorPivot()}
     });
@@ -2157,6 +2158,51 @@ function getContractorCapExByMonth(mi){
   },0);
 }
 
+
+// ── Other Tab (C&B Other + OAO Other) ──
+function initOtherTab(){
+  if(!state.cbOther)state.cbOther=[];
+  if(!state.oaoOther)state.oaoOther=[];
+  const fmtAmt=v=>{if(!v)return '$0';const a=Math.abs(v);const s=v<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(1)+'M':s+'$'+Math.round(a).toLocaleString()};
+
+  function renderOtherTable(prefix,arr,totalEl,tbodyEl){
+    tbodyEl.innerHTML=arr.map((item,i)=>`<tr>
+      <td style="padding:4px 6px">${esc(item.name)}</td>
+      <td style="text-align:right;padding:4px 6px"><input type="number" class="${prefix}-amt" data-idx="${i}" value="${item.amount||0}" style="width:90px;text-align:right;padding:2px 4px;font-size:.76rem;border:1px solid var(--border);border-radius:3px;background:var(--bg-input);color:var(--text);font-family:var(--font-mono)"></td>
+      <td style="padding:4px 2px"><button class="${prefix}-del" data-idx="${i}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.72rem">×</button></td>
+    </tr>`).join('');
+    totalEl.textContent=fmtAmt(arr.reduce((s,it)=>s+(parseFloat(it.amount)||0),0));
+    tbodyEl.querySelectorAll(`.${prefix}-amt`).forEach(inp=>{
+      inp.addEventListener('change',()=>{arr[+inp.dataset.idx].amount=parseFloat(inp.value)||0;totalEl.textContent=fmtAmt(arr.reduce((s,it)=>s+(parseFloat(it.amount)||0),0));saveState()});
+    });
+    tbodyEl.querySelectorAll(`.${prefix}-del`).forEach(btn=>{
+      btn.addEventListener('click',()=>{arr.splice(+btn.dataset.idx,1);saveState();renderOtherTable(prefix,arr,totalEl,tbodyEl)});
+    });
+  }
+
+  // C&B Other
+  const cbTbody=document.getElementById('cbOtherTbody');
+  const cbTotal=document.getElementById('cbOtherTotal');
+  if(cbTbody)renderOtherTable('cbo',state.cbOther,cbTotal,cbTbody);
+  document.getElementById('cbOtherAddBtn')?.addEventListener('click',()=>{
+    const sel=document.getElementById('cbOtherPreset');
+    const name=sel.value;if(!name)return;
+    state.cbOther.push({name,amount:0});sel.value='';saveState();
+    renderOtherTable('cbo',state.cbOther,cbTotal,cbTbody);
+  });
+
+  // OAO Other
+  const oaoTbody=document.getElementById('oaoOtherTbody');
+  const oaoTotal=document.getElementById('oaoOtherTotal');
+  if(oaoTbody)renderOtherTable('oaoo',state.oaoOther,oaoTotal,oaoTbody);
+  document.getElementById('oaoOtherAddBtn')?.addEventListener('click',()=>{
+    const sel=document.getElementById('oaoOtherPreset');
+    const name=sel.value;if(!name)return;
+    state.oaoOther.push({name,amount:0});sel.value='';saveState();
+    renderOtherTable('oaoo',state.oaoOther,oaoTotal,oaoTbody);
+  });
+}
+window.initOtherTab=initOtherTab;
 
 /* ── window assignments for cross-module access ── */
 window.initVendorModule = initVendorModule;

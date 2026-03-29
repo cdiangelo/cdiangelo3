@@ -1219,8 +1219,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn active" data-vtab="vendor-grid">Vendor Spend</button>
 <button class="btn" data-vtab="vendor-contractors">Contractors</button>
 <button class="btn" data-vtab="vendor-te">T&amp;E</button>
+<button class="btn" data-vtab="vendor-other">Other</button>
 <button class="btn" data-vtab="vendor-dims">Dimensions</button>
-<button class="btn" data-vtab="vendor-scratch" style="display:none">Scratch Pad</button>
 </nav>
 </div>
 <main class="container" style="padding-top:24px">
@@ -1765,6 +1765,63 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <tfoot id="contractorTfoot" style="display:none"></tfoot>
 </table>
 </div>
+</div>
+</div>
+
+<!-- Other Tab — preset C&B and OAO accounts -->
+<div id="vtab-vendor-other" class="vtab-content" style="display:none">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+<!-- C&B Other -->
+<div class="card" style="padding:16px 20px">
+<h4 style="font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:12px">C&B Other</h4>
+<p style="font-size:.72rem;color:var(--text-dim);margin-bottom:10px">Additional comp-related line items not in base/bonus/benefits.</p>
+<table class="pnl-walk-table" style="font-size:.76rem;width:100%" id="cbOtherTable">
+<thead><tr><th style="text-align:left">Account</th><th style="text-align:right;width:100px">Annual ($)</th><th style="width:30px"></th></tr></thead>
+<tbody id="cbOtherTbody"></tbody>
+<tfoot><tr class="total"><td>Total</td><td class="num" id="cbOtherTotal">$0</td><td></td></tr></tfoot>
+</table>
+<div style="display:flex;gap:6px;margin-top:8px">
+<select id="cbOtherPreset" style="flex:1;padding:4px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
+<option value="">Add account...</option>
+<option value="Severance">Severance</option>
+<option value="Bonus - Discretionary">Bonus - Discretionary</option>
+<option value="Signing Bonus">Signing Bonus</option>
+<option value="Retention">Retention</option>
+<option value="Relocation">Relocation</option>
+<option value="Equity / Stock Comp">Equity / Stock Comp</option>
+<option value="COBRA / Termination">COBRA / Termination</option>
+<option value="Other C&B">Other C&B</option>
+</select>
+<button class="btn btn-sm" id="cbOtherAddBtn" style="padding:4px 12px;font-size:.76rem">+ Add</button>
+</div>
+</div>
+
+<!-- OAO Other -->
+<div class="card" style="padding:16px 20px">
+<h4 style="font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:12px">OAO Other</h4>
+<p style="font-size:.72rem;color:var(--text-dim);margin-bottom:10px">Miscellaneous operating expenses and plug accounts.</p>
+<table class="pnl-walk-table" style="font-size:.76rem;width:100%" id="oaoOtherTable">
+<thead><tr><th style="text-align:left">Account</th><th style="text-align:right;width:100px">Annual ($)</th><th style="width:30px"></th></tr></thead>
+<tbody id="oaoOtherTbody"></tbody>
+<tfoot><tr class="total"><td>Total</td><td class="num" id="oaoOtherTotal">$0</td><td></td></tr></tfoot>
+</table>
+<div style="display:flex;gap:6px;margin-top:8px">
+<select id="oaoOtherPreset" style="flex:1;padding:4px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
+<option value="">Add account...</option>
+<option value="Office Supplies">Office Supplies</option>
+<option value="Facilities / Rent">Facilities / Rent</option>
+<option value="Insurance">Insurance</option>
+<option value="Legal">Legal</option>
+<option value="Recruiting Fees">Recruiting Fees</option>
+<option value="Professional Services">Professional Services</option>
+<option value="Telecom / Connectivity">Telecom / Connectivity</option>
+<option value="Misc Plug">Misc Plug</option>
+</select>
+<button class="btn btn-sm" id="oaoOtherAddBtn" style="padding:4px 12px;font-size:.76rem">+ Add</button>
+</div>
+</div>
+
 </div>
 </div>
 
