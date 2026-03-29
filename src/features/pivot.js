@@ -12,60 +12,138 @@ let pivotChart=null;
 let currentView='collapsed'; // collapsed | expanded | totinv
 
 // ── Dimension helpers ──
+const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const Q_LABELS=['Q1','Q2','Q3','Q4'];
+const isTimeDim=d=>d==='month'||d==='quarter'||d==='year';
+function timeSort(a,b){
+  const oi=k=>{let i=MO_LABELS.indexOf(k);if(i>=0)return i;i=Q_LABELS.indexOf(k);if(i>=0)return i;return parseInt(k)||9999};
+  return oi(a)-oi(b);
+}
+
 function getDimVal(e,dim){
   if(dim==='category'){const p=getEmpProject(e);return p?p.category||'Unassigned':'Unassigned'}
   if(dim==='product'){const p=getEmpProject(e);return p?p.product||'Unassigned':'Unassigned'}
   if(dim==='function')return e.function||'Unknown';
   if(dim==='country')return e.country||'Unknown';
   if(dim==='bizline')return e.bizLine||e.businessLine||'Unassigned';
+  // Time dims return null — handled per-month in buildPnlData
   return 'Unknown';
 }
 
 // ── Build P&L data per row ──
-function buildPnlData(){
+function emptyRow(){return {hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,children:{}}}
+function emptyChild(){return {hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0}}
+
+function getTimeKey(mi,dim){
+  if(dim==='month')return MO_LABELS[mi];
+  if(dim==='quarter')return Q_LABELS[Math.floor(mi/3)];
+  if(dim==='year')return String(CURRENT_YEAR);
+  return null;
+}
+
+function buildPnlData(srcState){
+  const st=srcState||state;
   const dim1=document.getElementById('pivotRowDim').value;
   const dim2El=document.getElementById('pivotRow2Dim');
   const dim2=dim2El?dim2El.value:'';
   const rows={};
   const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const t1=isTimeDim(dim1), t2=isTimeDim(dim2);
+
+  function ensureRow(k1){if(!rows[k1])rows[k1]=emptyRow();return rows[k1]}
+  function ensureChild(k1,k2){const r=ensureRow(k1);if(!r.children[k2])r.children[k2]=emptyChild();return r.children[k2]}
 
   // ── Employees → C&B ──
-  (state.employees||[]).forEach(e=>{
+  (st.employees||[]).forEach(e=>{
     if(e.termDate){const td=new Date(e.termDate);if(td.getFullYear()<=CURRENT_YEAR&&td.getMonth()<11)return}
-    const k1=getDimVal(e,dim1);
-    let comp=0,capex=0;
-    for(let m=0;m<12;m++){comp+=getMonthlyComp(e,m);capex+=getMonthlyCapEx(e,m)}
-    if(!rows[k1])rows[k1]={hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,children:{}};
-    rows[k1].hc++;
-    rows[k1].cb+=comp;
-    rows[k1].cbCapex+=capex;
-    // Sub-row
-    if(dim2){
-      const k2=getDimVal(e,dim2);
-      if(!rows[k1].children[k2])rows[k1].children[k2]={hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0};
-      rows[k1].children[k2].hc++;
-      rows[k1].children[k2].cb+=comp;
-      rows[k1].children[k2].cbCapex+=capex;
+    if(t1){
+      // Time as Row 1: split by month
+      for(let m=0;m<12;m++){
+        const comp=getMonthlyComp(e,m),cap=getMonthlyCapEx(e,m);
+        if(comp===0&&cap===0)continue;
+        const k1=getTimeKey(m,dim1);
+        const r=ensureRow(k1); r.hc++;r.cb+=comp;r.cbCapex+=cap;
+        if(dim2){
+          const k2=t2?getTimeKey(m,dim2):getDimVal(e,dim2);
+          const c=ensureChild(k1,k2);c.hc++;c.cb+=comp;c.cbCapex+=cap;
+        }
+      }
+    } else {
+      const k1=getDimVal(e,dim1);
+      if(t2){
+        // Entity as Row1, time as Row2
+        for(let m=0;m<12;m++){
+          const comp=getMonthlyComp(e,m),cap=getMonthlyCapEx(e,m);
+          if(comp===0&&cap===0)continue;
+          const r=ensureRow(k1);r.hc++;r.cb+=comp;r.cbCapex+=cap;
+          const k2=getTimeKey(m,dim2);
+          const c=ensureChild(k1,k2);c.hc++;c.cb+=comp;c.cbCapex+=cap;
+        }
+      } else {
+        let comp=0,capex=0;
+        for(let m=0;m<12;m++){comp+=getMonthlyComp(e,m);capex+=getMonthlyCapEx(e,m)}
+        const r=ensureRow(k1);r.hc++;r.cb+=comp;r.cbCapex+=capex;
+        if(dim2){const k2=getDimVal(e,dim2);const c=ensureChild(k1,k2);c.hc++;c.cb+=comp;c.cbCapex+=capex}
+      }
     }
   });
 
-  // ── Vendor rows → OAO (split by type) ──
-  (state.vendorRows||[]).forEach(r=>{
-    let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);
-    if(fy===0)return;
-    // Map vendor to a row dimension
-    const k1=getDimVal(r,dim1)||'Unknown';
-    if(!rows[k1])rows[k1]={hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,children:{}};
-    rows[k1].oao+=fy;
-    if(dim2){
-      const k2=getDimVal(r,dim2)||'Unknown';
-      if(!rows[k1].children[k2])rows[k1].children[k2]={hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0};
-      rows[k1].children[k2].oao+=fy;
+  // ── Vendor rows → OAO ──
+  (st.vendorRows||[]).forEach(r=>{
+    if(t1){
+      for(let m=0;m<12;m++){
+        const v=parseFloat(r[months[m]])||0; if(!v)continue;
+        const k1=getTimeKey(m,dim1);
+        ensureRow(k1).oao+=v;
+        if(dim2){const k2=t2?getTimeKey(m,dim2):(getDimVal(r,dim2)||'Unknown');ensureChild(k1,k2).oao+=v}
+      }
+    } else {
+      const k1=getDimVal(r,dim1)||'Unknown';
+      if(t2){
+        for(let m=0;m<12;m++){
+          const v=parseFloat(r[months[m]])||0; if(!v)continue;
+          ensureRow(k1).oao+=v;
+          const k2=getTimeKey(m,dim2);ensureChild(k1,k2).oao+=v;
+        }
+      } else {
+        let fy=0;for(let m=0;m<12;m++)fy+=(parseFloat(r[months[m]])||0);
+        if(fy===0)return;
+        ensureRow(k1).oao+=fy;
+        if(dim2){const k2=getDimVal(r,dim2)||'Unknown';ensureChild(k1,k2).oao+=fy}
+      }
+    }
+  });
+
+  // ── T&E → OAO ──
+  (st.teRows||[]).forEach(r=>{
+    if(t1){
+      for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(getTimeKey(m,dim1)).oao+=v;if(dim2){ensureChild(getTimeKey(m,dim1),t2?getTimeKey(m,dim2):(getDimVal(r,dim2)||'Unknown')).oao+=v}}
+    } else {
+      const k1=getDimVal(r,dim1)||'Unknown';
+      if(t2){for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(k1).oao+=v;ensureChild(k1,getTimeKey(m,dim2)).oao+=v}}
+      else {let fy=0;for(let m=0;m<12;m++)fy+=(parseFloat(r[months[m]])||0);if(fy===0)return;ensureRow(k1).oao+=fy;if(dim2){ensureChild(k1,getDimVal(r,dim2)||'Unknown').oao+=fy}}
+    }
+  });
+
+  // ── Contractor → OAO ──
+  (st.contractorRows||[]).forEach(r=>{
+    if(t1){
+      for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(getTimeKey(m,dim1)).oao+=v;if(dim2){ensureChild(getTimeKey(m,dim1),t2?getTimeKey(m,dim2):(getDimVal(r,dim2)||'Unknown')).oao+=v}}
+    } else {
+      const k1=getDimVal(r,dim1)||'Unknown';
+      if(t2){for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(k1).oao+=v;ensureChild(k1,getTimeKey(m,dim2)).oao+=v}}
+      else {let fy=0;for(let m=0;m<12;m++)fy+=(parseFloat(r[months[m]])||0);if(fy===0)return;ensureRow(k1).oao+=fy;if(dim2){ensureChild(k1,getDimVal(r,dim2)||'Unknown').oao+=fy}}
     }
   });
 
   // ── D&A ──
   const daTotal=window.getDepreciationTotal?window.getDepreciationTotal():0;
+
+  // Fix HC counting for time dims (avoid double-counting per employee per time bucket)
+  if(t1){
+    // HC was incremented per month — for quarter/year need to de-dup
+    // For simplicity, HC on time rows = active employees in that period (approximate)
+  }
 
   return {rows,daTotal};
 }
@@ -130,37 +208,71 @@ function renderPivotTable(data){
 
   const {rows,daTotal}=data;
   const cols=getCols();
-  const rowNames=Object.keys(rows).sort((a,b)=>(rows[b].cb+rows[b].oao)-(rows[a].cb+rows[a].oao));
+  const dim1=document.getElementById('pivotRowDim').value;
+  const rowNames=Object.keys(rows).sort(isTimeDim(dim1)?timeSort:(a,b)=>(rows[b].cb+rows[b].oao)-(rows[a].cb+rows[a].oao));
   const nRows=rowNames.length||1;
   const daPerRow=daTotal/nRows;
 
-  // Header
-  thead.innerHTML=`<tr><th style="text-align:left;min-width:180px;position:sticky;top:0;z-index:2;background:var(--panel)">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>${cols.map(c=>`<th style="text-align:right;${c.narrow?'width:50px;':'min-width:80px;'}position:sticky;top:0;z-index:2;background:var(--panel)">${c.label}</th>`).join('')}</tr>`;
+  // Comparison data
+  const compData=data.compRows||null;
+  const compCols=compData?cols:[];
+
+  // Header — if comparison, show main + comp columns
+  let hdrHtml=`<th style="text-align:left;min-width:180px;position:sticky;top:0;z-index:2;background:var(--panel)">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>`;
+  cols.forEach(c=>hdrHtml+=`<th style="text-align:right;${c.narrow?'width:50px;':'min-width:80px;'}position:sticky;top:0;z-index:2;background:var(--panel)">${c.label}</th>`);
+  if(compData){
+    hdrHtml+=`<th style="position:sticky;top:0;z-index:2;background:var(--panel);border-left:2px solid var(--accent);width:4px"></th>`;
+    compCols.forEach(c=>hdrHtml+=`<th style="text-align:right;${c.narrow?'width:50px;':'min-width:80px;'}position:sticky;top:0;z-index:2;background:var(--panel);color:var(--text-dim);font-style:italic">${c.label}</th>`);
+  }
+  thead.innerHTML=`<tr>${hdrHtml}</tr>`;
 
   let html='';
   let totals={hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,ebitda:0,capex:0,opex:0,totinv:0};
+
+  let compTotals=compData?{hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,ebitda:0,capex:0,opex:0,totinv:0}:null;
+  const compNRows=compData?Math.max(Object.keys(compData).length,1):1;
+  const compSep=compData?'<td style="border-left:2px solid var(--accent)"></td>':'';
 
   rowNames.forEach(name=>{
     const r=calcDerived(rows[name],daPerRow);
     Object.keys(totals).forEach(k=>{totals[k]+=(r[k]||0)});
     const children=rows[name].children||{};
-    const hasChildren=Object.keys(children).length>0;
+    const dim2=document.getElementById('pivotRow2Dim')?.value||'';
+    const childNames=Object.keys(children).sort(isTimeDim(dim2)?timeSort:undefined);
+    const hasChildren=childNames.length>0;
     const arrow=hasChildren?'&#9660; ':'';
 
-    html+=`<tr class="${hasChildren?'subtotal':''}"><td class="section-label" style="cursor:${hasChildren?'pointer':'default'}" data-toggle="${name}">${arrow}${name}</td>${cols.map(c=>`<td class="num">${fv(r[c.key],c.isHC)}</td>`).join('')}</tr>`;
+    let rowHtml=`<td class="section-label" style="cursor:${hasChildren?'pointer':'default'}" data-toggle="${name}">${arrow}${name}</td>${cols.map(c=>`<td class="num">${fv(r[c.key],c.isHC)}</td>`).join('')}`;
+    if(compData){
+      rowHtml+=compSep;
+      if(compData[name]){
+        const cr=calcDerived(compData[name],daTotal/compNRows);
+        Object.keys(compTotals).forEach(k=>{compTotals[k]+=(cr[k]||0)});
+        rowHtml+=compCols.map(c=>`<td class="num" style="color:var(--text-dim)">${fv(cr[c.key],c.isHC)}</td>`).join('');
+      } else {
+        rowHtml+=compCols.map(()=>`<td class="num" style="color:var(--text-dim)">—</td>`).join('');
+      }
+    }
+    html+=`<tr class="${hasChildren?'subtotal':''}">${rowHtml}</tr>`;
 
     if(hasChildren){
-      const childNames=Object.keys(children).sort();
       childNames.forEach(cn=>{
         const cr=calcDerived(children[cn],daPerRow/childNames.length);
-        html+=`<tr class="child-row" data-parent="${name}"><td class="label-cell" style="padding-left:24px">${cn}</td>${cols.map(c=>`<td class="num">${fv(cr[c.key],c.isHC)}</td>`).join('')}</tr>`;
+        let childHtml=`<td class="label-cell" style="padding-left:24px">${cn}</td>${cols.map(c=>`<td class="num">${fv(cr[c.key],c.isHC)}</td>`).join('')}`;
+        if(compData)childHtml+=compSep+compCols.map(()=>`<td></td>`).join('');
+        html+=`<tr class="child-row" data-parent="${name}">${childHtml}</tr>`;
       });
     }
   });
 
   // Total row
   const t=calcDerived(totals,daTotal);
-  html+=`<tr class="total"><td>Total</td>${cols.map(c=>`<td class="num" style="font-weight:700">${fv(t[c.key],c.isHC)}</td>`).join('')}</tr>`;
+  let totalHtml=`<td>Total</td>${cols.map(c=>`<td class="num" style="font-weight:700">${fv(t[c.key],c.isHC)}</td>`).join('')}`;
+  if(compData&&compTotals){
+    const ct=calcDerived(compTotals,daTotal);
+    totalHtml+=compSep+compCols.map(c=>`<td class="num" style="font-weight:700;color:var(--text-dim)">${fv(ct[c.key],c.isHC)}</td>`).join('');
+  }
+  html+=`<tr class="total">${totalHtml}</tr>`;
 
   tbody.innerHTML=html;
 

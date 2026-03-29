@@ -1339,16 +1339,25 @@ function renderLtfChart(){
     }
   }
 
-  // Add custom adjustments as separate datasets
+  // Embed custom adjustments into their respective account datasets
   if(state.ltfCustomAdj&&state.ltfCustomAdj.length){
-    state.ltfCustomAdj.forEach((adj,ai)=>{
+    state.ltfCustomAdj.forEach(adj=>{
+      const acct=adj.account||'oao';
       const adjData=yearLabels.map((_,yi)=>adj.amounts[yi]||0);
-      if(adjData.some(v=>v!==0)){
-        const adjColor=lcc[(3+ai)%lcc.length];
-        datasets.push({label:adj.label||'Adj '+(ai+1),data:adjData,backgroundColor:hexToRgba(adjColor,0.5),stack:'pos'});
-        // Include in acctData for Y/Y total calculation
-        acctData.push({label:adj.label||'Adj',data:adjData,color:adjColor});
+      if(!adjData.some(v=>v!==0))return;
+      // Find matching dataset and add amounts
+      const target=datasets.find(ds=>{
+        const l=ds.label.toLowerCase();
+        if(acct==='cb')return l==='c&b'||l==='c&b (opex)';
+        if(acct==='oao')return l==='oao';
+        if(acct==='da')return l==='d&a';
+        return false;
+      });
+      if(target){
+        target.data=target.data.map((v,yi)=>v+(adjData[yi]||0));
       }
+      // Include in acctData for Y/Y total calculation
+      acctData.push({label:adj.label||'Adj',data:adjData,color:lcc[0]});
     });
   }
 

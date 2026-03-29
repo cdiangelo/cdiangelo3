@@ -242,11 +242,15 @@ async function renderPlanList(){
         menu.querySelector('[data-action="delete"]').addEventListener('click',async(ev)=>{
           ev.stopPropagation();menu.remove();
           if(!confirm('Delete "'+plan.name+'"? This cannot be undone.'))return;
-          try{
-            const r=await fetch('/api/plan-files/'+plan.id,{method:'DELETE'});
-            if(r.ok){_cachedPlans=null;renderPlanList()}
-            else{alert('Failed to delete plan')}
-          }catch(err){alert('Network error')}
+          // Remove card from DOM immediately
+          const card=btn.closest('.home-plan-card');
+          if(card)card.style.display='none';
+          // Fire API in background, refresh list after
+          fetch('/api/plan-files/'+plan.id,{method:'DELETE'}).then(r=>{
+            _cachedPlans=null;renderPlanList();
+          }).catch(()=>{
+            if(card)card.style.display='';
+          });
         });
         menu.querySelectorAll('.plan-ctx-item').forEach(item=>{
           item.addEventListener('mouseenter',()=>item.style.background='var(--bg-elevated)');

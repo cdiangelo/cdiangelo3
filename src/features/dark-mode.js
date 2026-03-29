@@ -4,47 +4,12 @@
 // All controls live in the settings slide panel.
 
 export function initDarkMode(){
-  const toggleDark=document.getElementById('globalToggleDark');
   const toggleOps=document.getElementById('globalToggleOps');
 
-  // ── Dark/Light Mode ──
-  function applyTheme(theme){
-    if(theme==='light'){
-      document.documentElement.setAttribute('data-theme','light');
-      document.documentElement.classList.remove('dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      document.documentElement.classList.add('dark');
-    }
-    localStorage.setItem('webplan-theme',theme);
-    if(toggleDark)toggleDark.checked=(theme==='dark');
-    reRenderCharts();
-    document.dispatchEvent(new CustomEvent('webplan:theme-change'));
-  }
-
-  if(toggleDark){
-    toggleDark.addEventListener('change',()=>applyTheme(toggleDark.checked?'dark':'light'));
-  }
-
-  // ── Accent Theme ──
-  function applyAccent(accent){
-    document.documentElement.setAttribute('data-accent',accent);
-    localStorage.setItem('webplan-theme-accent',accent);
-    updateAccentDots(accent);
-    reRenderCharts();
-    document.dispatchEvent(new CustomEvent('webplan:theme-change'));
-  }
-
-  function updateAccentDots(active){
-    document.querySelectorAll('.accent-dot').forEach(dot=>{
-      const isActive=dot.dataset.accent===active;
-      dot.style.boxShadow=isActive?'0 0 0 2px var(--panel),0 0 0 4px var(--accent)':'none';
-    });
-  }
-
-  document.querySelectorAll('.accent-dot').forEach(dot=>{
-    dot.addEventListener('click',()=>applyAccent(dot.dataset.accent));
-  });
+  // ── Force light mode always ──
+  document.documentElement.setAttribute('data-theme','light');
+  document.documentElement.classList.remove('dark');
+  document.documentElement.setAttribute('data-accent','traverse-cloud');
 
   // ── Ops View ──
   if(toggleOps){
@@ -56,20 +21,6 @@ export function initDarkMode(){
       if(window.syncFormCompVisibility)try{window.syncFormCompVisibility()}catch(e){}
     });
   }
-
-  // ── Restore Preferences ──
-  const savedTheme=localStorage.getItem('webplan-theme');
-  if(savedTheme==='light'){applyTheme('light')}
-  else if(savedTheme==='dark'){applyTheme('dark')}
-  else{
-    applyTheme('light'); // default to light mode
-  }
-  // Legacy compat
-  if(!savedTheme&&localStorage.getItem('compPlanDark')==='0')applyTheme('light');
-
-  // Restore accent
-  const savedAccent=localStorage.getItem('webplan-theme-accent')||'traverse-cloud';
-  applyAccent(savedAccent);
 
   // Restore ops
   if(localStorage.getItem('compPlanOps')==='1'&&toggleOps){

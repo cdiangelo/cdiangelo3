@@ -4,15 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Webplan</title>
-<script>
-(function(){
-  var accent=localStorage.getItem('webplan-theme-accent')||'traverse-cloud';
-  var mode=localStorage.getItem('webplan-theme')||'light';
-  document.documentElement.setAttribute('data-accent',accent);
-  if(mode==='light')document.documentElement.setAttribute('data-theme','light');
-  else document.documentElement.classList.add('dark');
-})();
-</script>
+<script>document.documentElement.setAttribute('data-theme','light');document.documentElement.setAttribute('data-accent','traverse-cloud');</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="window._chartFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="window._xlsxFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2" onerror="window._datalabelsFailed=true"></script>
@@ -279,10 +271,11 @@ Template Mode &mdash; changes saved in this browser only.
 <div style="display:flex;gap:4px;margin-top:8px">
 <input id="calNewItem" placeholder="Add milestone..." style="flex:1;padding:5px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
 <select id="calNewColor" style="width:auto;padding:3px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text)">
-<option value="var(--accent)">Accent</option>
-<option value="var(--success)">Green</option>
-<option value="var(--warning)">Amber</option>
-<option value="var(--danger)">Red</option>
+<option value="#3a7d44">Green</option>
+<option value="#2563eb">Blue</option>
+<option value="#d97706">Amber</option>
+<option value="#dc2626">Red</option>
+<option value="#7c3aed">Purple</option>
 <option value="var(--secondary)">Blue</option>
 </select>
 <button class="btn btn-sm" id="calAddBtn" style="padding:3px 10px;font-size:.7rem">+</button>
@@ -644,8 +637,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" data-pview="expanded" style="padding:2px 10px;font-size:.72rem">P&amp;L</button>
 <button class="btn" data-pview="totinv" style="padding:2px 10px;font-size:.72rem">Total Inv</button>
 </div>
-<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Row 1</label><select id="pivotRowDim" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="category">Product Category</option><option value="function">Function</option><option value="product">Product</option><option value="bizline">Business Line</option><option value="country">Country</option></select></div>
-<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Row 2</label><select id="pivotRow2Dim" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="">None</option><option value="product">Product</option><option value="function">Function</option><option value="category">Product Category</option><option value="bizline">Business Line</option><option value="country">Country</option></select></div>
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Row 1</label><select id="pivotRowDim" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="category">Product Category</option><option value="function">Function</option><option value="product">Product</option><option value="bizline">Business Line</option><option value="country">Country</option><option value="month">Month</option><option value="quarter">Quarter</option><option value="year">Year</option></select></div>
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Row 2</label><select id="pivotRow2Dim" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="">None</option><option value="product">Product</option><option value="function">Function</option><option value="category">Product Category</option><option value="bizline">Business Line</option><option value="country">Country</option><option value="month">Month</option><option value="quarter">Quarter</option></select></div>
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Scenario</label><select id="pivotScenarioMain" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="_current">Current</option></select></div>
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Compare</label><select id="pivotScenarioComp" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="">None</option></select></div>
 </div>
 </div>
 
@@ -3193,21 +3188,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="panel-close-btn" onclick="document.getElementById('settingsSlidePanel').classList.remove('open');document.getElementById('settingsSlidePanel').style.transform='translateX(100%)'">× Close Settings</button>
 
 <h3 style="margin-bottom:20px">Settings</h3>
-
-<!-- Dark/Light Mode -->
-<div style="margin-bottom:24px">
-<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Appearance</h4>
-<label class="header-toggle" style="margin-bottom:12px"><input type="checkbox" id="globalToggleDark"><span class="toggle-track"></span> Dark Mode</label>
-</div>
-
-<!-- Accent Theme Picker -->
-<div style="margin-bottom:24px">
-<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Theme</h4>
-<div id="accentPicker" style="display:flex;gap:8px;align-items:center;padding:6px 8px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:20px">
-<button class="accent-dot" data-accent="traverse-cloud" style="width:14px;height:14px;border-radius:50%;background:#3B7DD8;border:none;cursor:pointer" title="Light"></button>
-<button class="accent-dot" data-accent="traverse-dark" style="width:14px;height:14px;border-radius:50%;background:#7a3030;border:none;cursor:pointer" title="Dark"></button>
-</div>
-</div>
 
 <!-- Ops View Toggle -->
 <div style="margin-bottom:24px">
