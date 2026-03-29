@@ -105,7 +105,7 @@ function initVendorModule(){
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
       const displayed=scaleVal(parseFloat(raw)||0);
       const formatted=vendorAmtScale===1&&displayed?'$'+Number(displayed).toLocaleString('en-US'):''+displayed;
-      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right" step="any"></td>`;
+      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:85px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right" step="any"></td>`;
     });
     h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-vi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     return h;
@@ -383,7 +383,7 @@ function initVendorModule(){
     let h='';
     state.vendorRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'vr','vendor')});
     tbody.innerHTML=h;
-    renderFooter(totalEl,state.vendorRows,fields2colSpan('vr'),vendorSelectedMonths);
+    renderFooter(totalEl,state.vendorRows,11,vendorSelectedMonths);
     bindSpendRows(tbody,totalEl,state.vendorRows,'vr',renderVendorGrid,vendorSelectedMonths);
     attachSpreadsheetNav('vendorTbody','vr-mo');
   }
@@ -685,7 +685,7 @@ function initVendorModule(){
     let h='';
     state.teRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'te','te')});
     tbody.innerHTML=h;
-    renderFooter(totalEl,state.teRows,fields2colSpan('te'),teSelectedMonths);
+    renderFooter(totalEl,state.teRows,10,teSelectedMonths);
     bindSpendRows(tbody,totalEl,state.teRows,'te',renderTeGrid,teSelectedMonths);
     attachSpreadsheetNav('teTbody','te-mo');
   }

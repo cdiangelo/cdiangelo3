@@ -90,7 +90,7 @@ html.dark .method-walk-table tr:hover{background:rgba(212,82,77,.05)}
 .data-sub p{font-size:.72rem;margin:0 0 6px 0}
 
 /* Vertical headers, dim-edit, numeric columns (lines 742-761) */
-th.v-hdr{white-space:nowrap;padding:8px 4px;min-width:90px;font-size:.75rem;text-align:right}
+th.v-hdr{white-space:nowrap;padding:8px 4px;min-width:85px;font-size:.75rem;text-align:right}
 .dim-edit-input{border:1px solid transparent;background:transparent;font-size:.8rem;padding:2px 6px;border-radius:4px;transition:border-color .15s,background .15s}
 .dim-edit-input:hover{border-color:var(--border);background:var(--panel-inset)}
 .dim-edit-input:focus{border-color:var(--accent);background:#fff;outline:none}

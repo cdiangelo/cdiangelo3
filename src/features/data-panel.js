@@ -167,6 +167,20 @@ function initDataPanel(){
   const histToggle=document.getElementById('historicalsToggle');
   const histUploadBtn=document.getElementById('historicalsUploadBtn');
   const histFile=document.getElementById('historicalsFile');
+  const histDlBtn=document.getElementById('historicalsDlTemplate');
+  if(histDlBtn){
+    histDlBtn.addEventListener('click',()=>{
+      if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}
+      const wb=XLSX.utils.book_new();
+      const accounts=['HC','C&B','OAO','D&A','CapEx','Revenue'];
+      const rows=[['Year','Account','Amount']];
+      [2023,2024,2025].forEach(yr=>accounts.forEach(a=>rows.push([yr,a,0])));
+      const ws=XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols']=[{wch:8},{wch:12},{wch:14}];
+      XLSX.utils.book_append_sheet(wb,ws,'Historicals');
+      XLSX.writeFile(wb,'historicals_template.xlsx');
+    });
+  }
   if(histToggle){
     if(!state.historicals)state.historicals={enabled:false,years:{}};
     histToggle.checked=!!state.historicals.enabled;

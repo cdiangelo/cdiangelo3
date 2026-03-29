@@ -3149,10 +3149,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" id="historicalsToggle"> Include historicals in views</label>
 </div>
 <div id="historicalsList" style="margin-bottom:8px"></div>
-<div style="display:flex;gap:6px;align-items:center">
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+<button class="btn btn-sm" id="historicalsDlTemplate" style="font-size:.76rem">Download Template</button>
 <button class="btn btn-sm" id="historicalsUploadBtn" style="font-size:.76rem">Upload Historical Year</button>
 <input type="file" id="historicalsFile" accept=".xlsx,.xls,.csv" style="display:none">
-<span style="font-size:.7rem;color:var(--text-dim)">CSV/Excel with columns: Year, Account, Amount</span>
 </div>
 </div>
 
