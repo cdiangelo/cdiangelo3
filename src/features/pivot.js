@@ -21,11 +21,12 @@ function timeSort(a,b){
 }
 
 function getDimVal(e,dim){
-  if(dim==='category'){const p=getEmpProject(e);return p?p.category||'Unassigned':'Unassigned'}
-  if(dim==='product'){const p=getEmpProject(e);return p?p.product||'Unassigned':'Unassigned'}
-  if(dim==='function')return e.function||'Unknown';
-  if(dim==='country')return e.country||'Unknown';
-  if(dim==='bizline')return e.bizLine||e.businessLine||'Unassigned';
+  const t=v=>(v||'').trim()||null;
+  if(dim==='category'){const p=getEmpProject(e);return t(p?.category)||'Unassigned'}
+  if(dim==='product'){const p=getEmpProject(e);return t(p?.product)||'Unassigned'}
+  if(dim==='function')return t(e.function)||'Unknown';
+  if(dim==='country')return t(e.country)||'Unknown';
+  if(dim==='bizline')return t(e.bizLine||e.businessLine)||'Unassigned';
   // Time dims return null — handled per-month in buildPnlData
   return 'Unknown';
 }
@@ -379,29 +380,61 @@ function renderPivotChart(data){
       });
     }
   } else if(pivotChartType==='line'){
-    // Single line showing the selected account across rows
-    const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
-    pivotChart=new Chart(canvas,{
-      type:'line',
-      data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,borderColor:colors[0],backgroundColor:hexToRgba(colors[0],0.15),fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:colors[0]}]},
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},
-        scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}
-      }
-    });
+    const dim2El=document.getElementById('pivotRow2Dim');
+    const dim2=dim2El?dim2El.value:'';
+    // Collect Row2 keys for series breakout
+    const row2Set=new Set();
+    if(dim2) rowNames.forEach(name=>{Object.keys(rows[name].children||{}).forEach(k=>row2Set.add(k))});
+    const row2Names=[...row2Set].sort(isTimeDim(dim2)?timeSort:undefined);
+
+    if(!dim2||row2Names.length===0){
+      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+      pivotChart=new Chart(canvas,{
+        type:'line',
+        data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,borderColor:colors[0],backgroundColor:hexToRgba(colors[0],0.15),fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:colors[0]}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}}
+      });
+    } else {
+      // Each Row2 value = separate line
+      const datasets=row2Names.map((k2,i)=>{
+        const c=colors[i%colors.length];
+        const data=rowNames.map(name=>{const ch=(rows[name].children||{})[k2];if(!ch)return 0;const r=calcDerived(ch,(daTotal/nRows)/Math.max(Object.keys(rows[name].children||{}).length,1));return r[acctKey]||0});
+        return {label:k2,data,borderColor:c,backgroundColor:hexToRgba(c,0.1),fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:c};
+      });
+      pivotChart=new Chart(canvas,{
+        type:'line',
+        data:{labels,datasets},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},datalabels:{display:false},yoyArrows:false},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}}
+      });
+    }
   } else {
-    // Stacked bar — show selected account only
-    const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
-    pivotChart=new Chart(canvas,{
-      type:'bar',
-      data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,backgroundColor:hexToRgba(colors[0],0.7),borderColor:colors[0],borderWidth:1}]},
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},
-        scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}
-      }
-    });
+    // Stacked bar
+    const dim2El=document.getElementById('pivotRow2Dim');
+    const dim2=dim2El?dim2El.value:'';
+    const row2Set=new Set();
+    if(dim2) rowNames.forEach(name=>{Object.keys(rows[name].children||{}).forEach(k=>row2Set.add(k))});
+    const row2Names=[...row2Set].sort(isTimeDim(dim2)?timeSort:undefined);
+
+    if(!dim2||row2Names.length===0){
+      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+      pivotChart=new Chart(canvas,{
+        type:'bar',
+        data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,backgroundColor:hexToRgba(colors[0],0.7),borderColor:colors[0],borderWidth:1}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:tickFmt}}}}
+      });
+    } else {
+      // Each Row2 value = stacked segment
+      const datasets=row2Names.map((k2,i)=>{
+        const c=colors[i%colors.length];
+        const data=rowNames.map(name=>{const ch=(rows[name].children||{})[k2];if(!ch)return 0;const r=calcDerived(ch,(daTotal/nRows)/Math.max(Object.keys(rows[name].children||{}).length,1));return r[acctKey]||0});
+        return {label:k2,data,backgroundColor:hexToRgba(c,0.7),borderColor:c,borderWidth:1,stack:'s'};
+      });
+      pivotChart=new Chart(canvas,{
+        type:'bar',
+        data:{labels,datasets},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},datalabels:{display:false},yoyArrows:false},scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:tickFmt}}}}
+      });
+    }
   }
 }
 
