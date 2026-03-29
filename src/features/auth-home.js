@@ -642,7 +642,7 @@ async function loadSharedUsers(planId){
             </div>
             ${u.role!=='owner'&&isAdmin?`<button class="share-remove-btn" data-account-id="${u.id}" data-email="${email}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.9rem;padding:2px 6px;opacity:.5" title="Remove access">×</button>`:''}
           </div>`;
-        if(isAdmin){
+        if(isAdmin&&u.role!=='owner'){
           h+=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;padding-left:32px">${MODS.map(m=>{
             const allowed=ur[m.key]!==false;
             return `<label style="display:flex;align-items:center;gap:2px;font-size:.6rem;cursor:pointer;color:var(--text-dim)"><input type="checkbox" class="share-mod-cb" data-email="${email}" data-mod="${m.key}" ${allowed?'checked':''} style="accent-color:var(--accent);width:12px;height:12px">${m.label}</label>`;
