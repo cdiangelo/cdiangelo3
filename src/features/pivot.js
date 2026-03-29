@@ -33,8 +33,8 @@ function getDimVal(e,dim){
 }
 
 // ── Build P&L data per row ──
-function emptyRow(){return {hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,children:{}}}
-function emptyChild(){return {hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0}}
+function emptyRow(){return {hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,da:0,children:{}}}
+function emptyChild(){return {hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,da:0}}
 
 function getTimeKey(mi,dim){
   if(dim==='month')return MO_LABELS[mi];
@@ -116,25 +116,25 @@ function buildPnlData(srcState){
     }
   });
 
-  // ── T&E → OAO ──
+  // ── T&E ──
   (st.teRows||[]).forEach(r=>{
     if(t1){
-      for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(getTimeKey(m,dim1)).oao+=v;if(dim2){ensureChild(getTimeKey(m,dim1),t2?getTimeKey(m,dim2):(getDimVal(r,dim2)||'Unknown')).oao+=v}}
+      for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(getTimeKey(m,dim1)).te+=v;if(dim2){ensureChild(getTimeKey(m,dim1),t2?getTimeKey(m,dim2):(getDimVal(r,dim2)||'Unknown')).te+=v}}
     } else {
       const k1=getDimVal(r,dim1)||'Unknown';
-      if(t2){for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(k1).oao+=v;ensureChild(k1,getTimeKey(m,dim2)).oao+=v}}
-      else {let fy=0;for(let m=0;m<12;m++)fy+=(parseFloat(r[months[m]])||0);if(fy===0)return;ensureRow(k1).oao+=fy;if(dim2){ensureChild(k1,getDimVal(r,dim2)||'Unknown').oao+=fy}}
+      if(t2){for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(k1).te+=v;ensureChild(k1,getTimeKey(m,dim2)).te+=v}}
+      else {let fy=0;for(let m=0;m<12;m++)fy+=(parseFloat(r[months[m]])||0);if(fy===0)return;ensureRow(k1).te+=fy;if(dim2){ensureChild(k1,getDimVal(r,dim2)||'Unknown').te+=fy}}
     }
   });
 
-  // ── Contractor → OAO ──
+  // ── Contractor ──
   (st.contractorRows||[]).forEach(r=>{
     if(t1){
-      for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(getTimeKey(m,dim1)).oao+=v;if(dim2){ensureChild(getTimeKey(m,dim1),t2?getTimeKey(m,dim2):(getDimVal(r,dim2)||'Unknown')).oao+=v}}
+      for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(getTimeKey(m,dim1)).ctr+=v;if(dim2){ensureChild(getTimeKey(m,dim1),t2?getTimeKey(m,dim2):(getDimVal(r,dim2)||'Unknown')).ctr+=v}}
     } else {
       const k1=getDimVal(r,dim1)||'Unknown';
-      if(t2){for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(k1).oao+=v;ensureChild(k1,getTimeKey(m,dim2)).oao+=v}}
-      else {let fy=0;for(let m=0;m<12;m++)fy+=(parseFloat(r[months[m]])||0);if(fy===0)return;ensureRow(k1).oao+=fy;if(dim2){ensureChild(k1,getDimVal(r,dim2)||'Unknown').oao+=fy}}
+      if(t2){for(let m=0;m<12;m++){const v=parseFloat(r[months[m]])||0;if(!v)continue;ensureRow(k1).ctr+=v;ensureChild(k1,getTimeKey(m,dim2)).ctr+=v}}
+      else {let fy=0;for(let m=0;m<12;m++)fy+=(parseFloat(r[months[m]])||0);if(fy===0)return;ensureRow(k1).ctr+=fy;if(dim2){ensureChild(k1,getDimVal(r,dim2)||'Unknown').ctr+=fy}}
     }
   });
 
@@ -151,11 +151,11 @@ function buildPnlData(srcState){
 }
 
 function calcDerived(r,daShare){
-  const ebitda=r.cb+r.oao;
+  const ebitda=r.cb+(r.oao||0)+(r.te||0)+(r.ctr||0);
   const capex=r.cbCapex;
   const opex=ebitda-capex;
   const da=daShare||0;
-  const totinv=ebitda; // before capex split
+  const totinv=ebitda;
   return {...r,ebitda,capex,opex,da,totinv};
 }
 
@@ -178,6 +178,8 @@ function getCols(){
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
       {key:'oao',label:'OAO'},
+      {key:'te',label:'T&E'},
+      {key:'ctr',label:'CTR'},
       {key:'ebitda',label:'ADJ EBITDA'},
       {key:'da',label:'D&A'},
       {key:'opex',label:'OPEX'},
@@ -190,6 +192,8 @@ function getCols(){
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
       {key:'oao',label:'OAO'},
+      {key:'te',label:'T&E'},
+      {key:'ctr',label:'CTR'},
       {key:'totinv',label:'TOT INV'},
     ];
   }
@@ -229,7 +233,7 @@ function renderPivotTable(data){
   thead.innerHTML=`<tr>${hdrHtml}</tr>`;
 
   let html='';
-  let totals={hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,ebitda:0,capex:0,opex:0,totinv:0};
+  let totals={hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,da:0,ebitda:0,capex:0,opex:0,totinv:0};
 
   let compTotals=compData?{hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,ebitda:0,capex:0,opex:0,totinv:0}:null;
   const compNRows=compData?Math.max(Object.keys(compData).length,1):1;
