@@ -173,4 +173,88 @@ function initAdminOpsControl(){
   }
 }
 
+// ── Module Access Control ──
+const MODULE_ACCESS_KEY='webplan-module-access';
+const MODULES=[
+  {key:'comp',label:'C&B / Exec Comp'},
+  {key:'vendor',label:'Vendor Spend'},
+  {key:'te',label:'T&E'},
+  {key:'contractors',label:'Contractors'},
+  {key:'other',label:'Other (C&B/OAO)'},
+  {key:'forecast',label:'Long-Term Forecast'}
+];
+
+function getModuleAccess(){
+  try{return JSON.parse(localStorage.getItem(MODULE_ACCESS_KEY)||'{}')}catch(e){return{}}
+}
+function saveModuleAccess(rules){localStorage.setItem(MODULE_ACCESS_KEY,JSON.stringify(rules))}
+
+function checkModuleAccess(){
+  const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
+  if(!user||!user.email)return;
+  const rules=getModuleAccess();
+  const userRules=rules[user.email.toLowerCase()];
+  if(!userRules)return; // no restrictions
+  // Hide chevron nav items for restricted modules
+  MODULES.forEach(m=>{
+    if(userRules[m.key]===false){
+      document.querySelectorAll(`[data-module="${m.key}"]`).forEach(el=>el.style.display='none');
+    }
+  });
+}
+window.checkModuleAccess=checkModuleAccess;
+
+function initModuleAccessControl(){
+  const listEl=document.getElementById('adminModuleAccessList');
+  if(!listEl)return;
+
+  function getKnownUsers(){
+    try{return JSON.parse(localStorage.getItem('webplan-known-users')||'[]')}catch(e){return[]}
+  }
+
+  async function render(){
+    const known=getKnownUsers();
+    // Also get shared users
+    let sharedUsers=[];
+    const plan=window._activePlan;
+    if(plan&&plan.id){try{const r=await fetch('/api/plan-files/'+plan.id+'/access');if(r.ok)sharedUsers=await r.json()}catch(e){}}
+    const merged=new Map();
+    known.forEach(u=>{if(u.email)merged.set(u.email.toLowerCase(),{email:u.email,name:u.name||''})});
+    sharedUsers.forEach(u=>{if(u.email&&!merged.has(u.email.toLowerCase()))merged.set(u.email.toLowerCase(),{email:u.email,name:u.email})});
+    const allUsers=[...merged.values()];
+    const rules=getModuleAccess();
+    listEl.innerHTML='';
+    if(!allUsers.length){listEl.innerHTML='<p style="font-size:.75rem;color:var(--tertiary)">No users yet.</p>';return}
+    allUsers.forEach(u=>{
+      const email=u.email.toLowerCase();
+      const userRules=rules[email]||{};
+      const row=document.createElement('div');
+      row.style.cssText='padding:8px;background:var(--bg-elevated);border-radius:6px;border:1px solid var(--border-light)';
+      row.innerHTML=`<div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:4px">${u.name||u.email}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${MODULES.map(m=>{
+          const allowed=userRules[m.key]!==false;
+          return `<label style="display:flex;align-items:center;gap:3px;font-size:.7rem;cursor:pointer;color:var(--text-dim)"><input type="checkbox" ${allowed?'checked':''} data-email="${email}" data-mod="${m.key}" style="accent-color:var(--accent)">${m.label}</label>`;
+        }).join('')}</div>`;
+      row.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+        cb.addEventListener('change',()=>{
+          const r=getModuleAccess();
+          if(!r[cb.dataset.email])r[cb.dataset.email]={};
+          r[cb.dataset.email][cb.dataset.mod]=cb.checked;
+          saveModuleAccess(r);
+          checkModuleAccess();
+        });
+      });
+      listEl.appendChild(row);
+    });
+  }
+
+  render();
+  const panel=document.getElementById('settingsSlidePanel');
+  if(panel){
+    const observer=new MutationObserver(()=>{if(panel.classList.contains('open'))render()});
+    observer.observe(panel,{attributes:true,attributeFilter:['class']});
+  }
+}
+
 initDarkMode();
+initModuleAccessControl();

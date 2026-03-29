@@ -132,6 +132,7 @@ function showHomePage(){
     btn.textContent='Create';btn.disabled=false;
     if(result){
       document.getElementById('homePlanName').value='';
+      logActivity('Created plan',name+' ('+year+' '+type+')');
       renderPlanList();
     } else {alert('Failed to create plan')}
   };
@@ -266,7 +267,43 @@ async function renderPlanList(){
   const label=document.getElementById('homeStorageLabel');
   if(fill)fill.style.width=Math.min(100,plans.length*20)+'%';
   if(label)label.textContent=plans.length+' plan'+(plans.length!==1?'s':'');
+
+  // Render recent activity from audit logs across plans
+  renderHomeActivity(plans);
 }
+
+function renderHomeActivity(plans){
+  const list=document.getElementById('homeActivityList');
+  if(!list)return;
+  // Collect recent plan opens/edits from localStorage
+  const activities=[];
+  try{
+    const log=JSON.parse(localStorage.getItem('webplan-activity-log')||'[]');
+    activities.push(...log.slice(-30));
+  }catch(e){}
+  if(!activities.length){list.innerHTML='<div style="font-size:.76rem;color:var(--tertiary);text-align:center;padding:8px">No recent activity</div>';return}
+  activities.reverse();
+  list.innerHTML=activities.map(a=>{
+    const t=new Date(a.time);
+    const ago=formatTimeAgo(t);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:.74rem">
+      <span style="color:var(--text-dim);min-width:55px;font-size:.68rem">${ago}</span>
+      <span style="color:var(--text)">${a.action}</span>
+      <span style="color:var(--tertiary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.detail||''}</span>
+    </div>`;
+  }).join('');
+}
+
+// Track activity
+function logActivity(action,detail){
+  try{
+    const log=JSON.parse(localStorage.getItem('webplan-activity-log')||'[]');
+    log.push({action,detail,time:Date.now()});
+    if(log.length>50)log.splice(0,log.length-50);
+    localStorage.setItem('webplan-activity-log',JSON.stringify(log));
+  }catch(e){}
+}
+window.logActivity=logActivity;
 
 let _planSaveTimer=null;
 async function openPlan(plan){
@@ -274,6 +311,7 @@ async function openPlan(plan){
   const user=getUser();
   if(!user){console.error('openPlan: no user');return}
   console.log('Opening plan:',plan.name,plan.id);
+  logActivity('Opened plan',plan.name);
 
   // Store active plan reference
   window._activePlan=plan;
