@@ -6,8 +6,8 @@
 .auth-logo-mark{display:flex;justify-content:center;margin-bottom:24px}
 .auth-title{font-size:1.75rem;font-weight:500;color:var(--text);letter-spacing:-.01em;margin-bottom:8px}
 .auth-subtitle{font-size:.88rem;color:var(--tertiary);margin-bottom:32px}
-.auth-input-wrap{display:flex;gap:8px}
-.auth-input{flex:1;padding:10px 14px;font-size:.94rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text);font-family:inherit;outline:none;transition:border-color .18s,box-shadow .2s}
+.auth-input-wrap{display:flex;flex-direction:column;gap:8px}
+.auth-input{padding:10px 14px;font-size:.94rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text);font-family:inherit;outline:none;transition:border-color .18s,box-shadow .2s;width:100%}
 .auth-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .auth-input::placeholder{color:var(--tertiary)}
 .auth-btn{padding:10px 24px;font-size:.94rem;font-weight:500;border:none;border-radius:8px;background:var(--accent-mid);color:var(--text);cursor:pointer;font-family:inherit;transition:all .18s ease}
