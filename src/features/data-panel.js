@@ -174,17 +174,17 @@ function initDataPanel(){
       const wb=XLSX.utils.book_new();
       const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       const accounts=['C&B','Vendor Spend','Contractors','T&E','D&A','CapEx','Revenue'];
-      // Monthly detail sheet
-      const moRows=[['Year','Month','Account','Amount','HC']];
-      [2023,2024,2025].forEach(yr=>MO.forEach(mo=>accounts.forEach(a=>moRows.push([yr,mo,a,0,a==='C&B'?0:'']))));
+      // Monthly detail sheet with chartfield dimensions
+      const moRows=[['Year','Month','Account','Function','Business Unit','Business Line','Market','Project','Amount','HC']];
+      [2023,2024,2025].forEach(yr=>MO.forEach(mo=>accounts.forEach(a=>moRows.push([yr,mo,a,'','','','','',0,a==='C&B'?0:'']))));
       const ws1=XLSX.utils.aoa_to_sheet(moRows);
-      ws1['!cols']=[{wch:6},{wch:5},{wch:16},{wch:12},{wch:5}];
+      ws1['!cols']=[{wch:6},{wch:5},{wch:16},{wch:14},{wch:14},{wch:14},{wch:10},{wch:10},{wch:12},{wch:5}];
       XLSX.utils.book_append_sheet(wb,ws1,'Monthly Detail');
-      // Annual summary sheet (auto-aggregated from monthly, but also accepted as input)
-      const annRows=[['Year','Account','Amount','HC']];
-      [2023,2024,2025].forEach(yr=>accounts.forEach(a=>annRows.push([yr,a,0,a==='C&B'?0:''])));
+      // Annual summary sheet
+      const annRows=[['Year','Account','Function','Business Unit','Business Line','Market','Project','Amount','HC']];
+      [2023,2024,2025].forEach(yr=>accounts.forEach(a=>annRows.push([yr,a,'','','','','',0,a==='C&B'?0:''])));
       const ws2=XLSX.utils.aoa_to_sheet(annRows);
-      ws2['!cols']=[{wch:6},{wch:16},{wch:12},{wch:5}];
+      ws2['!cols']=[{wch:6},{wch:16},{wch:14},{wch:14},{wch:14},{wch:10},{wch:10},{wch:12},{wch:5}];
       XLSX.utils.book_append_sheet(wb,ws2,'Annual Summary');
       XLSX.writeFile(wb,'historicals_template.xlsx');
     });
@@ -230,8 +230,9 @@ function initDataPanel(){
               return null;
             }
             function ensureYr(yr){
-              if(!state.historicals.years[yr])state.historicals.years[yr]={hc:0,cb:0,oao:0,ctr:0,te:0,da:0,capex:0,revenue:0,monthly:{}};
+              if(!state.historicals.years[yr])state.historicals.years[yr]={hc:0,cb:0,oao:0,ctr:0,te:0,da:0,capex:0,revenue:0,monthly:{},rows:[]};
               if(!state.historicals.years[yr].monthly)state.historicals.years[yr].monthly={};
+              if(!state.historicals.years[yr].rows)state.historicals.years[yr].rows=[];
               return state.historicals.years[yr];
             }
             rows.forEach(r=>{
@@ -242,15 +243,23 @@ function initDataPanel(){
               const hcVal=parseFloat(r.HC||r.hc||0);
               if(!yr||!acct)return;
               const yd=ensureYr(yr);
+              // Capture chartfield dimensions
+              const fn=(r.Function||r['function']||'').trim();
+              const bu=(r['Business Unit']||r.businessUnit||r.BusinessUnit||'').trim();
+              const bl=(r['Business Line']||r.bizLine||r.BusinessLine||'').trim();
+              const mkt=(r.Market||r.market||'').trim();
+              const proj=(r.Project||r.project||'').trim();
+              // Store detail row for dimension-based analysis
+              const detailRow={acct,amount:amt,hc:hcVal||0,function:fn,businessUnit:bu,bizLine:bl,market:mkt,project:proj};
               if(hasMonth){
                 const mo=(r.Month||r.month||'').toString().trim().toLowerCase().slice(0,3);
                 const mi=MO_MAP[mo]??parseInt(mo)-1;
+                detailRow.month=mi;
                 if(mi>=0&&mi<12){
                   if(!yd.monthly[mi])yd.monthly[mi]={hc:0,cb:0,oao:0,ctr:0,te:0,da:0,capex:0,revenue:0};
                   if(acct==='hc')yd.monthly[mi].hc+=hcVal||amt;
                   else yd.monthly[mi][acct]+=amt;
                 }
-                // Also aggregate to annual
                 if(acct==='hc'){yd.hc=Math.max(yd.hc,hcVal||amt)}
                 else yd[acct]+=amt;
               } else {
@@ -258,6 +267,7 @@ function initDataPanel(){
                 else yd[acct]+=amt;
               }
               if(hcVal&&acct==='cb')yd.hc=Math.max(yd.hc,hcVal);
+              yd.rows.push(detailRow);
             });
             state.historicals.enabled=true;
             if(histToggle)histToggle.checked=true;
