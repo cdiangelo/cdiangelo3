@@ -196,14 +196,14 @@ function checkModuleAccess(){
   const rules=getModuleAccess();
   const userRules=rules[user.email.toLowerCase()];
   if(!userRules)return;
-  // Map module keys to chevron nav selectors and tab selectors
+  // Map module keys to chevron sub-item selectors and tab/vtab selectors
   const moduleMap={
-    comp:{chevron:'.chevron-item[data-module="comp"]',tabs:['#tab-exec','#tab-employees','#tab-cb-other']},
-    vendor:{chevron:'.chevron-item[data-module="vendor"]',vtabs:['[data-vtab="vendor-grid"]']},
-    te:{vtabs:['[data-vtab="vendor-te"]']},
-    contractors:{vtabs:['[data-vtab="vendor-contractors"]']},
+    comp:{chevron:'[data-module="comp"]',tabs:['#tab-exec','#tab-employees','#tab-cb-other']},
+    vendor:{chevron:'[data-module="vendor"]',vtabs:['[data-vtab="vendor-grid"]']},
+    te:{chevron:'[data-module="te"]',vtabs:['[data-vtab="vendor-te"]']},
+    contractors:{chevron:'[data-module="contractors"]',vtabs:['[data-vtab="vendor-contractors"]']},
     other:{vtabs:['[data-vtab="vendor-other"]']},
-    forecast:{chevron:'.chevron-item[data-module="ltf"]'}
+    forecast:{chevron:'#chevForecast'}
   };
   MODULES.forEach(m=>{
     if(userRules[m.key]===false){
