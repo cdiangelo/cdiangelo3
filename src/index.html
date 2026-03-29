@@ -2750,12 +2750,16 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.76rem;color:var(--text-dim)">
-<span>Year Range:</span>
-<input type="range" id="ltfYearStart" min="0" max="5" value="0" style="width:80px;accent-color:var(--accent)">
-<span id="ltfYearStartLabel" style="min-width:30px">2026</span>
-<span>–</span>
-<input type="range" id="ltfYearEnd" min="0" max="5" value="5" style="width:80px;accent-color:var(--accent)">
-<span id="ltfYearEndLabel" style="min-width:30px">2031</span>
+<div style="flex:1;position:relative;height:28px;min-width:200px;max-width:360px">
+<!-- Track background with dots -->
+<div style="position:absolute;top:12px;left:0;right:0;height:4px;background:var(--border);border-radius:2px"></div>
+<div id="ltfRangeTrack" style="position:absolute;top:12px;height:4px;background:var(--accent);border-radius:2px"></div>
+<div id="ltfRangeDots" style="position:absolute;top:0;left:0;right:0;height:28px;display:flex;justify-content:space-between;align-items:center;pointer-events:none"></div>
+<!-- Two range inputs overlaid -->
+<input type="range" id="ltfYearStart" min="0" max="5" value="0" style="position:absolute;top:0;left:0;width:100%;height:28px;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;z-index:2" oninput="this.style.zIndex=3">
+<input type="range" id="ltfYearEnd" min="0" max="5" value="5" style="position:absolute;top:0;left:0;width:100%;height:28px;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;z-index:2" oninput="this.style.zIndex=3">
+</div>
+<span id="ltfYearRangeLabel" style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap">2026 – 2031</span>
 </div>
 <div class="chart-container" style="height:380px"><canvas id="ltfChart"></canvas></div>
 <div class="card" style="margin-top:12px;margin-bottom:16px"><div style="height:140px;position:relative"><canvas id="ltfFteChart"></canvas></div></div>
