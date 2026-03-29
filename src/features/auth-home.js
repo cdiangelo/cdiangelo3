@@ -618,6 +618,9 @@ function openShareModal(plan){
 async function loadSharedUsers(planId){
   const listEl=document.getElementById('shareUserList');
   if(!listEl)return;
+  const currentUser=getUser();
+  const isAdmin=currentUser&&currentUser.isAdmin;
+  const MODS=[{key:'comp',label:'C&B'},{key:'vendor',label:'Vendor'},{key:'te',label:'T&E'},{key:'contractors',label:'CTR'},{key:'other',label:'Other'},{key:'depreciation',label:'D&A'},{key:'revenue',label:'Rev'},{key:'forecast',label:'LTF'}];
   try{
     const r=await fetch('/api/plan-files/'+planId+'/access');
     if(r.ok){
@@ -626,14 +629,40 @@ async function loadSharedUsers(planId){
         listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Only you have access.</div>';
         return;
       }
-      listEl.innerHTML=users.map(u=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light)">
-          <div style="width:24px;height:24px;border-radius:50%;background:${u.color||'var(--accent)'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0">${u.initials||'?'}</div>
-          <div style="flex:1">
-            <div style="font-size:.82rem;font-weight:500;color:var(--text)">${u.email}</div>
-            <div style="font-size:.68rem;color:var(--tertiary)">${u.role||'editor'}</div>
-          </div>
-        </div>`).join('');
+      const rules=window.state&&window.state.moduleAccess?window.state.moduleAccess:{};
+      listEl.innerHTML=users.map(u=>{
+        const email=u.email.toLowerCase();
+        const ur=rules[email]||{};
+        let h=`<div style="padding:8px 0;border-bottom:1px solid var(--border-light)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:24px;height:24px;border-radius:50%;background:${u.color||'var(--accent)'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0">${u.initials||'?'}</div>
+            <div style="flex:1">
+              <div style="font-size:.82rem;font-weight:500;color:var(--text)">${u.email}</div>
+              <div style="font-size:.68rem;color:var(--tertiary)">${u.role||'editor'}</div>
+            </div>
+          </div>`;
+        if(isAdmin){
+          h+=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;padding-left:32px">${MODS.map(m=>{
+            const allowed=ur[m.key]!==false;
+            return `<label style="display:flex;align-items:center;gap:2px;font-size:.6rem;cursor:pointer;color:var(--text-dim)"><input type="checkbox" class="share-mod-cb" data-email="${email}" data-mod="${m.key}" ${allowed?'checked':''} style="accent-color:var(--accent);width:12px;height:12px">${m.label}</label>`;
+          }).join('')}</div>`;
+        }
+        h+=`</div>`;
+        return h;
+      }).join('');
+      // Wire module access checkboxes in share modal
+      if(isAdmin){
+        listEl.querySelectorAll('.share-mod-cb').forEach(cb=>{
+          cb.addEventListener('change',()=>{
+            if(!window.state)return;
+            if(!window.state.moduleAccess)window.state.moduleAccess={};
+            const em=cb.dataset.email;
+            if(!window.state.moduleAccess[em])window.state.moduleAccess[em]={};
+            window.state.moduleAccess[em][cb.dataset.mod]=cb.checked;
+            if(window.saveState)window.saveState();
+          });
+        });
+      }
     } else {
       listEl.innerHTML='<div style="font-size:.78rem;color:var(--tertiary)">Could not load shared users.</div>';
     }

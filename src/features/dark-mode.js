@@ -42,6 +42,16 @@ export function initDarkMode(){
     }
   }
   showAdminIfAllowed();
+  // Collapsible admin sections
+  document.querySelectorAll('.admin-collapse-toggle').forEach(h=>{
+    h.addEventListener('click',()=>{
+      const body=h.nextElementSibling;
+      if(!body)return;
+      const open=body.style.display!=='none';
+      body.style.display=open?'none':'';
+      h.innerHTML=(open?'&#9654; ':'&#9660; ')+h.textContent.replace(/^[▶▼]\s*/,'');
+    });
+  });
   // Re-check when settings panel opens
   const settingsPanel=document.getElementById('settingsSlidePanel');
   if(settingsPanel){
