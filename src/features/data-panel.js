@@ -632,6 +632,98 @@ document.querySelectorAll('.data-group-toggle').forEach(h4=>{
 /* ── window assignments for inline onclick handlers ── */
 window.renderDataPanelWsList = renderDataPanelWsList;
 window.renderAuditLog = renderAuditLog;
+// ── Validation Checks ──
+function initValidationPanel(){
+  const panel=document.getElementById('validationSlidePanel');
+  const btn=document.getElementById('btbValidation');
+  if(btn&&panel){
+    btn.addEventListener('click',()=>{
+      closeAllSidePanels();
+      panel.classList.add('open');
+      panel.style.transform='translateX(0)';
+    });
+  }
+  const runBtn=document.getElementById('runValidationBtn');
+  if(runBtn)runBtn.addEventListener('click',runValidationChecks);
+}
+
+function runValidationChecks(){
+  const results=[];
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // 1. Employees with zero salary
+  (state.employees||[]).forEach(e=>{
+    if(!e.salary||e.salary===0)results.push({type:'warning',category:'C&B',msg:`${e.name||e.role||'Employee'} has $0 salary`});
+  });
+
+  // 2. Employees with no function/country
+  (state.employees||[]).forEach(e=>{
+    if(!e.function)results.push({type:'info',category:'C&B',msg:`${e.name||'Employee'} missing function`});
+    if(!e.country)results.push({type:'info',category:'C&B',msg:`${e.name||'Employee'} missing country`});
+  });
+
+  // 3. Vendor rows with only one month of spend (anomaly)
+  (state.vendorRows||[]).forEach(r=>{
+    const nonZero=MO.filter(m=>(parseFloat(r[m])||0)!==0);
+    if(nonZero.length===1)results.push({type:'warning',category:'Vendor',msg:`"${r.vendorName||'Unnamed'}" has spend in only ${MO_LABELS[MO.indexOf(nonZero[0])]}`});
+  });
+
+  // 4. Big monthly jumps in vendor (>200% M/M)
+  (state.vendorRows||[]).forEach(r=>{
+    for(let m=1;m<12;m++){
+      const prev=Math.abs(parseFloat(r[MO[m-1]])||0);
+      const curr=Math.abs(parseFloat(r[MO[m]])||0);
+      if(prev>1000&&curr>1000){
+        const ratio=curr/prev;
+        if(ratio>3||ratio<0.33)results.push({type:'alert',category:'Vendor',msg:`"${r.vendorName||'Unnamed'}" ${MO_LABELS[m-1]}→${MO_LABELS[m]}: ${ratio>1?'+':''}${Math.round((ratio-1)*100)}% jump`});
+      }
+    }
+  });
+
+  // 5. T&E same checks
+  (state.teRows||[]).forEach(r=>{
+    const nonZero=MO.filter(m=>(parseFloat(r[m])||0)!==0);
+    if(nonZero.length===1)results.push({type:'warning',category:'T&E',msg:`"${r.description||'Unnamed'}" has spend in only ${MO_LABELS[MO.indexOf(nonZero[0])]}`});
+  });
+
+  // 6. Projects with OAO but no HC
+  const projHC={};
+  (state.employees||[]).forEach(e=>{const p=e.project||'';if(p)projHC[p]=(projHC[p]||0)+1});
+  const projOAO={};
+  (state.vendorRows||[]).forEach(r=>{const p=r.project||'';if(p){const fy=MO.reduce((s,m)=>s+(parseFloat(r[m])||0),0);if(fy)projOAO[p]=(projOAO[p]||0)+fy}});
+  Object.keys(projOAO).forEach(p=>{
+    if(!projHC[p])results.push({type:'info',category:'Allocation',msg:`Project "${p}" has OAO spend but no headcount`});
+  });
+
+  // 7. Forecast assumptions with zeros
+  const fa=state.forecastAssumptions;
+  if(fa){
+    ['attrition','hires','merit'].forEach(key=>{
+      if(fa[key]&&fa[key].every(v=>v===0))results.push({type:'info',category:'Forecast',msg:`${key} assumptions are all zero — forecasts may be flat`});
+    });
+  }
+
+  // 8. Duplicate vendor names
+  const vNames={};
+  (state.vendorRows||[]).forEach(r=>{const n=(r.vendorName||'').toLowerCase().trim();if(n)vNames[n]=(vNames[n]||0)+1});
+  Object.entries(vNames).forEach(([n,c])=>{if(c>3)results.push({type:'info',category:'Vendor',msg:`"${n}" appears ${c} times — consider consolidating`})});
+
+  // Render results
+  const container=document.getElementById('validationResults');
+  if(!container)return;
+  if(!results.length){container.innerHTML='<div style="text-align:center;padding:20px;color:var(--success);font-size:.88rem;font-weight:600">✓ All checks passed</div>';return}
+
+  const icons={alert:'⚠️',warning:'⚡',info:'ℹ️'};
+  const colors={alert:'var(--danger)',warning:'var(--warning, #d97706)',info:'var(--text-dim)'};
+  container.innerHTML=`<div style="font-size:.76rem;color:var(--text-dim);margin-bottom:8px">${results.length} item${results.length!==1?'s':''} found</div>`+
+    results.map(r=>`<div style="display:flex;gap:8px;padding:8px 10px;background:var(--bg-elevated);border-radius:6px;border-left:3px solid ${colors[r.type]};font-size:.76rem">
+      <span>${icons[r.type]||''}</span>
+      <div><span style="font-weight:600;color:var(--text-dim);font-size:.65rem;text-transform:uppercase">${r.category}</span><div style="color:var(--text)">${esc(r.msg)}</div></div>
+    </div>`).join('');
+}
+
+window.initValidationPanel=initValidationPanel;
 window.initDataPanel = initDataPanel;
 window.closeAllSidePanels = closeAllSidePanels;
 
