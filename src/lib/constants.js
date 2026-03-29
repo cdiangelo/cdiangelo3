@@ -65,7 +65,14 @@ export function setForecastYears(val){FORECAST_YEARS=val}
 export function setDisplayBaseYear(val){DISPLAY_BASE_YEAR=val}
 
 // CURRENT_YEAR is needed by rebuildForecastYears; also exported from proration.js
-export const CURRENT_YEAR = 2026;
+export let CURRENT_YEAR = 2026;
+export function setCurrentYear(yr){
+  CURRENT_YEAR=yr;
+  DISPLAY_BASE_YEAR=yr;
+  rebuildForecastYears();
+  window.CURRENT_YEAR=yr;
+  window.FORECAST_YEARS=FORECAST_YEARS;
+}
 
 export const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -79,6 +86,7 @@ window.getDisplayFcLabels = getDisplayFcLabels;
 window.displayYear = displayYear;
 window.CURRENT_YEAR = CURRENT_YEAR;
 window.FORECAST_YEARS = FORECAST_YEARS;
+window.setCurrentYear = setCurrentYear;
 window.COUNTRIES = COUNTRIES;
 window.SENIORITY = SENIORITY;
 window.FUNCTIONS = FUNCTIONS;

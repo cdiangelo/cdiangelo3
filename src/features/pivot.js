@@ -300,7 +300,8 @@ function renderPivotChart(data){
   const {rows,daTotal}=data;
   const acctSel=document.getElementById('pivotChartAccount');
   const acctKey=acctSel?acctSel.value:'totinv';
-  const rowNames=Object.keys(rows).sort((a,b)=>(rows[b].cb+rows[b].oao)-(rows[a].cb+rows[a].oao));
+  const dim1=document.getElementById('pivotRowDim').value;
+  const rowNames=Object.keys(rows).sort(isTimeDim(dim1)?timeSort:(a,b)=>(rows[b].cb+rows[b].oao)-(rows[a].cb+rows[a].oao));
   const nRows=rowNames.length||1;
   const colors=getChartColors();
   const labels=rowNames.map(n=>n.length>18?n.slice(0,16)+'…':n);
@@ -317,7 +318,7 @@ function renderPivotChart(data){
       const children=rows[name].children||{};
       Object.keys(children).forEach(k=>row2Set.add(k));
     });
-    const row2Names=[...row2Set].sort();
+    const row2Names=[...row2Set].sort(isTimeDim(dim2)?timeSort:undefined);
 
     if(!dim2||row2Names.length===0){
       // No Row 2 selected — fall back to simple bar-like bubbles on a single axis

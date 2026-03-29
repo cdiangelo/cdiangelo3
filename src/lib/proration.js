@@ -1,7 +1,8 @@
 // ── Date proration helpers ──
 import { state, getBonusAmt, getBenefitsAmt, getTotalComp } from './state.js';
 
-export const CURRENT_YEAR=2026;
+import { CURRENT_YEAR } from './constants.js';
+export { CURRENT_YEAR };
 export function daysInMonth(year,month){return new Date(year,month+1,0).getDate()}
 export function getMonthFactor(emp,monthIdx,year){
   if(!year)year=CURRENT_YEAR;

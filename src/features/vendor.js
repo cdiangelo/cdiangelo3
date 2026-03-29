@@ -382,7 +382,7 @@ function initVendorModule(){
     let h='';
     state.vendorRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'vr','vendor')});
     tbody.innerHTML=h;
-    renderFooter(totalEl,state.vendorRows,11,vendorSelectedMonths);
+    renderFooter(totalEl,state.vendorRows,fields2colSpan('vr'),vendorSelectedMonths);
     bindSpendRows(tbody,totalEl,state.vendorRows,'vr',renderVendorGrid,vendorSelectedMonths);
     attachSpreadsheetNav('vendorTbody','vr-mo');
   }
@@ -684,7 +684,7 @@ function initVendorModule(){
     let h='';
     state.teRows.forEach((row,i)=>{h+=buildSpendRow(row,i,'te','te')});
     tbody.innerHTML=h;
-    renderFooter(totalEl,state.teRows,10,teSelectedMonths);
+    renderFooter(totalEl,state.teRows,fields2colSpan('te'),teSelectedMonths);
     bindSpendRows(tbody,totalEl,state.teRows,'te',renderTeGrid,teSelectedMonths);
     attachSpreadsheetNav('teTbody','te-mo');
   }

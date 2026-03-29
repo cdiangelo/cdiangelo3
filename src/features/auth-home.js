@@ -278,6 +278,10 @@ async function openPlan(plan){
   // Store active plan reference
   window._activePlan=plan;
 
+  // Set current year from plan
+  const planYear=parseInt(plan.year)||2026;
+  if(window.setCurrentYear)window.setCurrentYear(planYear);
+
   // Ensure state is initialized before loading plan data
   try{loadState()}catch(e){console.warn('loadState init:',e)}
   ensureStateFields();
