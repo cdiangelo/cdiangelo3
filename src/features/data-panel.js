@@ -163,23 +163,77 @@ function initDataPanel(){
     try{renderLandingCharts()}catch(e){}
   });
 
-  // Workspace: Save As
-  document.getElementById('dataPanelWsSave').addEventListener('click',()=>{
-    const name=document.getElementById('dataPanelWsSaveName').value.trim();
-    if(!name){alert('Please enter a workspace name');return}
-    saveWorkspaceAs(name);
-    window.logAudit('Save Workspace',name);
-    document.getElementById('dataPanelWsSaveName').value='';
-    renderDataPanelWsList();renderWorkspaceList();
-  });
-  // Workspace: Quick Save — force save to current workspace
-  document.getElementById('dataPanelQuickSave').addEventListener('click',()=>{
-    if(window.saveState){window.saveState();window.logAudit('Quick Save','Force saved current state')}
-    // Also trigger server save if in session mode
-    if(window.debouncedServerSave)window.debouncedServerSave();
-    const btn=document.getElementById('dataPanelQuickSave');
-    btn.textContent='Saved!';setTimeout(()=>{btn.textContent='Quick Save'},1500);
-  });
+  // ── Historicals ──
+  const histToggle=document.getElementById('historicalsToggle');
+  const histUploadBtn=document.getElementById('historicalsUploadBtn');
+  const histFile=document.getElementById('historicalsFile');
+  if(histToggle){
+    if(!state.historicals)state.historicals={enabled:false,years:{}};
+    histToggle.checked=!!state.historicals.enabled;
+    histToggle.addEventListener('change',()=>{
+      if(!state.historicals)state.historicals={enabled:false,years:{}};
+      state.historicals.enabled=histToggle.checked;
+      if(window.saveState)window.saveState();
+      renderHistoricalsList();
+      try{if(window.renderLtfChart)window.renderLtfChart()}catch(e){}
+    });
+  }
+  if(histUploadBtn&&histFile){
+    histUploadBtn.addEventListener('click',()=>histFile.click());
+    histFile.addEventListener('change',function(){
+      const file=this.files[0];if(!file)return;
+      const reader=new FileReader();
+      reader.onload=function(e){
+        try{
+          if(!state.historicals)state.historicals={enabled:false,years:{}};
+          if(typeof XLSX!=='undefined'){
+            const wb=XLSX.read(e.target.result,{type:'array'});
+            const ws=wb.Sheets[wb.SheetNames[0]];
+            const rows=XLSX.utils.sheet_to_json(ws);
+            rows.forEach(r=>{
+              const yr=String(r.Year||r.year||'').trim();
+              const acct=(r.Account||r.account||'').trim().toLowerCase();
+              const amt=parseFloat(r.Amount||r.amount||0);
+              if(!yr||!acct)return;
+              if(!state.historicals.years[yr])state.historicals.years[yr]={hc:0,cb:0,oao:0,da:0,capex:0,revenue:0};
+              if(acct==='hc'||acct==='headcount')state.historicals.years[yr].hc+=amt;
+              else if(acct==='cb'||acct==='c&b'||acct==='comp')state.historicals.years[yr].cb+=amt;
+              else if(acct==='oao')state.historicals.years[yr].oao+=amt;
+              else if(acct==='da'||acct==='d&a')state.historicals.years[yr].da+=amt;
+              else if(acct==='capex')state.historicals.years[yr].capex+=amt;
+              else if(acct==='revenue')state.historicals.years[yr].revenue+=amt;
+            });
+            state.historicals.enabled=true;
+            if(histToggle)histToggle.checked=true;
+            if(window.saveState)window.saveState();
+            renderHistoricalsList();
+            try{if(window.renderLtfChart)window.renderLtfChart()}catch(e){}
+          }
+        }catch(err){alert('Failed to parse file: '+err.message)}
+      };
+      reader.readAsArrayBuffer(file);
+      this.value='';
+    });
+  }
+  function renderHistoricalsList(){
+    const list=document.getElementById('historicalsList');
+    if(!list)return;
+    const hist=state.historicals||{years:{}};
+    const years=Object.keys(hist.years||{}).sort();
+    if(!years.length){list.innerHTML='<div style="font-size:.74rem;color:var(--text-dim)">No historical data uploaded.</div>';return}
+    const fv=v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':v?String(Math.round(v)):'—';
+    list.innerHTML=`<table style="width:100%;font-size:.72rem;border-collapse:collapse">
+      <thead><tr style="color:var(--text-dim)"><th style="text-align:left;padding:3px 6px">Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>D&A</th><th>CapEx</th><th style="text-align:right;padding:3px 4px">
+        <span style="cursor:pointer;color:var(--danger);font-size:.65rem" title="Clear all historicals" id="histClearAll">clear</span></th></tr></thead>
+      <tbody>${years.map(yr=>{const d=hist.years[yr];return `<tr><td style="font-weight:600;padding:3px 6px">${yr}</td><td class="num">${d.hc||'—'}</td><td class="num">${fv(d.cb)}</td><td class="num">${fv(d.oao)}</td><td class="num">${fv(d.da)}</td><td class="num">${fv(d.capex)}</td><td style="text-align:right;padding:3px 4px"><button class="hist-del-yr" data-yr="${yr}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.65rem">×</button></td></tr>`}).join('')}</tbody>
+    </table>`;
+    list.querySelectorAll('.hist-del-yr').forEach(btn=>{
+      btn.addEventListener('click',()=>{delete state.historicals.years[btn.dataset.yr];if(window.saveState)window.saveState();renderHistoricalsList()});
+    });
+    const clearBtn=list.querySelector('#histClearAll');
+    if(clearBtn)clearBtn.addEventListener('click',()=>{if(confirm('Clear all historical data?')){state.historicals.years={};if(window.saveState)window.saveState();renderHistoricalsList()}});
+  }
+  renderHistoricalsList();
 
   // Download All Input Templates — single workbook with sheets for each import type + reference values
   document.getElementById('dataPanelDlAllTemplates').addEventListener('click',()=>{

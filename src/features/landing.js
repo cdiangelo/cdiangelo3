@@ -901,6 +901,12 @@ function initLtfModule(){
     document.querySelectorAll('#ltfSplitToggle .btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');ltfSplit=b.dataset.split;renderLtfChart();
   }));
+  // Year range sliders
+  const _yrStart=document.getElementById('ltfYearStart');
+  const _yrEnd=document.getElementById('ltfYearEnd');
+  if(_yrStart)_yrStart.addEventListener('input',renderLtfChart);
+  if(_yrEnd)_yrEnd.addEventListener('input',renderLtfChart);
+
   // Methodology toggle
   const methToggle=document.getElementById('ltfMethodToggle');
   const methPanel=document.getElementById('ltfMethodPanel');
@@ -1361,11 +1367,48 @@ function renderLtfChart(){
     });
   }
 
+  // ── Year range filtering ──
+  const yrStartEl=document.getElementById('ltfYearStart');
+  const yrEndEl=document.getElementById('ltfYearEnd');
+  let sliceStart=yrStartEl?parseInt(yrStartEl.value):0;
+  let sliceEnd=yrEndEl?parseInt(yrEndEl.value):5;
+  if(sliceEnd<sliceStart)sliceEnd=sliceStart;
+  // Update labels
+  const startLblEl=document.getElementById('ltfYearStartLabel');
+  const endLblEl=document.getElementById('ltfYearEndLabel');
+  if(startLblEl)startLblEl.textContent=yearLabels[sliceStart]||'';
+  if(endLblEl)endLblEl.textContent=yearLabels[sliceEnd]||'';
+
+  let chartLabels=yearLabels.slice(sliceStart,sliceEnd+1);
+  datasets.forEach(ds=>{ds.data=ds.data.slice(sliceStart,sliceEnd+1)});
+  acctData.forEach(ad=>{ad.data=ad.data.slice(sliceStart,sliceEnd+1)});
+
+  // ── Prepend historicals if enabled ──
+  const hist=state.historicals;
+  if(hist&&hist.enabled&&hist.years){
+    const histYears=Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort();
+    if(histYears.length){
+      chartLabels=[...histYears,...chartLabels];
+      datasets.forEach(ds=>{
+        const l=ds.label.toLowerCase();
+        const histData=histYears.map(yr=>{
+          const h=hist.years[yr];
+          if(l==='c&b'||l==='c&b (opex)')return h.cb||0;
+          if(l==='oao')return h.oao||0;
+          if(l==='d&a')return h.da||0;
+          if(l==='capex')return -(h.capex||0);
+          return 0;
+        });
+        ds.data=[...histData,...ds.data];
+      });
+    }
+  }
+
   window.stackedBarDatalabels(datasets,tickColor,8,'ltf');
   if(isPnl)datasets.filter(d=>d.label==='CapEx').forEach(d=>{d.datalabels={display:false}});
 
   ltfChartInst=new Chart(canvas,{
-    type:'bar',data:{labels:yearLabels,datasets},
+    type:'bar',data:{labels:chartLabels,datasets},
     plugins:[ltfYoyPlugin,barTotalPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},
       plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:12},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:11},ltfYoy:{accountData:acctData,byAccount}},

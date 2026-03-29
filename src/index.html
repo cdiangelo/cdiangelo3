@@ -2686,6 +2686,14 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 </div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.76rem;color:var(--text-dim)">
+<span>Year Range:</span>
+<input type="range" id="ltfYearStart" min="0" max="5" value="0" style="width:80px;accent-color:var(--accent)">
+<span id="ltfYearStartLabel" style="min-width:30px">2026</span>
+<span>–</span>
+<input type="range" id="ltfYearEnd" min="0" max="5" value="5" style="width:80px;accent-color:var(--accent)">
+<span id="ltfYearEndLabel" style="min-width:30px">2031</span>
+</div>
 <div class="chart-container" style="height:380px"><canvas id="ltfChart"></canvas></div>
 <div class="card" style="margin-top:12px;margin-bottom:16px"><div style="height:140px;position:relative"><canvas id="ltfFteChart"></canvas></div></div>
 <div style="margin-top:12px">
@@ -3068,6 +3076,20 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 
+
+<div class="data-section">
+<h4>Historical Data</h4>
+<p style="font-size:.76rem;color:var(--text-dim);margin-bottom:8px">Upload actuals for prior years to enable trend analysis in LTF and pivot views.</p>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+<label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" id="historicalsToggle"> Include historicals in views</label>
+</div>
+<div id="historicalsList" style="margin-bottom:8px"></div>
+<div style="display:flex;gap:6px;align-items:center">
+<button class="btn btn-sm" id="historicalsUploadBtn" style="font-size:.76rem">Upload Historical Year</button>
+<input type="file" id="historicalsFile" accept=".xlsx,.xls,.csv" style="display:none">
+<span style="font-size:.7rem;color:var(--text-dim)">CSV/Excel with columns: Year, Account, Amount</span>
+</div>
+</div>
 
 <div class="data-section">
 <h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Import Budget Inputs</h4>
