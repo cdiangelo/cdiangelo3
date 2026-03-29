@@ -304,7 +304,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div style="display:none" id="landingSummaryContent">
 <!-- View toggle bar -->
 <div style="display:flex;gap:0;margin-bottom:12px;border:1px solid var(--border);border-radius:10px;overflow:hidden" id="overviewViewToggle">
-<button class="overview-view-btn active" data-view="pnl" style="flex:1;padding:10px 16px;font-size:.82rem;font-weight:600;background:var(--accent-soft);color:var(--accent);border:none;border-right:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all .15s">P&amp;L by Product Category</button>
+<button class="overview-view-btn active" data-view="pnl" style="flex:1;padding:10px 16px;font-size:.82rem;font-weight:600;background:var(--accent-soft);color:var(--accent);border:none;border-right:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all .15s">FY Summary</button>
 <button class="overview-view-btn" data-view="budget" style="flex:1;padding:10px 16px;font-size:.82rem;font-weight:500;background:var(--panel);color:var(--text-dim);border:none;border-right:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all .15s">Monthly Budget</button>
 <button class="overview-view-btn" data-view="forecast" style="flex:1;padding:10px 16px;font-size:.82rem;font-weight:500;background:var(--panel);color:var(--text-dim);border:none;cursor:pointer;font-family:inherit;transition:all .15s">Long-Term Forecast</button>
 </div>
@@ -658,6 +658,15 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div id="pivotAccountToggle" style="display:none"></div>
 <button id="pivotRefresh" style="display:none"></button>
 
+<!-- Chart controls -->
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+<div class="toggle-group" id="pivotChartType" style="font-size:.72rem">
+<button class="btn active" data-pchart="bar" style="padding:2px 10px;font-size:.72rem">Stacked Bar</button>
+<button class="btn" data-pchart="line" style="padding:2px 10px;font-size:.72rem">Line</button>
+<button class="btn" data-pchart="bubble" style="padding:2px 10px;font-size:.72rem">Bubble</button>
+</div>
+<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Account</label><select id="pivotChartAccount" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="totinv">Tot Inv</option><option value="opex">OpEx</option><option value="ebitda">EBITDA</option><option value="cb">C&amp;B</option><option value="oao">OAO</option><option value="capex">CapEx</option><option value="da">D&amp;A</option><option value="hc">HC</option></select></div>
+</div>
 <!-- Chart -->
 <div class="card" style="margin-bottom:12px;padding:16px 20px">
 <div style="position:relative;height:35vh;min-height:250px">
@@ -762,9 +771,11 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div class="controls" style="justify-content:flex-end;margin-bottom:8px;gap:6px">
+<button class="btn" id="btnClearFilter" style="padding:4px 12px;font-size:.82rem">Clear Filter</button>
+<div style="flex:1"></div>
 <button class="btn" id="btnImportRoster" style="padding:4px 12px;font-size:.82rem">Import Roster</button>
 <input type="file" id="empInlineRosterFile" accept=".xlsx,.xls,.csv" style="display:none">
-<button class="btn" id="btnClearAllEmps" style="background:var(--danger);color:#fff">Clear All</button>
+<button class="btn" id="btnClearAllEmps" style="background:var(--danger);color:#fff;border:2px solid var(--danger);font-weight:700;text-transform:uppercase;font-size:.72rem;letter-spacing:.05em">Delete All HC</button>
 
 <!-- Mass Change Modal -->
 <div id="massChangeOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998" onclick="window.closeMassChange()"></div>
@@ -1263,7 +1274,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </select></div>
 <div><label class="qa-step-label">Filter</label>
 <input id="vendorQaSearch" type="text" placeholder="Search vendors..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
-<button class="btn btn-sm" id="vendorQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+<button class="btn btn-sm" id="vendorQaRefresh" style="margin-left:auto;padding:3px 10px;font-size:.72rem" title="Re-sort by amount">↻ Sort</button>
+<button class="btn btn-sm" id="vendorQaUndo" style="padding:3px 10px;font-size:.72rem;display:none">Undo</button>
 </div>
 <div class="qa-row-list" id="vendorQaList"></div>
 <div class="qa-total-bar"><span>Total Vendor Spend</span><span class="qa-total-amt" id="vendorQaTotal">$0</span></div>
@@ -1447,7 +1459,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </select></div>
 <div><label class="qa-step-label">Filter</label>
 <input id="teQaSearch" type="text" placeholder="Search T&amp;E..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
-<button class="btn btn-sm" id="teQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+<button class="btn btn-sm" id="teQaRefresh" style="margin-left:auto;padding:3px 10px;font-size:.72rem" title="Re-sort by amount">↻ Sort</button>
+<button class="btn btn-sm" id="teQaUndo" style="padding:3px 10px;font-size:.72rem;display:none">Undo</button>
 </div>
 <div class="qa-row-list" id="teQaList"></div>
 <div class="qa-total-bar"><span>Total T&amp;E Spend</span><span class="qa-total-amt" id="teQaTotal">$0</span></div>
@@ -1616,7 +1629,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </select></div>
 <div><label class="qa-step-label">Filter</label>
 <input id="contractorQaSearch" type="text" placeholder="Search contractors..." style="padding:3px 8px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);width:160px"></div>
-<button class="btn btn-sm" id="contractorQaUndo" style="margin-left:auto;padding:3px 10px;font-size:.72rem;display:none">Undo</button>
+<button class="btn btn-sm" id="contractorQaRefresh" style="margin-left:auto;padding:3px 10px;font-size:.72rem" title="Re-sort by amount">↻ Sort</button>
+<button class="btn btn-sm" id="contractorQaUndo" style="padding:3px 10px;font-size:.72rem;display:none">Undo</button>
 </div>
 <div class="qa-row-list" id="contractorQaList"></div>
 <div class="qa-total-bar"><span>Total Contractor Spend</span><span class="qa-total-amt" id="contractorQaTotal">$0</span></div>

@@ -279,6 +279,7 @@ function getFilteredOaoTotal(){
   return vTotal+tTotal+cOpex;
 }
 
+let pnlSortCol=null, pnlSortAsc=true;
 function renderPnlWalk(){
   populatePnlFilters();
   const emps=getPnlFilteredEmps();
@@ -316,7 +317,7 @@ function renderPnlWalk(){
       groups[k1].children[k2].push(e);
     }
   });
-  const groupKeys=Object.keys(groups).sort();
+  let groupKeys=Object.keys(groups).sort();
 
   // Compute P&L — split existing vs hires
   function isHire(e){
@@ -461,14 +462,25 @@ function renderPnlWalk(){
   // Row1 label
   const row1Label=row1Sel?row1Sel.options[row1Sel.selectedIndex].text:'CATEGORY';
 
-  let h=`<thead><tr><th style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap;min-width:140px">${esc(row1Label.toUpperCase())}</th>`;
+  // Apply sort if active
+  if(pnlSortCol){
+    const dir=pnlSortAsc?1:-1;
+    if(pnlSortCol==='_name'){
+      groupKeys.sort((a,b)=>a.localeCompare(b)*dir);
+    } else {
+      groupKeys.sort((a,b)=>((gData[a][pnlSortCol]||0)-(gData[b][pnlSortCol]||0))*dir);
+    }
+  }
+
+  let h=`<thead><tr><th data-sort-col="_name" style="position:sticky;left:0;z-index:2;background:var(--panel-inset);white-space:nowrap;min-width:140px;cursor:pointer;user-select:none">${esc(row1Label.toUpperCase())}${pnlSortCol==='_name'?(pnlSortAsc?' ▲':' ▼'):''}</th>`;
   cols.forEach(c=>{
     let w=c.narrow?'width:36px;':'min-width:55px;';
     let extra='';
     if(c.cls==='subtotal'){w='min-width:65px;';extra='font-weight:700;color:var(--accent);border-left:1px solid var(--border-light);'}
     else if(c.cls==='total'){w='min-width:65px;';extra='font-weight:700;border-left:1px solid var(--border-light);'}
     else if(c.cls==='sub2'){w='min-width:65px;';extra='font-weight:700;color:var(--accent);border-right:1px solid var(--border-light);'}
-    h+=`<th style="text-align:right;${w}${extra}white-space:nowrap;padding:5px 6px;font-size:.68rem">${c.label}</th>`;
+    const arrow=pnlSortCol===c.key?(pnlSortAsc?' ▲':' ▼'):'';
+    h+=`<th data-sort-col="${c.key}" style="text-align:right;${w}${extra}white-space:nowrap;padding:5px 6px;font-size:.68rem;cursor:pointer;user-select:none">${c.label}${arrow}</th>`;
   });
   h+='</tr></thead><tbody>';
 
@@ -502,11 +514,20 @@ function renderPnlWalk(){
   h+='</tr></tbody>';
   tbl.innerHTML=h;tbl.classList.remove('compact');
 
-  // Bind clicks
+  // Bind row expand/collapse clicks
   tbl.querySelectorAll('.pnl-cat-row').forEach(tr=>{
     tr.addEventListener('click',()=>{
       const cat=tr.dataset.cat;
       if(pnlExpandedCats.has(cat))pnlExpandedCats.delete(cat);else pnlExpandedCats.add(cat);
+      renderPnlWalk();
+    });
+  });
+  // Bind sort clicks on headers
+  tbl.querySelectorAll('th[data-sort-col]').forEach(th=>{
+    th.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const col=th.dataset.sortCol;
+      if(pnlSortCol===col){pnlSortAsc=!pnlSortAsc}else{pnlSortCol=col;pnlSortAsc=col==='_name'}
       renderPnlWalk();
     });
   });
@@ -899,36 +920,43 @@ function initLtfModule(){
       return;
     }
     list.innerHTML=state.ltfCustomAdj.map((adj,i)=>{
-      let h=`<div style="padding:8px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:6px">`;
-      h+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">`;
-      h+=`<input class="ltf-adj-label" data-ai="${i}" value="${adj.label||''}" placeholder="Adjustment name" style="flex:1;padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)">`;
-      h+=`<button class="btn btn-sm ltf-adj-del" data-ai="${i}" style="padding:1px 6px;font-size:.66rem;color:var(--danger)">×</button>`;
+      const total=adj.amounts.reduce((s,v)=>s+(v||0),0);
+      const totalM=(total/1e6).toFixed(2);
+      const yrVals=years.map((yr,yi)=>{const v=adj.amounts[yi]||0;return (v/1e6).toFixed(1)}).join(', ');
+      let h=`<div class="ltf-adj-row" data-ai="${i}" style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel-inset);border:1px solid var(--border-light);border-radius:6px;cursor:pointer">`;
+      h+=`<span style="font-size:.76rem;font-weight:600;color:var(--text);min-width:100px">${adj.label||'Adj '+(i+1)}</span>`;
+      h+=`<span style="font-size:.72rem;color:var(--text-dim);font-family:var(--font-mono);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">$${totalM}M [${yrVals}]</span>`;
+      h+=`<button class="btn btn-sm ltf-adj-del" data-ai="${i}" style="padding:1px 6px;font-size:.66rem;color:var(--danger);flex-shrink:0">×</button>`;
       h+=`</div>`;
-      h+=`<div style="display:flex;gap:4px;flex-wrap:wrap">`;
-      years.forEach((yr,yi)=>{
-        const val=adj.amounts[yi]||0;
-        const dispVal=val/1e6;
-        h+=`<div style="display:flex;flex-direction:column;align-items:center;gap:1px">`;
-        h+=`<span style="font-size:.6rem;color:var(--text-dim)">${yr}</span>`;
-        h+=`<input class="ltf-adj-amt" data-ai="${i}" data-yi="${yi}" type="number" step="any" value="${dispVal||''}" placeholder="0" style="width:60px;padding:2px 4px;font-size:.74rem;text-align:right;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
-        h+=`<span style="font-size:.55rem;color:var(--text-dim)">$M</span>`;
-        h+=`</div>`;
-      });
-      h+=`</div></div>`;
       return h;
     }).join('');
-    // Bind events
-    list.querySelectorAll('.ltf-adj-label').forEach(inp=>{
-      inp.addEventListener('change',()=>{
-        state.ltfCustomAdj[+inp.dataset.ai].label=inp.value;
-        saveState();renderLtfChart();
-      });
-    });
-    list.querySelectorAll('.ltf-adj-amt').forEach(inp=>{
-      inp.addEventListener('change',()=>{
-        const ai=+inp.dataset.ai,yi=+inp.dataset.yi;
-        state.ltfCustomAdj[ai].amounts[yi]=Math.round((parseFloat(inp.value)||0)*1e6);
-        saveState();renderLtfChart();
+    // Bind expand to edit
+    list.querySelectorAll('.ltf-adj-row').forEach(row=>{
+      row.addEventListener('click',(e)=>{
+        if(e.target.closest('.ltf-adj-del'))return;
+        const ai=+row.dataset.ai;
+        const adj=state.ltfCustomAdj[ai];
+        // Toggle inline edit
+        const existing=row.querySelector('.ltf-adj-edit');
+        if(existing){existing.remove();return}
+        const edit=document.createElement('div');
+        edit.className='ltf-adj-edit';
+        edit.style.cssText='display:flex;flex-wrap:wrap;gap:4px;padding:6px 0 0;width:100%';
+        edit.innerHTML=`<input class="ltf-adj-label" data-ai="${ai}" value="${adj.label||''}" placeholder="Name" style="flex:1;min-width:100px;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
+        years.forEach((yr,yi)=>{
+          const dispVal=(adj.amounts[yi]||0)/1e6;
+          edit.innerHTML+=`<input class="ltf-adj-amt" data-ai="${ai}" data-yi="${yi}" type="number" step="any" value="${dispVal||''}" placeholder="${yr}" title="${yr}" style="width:52px;padding:2px 4px;font-size:.72rem;text-align:right;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">`;
+        });
+        row.style.flexWrap='wrap';
+        row.appendChild(edit);
+        edit.querySelectorAll('.ltf-adj-label').forEach(inp=>{
+          inp.addEventListener('change',()=>{state.ltfCustomAdj[+inp.dataset.ai].label=inp.value;saveState();renderLtfAdj();renderLtfChart()});
+          inp.addEventListener('click',e=>e.stopPropagation());
+        });
+        edit.querySelectorAll('.ltf-adj-amt').forEach(inp=>{
+          inp.addEventListener('change',()=>{state.ltfCustomAdj[+inp.dataset.ai].amounts[+inp.dataset.yi]=Math.round((parseFloat(inp.value)||0)*1e6);saveState();renderLtfAdj();renderLtfChart()});
+          inp.addEventListener('click',e=>e.stopPropagation());
+        });
       });
     });
     list.querySelectorAll('.ltf-adj-del').forEach(btn=>{

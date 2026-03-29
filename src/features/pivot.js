@@ -135,7 +135,7 @@ function renderPivotTable(data){
   const daPerRow=daTotal/nRows;
 
   // Header
-  thead.innerHTML=`<tr><th style="text-align:left;min-width:180px">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>${cols.map(c=>`<th style="text-align:right;${c.narrow?'width:50px;':'min-width:80px;'}">${c.label}</th>`).join('')}</tr>`;
+  thead.innerHTML=`<tr><th style="text-align:left;min-width:180px;position:sticky;top:0;z-index:2;background:var(--panel)">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>${cols.map(c=>`<th style="text-align:right;${c.narrow?'width:50px;':'min-width:80px;'}position:sticky;top:0;z-index:2;background:var(--panel)">${c.label}</th>`).join('')}</tr>`;
 
   let html='';
   let totals={hc:0,cb:0,cbCapex:0,oao:0,ctr:0,te:0,other:0,da:0,ebitda:0,capex:0,opex:0,totinv:0};
@@ -177,6 +177,7 @@ function renderPivotTable(data){
 }
 
 // ── Render chart ──
+let pivotChartType='bar'; // bar | line | bubble
 function renderPivotChart(data){
   if(typeof Chart==='undefined')return;
   const canvas=document.getElementById('pivotChart');
@@ -184,34 +185,59 @@ function renderPivotChart(data){
   if(pivotChart)pivotChart.destroy();
 
   const {rows,daTotal}=data;
-  const cols=getCols().filter(c=>!c.isHC);
+  const acctSel=document.getElementById('pivotChartAccount');
+  const acctKey=acctSel?acctSel.value:'totinv';
   const rowNames=Object.keys(rows).sort((a,b)=>(rows[b].cb+rows[b].oao)-(rows[a].cb+rows[a].oao));
   const nRows=rowNames.length||1;
   const colors=getChartColors();
+  const labels=rowNames.map(n=>n.length>18?n.slice(0,16)+'…':n);
+  const isHC=acctKey==='hc';
+  const tickFmt=isHC?v=>Math.round(v):v=>'$'+(Math.abs(v)/1e6).toFixed(1);
 
-  const datasets=cols.map((col,ci)=>({
-    label:col.label,
-    data:rowNames.map(name=>{
-      const r=calcDerived(rows[name],daTotal/nRows);
-      return r[col.key]||0;
-    }),
-    backgroundColor:hexToRgba(colors[ci%colors.length],0.7),
-    borderColor:colors[ci%colors.length],
-    borderWidth:1,
-  }));
-
-  pivotChart=new Chart(canvas,{
-    type:'bar',
-    data:{labels:rowNames.map(n=>n.length>18?n.slice(0,16)+'…':n),datasets},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},datalabels:{display:false},yoyArrows:false},
-      scales:{
-        x:{ticks:{font:{size:10}}},
-        y:{ticks:{font:{size:10},callback:v=>'$'+(Math.abs(v)/1e6).toFixed(1)}}
+  if(pivotChartType==='bubble'){
+    // Bubble matrix: x=row index, y=account value, r=scaled size
+    const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+    const maxVal=Math.max(...vals.map(Math.abs),1);
+    const bubbleData=vals.map((v,i)=>({x:i,y:v,r:Math.max(4,Math.sqrt(Math.abs(v)/maxVal)*40)}));
+    pivotChart=new Chart(canvas,{
+      type:'bubble',
+      data:{datasets:[{label:acctKey.toUpperCase(),data:bubbleData,backgroundColor:hexToRgba(colors[0],0.5),borderColor:colors[0],borderWidth:1}]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false,
+          tooltip:{callbacks:{label:ctx=>{const d=ctx.raw;return labels[d.x]+': '+(isHC?Math.round(d.y):('$'+(Math.abs(d.y)/1e6).toFixed(2)+'M'))}}}
+        },
+        scales:{
+          x:{type:'linear',ticks:{callback:v=>labels[Math.round(v)]||'',font:{size:10}},min:-0.5,max:rowNames.length-0.5},
+          y:{ticks:{font:{size:10},callback:tickFmt}}
+        }
       }
-    }
-  });
+    });
+  } else if(pivotChartType==='line'){
+    // Single line showing the selected account across rows
+    const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+    pivotChart=new Chart(canvas,{
+      type:'line',
+      data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,borderColor:colors[0],backgroundColor:hexToRgba(colors[0],0.15),fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:colors[0]}]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},
+        scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}
+      }
+    });
+  } else {
+    // Stacked bar — show selected account only
+    const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+    pivotChart=new Chart(canvas,{
+      type:'bar',
+      data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,backgroundColor:hexToRgba(colors[0],0.7),borderColor:colors[0],borderWidth:1}]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},
+        scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}
+      }
+    });
+  }
 }
 
 // ── Main render ──
@@ -244,6 +270,19 @@ function initPivot(){
   if(row2)row2.addEventListener('change',renderPivot);
   const refreshBtn=document.getElementById('pivotRefresh');
   if(refreshBtn)refreshBtn.addEventListener('click',renderPivot);
+
+  // Chart type toggle
+  document.querySelectorAll('#pivotChartType .btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('#pivotChartType .btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      pivotChartType=btn.dataset.pchart;
+      renderPivot();
+    });
+  });
+  // Account filter for chart
+  const acctSel=document.getElementById('pivotChartAccount');
+  if(acctSel)acctSel.addEventListener('change',renderPivot);
 }
 
 window.initPivot=initPivot;

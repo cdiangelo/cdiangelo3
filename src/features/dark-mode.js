@@ -154,15 +154,40 @@ function initAdminOpsControl(){
     try{return JSON.parse(localStorage.getItem('webplan-known-users')||'[]')}catch(e){return[]}
   }
 
-  function render(){
+  async function render(){
+    // Merge local known users with shared users from active plan
     const known=getKnownUsers();
+    let sharedUsers=[];
+    const plan=window._activePlan;
+    if(plan&&plan.id){
+      try{
+        const r=await fetch('/api/plan-files/'+plan.id+'/access');
+        if(r.ok) sharedUsers=await r.json();
+      }catch(e){}
+    }
+    // Build merged list keyed by email
+    const merged=new Map();
+    known.forEach(u=>{
+      if(u.email) merged.set(u.email.toLowerCase(),{email:u.email,name:u.name||'',initials:u.initials||'',source:'local'});
+    });
+    sharedUsers.forEach(u=>{
+      if(!u.email)return;
+      const key=u.email.toLowerCase();
+      if(merged.has(key)){
+        const existing=merged.get(key);
+        if(!existing.name&&u.email) existing.name=u.email;
+      } else {
+        merged.set(key,{email:u.email,name:u.email,initials:u.initials||'',source:'shared'});
+      }
+    });
+    const allUsers=[...merged.values()];
     const rules=getOpsRules();
     listEl.innerHTML='';
-    if(!known.length){
-      listEl.innerHTML='<p style="font-size:.75rem;color:var(--tertiary)">No users have logged in yet.</p>';
+    if(!allUsers.length){
+      listEl.innerHTML='<p style="font-size:.75rem;color:var(--tertiary)">No users yet. Share a plan or have users log in.</p>';
       return;
     }
-    known.forEach(u=>{
+    allUsers.forEach(u=>{
       const email=u.email.toLowerCase();
       const rule=rules.find(r=>r.email.toLowerCase()===email);
       const isRestricted=rule&&rule.mode==='restricted';
@@ -189,7 +214,7 @@ function initAdminOpsControl(){
   }
 
   render();
-  // Re-render when settings panel opens (in case new users logged in)
+  // Re-render when settings panel opens (in case new users logged in or plan shared)
   const panel=document.getElementById('settingsSlidePanel');
   if(panel){
     const observer=new MutationObserver(()=>{if(panel.classList.contains('open'))render()});

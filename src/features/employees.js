@@ -238,7 +238,12 @@ function deleteEmp(id){
   state.employees.splice(idx,1);delete state.allocOverrides[id];saveState();window.renderAll();
   window.showUndoToast(name,state.employees,idx,item,window.renderAll);
 }
-document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('Remove all employees? This cannot be undone.')){window.logAudit('Clear All','Removed all employees');state.employees=[];state.allocOverrides={};saveState();window.renderAll()}});
+document.getElementById('btnClearFilter').addEventListener('click',()=>{
+  document.getElementById('empFilterName').value='';
+  ['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterMarket','empFilterBizLine','empFilterProject'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  renderEmployees();
+});
+document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('⚠️ DELETE ALL HEADCOUNT?\n\nThis will permanently remove all '+state.employees.length+' employees. This cannot be undone.')){window.logAudit('Clear All','Removed all employees');state.employees=[];state.allocOverrides={};saveState();window.renderAll()}});
 document.getElementById('btnImportRoster').addEventListener('click',()=>document.getElementById('empInlineRosterFile').click());
 document.getElementById('empInlineRosterFile').addEventListener('change',function(){
   const mainInput=document.getElementById('rosterFileInput');

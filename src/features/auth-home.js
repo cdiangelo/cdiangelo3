@@ -3,6 +3,16 @@ import { state, saveState, loadState, ensureStateFields } from '../lib/state.js'
 
 const USER_KEY='compPlanUser';
 
+function formatTimeAgo(date){
+  const now=Date.now(),diff=now-date.getTime();
+  const mins=Math.floor(diff/60000),hrs=Math.floor(diff/3600000),days=Math.floor(diff/86400000);
+  if(mins<1)return 'just now';
+  if(mins<60)return mins+'m ago';
+  if(hrs<24)return hrs+'h ago';
+  if(days<7)return days+'d ago';
+  return date.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
+
 function getUser(){
   const raw=localStorage.getItem(USER_KEY);
   return raw?JSON.parse(raw):null;
@@ -170,16 +180,20 @@ async function renderPlanList(){
       const shareLabel=isOwner?'by me':'with me';
       const shareArrow=isOwner?'↗':'↙';
       const shareTag=`<span style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;color:var(--tertiary);margin-left:auto;white-space:nowrap">${shareArrow} ${shareLabel}</span>`;
+      const timeAgo=formatTimeAgo(date);
       return `<div class="home-plan-card" data-plan-id="${p.id}" data-plan-idx="${p._idx}">
         <div style="flex:1;min-width:0">
-          <div class="plan-name" style="display:flex;align-items:center;gap:6px">${p.name}${(p.accessCount||1)>1?shareTag:''}</div>
-          <div class="plan-meta">
+          <div class="plan-name" style="display:flex;align-items:center;gap:6px">${p.name}</div>
+          <div class="plan-meta" style="display:flex;align-items:center;gap:6px">
             <span class="plan-badge ${type}">${type}</span>
             <span>${p.year}</span>
-            <span>${timeStr}</span>
+            <span title="${date.toLocaleString()}">${timeAgo}</span>
           </div>
         </div>
-        <button class="plan-menu-btn" data-plan-idx="${p._idx}" title="Share" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--tertiary);padding:4px 8px;border-radius:4px">⋯</button>
+        ${(p.accessCount||1)>1?`<span style="display:flex;align-items:center;font-size:.68rem;color:var(--tertiary);white-space:nowrap;margin-right:4px">${shareArrow} ${shareLabel}</span>`:''}
+        <div style="position:relative">
+          <button class="plan-menu-btn" data-plan-idx="${p._idx}" title="Options" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--tertiary);padding:4px 8px;border-radius:4px">⋯</button>
+        </div>
       </div>`;
     }
 
@@ -214,7 +228,32 @@ async function renderPlanList(){
         e.stopPropagation();
         const idx=+btn.dataset.planIdx;
         const plan=_cachedPlans[idx];
-        if(plan)openShareModal(plan);
+        if(!plan)return;
+        // Remove any existing dropdown
+        document.querySelectorAll('.plan-ctx-menu').forEach(m=>m.remove());
+        const menu=document.createElement('div');
+        menu.className='plan-ctx-menu';
+        menu.style.cssText='position:absolute;right:0;top:100%;z-index:999;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);min-width:120px;overflow:hidden';
+        menu.innerHTML=`
+          <div class="plan-ctx-item" data-action="share" style="padding:8px 14px;font-size:.8rem;cursor:pointer;color:var(--text);transition:background .1s">Share</div>
+          <div class="plan-ctx-item" data-action="delete" style="padding:8px 14px;font-size:.8rem;cursor:pointer;color:var(--danger);transition:background .1s">Delete</div>`;
+        btn.parentElement.appendChild(menu);
+        menu.querySelector('[data-action="share"]').addEventListener('click',(ev)=>{ev.stopPropagation();menu.remove();openShareModal(plan)});
+        menu.querySelector('[data-action="delete"]').addEventListener('click',async(ev)=>{
+          ev.stopPropagation();menu.remove();
+          if(!confirm('Delete "'+plan.name+'"? This cannot be undone.'))return;
+          try{
+            const r=await fetch('/api/plan-files/'+plan.id,{method:'DELETE'});
+            if(r.ok){_cachedPlans=null;loadPlanList()}
+            else{alert('Failed to delete plan')}
+          }catch(err){alert('Network error')}
+        });
+        menu.querySelectorAll('.plan-ctx-item').forEach(item=>{
+          item.addEventListener('mouseenter',()=>item.style.background='var(--bg-elevated)');
+          item.addEventListener('mouseleave',()=>item.style.background='');
+        });
+        const dismiss=()=>{menu.remove();document.removeEventListener('click',dismiss)};
+        setTimeout(()=>document.addEventListener('click',dismiss),0);
       });
     });
   }
