@@ -32,7 +32,7 @@
 .home-create-section h3,.home-plans-section h3{font-size:1rem;font-weight:500;color:var(--accent);margin:0 0 16px 0}
 .home-create-section{padding:14px 20px}
 .home-create-section h3{margin:0 0 8px 0;font-size:.9rem}
-.home-create-form{display:flex;gap:8px;align-items:center}
+.home-create-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .home-create-form input,.home-create-form select{padding:9px 12px;font-size:.82rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text);font-family:inherit;-webkit-appearance:none;appearance:none}
 .home-create-form input:focus,.home-create-form select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
 .home-create-form .btn-primary{background:linear-gradient(135deg,var(--accent-mid),var(--secondary-soft));color:var(--text);border:none;border-radius:8px;padding:9px 20px;font-weight:500;cursor:pointer}
