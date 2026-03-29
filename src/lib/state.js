@@ -154,8 +154,8 @@ export function ensureStateFields(){
     'Finance':'Platform/Central','HR':'Platform/Central','Legal':'Platform/Central',
     'IT':'Platform/Central','Operations':'Platform/Central','Security':'Platform/Central'
   };
-  if(!state.cbOther)state.cbOther=[];
-  if(!state.oaoOther)state.oaoOther=[];
+  if(!state.cbOtherRows)state.cbOtherRows=[];
+  if(!state.oaoOtherRows)state.oaoOtherRows=[];
   if(!state.ltfCustomAdj)state.ltfCustomAdj=[];
   if(!state.daAssetLifeYrs)state.daAssetLifeYrs=5;
   if(!state.vendorRows||!state.vendorRows.length){

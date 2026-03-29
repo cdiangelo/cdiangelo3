@@ -2159,50 +2159,104 @@ function getContractorCapExByMonth(mi){
 }
 
 
-// ── Other Tab (C&B Other + OAO Other) ──
+// ── Other Tabs (C&B Other + OAO Other) — monthly grids ──
+const OTHER_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 function initOtherTab(){
-  if(!state.cbOther)state.cbOther=[];
-  if(!state.oaoOther)state.oaoOther=[];
-  const fmtAmt=v=>{if(!v)return '$0';const a=Math.abs(v);const s=v<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(1)+'M':s+'$'+Math.round(a).toLocaleString()};
+  if(!state.cbOtherRows)state.cbOtherRows=[];
+  if(!state.oaoOtherRows)state.oaoOtherRows=[];
 
-  function renderOtherTable(prefix,arr,totalEl,tbodyEl){
-    tbodyEl.innerHTML=arr.map((item,i)=>`<tr>
-      <td style="padding:4px 6px">${esc(item.name)}</td>
-      <td style="text-align:right;padding:4px 6px"><input type="number" class="${prefix}-amt" data-idx="${i}" value="${item.amount||0}" style="width:90px;text-align:right;padding:2px 4px;font-size:.76rem;border:1px solid var(--border);border-radius:3px;background:var(--bg-input);color:var(--text);font-family:var(--font-mono)"></td>
-      <td style="padding:4px 2px"><button class="${prefix}-del" data-idx="${i}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.72rem">×</button></td>
-    </tr>`).join('');
-    totalEl.textContent=fmtAmt(arr.reduce((s,it)=>s+(parseFloat(it.amount)||0),0));
-    tbodyEl.querySelectorAll(`.${prefix}-amt`).forEach(inp=>{
-      inp.addEventListener('change',()=>{arr[+inp.dataset.idx].amount=parseFloat(inp.value)||0;totalEl.textContent=fmtAmt(arr.reduce((s,it)=>s+(parseFloat(it.amount)||0),0));saveState()});
+  function renderOtherGrid(prefix,arr,tbodyEl,tfootEl){
+    let h='';
+    arr.forEach((row,i)=>{
+      const fy=OTHER_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
+      h+=`<tr data-oi="${i}">`;
+      h+=`<td><input class="${prefix}-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+      h+=`<td><input class="${prefix}-field" data-f="acctDesc" value="${esc(row.acctDesc||'')}" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:2px 4px"></td>`;
+      h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
+      OTHER_MO.forEach(m=>{
+        const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
+        const displayed=parseFloat(raw)||0;
+        const formatted=displayed?'$'+Number(displayed).toLocaleString('en-US'):'0';
+        h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:85px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right"></td>`;
+      });
+      h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-oi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     });
+    tbodyEl.innerHTML=h;
+
+    // Footer total
+    const moTotals=OTHER_MO.map(m=>arr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
+    const fyTotal=moTotals.reduce((s,v)=>s+v,0);
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-top:2px solid var(--border)"><td></td><td style="font-size:.78rem">TOTAL</td><td style="text-align:right;font-size:.82rem">${fmtScaled(fyTotal)}</td>`;
+    moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
+    ft+='<td></td></tr>';
+    tfootEl.innerHTML=ft;
+
+    // Bind field inputs
+    tbodyEl.querySelectorAll(`.${prefix}-field`).forEach(inp=>{
+      const handler=()=>{
+        const idx=+inp.closest('tr').dataset.oi;
+        const f=inp.dataset.f;
+        if(inp.classList.contains(`${prefix}-mo`)){
+          const v=parseFloat(inp.value.replace(/[$,]/g,''))||0;
+          arr[idx][f]=v;
+          inp.dataset.raw=v;
+        } else {
+          arr[idx][f]=inp.value;
+        }
+        saveState();renderOtherGrid(prefix,arr,tbodyEl,tfootEl);
+        renderPnlWalk();renderLandingCharts();
+      };
+      if(inp.classList.contains(`${prefix}-mo`)){
+        inp.addEventListener('focus',()=>{inp.value=inp.dataset.raw||'0';inp.select()});
+        inp.addEventListener('blur',handler);
+      } else {
+        inp.addEventListener('change',handler);
+      }
+    });
+    // Delete
     tbodyEl.querySelectorAll(`.${prefix}-del`).forEach(btn=>{
-      btn.addEventListener('click',()=>{arr.splice(+btn.dataset.idx,1);saveState();renderOtherTable(prefix,arr,totalEl,tbodyEl)});
+      btn.addEventListener('click',()=>{arr.splice(+btn.dataset.oi,1);saveState();renderOtherGrid(prefix,arr,tbodyEl,tfootEl);renderPnlWalk();renderLandingCharts()});
     });
   }
 
   // C&B Other
   const cbTbody=document.getElementById('cbOtherTbody');
-  const cbTotal=document.getElementById('cbOtherTotal');
-  if(cbTbody)renderOtherTable('cbo',state.cbOther,cbTotal,cbTbody);
+  const cbTfoot=document.getElementById('cbOtherTotalRow');
+  if(cbTbody)renderOtherGrid('cbo',state.cbOtherRows,cbTbody,cbTfoot);
   document.getElementById('cbOtherAddBtn')?.addEventListener('click',()=>{
     const sel=document.getElementById('cbOtherPreset');
     const name=sel.value;if(!name)return;
-    state.cbOther.push({name,amount:0});sel.value='';saveState();
-    renderOtherTable('cbo',state.cbOther,cbTotal,cbTbody);
+    const row={description:name,acctDesc:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    state.cbOtherRows.push(row);sel.value='';saveState();
+    renderOtherGrid('cbo',state.cbOtherRows,cbTbody,cbTfoot);
   });
 
   // OAO Other
   const oaoTbody=document.getElementById('oaoOtherTbody');
-  const oaoTotal=document.getElementById('oaoOtherTotal');
-  if(oaoTbody)renderOtherTable('oaoo',state.oaoOther,oaoTotal,oaoTbody);
+  const oaoTfoot=document.getElementById('oaoOtherTotalRow');
+  if(oaoTbody)renderOtherGrid('oaoo',state.oaoOtherRows,oaoTbody,oaoTfoot);
   document.getElementById('oaoOtherAddBtn')?.addEventListener('click',()=>{
     const sel=document.getElementById('oaoOtherPreset');
     const name=sel.value;if(!name)return;
-    state.oaoOther.push({name,amount:0});sel.value='';saveState();
-    renderOtherTable('oaoo',state.oaoOther,oaoTotal,oaoTbody);
+    const row={description:name,acctDesc:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    state.oaoOtherRows.push(row);sel.value='';saveState();
+    renderOtherGrid('oaoo',state.oaoOtherRows,oaoTbody,oaoTfoot);
   });
 }
 window.initOtherTab=initOtherTab;
+
+// Totals for Other rows — used by landing/pivot
+function getCbOtherTotal(){return (state.cbOtherRows||[]).reduce((s,r)=>s+OTHER_MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0)}
+function getCbOtherByMonth(){return OTHER_MO.map(m=>(state.cbOtherRows||[]).reduce((s,r)=>s+(parseFloat(r[m])||0),0))}
+function getOaoOtherTotal(){return (state.oaoOtherRows||[]).reduce((s,r)=>s+OTHER_MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0)}
+function getOaoOtherByMonth(){return OTHER_MO.map(m=>(state.oaoOtherRows||[]).reduce((s,r)=>s+(parseFloat(r[m])||0),0))}
+window.getCbOtherTotal=getCbOtherTotal;
+window.getCbOtherByMonth=getCbOtherByMonth;
+window.getOaoOtherTotal=getOaoOtherTotal;
+window.getOaoOtherByMonth=getOaoOtherByMonth;
+
+// Auto-init Other grids on load (C&B Other is in employees tab, OAO Other in vendor tab)
+setTimeout(initOtherTab,200);
 
 /* ── window assignments for cross-module access ── */
 window.initVendorModule = initVendorModule;

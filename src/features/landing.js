@@ -338,13 +338,17 @@ function renderPnlWalk(){
     return {hc,cb,cbCapex,hires,hiresCapex,hiresHc};
   }
 
-  // OAO breakdown: vendor spend, T&E, other
+  // OAO breakdown: vendor spend, T&E, contractors
   const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   let oaoVendor=0,oaoTE=0,oaoOther=0;
   (state.vendorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoVendor+=fy});
   (state.teRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoTE+=fy});
-  // "Other" = contractor spend + any misc
   (state.contractorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoOther+=fy});
+  // Add OAO Other rows to vendor OAO total
+  const oaoOtherAmt=window.getOaoOtherTotal?window.getOaoOtherTotal():0;
+  oaoVendor+=oaoOtherAmt;
+  // Add C&B Other to be distributed with C&B
+  const cbOtherAmt=window.getCbOtherTotal?window.getCbOtherTotal():0;
   const oaoTotal=oaoVendor+oaoTE+oaoOther;
   const ctrCapexTotal=window.getContractorCapExTotal?window.getContractorCapExTotal():0;
   const daTotal=getDepreciationTotal();
@@ -354,6 +358,7 @@ function renderPnlWalk(){
 
   function enrich(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
+    d.cb+=Math.round(cbOtherAmt*share); // C&B Other distributed by HC
     d.oao=Math.round(oaoVendor*share);
     d.te=Math.round(oaoTE*share);
     d.other=Math.round(oaoOther*share);
