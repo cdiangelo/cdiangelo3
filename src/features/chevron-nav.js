@@ -158,29 +158,34 @@
       const title=document.querySelector('#compHeaderBar .module-title');
       if(title)title.textContent='Compensation & Benefits';
       if(sumContent)sumContent.style.display='none';
-      // Sub-nav: Exec Comp + Employees
+      // Sub-nav: Exec Comp + Employees + C&B Other
       if(overviewBtn)overviewBtn.textContent='Exec Comp';
       if(compBtn)compBtn.textContent='Employees';
-      if(pivotBtn)pivotBtn.style.display='none';
+      if(pivotBtn){pivotBtn.textContent='C&B Other';pivotBtn.style.display=''}
       // Default to exec comp
       document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'));
       const execTab=document.getElementById('tab-exec');if(execTab)execTab.classList.add('active');
-      if(overviewBtn){overviewBtn.classList.add('active');if(compBtn)compBtn.classList.remove('active')}
+      if(overviewBtn){overviewBtn.classList.add('active');if(compBtn)compBtn.classList.remove('active');if(pivotBtn)pivotBtn.classList.remove('active')}
       if(window.renderExecView)try{window.renderExecView()}catch(e){}
+      function clearCbTabs(){[overviewBtn,compBtn,pivotBtn].forEach(b=>{if(b)b.classList.remove('active')});document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'))}
       // Wire tab handlers
       if(overviewBtn)overviewBtn.onclick=()=>{
-        document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'));
+        clearCbTabs();
         const et=document.getElementById('tab-exec');if(et)et.classList.add('active');
-        if(overviewBtn)overviewBtn.classList.add('active');
-        if(compBtn)compBtn.classList.remove('active');
+        overviewBtn.classList.add('active');
         if(window.renderExecView)try{window.renderExecView()}catch(e){}
       };
       if(compBtn)compBtn.onclick=()=>{
-        document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'));
+        clearCbTabs();
         const et=document.getElementById('tab-employees');if(et)et.classList.add('active');
-        if(compBtn)compBtn.classList.add('active');
-        if(overviewBtn)overviewBtn.classList.remove('active');
+        compBtn.classList.add('active');
         if(window.renderEmployees)try{window.renderEmployees()}catch(e){}
+      };
+      if(pivotBtn)pivotBtn.onclick=()=>{
+        clearCbTabs();
+        const et=document.getElementById('tab-cb-other');if(et)et.classList.add('active');
+        pivotBtn.classList.add('active');
+        if(window.initOtherTab)try{window.initOtherTab()}catch(e){}
       };
       const prefix=window.planContext==='forecast'?'FCAST':'BUD';
       if(window._broadcastTab)window._broadcastTab(prefix+' - C&B');

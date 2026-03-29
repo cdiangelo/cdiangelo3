@@ -827,12 +827,13 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th style="min-width:150px">Actions</th><th class="sortable" data-sort="name" style="min-width:160px">Name <span class="sort-arrow"></span></th><th class="diag sortable" data-sort="empType"><span class="diag-text">Type <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="country"><span class="diag-text">Country <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="seniority"><span class="diag-text">Seniority <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="function"><span class="diag-text">Function <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="market"><span class="diag-text">Market <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="businessLine"><span class="diag-text">Business Line <span class="sort-arrow"></span></span></th><th class="diag ops-hide sortable" data-sort="businessUnit"><span class="diag-text">Bus Unit <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="project"><span class="diag-text">Projects <span class="sort-arrow"></span></span></th><th style="width:24px;cursor:pointer;font-size:.7rem;text-align:center;color:var(--text-dim)" id="empCompToggle" title="Toggle comp detail columns">+</th><th class="diag num-col sortable emp-comp-col" style="display:none" data-sort="salary"><span class="diag-text">Base <span class="sort-arrow"></span></span></th><th class="diag num-col-sm sortable emp-comp-col" style="display:none" data-sort="bonusPct"><span class="diag-text">Bonus % <span class="sort-arrow"></span></span></th><th class="diag num-col sortable emp-comp-col" style="display:none" data-sort="bonus"><span class="diag-text">Bonus <span class="sort-arrow"></span></span></th><th class="diag num-col sortable emp-comp-col" style="display:none" data-sort="benefits"><span class="diag-text">Benefits <span class="sort-arrow"></span></span></th><th class="diag num-col-lg sortable emp-comp-col" style="display:none" data-sort="totalComp"><span class="diag-text">Total Comp <span class="sort-arrow"></span></span></th><th class="diag num-col-sm sortable" data-sort="capPct"><span class="diag-text">Cap % <span class="sort-arrow"></span></span></th><th class="diag num-col sortable emp-comp-col" style="display:none" data-sort="opex"><span class="diag-text">OpEx <span class="sort-arrow"></span></span></th><th class="diag num-col sortable emp-comp-col" style="display:none" data-sort="capex"><span class="diag-text">CapEx <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="hireDate"><span class="diag-text">Hire Date <span class="sort-arrow"></span></span></th><th class="diag sortable" data-sort="termDate"><span class="diag-text">Term Date <span class="sort-arrow"></span></span></th>
 </tr>
 </thead><tbody></tbody></table></div>
+</div>
 
-<!-- C&B Other — monthly grid, feeds into C&B totals -->
-<div class="card" style="margin-top:16px;padding:14px 16px">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-<h4 style="font-size:.88rem;font-weight:600;color:var(--text);margin:0">C&B Other</h4>
-<span style="font-size:.7rem;color:var(--text-dim)">Severance, signing bonuses, equity, etc. — feeds into C&B totals</span>
+<!-- C&B Other Tab (separate tab under C&B module) -->
+<div id="tab-cb-other" class="tab-content" style="padding-top:56px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+<h4 style="font-size:.92rem;font-weight:600;color:var(--text);margin:0">C&B Other</h4>
+<span style="font-size:.72rem;color:var(--text-dim)">Severance, signing bonuses, equity, etc. — feeds into C&B totals</span>
 <div style="margin-left:auto;display:flex;gap:4px">
 <select id="cbOtherPreset" style="padding:3px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
 <option value="">Add row...</option>
@@ -849,11 +850,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table" id="cbOtherTable" style="font-size:.8rem;min-width:1200px">
+<table class="comp-table" id="cbOtherTable" style="font-size:.8rem;min-width:1400px">
 <thead><tr>
 <th style="min-width:180px">Description</th>
-<th style="min-width:100px">Account</th>
-<th style="font-weight:700">Full Year</th>
+<th class="num-col-lg" style="font-weight:700;white-space:nowrap">Full Year</th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
 <th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
 <th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
@@ -863,7 +863,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <tbody id="cbOtherTbody"></tbody>
 <tfoot id="cbOtherTotalRow"></tfoot>
 </table>
-</div>
 </div>
 </div>
 
@@ -1835,11 +1834,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table" id="oaoOtherTable" style="font-size:.8rem;min-width:1200px">
+<table class="comp-table" id="oaoOtherTable" style="font-size:.8rem;min-width:1400px">
 <thead><tr>
 <th style="min-width:180px">Description</th>
-<th style="min-width:100px">Account</th>
-<th style="font-weight:700">Full Year</th>
+<th class="num-col-lg" style="font-weight:700;white-space:nowrap">Full Year</th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
 <th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
 <th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>

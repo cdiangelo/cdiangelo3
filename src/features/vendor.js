@@ -2171,7 +2171,6 @@ function initOtherTab(){
       const fy=OTHER_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
       h+=`<tr data-oi="${i}">`;
       h+=`<td><input class="${prefix}-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
-      h+=`<td><input class="${prefix}-field" data-f="acctDesc" value="${esc(row.acctDesc||'')}" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:2px 4px"></td>`;
       h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
       OTHER_MO.forEach(m=>{
         const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
@@ -2186,7 +2185,7 @@ function initOtherTab(){
     // Footer total
     const moTotals=OTHER_MO.map(m=>arr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
     const fyTotal=moTotals.reduce((s,v)=>s+v,0);
-    let ft=`<tr style="font-weight:700;background:var(--panel);border-top:2px solid var(--border)"><td></td><td style="font-size:.78rem">TOTAL</td><td style="text-align:right;font-size:.82rem">${fmtScaled(fyTotal)}</td>`;
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-top:2px solid var(--border)"><td style="font-size:.78rem">TOTAL</td><td style="text-align:right;font-size:.82rem">${fmtScaled(fyTotal)}</td>`;
     moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
     ft+='<td></td></tr>';
     tfootEl.innerHTML=ft;
