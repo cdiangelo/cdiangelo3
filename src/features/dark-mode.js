@@ -194,6 +194,8 @@ const MODULES=[
   {key:'te',label:'T&E'},
   {key:'contractors',label:'Contractors'},
   {key:'other',label:'Other (C&B/OAO)'},
+  {key:'depreciation',label:'Depreciation / Assets'},
+  {key:'revenue',label:'Revenue'},
   {key:'forecast',label:'Long-Term Forecast'}
 ];
 
@@ -221,7 +223,7 @@ function checkModuleAccess(){
   });
 
   // If ALL budget sub-modules restricted, hide entire Budget chevron
-  const budgetMods=['comp','vendor','contractors','te'];
+  const budgetMods=['comp','vendor','contractors','te','depreciation'];
   if(budgetMods.every(k=>userRules[k]===false)){
     const chevBudget=document.getElementById('chevBudget');
     if(chevBudget)chevBudget.style.display='none';
@@ -231,6 +233,14 @@ function checkModuleAccess(){
   if(userRules.forecast===false){
     const chevFc=document.getElementById('chevForecast');
     if(chevFc)chevFc.style.display='none';
+  }
+
+  // Hide depreciation chevron sub-item
+  if(userRules.depreciation===false)document.querySelectorAll('[data-module="depreciation"]').forEach(el=>el.style.display='none');
+
+  // Hide revenue pane toggle if restricted
+  if(userRules.revenue===false){
+    document.querySelectorAll('#revenueModule,.revenue-toggle,[data-pnlmode="revenue"]').forEach(el=>el.style.display='none');
   }
 
   // Also hide vtab buttons in vendor module
