@@ -316,11 +316,15 @@ Template Mode &mdash; changes saved in this browser only.
 <button class="btn active" data-lcview="pnl" style="padding:2px 10px;font-size:.72rem">P&amp;L</button>
 <button class="btn" data-lcview="total" style="padding:2px 10px;font-size:.72rem">Total Inv</button>
 </div>
-<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Product</label><select id="pnlFilterProduct" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="">All</option></select></div>
-<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Category</label><select id="pnlFilterCategory" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="">All</option></select></div>
-<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Function</label><select id="pnlFilterFunction" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="">All</option></select></div>
-<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Country</label><select id="pnlFilterCountry" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="">All</option></select></div>
-<div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Market</label><select id="pnlFilterMarket" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="">All</option></select></div>
+</div>
+
+<!-- Hidden filter selects (still needed by JS but not shown in FY Summary) -->
+<div style="display:none">
+<select id="pnlFilterProduct"><option value="">All</option></select>
+<select id="pnlFilterCategory"><option value="">All</option></select>
+<select id="pnlFilterFunction"><option value="">All</option></select>
+<select id="pnlFilterCountry"><option value="">All</option></select>
+<select id="pnlFilterMarket"><option value="">All</option></select>
 </div>
 
 <!-- Full Year Summary View (default) -->

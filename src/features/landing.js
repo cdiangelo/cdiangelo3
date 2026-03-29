@@ -589,7 +589,7 @@ function renderLandingCharts(){
         const opex=MO_SHORT.map((_,mi)=>{const c=groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0);const cx=groups[g].reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);return c-cx});
         const capex=MO_SHORT.map((_,mi)=>-groups[g].reduce((s,e)=>s+getMonthlyCapEx(e,mi),0));
         budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data:opex,backgroundColor:getChartColors()[gi%getChartColors().length],stack:'pos'});
-        if(capex.some(v=>v<0))budgetDS.push({label:g+' (CapEx)',data:capex,backgroundColor:hexToRgba(getChartColors()[gi%getChartColors().length],0.35),stack:'neg'});
+        if(capex.some(v=>v<0))budgetDS.push({label:g+' (CapEx)',data:capex,backgroundColor:hexToRgba(getChartColors()[gi%getChartColors().length],0.35),stack:'pos'});
       } else {
         const data=MO_SHORT.map((_,mi)=>groups[g].reduce((s,e)=>s+getMonthlyComp(e,mi),0));
         budgetDS.push({label:g.length>18?g.slice(0,16)+'…':g,data,backgroundColor:getChartColors()[gi%getChartColors().length]});
@@ -605,7 +605,7 @@ function renderLandingCharts(){
       budgetDS.push({label:'C&B',data:cbOpex,backgroundColor:lcc[0],stack:'pos'});
       budgetDS.push({label:'OAO',data:oaoMo,backgroundColor:lcc[1],stack:'pos'});
       budgetDS.push({label:'D&A',data:daMo,backgroundColor:lcc[2],stack:'pos'});
-      budgetDS.push({label:'CapEx',data:capex,backgroundColor:hexToRgba(lcc[0],0.35),stack:'neg'});
+      budgetDS.push({label:'CapEx',data:capex,backgroundColor:hexToRgba(lcc[0],0.35),stack:'pos'});
     } else {
       const cbGross=MO_SHORT.map((_,mi)=>emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0));
       const oaoMo=MO_SHORT.map((_,mi)=>getVendorOaoByMonth(mi));
@@ -615,7 +615,7 @@ function renderLandingCharts(){
   }
   // Data labels — always show total on top of each bar
   window.stackedBarDatalabels(budgetDS,tickColor,8,'landing');
-  budgetDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
+  budgetDS.filter(d=>d.label&&d.label.includes('CapEx')).forEach(d=>{d.datalabels={display:false}});
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
     plugins:[barTotalPlugin],
@@ -661,7 +661,7 @@ function renderLandingCharts(){
       {label:'C&B',data:_cbOpex.slice(),backgroundColor:lfc[0],stack:'pos'},
       {label:'OAO',data:_oaoYears.slice(),backgroundColor:lfc[1],stack:'pos'},
       {label:'D&A',data:_daYears.slice(),backgroundColor:lfc[2],stack:'pos'},
-      {label:'CapEx',data:_cbCapex.map(v=>-(v+_cCapEx)),backgroundColor:hexToRgba(lfc[0],0.35),stack:'neg'}
+      {label:'CapEx',data:_cbCapex.map(v=>-(v+_cCapEx)),backgroundColor:hexToRgba(lfc[0],0.35),stack:'pos'}
     ];
   } else {
     fcDS=[
