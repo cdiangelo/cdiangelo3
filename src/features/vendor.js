@@ -2221,26 +2221,32 @@ function initOtherTab(){
   // C&B Other
   const cbTbody=document.getElementById('cbOtherTbody');
   const cbTfoot=document.getElementById('cbOtherTotalRow');
-  if(cbTbody)renderOtherGrid('cbo',state.cbOtherRows,cbTbody,cbTfoot);
-  document.getElementById('cbOtherAddBtn')?.addEventListener('click',()=>{
-    const sel=document.getElementById('cbOtherPreset');
-    const name=sel.value;if(!name)return;
-    const row={description:name,acctDesc:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    state.cbOtherRows.push(row);sel.value='';saveState();
+  if(cbTbody&&cbTfoot){
     renderOtherGrid('cbo',state.cbOtherRows,cbTbody,cbTfoot);
-  });
+    const cbAddBtn=document.getElementById('cbOtherAddBtn');
+    if(cbAddBtn)cbAddBtn.onclick=()=>{
+      const sel=document.getElementById('cbOtherPreset');
+      const name=sel.value;if(!name)return;
+      state.cbOtherRows.push({description:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+      sel.value='';saveState();
+      renderOtherGrid('cbo',state.cbOtherRows,cbTbody,cbTfoot);
+    };
+  }
 
   // OAO Other
   const oaoTbody=document.getElementById('oaoOtherTbody');
   const oaoTfoot=document.getElementById('oaoOtherTotalRow');
-  if(oaoTbody)renderOtherGrid('oaoo',state.oaoOtherRows,oaoTbody,oaoTfoot);
-  document.getElementById('oaoOtherAddBtn')?.addEventListener('click',()=>{
-    const sel=document.getElementById('oaoOtherPreset');
-    const name=sel.value;if(!name)return;
-    const row={description:name,acctDesc:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    state.oaoOtherRows.push(row);sel.value='';saveState();
+  if(oaoTbody&&oaoTfoot){
     renderOtherGrid('oaoo',state.oaoOtherRows,oaoTbody,oaoTfoot);
-  });
+    const oaoAddBtn=document.getElementById('oaoOtherAddBtn');
+    if(oaoAddBtn)oaoAddBtn.onclick=()=>{
+      const sel=document.getElementById('oaoOtherPreset');
+      const name=sel.value;if(!name)return;
+      state.oaoOtherRows.push({description:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+      sel.value='';saveState();
+      renderOtherGrid('oaoo',state.oaoOtherRows,oaoTbody,oaoTfoot);
+    };
+  }
 }
 window.initOtherTab=initOtherTab;
 
