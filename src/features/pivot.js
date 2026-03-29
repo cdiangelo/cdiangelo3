@@ -178,8 +178,8 @@ function getCols(){
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
       {key:'oao',label:'OAO'},
-      {key:'te',label:'T&E'},
       {key:'ctr',label:'CTR'},
+      {key:'te',label:'T&E'},
       {key:'ebitda',label:'ADJ EBITDA'},
       {key:'da',label:'D&A'},
       {key:'opex',label:'OPEX'},
@@ -192,8 +192,8 @@ function getCols(){
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
       {key:'oao',label:'OAO'},
-      {key:'te',label:'T&E'},
       {key:'ctr',label:'CTR'},
+      {key:'te',label:'T&E'},
       {key:'totinv',label:'TOT INV'},
     ];
   }
