@@ -486,7 +486,17 @@ function renderPnlWalk(){
 
   groupKeys.forEach(k=>{
     const d=gData[k];
-    const childKeys=row2Dim?Object.keys(groups[k].children).sort():[];
+    let childKeys=row2Dim?Object.keys(groups[k].children):[];
+    // Sort children using same sort column as parent rows
+    if(pnlSortCol&&pnlSortCol!=='_name'){
+      const dir=pnlSortAsc?1:-1;
+      childKeys.sort((a,b)=>((gChildData[k][a]?.[pnlSortCol]||0)-(gChildData[k][b]?.[pnlSortCol]||0))*dir);
+    } else if(pnlSortCol==='_name'){
+      const dir=pnlSortAsc?1:-1;
+      childKeys.sort((a,b)=>a.localeCompare(b)*dir);
+    } else {
+      childKeys.sort();
+    }
     const hasChildren=childKeys.length>1||(childKeys.length===1&&childKeys[0]!==k);
     const expanded=pnlExpandedCats.has(k);
     const arrow=hasChildren?(expanded?'▼':'▶'):'';
