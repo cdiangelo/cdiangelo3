@@ -303,9 +303,10 @@
   if(btbData)btbData.addEventListener('click',()=>{const btn=document.getElementById('dataToggleBtn');if(btn)btn.click()});
   if(btbSettings)btbSettings.addEventListener('click',()=>{
     const panel=document.getElementById('settingsSlidePanel');
-    if(panel){const isOpen=panel.classList.contains('open');
-      if(isOpen){panel.classList.remove('open');panel.style.transform='translateX(100%)'}
-      else{panel.classList.add('open');panel.style.transform='translateX(0)'}
+    if(panel){
+      const isOpen=panel.classList.contains('open');
+      if(window.closeAllSidePanels)window.closeAllSidePanels();
+      if(!isOpen){panel.classList.add('open');panel.style.transform='translateX(0)'}
     }
   });
 })();

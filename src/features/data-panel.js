@@ -27,12 +27,19 @@ function closeAllSidePanels(){
   const panels=[
     {panel:'guideSlidePanel',btn:'guideToggleBtn',cls:'guide-open'},
     {panel:'dataSlidePanel',btn:'dataToggleBtn',cls:'data-open'},
-    {panel:'scenarioSlidePanel',btn:'scenarioToggleBtn',cls:'scenario-open'}
+    {panel:'scenarioSlidePanel',btn:'scenarioToggleBtn',cls:'scenario-open'},
+    {panel:'settingsSlidePanel'},
+    {panel:'validationSlidePanel'}
   ];
   panels.forEach(p=>{
     const el=document.getElementById(p.panel);
-    const bt=document.getElementById(p.btn);
-    if(el&&el.classList.contains('open')){el.classList.remove('open');document.body.classList.remove(p.cls);if(bt)bt.querySelector('.arrow').innerHTML='&#9654;'}
+    if(!el)return;
+    if(el.classList.contains('open')){
+      el.classList.remove('open');
+      el.style.transform='translateX(100%)';
+      if(p.cls)document.body.classList.remove(p.cls);
+      if(p.btn){const bt=document.getElementById(p.btn);if(bt){const ar=bt.querySelector('.arrow');if(ar)ar.innerHTML='&#9654;'}}
+    }
   });
 }
 
