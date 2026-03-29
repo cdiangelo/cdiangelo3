@@ -640,6 +640,7 @@ async function loadSharedUsers(planId){
               <div style="font-size:.82rem;font-weight:500;color:var(--text)">${u.email}</div>
               <div style="font-size:.68rem;color:var(--tertiary)">${u.role||'editor'}</div>
             </div>
+            ${u.role!=='owner'&&isAdmin?`<button class="share-remove-btn" data-account-id="${u.id}" data-email="${email}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.9rem;padding:2px 6px;opacity:.5" title="Remove access">×</button>`:''}
           </div>`;
         if(isAdmin){
           h+=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;padding-left:32px">${MODS.map(m=>{
@@ -650,6 +651,20 @@ async function loadSharedUsers(planId){
         h+=`</div>`;
         return h;
       }).join('');
+      // Wire remove buttons
+      listEl.querySelectorAll('.share-remove-btn').forEach(btn=>{
+        btn.addEventListener('click',async()=>{
+          const accountId=btn.dataset.accountId;
+          const email=btn.dataset.email;
+          if(!confirm('Remove access for '+email+'?'))return;
+          try{
+            await fetch('/api/plan-files/'+planId+'/access/'+accountId,{method:'DELETE'});
+            loadSharedUsers(planId);
+          }catch(e){alert('Failed to remove access')}
+        });
+        btn.addEventListener('mouseenter',()=>btn.style.opacity='1');
+        btn.addEventListener('mouseleave',()=>btn.style.opacity='.5');
+      });
       // Wire module access checkboxes in share modal
       if(isAdmin){
         listEl.querySelectorAll('.share-mod-cb').forEach(cb=>{
