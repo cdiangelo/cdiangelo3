@@ -59,8 +59,8 @@
 .home-recent{background:var(--panel);border:1px solid var(--border-light);border-radius:12px;padding:16px;max-height:300px;overflow-y:auto;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 
 /* ═══ PLAN HEADER BAR ═══ */
-#planHeaderBar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:44px;background:var(--toolbar-bg);border-bottom:1px solid var(--toolbar-border);font-size:.8rem;position:fixed;top:0;left:0;right:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.08);color:var(--toolbar-text)}
-#planHeaderBar .btn{background:transparent;border-color:var(--toolbar-border);color:var(--toolbar-text-dim)}
+#planHeaderBar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:44px;background:var(--toolbar-bg);border-bottom:1px solid var(--toolbar-border);font-size:.8rem;position:fixed;top:0;left:0;right:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.08);color:#4a9e8e}
+#planHeaderBar .btn{background:transparent;border-color:var(--toolbar-border);color:#4a9e8e}
 #planHeaderBar .btn:hover{color:var(--accent-light);border-color:var(--accent)}
 .plan-hdr-left{display:flex;align-items:center;gap:10px}
 .plan-hdr-name{font-weight:500;color:var(--accent)}
