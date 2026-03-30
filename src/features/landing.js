@@ -683,6 +683,56 @@ function renderLandingCharts(){
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:11},yoyArrows:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
+
+  // ── Monthly Budget Detail Table ──
+  const budgetTbl=document.getElementById('budgetDetailTable');
+  if(budgetTbl){
+    const fv=v=>v?'$'+(Math.abs(v)/1e6).toFixed(2)+'M':'—';
+    let h='<thead style="position:sticky;top:0;background:var(--panel);z-index:1"><tr><th style="text-align:left">Month</th><th>C&B</th><th>OAO</th><th>CapEx</th><th>Total</th></tr></thead><tbody>';
+    MO_SHORT.forEach((mo,mi)=>{
+      const cb=emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0);
+      const cap=emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);
+      const oao=(getVendorOaoByMonth?getVendorOaoByMonth():[0,0,0,0,0,0,0,0,0,0,0,0])[mi]||0;
+      h+=`<tr><td style="font-weight:600">${mo}</td><td class="num">${fv(cb)}</td><td class="num">${fv(oao)}</td><td class="num">${fv(cap)}</td><td class="num" style="font-weight:600">${fv(cb+oao)}</td></tr>`;
+    });
+    h+='</tbody>';
+    budgetTbl.innerHTML=h;
+  }
+  const budgetToggle=document.getElementById('budgetDetailToggle');
+  const budgetWrap=document.getElementById('budgetDetailWrap');
+  if(budgetToggle&&!budgetToggle._wired){
+    budgetToggle._wired=true;
+    budgetToggle.addEventListener('click',()=>{
+      const show=budgetWrap.style.display==='none';
+      budgetWrap.style.display=show?'':'none';
+      budgetToggle.innerHTML=(show?'&#9660;':'&#9654;')+' Detail Table';
+    });
+  }
+
+  // ── LTF Overview Detail Table ──
+  const ltfOvTbl=document.getElementById('ltfOverviewDetailTable');
+  if(ltfOvTbl){
+    const fv=v=>v?'$'+(Math.abs(v)/1e6).toFixed(2)+'M':'—';
+    const yl=window.getDisplayFcLabels?window.getDisplayFcLabels():['2026','2027','2028','2029','2030','2031'];
+    let h='<thead style="position:sticky;top:0;background:var(--panel);z-index:1"><tr><th style="text-align:left">Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>D&A</th><th>CapEx</th><th style="font-weight:700">Total</th></tr></thead><tbody>';
+    yl.forEach((yr,i)=>{
+      const r=cbRows[i];if(!r)return;
+      const oao=oaoYears[i]||0,da=daYears[i]||0,cap=cbCapex[i]||0;
+      h+=`<tr><td style="font-weight:600">${yr}</td><td class="num">${r.hc}</td><td class="num">${fv(r.total)}</td><td class="num">${fv(oao)}</td><td class="num">${fv(da)}</td><td class="num">${fv(cap)}</td><td class="num" style="font-weight:600">${fv(r.total+oao+da)}</td></tr>`;
+    });
+    h+='</tbody>';
+    ltfOvTbl.innerHTML=h;
+  }
+  const ltfOvToggle=document.getElementById('ltfOverviewDetailToggle');
+  const ltfOvWrap=document.getElementById('ltfOverviewDetailWrap');
+  if(ltfOvToggle&&!ltfOvToggle._wired){
+    ltfOvToggle._wired=true;
+    ltfOvToggle.addEventListener('click',()=>{
+      const show=ltfOvWrap.style.display==='none';
+      ltfOvWrap.style.display=show?'':'none';
+      ltfOvToggle.innerHTML=(show?'&#9660;':'&#9654;')+' Detail Table';
+    });
+  }
 }
 
 
@@ -851,17 +901,21 @@ const ltfYoyPlugin={
           const prev=acct.data[i]||0,cur=acct.data[i+1]||0;
           if(!prev)return;
           const pct=((cur-prev)/Math.abs(prev))*100;
-          pills.push({label:acct.label+' '+(pct>=0?'+':'')+pct.toFixed(1)+'%',color:acct.color||'#888'});
+          const pctStr=Math.abs(pct)>=5?(pct>=0?'+':'')+Math.round(pct)+'%':(pct>=0?'+':'')+pct.toFixed(1)+'%';
+          pills.push({label:acct.label+' '+pctStr,color:acct.color||'#888'});
         });
       } else {
         if(!sumPrev)continue;
         const pct=((sumCur-sumPrev)/Math.abs(sumPrev))*100;
         const bgColor=pct>=0?(isDark?'rgba(60,120,60,.6)':'rgba(58,125,68,.12)'):(isDark?'rgba(140,50,50,.6)':'rgba(184,48,48,.12)');
         const labelColor=pct>=0?(isDark?'#7adf7a':'#2a6a2a'):(isDark?'#ff8a8a':'#a03030');
-        pills.push({label:(pct>=0?'+':'')+pct.toFixed(1)+'%',bgColor,labelColor});
+        const pctStr=Math.abs(pct)>=5?(pct>=0?'+':'')+Math.round(pct)+'%':(pct>=0?'+':'')+pct.toFixed(1)+'%';
+        pills.push({label:pctStr,bgColor,labelColor});
       }
       const totalH=pills.length*pillH+((pills.length-1)*2);
-      let pillY=midY-totalH/2;
+      // Position pills ABOVE the arrow midpoint
+      const topY=Math.min(y1,y2);
+      let pillY=topY-totalH-8;
       pills.forEach(pill=>{
         const tw=ctx.measureText(pill.label).width;
         const pad=3;
@@ -923,18 +977,15 @@ function initLtfModule(){
       const pctL=(s/5)*100,pctR=(e/5)*100;
       _yrTrack.style.left=pctL+'%';_yrTrack.style.width=(pctR-pctL)+'%';
     }
-    // Render dots
+    // Render year labels along track
     if(_yrDots){
       _yrDots.innerHTML=labels.map((yr,i)=>{
         const active=i>=s&&i<=e;
-        return `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
-          <div style="width:${active?8:6}px;height:${active?8:6}px;border-radius:50%;background:${active?'var(--accent)':'var(--border)'};transition:all .15s"></div>
-          <span style="font-size:.55rem;color:${active?'var(--text)':'var(--tertiary)'};font-weight:${active?'600':'400'}">${yr}</span>
-        </div>`;
+        return `<span style="font-size:.62rem;color:${active?'var(--accent)':'var(--tertiary)'};font-weight:${active?'600':'400'};transition:color .15s">${yr}</span>`;
       }).join('');
     }
-    // Update label
-    if(_yrLabel)_yrLabel.textContent=labels[s]+' – '+labels[e];
+    // Range label
+    if(_yrLabel)_yrLabel.textContent=s===e?labels[s]:labels[s]+' – '+labels[e];
     renderLtfChart();
   }
   if(_yrStart){_yrStart.addEventListener('input',updateYearRange);updateYearRange()}
