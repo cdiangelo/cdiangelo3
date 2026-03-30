@@ -679,10 +679,33 @@ function renderLandingCharts(){
     ];
   }
   }catch(e){console.warn('Landing forecast chart error:',e)}
+
+  // Prepend historicals to landing forecast chart
+  let fcLabels=yearLabels.slice();
+  const _hist=state.historicals;
+  if(_hist&&_hist.enabled&&_hist.years){
+    const hYears=Object.keys(_hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort();
+    if(hYears.length){
+      fcLabels=[...hYears,...fcLabels];
+      fcDS.forEach(ds=>{
+        const l=ds.label.toLowerCase();
+        const hData=hYears.map(yr=>{
+          const h=_hist.years[yr];
+          if(l==='c&b'||l==='c&b (opex)')return h.cb||0;
+          if(l==='oao')return (h.oao||0)+(h.ctr||0)+(h.te||0);
+          if(l==='d&a')return h.da||0;
+          if(l==='capex')return -(h.capex||0);
+          return 0;
+        });
+        ds.data=[...hData,...ds.data];
+      });
+    }
+  }
+
   window.stackedBarDatalabels(fcDS,tickColor,8,'landing');
   fcDS.filter(d=>d.stack==='neg').forEach(d=>{d.datalabels={display:false}});
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
-    type:'bar',data:{labels:yearLabels,datasets:fcDS},
+    type:'bar',data:{labels:fcLabels,datasets:fcDS},
     plugins:[window.yoyArrowsPlugin,barTotalPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:11},yoyArrows:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
@@ -727,6 +750,14 @@ function renderLandingCharts(){
     const _daY=[_daB];const _al=state.daAssetLifeYrs||5;const _cCE=getContractorCapExTotal();
     for(let yr=1;yr<=5;yr++){let yd=0;for(let v=0;v<yr;v++){if(yr-v<=_al)yd+=Math.round((_cbR[v].capex+_cCE)/_al)}yd+=Math.max(0,Math.round(_daB*(1-yr/_al)));_daY.push(yd)}
     let h='<thead style="position:sticky;top:0;background:var(--panel);z-index:1"><tr><th style="text-align:left;width:60px">Year</th><th style="text-align:right">HC</th><th style="text-align:right">C&B</th><th style="text-align:right">OAO</th><th style="text-align:right">D&A</th><th style="text-align:right">CapEx</th><th style="text-align:right;font-weight:700">Total</th></tr></thead><tbody>';
+    // Historical years first
+    const _h2=state.historicals;
+    if(_h2&&_h2.enabled&&_h2.years){
+      Object.keys(_h2.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort().forEach(yr=>{
+        const hd=_h2.years[yr];
+        h+=`<tr style="color:var(--text-dim)"><td style="font-weight:600">${yr}</td><td style="text-align:right">${hd.hc||'—'}</td><td style="text-align:right">${fv(hd.cb)}</td><td style="text-align:right">${fv((hd.oao||0)+(hd.ctr||0)+(hd.te||0))}</td><td style="text-align:right">${fv(hd.da)}</td><td style="text-align:right">${fv(hd.capex)}</td><td style="text-align:right;font-weight:600">${fv((hd.cb||0)+(hd.oao||0)+(hd.ctr||0)+(hd.te||0)+(hd.da||0))}</td></tr>`;
+      });
+    }
     yl.forEach((yr,i)=>{
       const r=_cbR[i];if(!r)return;
       const oao=_oaoY[i]||0,da=_daY[i]||0,cap=r.capex+_cCE;

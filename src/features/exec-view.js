@@ -55,9 +55,14 @@ function buildExecTrendYearToggle(){
   const wrap=document.getElementById('execTrendYearToggle');
   if(!wrap)return;
   const dYears=getDisplayYears();
-  wrap.innerHTML='<button class="btn'+(execTrendYear==='all'?' active':'')+'" data-etrendyr="all">All</button>'+
-    '<button class="btn'+(execTrendYear==='current'?' active':'')+'" data-etrendyr="current">'+DISPLAY_BASE_YEAR+'</button>'+
-    FORECAST_YEARS.map((y,i)=>'<button class="btn'+(execTrendYear===String(y)?' active':'')+'" data-etrendyr="'+y+'">'+dYears[i]+'</button>').join('');
+  // Include historical years if enabled
+  const hist=window.state&&window.state.historicals;
+  const histYears=(hist&&hist.enabled&&hist.years)?Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort():[];
+  let btns='<button class="btn'+(execTrendYear==='all'?' active':'')+'" data-etrendyr="all">All</button>';
+  histYears.forEach(y=>{btns+='<button class="btn'+(execTrendYear===y?' active':'')+'" data-etrendyr="'+y+'" style="color:var(--tertiary)">'+y+'</button>'});
+  btns+='<button class="btn'+(execTrendYear==='current'?' active':'')+'" data-etrendyr="current">'+DISPLAY_BASE_YEAR+'</button>';
+  btns+=FORECAST_YEARS.map((y,i)=>'<button class="btn'+(execTrendYear===String(y)?' active':'')+'" data-etrendyr="'+y+'">'+dYears[i]+'</button>').join('');
+  wrap.innerHTML=btns;
   wrap.querySelectorAll('.btn').forEach(b=>b.addEventListener('click',()=>{
     wrap.querySelectorAll('.btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
     execTrendYear=b.dataset.etrendyr;
