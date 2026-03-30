@@ -3171,37 +3171,33 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <div class="data-section">
-<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Import Budget Inputs</h4>
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Import / Export</h4>
 <div class="data-group-body" style="display:none">
-<div style="margin-bottom:8px"><button class="btn" id="dataPanelDlAllTemplates" style="width:100%;font-weight:600">Download All Input Templates</button></div>
-<div class="data-sub"><h5>Employee Roster</h5><p>Bulk import employee data via Excel.</p>
-<button class="btn btn-primary" id="dataPanelUploadRoster">Upload Roster</button>
-<input type="file" id="dataPanelRosterFile" accept=".xlsx,.xls,.csv" style="display:none"></div>
-<div class="data-sub"><h5>Vendor Spend</h5><p>Import vendor spend data via Excel.</p>
-<button class="btn btn-primary" id="dataPanelVendorImport">Import Excel</button>
-<input type="file" id="dataPanelVendorFile" accept=".xlsx,.xls,.csv" style="display:none"></div>
-<div class="data-sub"><h5>T&amp;E</h5><p>Import travel &amp; entertainment data via Excel.</p>
-<button class="btn btn-primary" id="dataPanelTeImport">Import T&amp;E Excel</button>
-<input type="file" id="dataPanelTeFile" accept=".xlsx,.xls,.csv" style="display:none"></div>
-<div class="data-sub"><h5>Contractors</h5><p>Import contractor data via Excel.</p>
-<button class="btn btn-primary" id="dataPanelContractorImport">Import Contractors Excel</button>
-<input type="file" id="dataPanelContractorFile" accept=".xlsx,.xls,.csv" style="display:none"></div>
+<p style="font-size:.72rem;color:var(--text-dim);margin-bottom:6px">Import via Excel upload, export to Excel download.</p>
+<div style="margin-bottom:10px">
+<div style="font-size:.7rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Import &#8593;</div>
+<div style="display:flex;gap:4px;flex-wrap:wrap">
+<button class="btn btn-sm" id="dataPanelDlAllTemplates" style="font-size:.72rem">&#8595; Templates</button>
+<button class="btn btn-sm btn-primary" id="dataPanelUploadRoster" style="font-size:.72rem">&#8593; Roster</button>
+<button class="btn btn-sm btn-primary" id="dataPanelVendorImport" style="font-size:.72rem">&#8593; Vendors</button>
+<button class="btn btn-sm btn-primary" id="dataPanelTeImport" style="font-size:.72rem">&#8593; T&amp;E</button>
+<button class="btn btn-sm btn-primary" id="dataPanelContractorImport" style="font-size:.72rem">&#8593; Contractors</button>
+</div>
+<input type="file" id="dataPanelRosterFile" accept=".xlsx,.xls,.csv" style="display:none">
+<input type="file" id="dataPanelVendorFile" accept=".xlsx,.xls,.csv" style="display:none">
+<input type="file" id="dataPanelTeFile" accept=".xlsx,.xls,.csv" style="display:none">
+<input type="file" id="dataPanelContractorFile" accept=".xlsx,.xls,.csv" style="display:none">
+</div>
+<div>
+<div style="font-size:.7rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Export &#8595;</div>
+<div style="display:flex;gap:4px;flex-wrap:wrap">
+<button class="btn btn-sm btn-primary" id="dataPanelFullExport" style="font-size:.72rem">&#8595; All Data</button>
+<button class="btn btn-sm" id="dataPanelRosterExport" style="font-size:.72rem">&#8595; Roster</button>
+<button class="btn btn-sm" id="dataPanelVendorExport" style="font-size:.72rem">&#8595; Vendors</button>
+<button class="btn btn-sm" id="dataPanelTeExport" style="font-size:.72rem">&#8595; T&amp;E</button>
+<button class="btn btn-sm" id="dataPanelContractorExport" style="font-size:.72rem">&#8595; Contractors</button>
 </div>
 </div>
-
-<div class="data-section">
-<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Export Budget Outputs</h4>
-<div class="data-group-body" style="display:none">
-<div class="data-sub"><h5>Full Data Export</h5><p>Export all data (employees, vendors, T&amp;E) to a single Excel workbook.</p>
-<button class="btn btn-primary" id="dataPanelFullExport">Export All Data (Excel)</button></div>
-<div class="data-sub"><h5>Employee Roster</h5>
-<button class="btn" id="dataPanelRosterExport">Export Roster Excel</button></div>
-<div class="data-sub"><h5>Vendor Spend</h5>
-<button class="btn" id="dataPanelVendorExport">Export Vendor Excel</button></div>
-<div class="data-sub"><h5>T&amp;E</h5>
-<button class="btn" id="dataPanelTeExport">Export T&amp;E Excel</button></div>
-<div class="data-sub"><h5>Contractors</h5>
-<button class="btn" id="dataPanelContractorExport">Export Contractors Excel</button></div>
 </div>
 </div>
 
