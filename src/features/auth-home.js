@@ -426,7 +426,15 @@ async function openPlan(plan){
 
   // Global toolbar hidden — controls moved to settings panel and bottom toolbar
 
-  // Update bottom toolbar
+  // Update bottom toolbar — set directly AND via helper
+  const _btbName=document.getElementById('btbPlanName');
+  const _btbVer=document.getElementById('btbPlanVersion');
+  const _btbEmail=document.getElementById('btbEmail');
+  const _btb=document.getElementById('bottomToolbar');
+  if(_btbName)_btbName.textContent=plan.name||'';
+  if(_btbVer)_btbVer.textContent=(plan.year||'')+' '+(plan.scenarioType||'budget').toUpperCase();
+  if(_btbEmail)_btbEmail.textContent=user.email||'';
+  if(_btb)_btb.style.display='flex';
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 
   // Show side panels, calendar, and LANDING PAGE (chevron nav)

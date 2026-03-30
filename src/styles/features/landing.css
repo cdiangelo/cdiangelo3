@@ -17,7 +17,7 @@
 .chevron-item.expanded .chevron-shape{background:var(--accent-soft);border-color:var(--border-accent);border-left-color:var(--accent)}
 
 /* Sub-menu — right of card, vertically centered */
-.chevron-submenu{display:none;flex-direction:column;gap:6px;position:absolute;left:calc(100% + 16px);top:50%;transform:translateY(-50%);width:240px;z-index:10}
+.chevron-submenu{display:none;flex-direction:column;gap:6px;position:absolute;left:calc(100% + 16px);top:50%;transform:translateY(-50%);width:240px;z-index:100}
 .chevron-item.expanded .chevron-submenu{display:flex}
 .chevron-sub-item{padding:12px 18px;background:var(--panel);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:.82rem;color:var(--text-dim);font-weight:500;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .chevron-sub-item:hover{background:var(--accent-glow);border-color:var(--border-accent);color:var(--text)}
