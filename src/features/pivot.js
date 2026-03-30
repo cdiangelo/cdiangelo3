@@ -223,12 +223,17 @@ function renderPivotTable(data){
   const compData=data.compRows||null;
   const compCols=compData?cols:[];
 
-  // Header — if comparison, show main + comp columns
-  let hdrHtml=`<th style="text-align:left;min-width:100px;position:sticky;top:0;z-index:2;background:var(--panel);padding:4px 6px;font-size:.64rem">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>`;
-  cols.forEach(c=>hdrHtml+=`<th style="text-align:right;${c.narrow?'width:30px;':'min-width:50px;'}position:sticky;top:0;z-index:2;background:var(--panel);padding:4px 4px;font-size:.62rem">${c.label}</th>`);
+  // Header
+  let hdrHtml=`<th style="text-align:left;min-width:120px;position:sticky;top:0;z-index:2;background:var(--panel)">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>`;
+  cols.forEach(c=>{
+    const w=c.narrow?'width:36px;':'min-width:55px;';
+    const isSub=c.key==='ebitda'||c.key==='totinv';
+    const extra=isSub?'font-weight:700;color:var(--accent);':'';
+    hdrHtml+=`<th style="text-align:right;${w}${extra}position:sticky;top:0;z-index:2;background:var(--panel)">${c.label}</th>`;
+  });
   if(compData){
     hdrHtml+=`<th style="position:sticky;top:0;z-index:2;background:var(--panel);border-left:2px solid var(--accent);width:4px"></th>`;
-    compCols.forEach(c=>hdrHtml+=`<th style="text-align:right;${c.narrow?'width:50px;':'min-width:80px;'}position:sticky;top:0;z-index:2;background:var(--panel);color:var(--text-dim);font-style:italic">${c.label}</th>`);
+    compCols.forEach(c=>hdrHtml+=`<th style="text-align:right;${c.narrow?'width:36px;':'min-width:55px;'}position:sticky;top:0;z-index:2;background:var(--panel);color:var(--text-dim);font-style:italic">${c.label}</th>`);
   }
   thead.innerHTML=`<tr>${hdrHtml}</tr>`;
 
@@ -246,9 +251,13 @@ function renderPivotTable(data){
     const dim2=document.getElementById('pivotRow2Dim')?.value||'';
     const childNames=Object.keys(children).sort(isTimeDim(dim2)?timeSort:undefined);
     const hasChildren=childNames.length>0;
-    const arrow=hasChildren?'&#9660; ':'';
+    const arrow=hasChildren?'&#9660; ':'&#9654; ';
 
-    let rowHtml=`<td class="section-label" style="cursor:${hasChildren?'pointer':'default'};padding:3px 6px;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px" data-toggle="${name}">${arrow}${name}</td>${cols.map(c=>`<td class="num" style="padding:3px 4px;font-size:.66rem">${fv(r[c.key],c.isHC)}</td>`).join('')}`;
+    let rowHtml=`<td class="section-label" style="cursor:${hasChildren?'pointer':'default'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;position:sticky;left:0;background:var(--panel);z-index:1" data-toggle="${name}"><span style="font-size:.6rem;margin-right:4px;display:inline-block;width:10px;color:var(--text-dim)">${arrow}</span>${name}</td>`;
+    rowHtml+=cols.map(c=>{
+      const isSub=c.key==='ebitda'||c.key==='totinv';
+      return `<td class="num" style="${isSub?'font-weight:700;color:var(--accent);':''}">${fv(r[c.key],c.isHC)}</td>`;
+    }).join('');
     if(compData){
       rowHtml+=compSep;
       if(compData[name]){
@@ -259,24 +268,28 @@ function renderPivotTable(data){
         rowHtml+=compCols.map(()=>`<td class="num" style="color:var(--text-dim)">—</td>`).join('');
       }
     }
-    html+=`<tr class="${hasChildren?'subtotal':''}">${rowHtml}</tr>`;
+    html+=`<tr class="pnl-cat-row">${rowHtml}</tr>`;
 
     if(hasChildren){
       childNames.forEach(cn=>{
         const cr=calcDerived(children[cn],daPerRow/childNames.length);
-        let childHtml=`<td class="label-cell" style="padding-left:16px;font-size:.62rem;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${cn}</td>${cols.map(c=>`<td class="num" style="padding:2px 4px;font-size:.62rem">${fv(cr[c.key],c.isHC)}</td>`).join('')}`;
+        let childHtml=`<td class="label-cell" style="padding-left:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;position:sticky;left:0;background:var(--panel-inset);z-index:1;font-size:.76rem;color:var(--text-dim)">${cn}</td>`;
+        childHtml+=cols.map(c=>{
+          const isSub=c.key==='ebitda'||c.key==='totinv';
+          return `<td class="num" style="font-size:.76rem;color:var(--text-dim)${isSub?';font-weight:600;color:var(--accent)':''}">${fv(cr[c.key],c.isHC)}</td>`;
+        }).join('');
         if(compData)childHtml+=compSep+compCols.map(()=>`<td></td>`).join('');
-        html+=`<tr class="child-row" data-parent="${name}">${childHtml}</tr>`;
+        html+=`<tr class="child-row" data-parent="${name}" style="background:var(--panel-inset)">${childHtml}</tr>`;
       });
     }
   });
 
   // Total row
   const t=calcDerived(totals,daTotal);
-  let totalHtml=`<td style="padding:3px 6px;font-size:.66rem;font-weight:700">Total</td>${cols.map(c=>`<td class="num" style="font-weight:700;padding:3px 4px;font-size:.66rem">${fv(t[c.key],c.isHC)}</td>`).join('')}`;
+  let totalHtml=`<td style="position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:10px;margin-right:4px"></span>Total</td>${cols.map(c=>`<td class="num">${fv(t[c.key],c.isHC)}</td>`).join('')}`;
   if(compData&&compTotals){
     const ct=calcDerived(compTotals,daTotal);
-    totalHtml+=compSep+compCols.map(c=>`<td class="num" style="font-weight:700;color:var(--text-dim)">${fv(ct[c.key],c.isHC)}</td>`).join('');
+    totalHtml+=compSep+compCols.map(c=>`<td class="num" style="color:var(--text-dim)">${fv(ct[c.key],c.isHC)}</td>`).join('');
   }
   html+=`<tr class="total">${totalHtml}</tr>`;
 
@@ -289,7 +302,7 @@ function renderPivotTable(data){
       const childRows=tbody.querySelectorAll(`[data-parent="${name}"]`);
       const visible=childRows[0]&&childRows[0].style.display!=='none';
       childRows.forEach(r=>r.style.display=visible?'none':'');
-      td.innerHTML=(visible?'&#9654; ':'&#9660; ')+name;
+      td.innerHTML=`<span style="font-size:.6rem;margin-right:4px;display:inline-block;width:10px;color:var(--text-dim)">${visible?'▶':'▼'}</span>`+name;
     });
   });
 }
