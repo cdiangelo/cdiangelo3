@@ -292,7 +292,7 @@ function renderPnlWalk(){
   const row2Dim=row2Sel?row2Sel.value:'';
   const colMode=colToggle?colToggle.dataset.fyscol:'collapsed';
   const chartViewBtn=document.querySelector('#landingChartViewToggle .btn.active');
-  const isTotInvView=chartViewBtn&&chartViewBtn.dataset.lcview==='total';
+  const isTotInvView=chartViewBtn?chartViewBtn.dataset.lcview==='total':false;
 
   // Dimension getter
   function getDim(e,dim){
