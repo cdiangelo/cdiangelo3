@@ -349,21 +349,62 @@ async function openPlan(plan){
 
   // Set up debounced autosave to server
   const origSaveState=window.saveState;
+  let _lastSaveTime=null;
+  let _saveRetryCount=0;
+  const MAX_RETRIES=3;
+
+  function updateSavedIndicator(){
+    const savedEl=document.getElementById('planHdrSaved');
+    if(!savedEl||!_lastSaveTime)return;
+    const ago=Date.now()-_lastSaveTime;
+    if(ago<60000)savedEl.textContent='Saved just now';
+    else if(ago<3600000)savedEl.textContent='Saved '+Math.floor(ago/60000)+'m ago';
+    else savedEl.textContent='Saved '+Math.floor(ago/3600000)+'h ago';
+    savedEl.style.color='#4a9e8e';
+    savedEl.style.cursor='default';
+    savedEl.onclick=null;
+  }
+  // Update "Saved Xm ago" every 30s
+  setInterval(updateSavedIndicator,30000);
+
+  async function doServerSave(retryNum){
+    const savedEl=document.getElementById('planHdrSaved');
+    try{
+      const s=window.state||state;
+      const r=await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(s)})});
+      if(!r.ok)throw new Error('Status '+r.status);
+      _lastSaveTime=Date.now();
+      _saveRetryCount=0;
+      updateSavedIndicator();
+    }catch(e){
+      console.warn('Autosave failed (attempt '+(retryNum+1)+'):',e);
+      if(retryNum<MAX_RETRIES-1){
+        // Auto-retry with exponential backoff
+        const delay=(retryNum+1)*2000;
+        if(savedEl){savedEl.textContent='Retrying...';savedEl.style.color='var(--warning, #d97706)'}
+        setTimeout(()=>doServerSave(retryNum+1),delay);
+      } else {
+        // All retries failed — show error with manual retry
+        if(savedEl){
+          savedEl.textContent='Save failed — click to retry';
+          savedEl.style.color='var(--danger)';
+          savedEl.style.cursor='pointer';
+          savedEl.onclick=()=>{
+            savedEl.textContent='Saving...';savedEl.style.color='#4a9e8e';
+            savedEl.onclick=null;savedEl.style.cursor='default';
+            doServerSave(0);
+          };
+        }
+      }
+    }
+  }
+
   window.saveState=function(){
     if(origSaveState)origSaveState();
-    // Debounced server save
     if(_planSaveTimer)clearTimeout(_planSaveTimer);
-    _planSaveTimer=setTimeout(async()=>{
-      try{
-        const s=window.state||state;
-        await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(s)})});
-        const savedEl=document.getElementById('planHdrSaved');
-        if(savedEl){savedEl.textContent='Saved';savedEl.style.color='var(--success)'}
-      }catch(e){console.warn('Autosave failed:',e)}
-    },500);
-    // Update save indicator
+    _planSaveTimer=setTimeout(()=>doServerSave(0),500);
     const savedEl=document.getElementById('planHdrSaved');
-    if(savedEl){savedEl.textContent='Saving...';savedEl.style.color='var(--text-dim)'}
+    if(savedEl){savedEl.textContent='Saving...';savedEl.style.color='#4a9e8e';savedEl.style.cursor='default';savedEl.onclick=null}
   };
 
   // Connect WebSocket for real-time collaboration
