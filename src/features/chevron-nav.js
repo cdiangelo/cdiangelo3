@@ -285,11 +285,13 @@
     const planHeader=document.getElementById('planHeaderBar');
     const isInPlan=planHeader&&planHeader.style.display!=='none';
     bottomToolbar.style.display=isInPlan?'flex':'none';
-    const nameEl=document.getElementById('planHdrName');
-    const badgeEl=document.getElementById('planHdrBadge');
-    if(nameEl)document.getElementById('btbPlanName').textContent=nameEl.textContent||'';
-    if(badgeEl)document.getElementById('btbPlanVersion').textContent=badgeEl.textContent||'';
+    // Read from _activePlan directly
+    const plan=window._activePlan;
+    const nameEl=document.getElementById('btbPlanName');
+    const verEl=document.getElementById('btbPlanVersion');
     const emailEl=document.getElementById('btbEmail');
+    if(nameEl)nameEl.textContent=plan?plan.name:'';
+    if(verEl)verEl.textContent=plan?(plan.year+' '+(plan.scenarioType||'budget').toUpperCase()):'';
     if(emailEl){try{const raw=localStorage.getItem('compPlanUser');if(raw){const u=JSON.parse(raw);emailEl.textContent=u.email||''}}catch(e){}}
   };
 
