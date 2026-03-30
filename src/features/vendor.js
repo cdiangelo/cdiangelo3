@@ -2162,8 +2162,19 @@ function getContractorCapExByMonth(mi){
 // ── Other Tabs (C&B Other + OAO Other) — monthly grids ──
 const OTHER_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 function initOtherTab(){
-  if(!state.cbOtherRows)state.cbOtherRows=[];
-  if(!state.oaoOtherRows)state.oaoOtherRows=[];
+  // Ensure state arrays exist with defaults
+  if(!state.cbOtherRows||!Array.isArray(state.cbOtherRows))state.cbOtherRows=[];
+  if(!state.cbOtherRows.length)state.cbOtherRows=[
+    {description:'Severance',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
+    {description:'Bonus - Discretionary',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
+    {description:'Other C&B',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}
+  ];
+  if(!state.oaoOtherRows||!Array.isArray(state.oaoOtherRows))state.oaoOtherRows=[];
+  if(!state.oaoOtherRows.length)state.oaoOtherRows=[
+    {description:'Office Supplies',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
+    {description:'Recruiting Fees',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
+    {description:'Misc Plug',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0}
+  ];
 
   function renderOtherGrid(prefix,arr,tbodyEl,tfootEl){
     let h='';

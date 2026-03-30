@@ -345,11 +345,12 @@ function renderPnlWalk(){
   (state.vendorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoVendor+=fy});
   (state.teRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoTE+=fy});
   (state.contractorRows||[]).forEach(r=>{let fy=0;for(let m=0;m<12;m++)fy+=(r[months[m]]||0);oaoOther+=fy});
-  // Add OAO Other rows to vendor OAO total
+  // Add OAO Other rows to OAO total
   const oaoOtherAmt=window.getOaoOtherTotal?window.getOaoOtherTotal():0;
-  oaoVendor+=oaoOtherAmt;
-  // Add C&B Other to be distributed with C&B
+  // C&B Other total
   const cbOtherAmt=window.getCbOtherTotal?window.getCbOtherTotal():0;
+  // Combined "Other" for display column
+  const otherCombined=cbOtherAmt+oaoOtherAmt;
   const oaoTotal=oaoVendor+oaoTE+oaoOther;
   const ctrCapexTotal=window.getContractorCapExTotal?window.getContractorCapExTotal():0;
   const daTotal=getDepreciationTotal();
@@ -359,13 +360,13 @@ function renderPnlWalk(){
 
   function enrich(d,totalHc){
     const share=totalHc>0?d.hc/totalHc:0;
-    d.cb+=Math.round(cbOtherAmt*share); // C&B Other distributed by HC
     d.oao=Math.round(oaoVendor*share);
     d.te=Math.round(oaoTE*share);
-    d.other=Math.round(oaoOther*share);
+    d.other=Math.round(oaoOther*share); // contractors
+    d.otherTotal=Math.round(otherCombined*share); // C&B Other + OAO Other combined
     d.cbOpex=d.cb-d.cbCapex;
     d.hiresOpex=d.hires-d.hiresCapex;
-    d.ebitda=d.cbOpex+d.hiresOpex+d.oao+d.te+d.other;
+    d.ebitda=d.cbOpex+d.hiresOpex+d.oao+d.te+d.other+d.otherTotal;
     d.da=Math.round(daTotal*share);
     d.opex=d.ebitda+d.da;
     d.ctrCapex=Math.round(ctrCapexTotal*share);
@@ -377,7 +378,7 @@ function renderPnlWalk(){
   // Build group data
   const totalHc=emps.length;
   const gData={};const gChildData={};
-  const totals={hc:0,cb:0,cbCapex:0,hires:0,hiresCapex:0,hiresHc:0,oao:0,te:0,other:0,ebitda:0,da:0,opex:0,capex:0,totinv:0,cbOpex:0,hiresOpex:0};
+  const totals={hc:0,cb:0,cbCapex:0,hires:0,hiresCapex:0,hiresHc:0,oao:0,te:0,other:0,otherTotal:0,ebitda:0,da:0,opex:0,capex:0,totinv:0,cbOpex:0,hiresOpex:0};
   groupKeys.forEach(k=>{
     gData[k]=enrich(computePnl(groups[k].emps),totalHc);
     Object.keys(gData[k]).forEach(f=>{if(typeof totals[f]==='number')totals[f]+=gData[k][f]});
@@ -407,6 +408,7 @@ function renderPnlWalk(){
       {key:'oao',label:'OAO'},
       {key:'other',label:'CTR'},
       {key:'te',label:'T&E'},
+      {key:'otherTotal',label:'OTHER'},
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'cbCapex',label:'C&B CAP'},
       {key:'hiresCapex',label:'HIRES CAP'},
@@ -423,6 +425,7 @@ function renderPnlWalk(){
       {key:'oao',label:'OAO'},
       {key:'other',label:'CTR'},
       {key:'te',label:'T&E'},
+      {key:'otherTotal',label:'OTHER'},
       {key:'ebitda',label:'EBITDA',cls:'subtotal'},
       {key:'da',label:'D&A'},
       {key:'opex',label:'OPEX',cls:'subtotal'},
