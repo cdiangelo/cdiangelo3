@@ -331,17 +331,13 @@ function updateSessionUI() {
   // Extra workspace indicators on landing, vendor, dep, revenue pages
   const extraWsIds = ['landingWsIndicator', 'vendorWsIndicator', 'depWsIndicator', 'revWsIndicator'];
   if (persistenceMode === 'session' && sessionContext) {
-    banner.style.display = 'none';
+    if(banner)banner.style.display = 'none';
     if (landingBox) landingBox.style.display = 'none';
-    // Hide wsIndicator in session mode — everything is in top bar
-    indicator.style.display = 'none';
-    // Hide extra workspace indicators in session mode (top bar handles it)
+    if(indicator)indicator.style.display = 'none';
     extraWsIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none' });
-    // Populate the persistent top bar
-    topBar.className = 'active';
-    topBar.id = 'sessionTopBar';
+    if(topBar){topBar.className = 'active';topBar.id = 'sessionTopBar'}
     document.body.classList.add('session-active');
-    stbSession.innerHTML =
+    if(stbSession)stbSession.innerHTML =
       `<span style="font-weight:600;color:var(--accent)">Session: ${sessionContext.sessionName || 'Active'}</span>` +
       `<span style="font-family:monospace;font-size:.72rem;color:var(--text-dim);background:var(--panel-inset);padding:1px 6px;border-radius:4px;border:1px solid var(--border-light)">${sessionContext.code || ''}</span>` +
       `<span style="font-size:.72rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">v: <span class="ws-name" onclick="openWorkspaceModal()" title="Click to manage versions" style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px">${sessionContext.versionName || 'Default'}</span></span>` +
@@ -349,28 +345,21 @@ function updateSessionUI() {
       `<span id="lastSaveTime" style="font-size:.68rem;color:var(--text-dim);margin-left:6px">${lastSaveTime ? 'Saved ' + formatSaveTime(lastSaveTime) : ''}</span>` +
       ` <span style="font-size:.75rem;color:var(--text-dim);border-left:1px solid var(--border);padding-left:8px">${sessionContext.userName}</span>` +
       ` <span style="cursor:pointer;font-size:.72rem;color:var(--danger);margin-left:4px" onclick="leaveSession()" title="Leave session">Leave</span>`;
-    // Show initial user in top bar
-    if (!stbUsers.innerHTML) {
+    if (stbUsers&&!stbUsers.innerHTML) {
       stbUsers.innerHTML = `<span style="color:var(--text-dim);margin-right:4px">Online:</span>` +
         `<span class="presence-dot"><span style="background:${sessionContext.userColor || 'var(--accent)'};width:7px;height:7px;border-radius:50%;display:inline-block"></span>${sessionContext.userName} (you)</span>`;
     }
-    // Hide old presence bar in comp header
-    presenceBar.className = 'presence-bar'; presenceBar.innerHTML = '';
-    document.body.classList.add('session-active');
+    if(presenceBar){presenceBar.className = 'presence-bar'; presenceBar.innerHTML = ''}
   } else {
-    // Plan files replace sessions — hide session UI permanently
-    banner.style.display = 'none';
+    if(banner)banner.style.display = 'none';
     if (landingBox) landingBox.style.display = 'none';
-    indicator.style.display = 'none';
     const wsHtml = 'Workspace: <span class="ws-name" onclick="openWorkspaceModal()" title="Click to manage workspaces">' + window.currentWorkspaceName + '</span>';
-    indicator.innerHTML = wsHtml + '<span class="save-indicator" id="saveIndicator" style="display:none"></span>';
-    // Show workspace indicator on all module pages
+    if(indicator){indicator.style.display = 'none';indicator.innerHTML = wsHtml + '<span class="save-indicator" id="saveIndicator" style="display:none"></span>'}
     extraWsIds.forEach(id => { const el = document.getElementById(id); if (el) { el.style.display = ''; el.innerHTML = wsHtml } });
-    // Hide top bar and old presence bar
-    topBar.className = ''; topBar.id = 'sessionTopBar';
-    stbSession.innerHTML = ''; stbUsers.innerHTML = '';
-    presenceBar.className = 'presence-bar'; presenceBar.innerHTML = '';
-    document.body.classList.remove('session-active');
+    if(topBar){topBar.className = ''; topBar.id = 'sessionTopBar'}
+    if(stbSession)stbSession.innerHTML = '';
+    if(stbUsers)stbUsers.innerHTML = '';
+    if(presenceBar){presenceBar.className = 'presence-bar'; presenceBar.innerHTML = ''}
     document.body.classList.remove('session-active');
   }
 }
