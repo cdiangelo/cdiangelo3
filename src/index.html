@@ -24,7 +24,10 @@
 <p class="auth-subtitle">Enter your email to get started</p>
 <div class="auth-input-wrap">
 <input type="email" id="authEmail" class="auth-input" placeholder="name@company.com" autocomplete="email" autofocus>
-<input type="password" id="authAdminPass" placeholder="Admin code" style="margin-top:8px;padding:6px 0;font-size:.76rem;color:var(--text-dim);background:transparent;border:none;border-bottom:1px solid var(--border-light);outline:none;width:100%;letter-spacing:.04em;transition:border-color .2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-light)'">
+<div style="position:relative;margin-top:8px">
+<input type="password" id="authAdminPass" placeholder="Admin code" style="padding:6px 40px 6px 0;font-size:.76rem;color:var(--text-dim);background:transparent;border:none;border-bottom:1px solid var(--border-light);outline:none;width:100%;letter-spacing:.04em;transition:border-color .2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-light)'">
+<button type="button" id="toggleAuthPw" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:.68rem;color:var(--tertiary);padding:2px 4px;letter-spacing:.02em" onclick="const i=document.getElementById('authAdminPass');if(i.type==='password'){i.type='text';this.textContent='hide'}else{i.type='password';this.textContent='show'}">show</button>
+</div>
 <button class="auth-btn" id="authContinue">Continue</button>
 </div>
 <div class="auth-error" id="authError"></div>
