@@ -2162,17 +2162,28 @@ function getContractorCapExByMonth(mi){
 // ── Other Tabs (C&B Other + OAO Other) — monthly grids ──
 const OTHER_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 const OTHER_MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const EMPTY_OTHER_ROW=()=>({description:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+const EMPTY_OTHER_ROW=()=>({jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
 
 function initOtherTab(){
-  // Ensure state arrays exist with defaults
+  // Ensure state arrays exist with defaults — migrate old {name,amount} format
   if(!state.cbOtherRows||!Array.isArray(state.cbOtherRows))state.cbOtherRows=[];
+  // Migrate old format rows
+  state.cbOtherRows=state.cbOtherRows.map(r=>{
+    if(r.name&&!r.description)return{description:r.name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    if(!r.jan&&r.jan!==0&&!r.description)return{description:r.description||r.name||'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    return r;
+  });
   if(!state.cbOtherRows.length)state.cbOtherRows=[
     {description:'Severance',...EMPTY_OTHER_ROW()},
     {description:'Bonus - Discretionary',...EMPTY_OTHER_ROW()},
     {description:'Other C&B',...EMPTY_OTHER_ROW()}
   ];
   if(!state.oaoOtherRows||!Array.isArray(state.oaoOtherRows))state.oaoOtherRows=[];
+  state.oaoOtherRows=state.oaoOtherRows.map(r=>{
+    if(r.name&&!r.description)return{description:r.name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    if(!r.jan&&r.jan!==0&&!r.description)return{description:r.description||r.name||'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+    return r;
+  });
   if(!state.oaoOtherRows.length)state.oaoOtherRows=[
     {description:'Office Supplies',...EMPTY_OTHER_ROW()},
     {description:'Recruiting Fees',...EMPTY_OTHER_ROW()},
@@ -2180,6 +2191,8 @@ function initOtherTab(){
   ];
 
   // Render a full table into a wrapper div
+  function otherFmt(n){if(!n)return '';return '$'+Number(Math.round(n)).toLocaleString('en-US')}
+
   function renderOtherGrid(prefix,arr,wrapEl){
     if(!wrapEl)return;
     const moTotals=OTHER_MO.map(m=>arr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
@@ -2194,7 +2207,7 @@ function initOtherTab(){
       const fy=OTHER_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
       h+=`<tr data-oi="${i}" style="border-bottom:1px solid var(--border-light)">`;
       h+=`<td style="padding:4px 8px"><input class="${prefix}-f" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:2px 0;color:var(--text)"></td>`;
-      h+=`<td style="text-align:right;padding:4px 6px;font-weight:700;font-size:.78rem;white-space:nowrap;font-family:var(--font-mono)">${fmtScaled(fy)}</td>`;
+      h+=`<td style="text-align:right;padding:4px 6px;font-weight:700;font-size:.78rem;white-space:nowrap;font-family:var(--font-mono)">${otherFmt(fy)}</td>`;
       OTHER_MO.forEach(m=>{
         const v=parseFloat(row[m])||0;
         const disp=v?'$'+Number(v).toLocaleString('en-US'):'';
@@ -2202,11 +2215,10 @@ function initOtherTab(){
       });
       h+=`<td style="padding:2px"><button class="${prefix}-del" data-oi="${i}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.72rem;opacity:.5" title="Delete">×</button></td></tr>`;
     });
-    // Total row
     h+=`<tr style="font-weight:700;border-top:2px solid var(--border);background:var(--panel-inset)">
       <td style="padding:6px 8px;font-size:.74rem;color:var(--text-dim)">TOTAL</td>
-      <td style="text-align:right;padding:6px 6px;font-size:.78rem;font-family:var(--font-mono)">${fmtScaled(fyTotal)}</td>`;
-    moTotals.forEach(t=>h+=`<td style="text-align:right;padding:6px 4px;font-size:.76rem;font-family:var(--font-mono)">${fmtScaled(t)}</td>`);
+      <td style="text-align:right;padding:6px 6px;font-size:.78rem;font-family:var(--font-mono)">${otherFmt(fyTotal)}</td>`;
+    moTotals.forEach(t=>h+=`<td style="text-align:right;padding:6px 4px;font-size:.76rem;font-family:var(--font-mono)">${otherFmt(t)}</td>`);
     h+=`<td></td></tr></tbody></table></div>`;
     wrapEl.innerHTML=h;
 

@@ -400,9 +400,12 @@ async function openPlan(plan){
   }
 
   window.saveState=function(){
+    // Sync state references
+    if(window.state&&window.state!==state){Object.keys(window.state).forEach(k=>{state[k]=window.state[k]})}
     if(origSaveState)origSaveState();
     // Broadcast to other users via WebSocket
     if(window._broadcastPlanState)try{window._broadcastPlanState()}catch(e){}
+    // Debounced server save
     if(_planSaveTimer)clearTimeout(_planSaveTimer);
     _planSaveTimer=setTimeout(()=>doServerSave(0),500);
     const savedEl=document.getElementById('planHdrSaved');
