@@ -849,11 +849,28 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <h4 style="font-size:.92rem;font-weight:600;color:var(--text);margin:0">C&B Other</h4>
 <span style="font-size:.72rem;color:var(--text-dim)">Feeds into C&B totals across summaries</span>
 <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-<input id="cbOtherNewName" placeholder="Add row name..." style="padding:5px 10px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);width:180px">
+<input id="cbOtherNewName" placeholder="Add description..." style="padding:5px 10px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);width:180px">
 <button class="btn" id="cbOtherAddBtn" style="padding:5px 14px;font-size:.78rem">+ Add Row</button>
 </div>
 </div>
-<div id="cbOtherGridWrap"></div>
+<div style="overflow-x:auto">
+<table class="comp-table" id="cbOtherTable" style="font-size:.8rem;min-width:800px">
+<thead><tr>
+<th style="width:30px"></th>
+<th style="width:30px"></th>
+<th style="min-width:180px">Description</th>
+<th style="min-width:100px">Notes</th>
+<th class="num-col-lg" style="font-weight:700;white-space:nowrap">Full Year</th>
+<th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
+<th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
+<th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
+<th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
+<th style="width:40px"></th>
+</tr></thead>
+<tbody id="cbOtherTotalRow"></tbody>
+<tbody id="cbOtherTbody"></tbody>
+</table>
+</div>
 </div>
 </div>
 
@@ -1811,11 +1828,28 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <h4 style="font-size:.88rem;font-weight:600;color:var(--text);margin:0">OAO Other</h4>
 <span style="font-size:.7rem;color:var(--text-dim)">Feeds into OAO totals across summaries</span>
 <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-<input id="oaoOtherNewName" placeholder="Add row name..." style="padding:5px 10px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);width:180px">
+<input id="oaoOtherNewName" placeholder="Add description..." style="padding:5px 10px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);width:180px">
 <button class="btn" id="oaoOtherAddBtn" style="padding:5px 14px;font-size:.78rem">+ Add Row</button>
 </div>
 </div>
-<div id="oaoOtherGridWrap"></div>
+<div style="overflow-x:auto">
+<table class="comp-table" id="oaoOtherTable" style="font-size:.8rem;min-width:800px">
+<thead><tr>
+<th style="width:30px"></th>
+<th style="width:30px"></th>
+<th style="min-width:180px">Description</th>
+<th style="min-width:100px">Notes</th>
+<th class="num-col-lg" style="font-weight:700;white-space:nowrap">Full Year</th>
+<th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
+<th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
+<th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
+<th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
+<th style="width:40px"></th>
+</tr></thead>
+<tbody id="oaoOtherTotalRow"></tbody>
+<tbody id="oaoOtherTbody"></tbody>
+</table>
+</div>
 </div>
 </div>
 

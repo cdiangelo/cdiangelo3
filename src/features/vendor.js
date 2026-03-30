@@ -79,11 +79,15 @@ function initVendorModule(){
       h+=`<td style="${blk(row.vendorName)}"><input class="${prefix}-field" data-f="vendorName" value="${esc(row.vendorName)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
       h+=`<td style="${blk(row.vendorType)}"><select class="${prefix}-field" data-f="vendorType" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${vtOpts}</select></td>`;
       h+=`<td><input class="${prefix}-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
+    } else if(fields==='other'){
+      h+=`<td style="${blk(row.description)}"><input class="${prefix}-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+      h+=`<td><input class="${prefix}-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
     } else {
       h+=`<td style="${blk(row.expenseType)}"><select class="${prefix}-field" data-f="expenseType" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${etOpts}</select></td>`;
       h+=`<td style="${blk(row.description)}"><input class="${prefix}-field" data-f="description" value="${esc(row.description)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
       h+=`<td><input class="${prefix}-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
     }
+    if(fields!=='other'){
     h+=`<td style="${blk(row.businessUnit)}"><select class="${prefix}-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
     h+=`<td style="${blk(row.bizLine)}"><select class="${prefix}-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
     h+=`<td style="${blk(row.market)}"><select class="${prefix}-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
@@ -100,6 +104,7 @@ function initVendorModule(){
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">%</label><input class="${prefix}-field ${prefix}-ri-pct" data-f="_rateIncPct" type="number" value="${riPct||''}" step="any" style="width:55px;font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
     h+=`<button class="btn btn-sm ${prefix}-apply-ri" data-vi="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply increase</button>`;
     h+=`</div></td>`;
+    }
     h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
     MO.forEach(m=>{
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
@@ -323,7 +328,7 @@ function initVendorModule(){
     return isDark?TAG_COLORS_DARK.slice():TAG_COLORS_LIGHT.slice();
   }
 
-  function fields2colSpan(prefix){return prefix==='vr'?11:10}
+  function fields2colSpan(prefix){if(prefix==='vr')return 11;if(prefix==='cbo'||prefix==='oaoo')return 2;return 10}
 
   function renderFooter(tfootEl,dataArr,colSpan,monthFilter){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
@@ -2161,127 +2166,46 @@ function getContractorCapExByMonth(mi){
 
 // ── Other Tabs (C&B Other + OAO Other) — monthly grids ──
 const OTHER_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-const OTHER_MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const EMPTY_OTHER_ROW=()=>({jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
 
 function initOtherTab(){
-  // Ensure state arrays exist with defaults — migrate old {name,amount} format
-  if(!state.cbOtherRows||!Array.isArray(state.cbOtherRows))state.cbOtherRows=[];
-  // Migrate old format rows
-  state.cbOtherRows=state.cbOtherRows.map(r=>{
-    if(r.name&&!r.description)return{description:r.name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    if(!r.jan&&r.jan!==0&&!r.description)return{description:r.description||r.name||'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    return r;
-  });
-  if(!state.cbOtherRows.length)state.cbOtherRows=[
-    {description:'Severance',...EMPTY_OTHER_ROW()},
-    {description:'Bonus - Discretionary',...EMPTY_OTHER_ROW()},
-    {description:'Other C&B',...EMPTY_OTHER_ROW()}
-  ];
-  if(!state.oaoOtherRows||!Array.isArray(state.oaoOtherRows))state.oaoOtherRows=[];
-  state.oaoOtherRows=state.oaoOtherRows.map(r=>{
-    if(r.name&&!r.description)return{description:r.name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    if(!r.jan&&r.jan!==0&&!r.description)return{description:r.description||r.name||'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
-    return r;
-  });
-  if(!state.oaoOtherRows.length)state.oaoOtherRows=[
-    {description:'Office Supplies',...EMPTY_OTHER_ROW()},
-    {description:'Recruiting Fees',...EMPTY_OTHER_ROW()},
-    {description:'Misc Plug',...EMPTY_OTHER_ROW()}
-  ];
-
-  // Render a full table into a wrapper div
-  function otherFmt(n){if(!n)return '';return '$'+Number(Math.round(n)).toLocaleString('en-US')}
-
-  function renderOtherGrid(prefix,arr,wrapEl){
-    if(!wrapEl)return;
-    const moTotals=OTHER_MO.map(m=>arr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
-    const fyTotal=moTotals.reduce((s,v)=>s+v,0);
-    let h=`<div style="overflow-x:auto"><table style="width:100%;min-width:1200px;border-collapse:collapse;font-size:.78rem">
-      <thead><tr style="background:var(--panel-inset);border-bottom:2px solid var(--border)">
-        <th style="text-align:left;padding:6px 8px;min-width:160px;font-size:.7rem;text-transform:uppercase;color:var(--text-dim)">Description</th>
-        <th style="text-align:right;padding:6px 6px;font-weight:700;font-size:.7rem;white-space:nowrap">Full Year</th>`;
-    OTHER_MO_LABELS.forEach(m=>h+=`<th style="text-align:right;padding:6px 4px;font-size:.68rem;color:var(--text-dim);min-width:80px">${m}</th>`);
-    h+=`<th style="width:32px"></th></tr></thead><tbody>`;
-    arr.forEach((row,i)=>{
-      const fy=OTHER_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
-      h+=`<tr data-oi="${i}" style="border-bottom:1px solid var(--border-light)">`;
-      h+=`<td style="padding:4px 8px"><input class="${prefix}-f" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:2px 0;color:var(--text)"></td>`;
-      h+=`<td style="text-align:right;padding:4px 6px;font-weight:700;font-size:.78rem;white-space:nowrap;font-family:var(--font-mono)">${otherFmt(fy)}</td>`;
-      OTHER_MO.forEach(m=>{
-        const v=parseFloat(row[m])||0;
-        const disp=v?'$'+Number(v).toLocaleString('en-US'):'';
-        h+=`<td style="padding:2px 2px"><input class="${prefix}-f ${prefix}-mo" data-f="${m}" type="text" value="${disp}" data-raw="${v}" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:3px 4px;text-align:right;font-family:var(--font-mono);color:var(--text)"></td>`;
-      });
-      h+=`<td style="padding:2px"><button class="${prefix}-del" data-oi="${i}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.72rem;opacity:.5" title="Delete">×</button></td></tr>`;
-    });
-    h+=`<tr style="font-weight:700;border-top:2px solid var(--border);background:var(--panel-inset)">
-      <td style="padding:6px 8px;font-size:.74rem;color:var(--text-dim)">TOTAL</td>
-      <td style="text-align:right;padding:6px 6px;font-size:.78rem;font-family:var(--font-mono)">${otherFmt(fyTotal)}</td>`;
-    moTotals.forEach(t=>h+=`<td style="text-align:right;padding:6px 4px;font-size:.76rem;font-family:var(--font-mono)">${otherFmt(t)}</td>`);
-    h+=`<td></td></tr></tbody></table></div>`;
-    wrapEl.innerHTML=h;
-
-    // Bind events
-    wrapEl.querySelectorAll(`.${prefix}-f`).forEach(inp=>{
-      const commit=()=>{
-        const idx=+inp.closest('tr').dataset.oi;
-        const f=inp.dataset.f;
-        if(inp.classList.contains(`${prefix}-mo`)){
-          arr[idx][f]=parseFloat(inp.value.replace(/[$,]/g,''))||0;
-        } else {
-          arr[idx][f]=inp.value;
-        }
-        saveState();renderOtherGrid(prefix,arr,wrapEl);
-        try{renderPnlWalk()}catch(e){}
-        try{renderLandingCharts()}catch(e){}
-      };
-      if(inp.classList.contains(`${prefix}-mo`)){
-        inp.addEventListener('focus',()=>{inp.value=inp.dataset.raw||'0';inp.select()});
-        inp.addEventListener('blur',commit);
-      } else {
-        inp.addEventListener('change',commit);
-      }
-    });
-    wrapEl.querySelectorAll(`.${prefix}-del`).forEach(btn=>{
-      btn.addEventListener('mouseenter',()=>btn.style.opacity='1');
-      btn.addEventListener('mouseleave',()=>btn.style.opacity='.5');
-      btn.addEventListener('click',()=>{
-        arr.splice(+btn.dataset.oi,1);saveState();
-        renderOtherGrid(prefix,arr,wrapEl);
-        try{renderPnlWalk()}catch(e){}
-        try{renderLandingCharts()}catch(e){}
-      });
+  // Migrate + ensure rows
+  function fixRows(arr){
+    if(!arr||!Array.isArray(arr))return [];
+    return arr.map(r=>{
+      if(r.name&&!r.description)return{description:r.name,notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+      if(r.description===undefined)return{description:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+      return r;
     });
   }
+  const emptyRow=()=>({description:'',notes:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+  state.cbOtherRows=fixRows(state.cbOtherRows);
+  state.oaoOtherRows=fixRows(state.oaoOtherRows);
+  if(!state.cbOtherRows.length)state.cbOtherRows=[emptyRow(),emptyRow(),emptyRow()];
+  if(!state.oaoOtherRows.length)state.oaoOtherRows=[emptyRow(),emptyRow(),emptyRow()];
 
-  // C&B Other
-  const cbWrap=document.getElementById('cbOtherGridWrap');
-  if(cbWrap){
-    renderOtherGrid('cbo',state.cbOtherRows,cbWrap);
-    const cbAddBtn=document.getElementById('cbOtherAddBtn');
-    if(cbAddBtn)cbAddBtn.onclick=()=>{
-      const inp=document.getElementById('cbOtherNewName');
-      const name=(inp?inp.value:'').trim();if(!name)return;
-      state.cbOtherRows.push({description:name,...EMPTY_OTHER_ROW()});
-      inp.value='';saveState();
-      renderOtherGrid('cbo',state.cbOtherRows,cbWrap);
+  function renderOtherModule(prefix,arr,tbodyId,tfootId,addBtnId,newNameId){
+    const tbody=document.getElementById(tbodyId);
+    const tfoot=document.getElementById(tfootId);
+    if(!tbody||!tfoot)return;
+    const rerender=()=>renderOtherModule(prefix,arr,tbodyId,tfootId,addBtnId,newNameId);
+    let h='';
+    arr.forEach((row,i)=>{h+=buildSpendRow(row,i,prefix,'other')});
+    tbody.innerHTML=h;
+    renderFooter(tfoot,arr,fields2colSpan(prefix));
+    bindSpendRows(tbody,tfoot,arr,prefix,rerender);
+    try{attachSpreadsheetNav(tbodyId,prefix+'-mo')}catch(e){}
+    const addBtn=document.getElementById(addBtnId);
+    if(addBtn)addBtn.onclick=()=>{
+      const inp=document.getElementById(newNameId);
+      const name=inp?inp.value.trim():'';
+      arr.unshift(Object.assign(emptyRow(),{description:name}));
+      if(inp)inp.value='';
+      saveState();rerender();renderPnlWalk();renderLandingCharts();
     };
   }
 
-  // OAO Other
-  const oaoWrap=document.getElementById('oaoOtherGridWrap');
-  if(oaoWrap){
-    renderOtherGrid('oaoo',state.oaoOtherRows,oaoWrap);
-    const oaoAddBtn=document.getElementById('oaoOtherAddBtn');
-    if(oaoAddBtn)oaoAddBtn.onclick=()=>{
-      const inp=document.getElementById('oaoOtherNewName');
-      const name=(inp?inp.value:'').trim();if(!name)return;
-      state.oaoOtherRows.push({description:name,...EMPTY_OTHER_ROW()});
-      inp.value='';saveState();
-      renderOtherGrid('oaoo',state.oaoOtherRows,oaoWrap);
-    };
-  }
+  renderOtherModule('cbo',state.cbOtherRows,'cbOtherTbody','cbOtherTotalRow','cbOtherAddBtn','cbOtherNewName');
+  renderOtherModule('oaoo',state.oaoOtherRows,'oaoOtherTbody','oaoOtherTotalRow','oaoOtherAddBtn','oaoOtherNewName');
 }
 window.initOtherTab=initOtherTab;
 
