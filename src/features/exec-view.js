@@ -55,7 +55,10 @@ function buildExecTrendYearToggle(){
   const wrap=document.getElementById('execTrendYearToggle');
   if(!wrap)return;
   const dYears=getDisplayYears();
+  const hist=state.historicals;
+  const histYears=(hist&&hist.enabled&&hist.years)?Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort():[];
   wrap.innerHTML='<button class="btn'+(execTrendYear==='all'?' active':'')+'" data-etrendyr="all">All</button>'+
+    histYears.map(y=>'<button class="btn'+(execTrendYear===y?' active':'')+'" data-etrendyr="'+y+'" style="opacity:.7;font-style:italic">'+y+'</button>').join('')+
     '<button class="btn'+(execTrendYear==='current'?' active':'')+'" data-etrendyr="current">'+DISPLAY_BASE_YEAR+'</button>'+
     FORECAST_YEARS.map((y,i)=>'<button class="btn'+(execTrendYear===String(y)?' active':'')+'" data-etrendyr="'+y+'">'+dYears[i]+'</button>').join('');
   wrap.querySelectorAll('.btn').forEach(b=>b.addEventListener('click',()=>{
@@ -277,6 +280,10 @@ function renderExecView(){
   if(trendYrEl)trendYrEl.textContent=' \u2014 '+trendYrLabel;
   const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const isAllYears=execTrendYear==='all';
+  const hist=state.historicals;
+  const histEnabled=hist&&hist.enabled&&hist.years;
+  const histYears=histEnabled?Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort():[];
+  const isHistYear=histYears.includes(execTrendYear);
 
   // ── Period range ──
   const curMonth=window.currentMonth; // global as-of month override
@@ -284,17 +291,21 @@ function renderExecView(){
   const isAnnual=execPeriod==='annual';
   const allMonths=[0,1,2,3,4,5,6,7,8,9,10,11];
   const periodMonths=execSelectedMonths.size>0?allMonths.filter(m=>execSelectedMonths.has(m)):allMonths;
-  // Annual mode: show all years from forecast
-  const annualYears=isAnnual?[DISPLAY_BASE_YEAR,...FORECAST_YEARS]:[];
+  // Annual mode: show all years from forecast (plus historical if enabled)
+  const annualYears=isAnnual?[...(isAllYears?histYears.map(Number):[]),DISPLAY_BASE_YEAR,...FORECAST_YEARS]:[];
   // Build labels based on period + year selection
   let periodLabels;
-  if(isAllYears&&!isAnnual&&!isQuarterly){
-    // All years + monthly: show "Jan'26, Feb'26, ..., Dec'31"
-    const allYrs=[DISPLAY_BASE_YEAR,...FORECAST_YEARS];
+  if(isHistYear){
+    // Single historical year
+    if(isAnnual){periodLabels=[execTrendYear]}
+    else if(isQuarterly){periodLabels=['Q1','Q2','Q3','Q4']}
+    else {periodLabels=periodMonths.map(i=>MONTH_SHORT[i])}
+  } else if(isAllYears&&!isAnnual&&!isQuarterly){
+    const allYrs=[...histYears.map(Number),DISPLAY_BASE_YEAR,...FORECAST_YEARS];
     periodLabels=[];
     allYrs.forEach(yr=>{periodMonths.forEach(mi=>{periodLabels.push(MONTH_SHORT[mi]+"'"+String(yr).slice(-2))})});
   } else if(isAllYears&&isQuarterly){
-    const allYrs=[DISPLAY_BASE_YEAR,...FORECAST_YEARS];
+    const allYrs=[...histYears.map(Number),DISPLAY_BASE_YEAR,...FORECAST_YEARS];
     periodLabels=[];allYrs.forEach(yr=>{['Q1','Q2','Q3','Q4'].forEach(q=>{periodLabels.push(q+"'"+String(yr).slice(-2))})});
   } else if(isAnnual){
     periodLabels=annualYears.map(String);
@@ -477,10 +488,59 @@ function renderExecView(){
         else{yearTotals.push(0)}
       }
       monthlyData[g]=yearTotals;
+    } else if(isHistYear){
+      // Single historical year — show monthly data from historicals
+      const hd=histEnabled&&hist.years[execTrendYear];
+      if(hd&&hd.monthly){
+        monthlyData[g]=periodMonths.map(mi=>{
+          const mo=hd.monthly[mi];
+          if(!mo)return 0;
+          return (mo.cb||0)+(mo.oao||0)+(mo.ctr||0)+(mo.te||0);
+        });
+      } else if(hd){
+        // No monthly detail — distribute annual evenly
+        const total=(hd.cb||0)+(hd.oao||0)+(hd.ctr||0)+(hd.te||0);
+        monthlyData[g]=periodMonths.map(()=>Math.round(total/12));
+      } else {
+        monthlyData[g]=periodMonths.map(()=>0);
+      }
     } else {
       monthlyData[g]=transformed;
     }
   });
+
+  // ── Prepend historical data in "All" mode ──
+  if(isAllYears&&histYears.length){
+    groupNames.forEach(g=>{
+      let histArr=[];
+      histYears.forEach(yr=>{
+        const hd=hist.years[yr];
+        if(!hd){histArr.push(...periodMonths.map(()=>0));return}
+        if(isAnnual){
+          const total=(hd.cb||0)+(hd.oao||0)+(hd.ctr||0)+(hd.te||0);
+          histArr.push(total);
+        } else if(isQuarterly){
+          // Build quarterly from monthly if available, else distribute evenly
+          const annual=(hd.cb||0)+(hd.oao||0)+(hd.ctr||0)+(hd.te||0);
+          for(let q=0;q<4;q++){
+            let qTotal=0;
+            for(let m=q*3;m<q*3+3;m++){
+              const mo=hd.monthly?hd.monthly[m]:null;
+              qTotal+=mo?((mo.cb||0)+(mo.oao||0)+(mo.ctr||0)+(mo.te||0)):Math.round(annual/12);
+            }
+            histArr.push(qTotal);
+          }
+        } else {
+          // Monthly
+          periodMonths.forEach(mi=>{
+            const mo=hd.monthly?hd.monthly[mi]:null;
+            histArr.push(mo?((mo.cb||0)+(mo.oao||0)+(mo.ctr||0)+(mo.te||0)):0);
+          });
+        }
+      });
+      monthlyData[g]=[...histArr,...monthlyData[g]];
+    });
+  }
 
   // Build FTE and Avg Annualized FTE Comp overlay data (period-scoped)
   let monthlyFteFull,monthlyAvgAnnFteCompFull;
@@ -556,6 +616,30 @@ function renderExecView(){
   } else {
     monthlyFte=periodMonths.map(mi=>monthlyFteFull[mi]);
     monthlyAvgAnnFteComp=periodMonths.map(mi=>monthlyAvgAnnFteCompFull[mi]);
+  }
+
+  // Prepend historical FTE data in "All" mode
+  if(isAllYears&&histYears.length){
+    const histFte=[];const histComp=[];
+    histYears.forEach(yr=>{
+      const hd=histEnabled&&hist.years[yr];
+      const hc=hd?hd.hc||0:0;
+      const cb=hd?hd.cb||0:0;
+      const avgComp=hc>0?Math.round(cb/hc):0;
+      if(isAnnual){histFte.push(hc);histComp.push(avgComp)}
+      else if(isQuarterly){for(let q=0;q<4;q++){histFte.push(hc);histComp.push(avgComp)}}
+      else{periodMonths.forEach(()=>{histFte.push(hc);histComp.push(avgComp)})}
+    });
+    monthlyFte=[...histFte,...monthlyFte];
+    monthlyAvgAnnFteComp=[...histComp,...monthlyAvgAnnFteComp];
+  } else if(isHistYear){
+    const hd=histEnabled&&hist.years[execTrendYear];
+    const hc=hd?hd.hc||0:0;
+    const cb=hd?hd.cb||0:0;
+    const avgComp=hc>0?Math.round(cb/hc):0;
+    if(isAnnual){monthlyFte=[hc];monthlyAvgAnnFteComp=[avgComp]}
+    else if(isQuarterly){monthlyFte=[hc,hc,hc,hc];monthlyAvgAnnFteComp=[avgComp,avgComp,avgComp,avgComp]}
+    else{monthlyFte=periodMonths.map(()=>hc);monthlyAvgAnnFteComp=periodMonths.map(()=>avgComp)}
   }
 
   // Chart
@@ -828,6 +912,7 @@ function renderExecView(){
 // Expose to window for inline onclick handlers and cross-module references
 window.toggleExecPane = toggleExecPane;
 window.renderExecView = renderExecView;
+window.buildExecTrendYearToggle = buildExecTrendYearToggle;
 window.execFilterProduct = execFilterProduct;
 window.execFilterCategory = execFilterCategory;
 window.execSelectedMonths = execSelectedMonths;

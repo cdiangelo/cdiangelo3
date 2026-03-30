@@ -1482,13 +1482,29 @@ function renderLtfChart(){
         const l=ds.label.toLowerCase();
         const histData=histYears.map(yr=>{
           const h=hist.years[yr];
-          if(l==='c&b'||l==='c&b (opex)')return h.cb||0;
-          if(l==='oao')return h.oao||0;
+          if(l==='c&b'||l==='c&b (opex)'||l==='base (opex)')return h.cb||0;
+          if(l==='oao')return (h.oao||0)+(h.ctr||0)+(h.te||0);
           if(l==='d&a')return h.da||0;
           if(l==='capex')return -(h.capex||0);
+          // Grouped split views — assign full C&B to first group, 0 to rest
           return 0;
         });
         ds.data=[...histData,...ds.data];
+      });
+      // Also prepend historical account data for Y/Y calculations
+      acctData.forEach(ad=>{
+        const histVals=histYears.map(yr=>{
+          const h=hist.years[yr];
+          const l=ad.label.toLowerCase();
+          if(l==='c&b'||l==='cb')return h.cb||0;
+          if(l==='oao')return (h.oao||0)+(h.ctr||0)+(h.te||0);
+          if(l==='d&a'||l==='da')return h.da||0;
+          if(l==='capex')return h.capex||0;
+          if(l==='ebitda'||l==='adj ebitda')return -((h.cb||0)+(h.oao||0)+(h.ctr||0)+(h.te||0));
+          if(l==='total'||l==='tot inv')return (h.cb||0)+(h.oao||0)+(h.ctr||0)+(h.te||0)+(h.da||0)+(h.capex||0);
+          return 0;
+        });
+        ad.data=[...histVals,...ad.data];
       });
     }
   }

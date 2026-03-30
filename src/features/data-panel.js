@@ -223,6 +223,10 @@ function initDataPanel(){
       if(window.saveState)window.saveState();
       renderHistoricalsList();
       try{if(window.renderLtfChart)window.renderLtfChart()}catch(e){}
+      try{if(window.buildExecTrendYearToggle)window.buildExecTrendYearToggle()}catch(e){}
+      try{if(window.renderExecView)window.renderExecView()}catch(e){}
+      try{if(window.renderPnlWalk)window.renderPnlWalk()}catch(e){}
+      try{if(window.renderLandingCharts)window.renderLandingCharts()}catch(e){}
     });
   }
   if(histUploadBtn&&histFile){
