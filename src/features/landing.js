@@ -1013,23 +1013,32 @@ function initLtfModule(){
   const _yrLabel=document.getElementById('ltfYearRangeLabel');
   function updateYearRange(){
     if(!_yrStart||!_yrEnd)return;
+    // Build full label array including historicals
+    const fcLabels=window.getDisplayFcLabels?window.getDisplayFcLabels():['2026','2027','2028','2029','2030','2031'];
+    const hist=state.historicals;
+    const histYears=(hist&&hist.enabled&&hist.years)?Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort():[];
+    const allLabels=[...histYears,...fcLabels];
+    const maxIdx=allLabels.length-1;
+    // Update slider max
+    _yrStart.max=maxIdx;_yrEnd.max=maxIdx;
+    if(parseInt(_yrEnd.value)>maxIdx)_yrEnd.value=maxIdx;
+    if(parseInt(_yrStart.value)>maxIdx)_yrStart.value=0;
     let s=parseInt(_yrStart.value),e=parseInt(_yrEnd.value);
     if(s>e){const t=s;s=e;e=t}
-    const labels=window.getDisplayFcLabels?window.getDisplayFcLabels():['2026','2027','2028','2029','2030','2031'];
     // Update track highlight
-    if(_yrTrack){
-      const pctL=(s/5)*100,pctR=(e/5)*100;
+    if(_yrTrack&&maxIdx>0){
+      const pctL=(s/maxIdx)*100,pctR=(e/maxIdx)*100;
       _yrTrack.style.left=pctL+'%';_yrTrack.style.width=(pctR-pctL)+'%';
     }
     // Render year labels along track
     if(_yrDots){
-      _yrDots.innerHTML=labels.map((yr,i)=>{
+      _yrDots.innerHTML=allLabels.map((yr,i)=>{
         const active=i>=s&&i<=e;
         return `<span style="font-size:.62rem;color:${active?'var(--accent)':'var(--tertiary)'};font-weight:${active?'600':'400'};transition:color .15s">${yr}</span>`;
       }).join('');
     }
     // Range label
-    if(_yrLabel)_yrLabel.textContent=s===e?labels[s]:labels[s]+' – '+labels[e];
+    if(_yrLabel)_yrLabel.textContent=s===e?allLabels[s]:allLabels[s]+' – '+allLabels[e];
     renderLtfChart();
   }
   if(_yrStart){_yrStart.addEventListener('input',updateYearRange);updateYearRange()}
@@ -1345,7 +1354,7 @@ function renderLtfChart(){
   const canvas=document.getElementById('ltfChart');
   if(!canvas)return;
   const emps=getPnlFilteredEmps();
-  const yearLabels=window.getDisplayFcLabels();
+  let yearLabels=window.getDisplayFcLabels();
   const isDark=document.documentElement.classList.contains('dark');
   const tickColor=isDark?(window.chartColorScheme==='crisp'?'#c0c0c0':window.chartColorScheme==='neon'?'#88ccdd':'#aaaaaa'):(window.chartColorScheme==='crisp'?'#333333':window.chartColorScheme==='neon'?'#006680':'#5a5a5a');
   const gridColor=isDark?'rgba(255,255,255,.08)':'#ddd';
@@ -1495,37 +1504,42 @@ function renderLtfChart(){
     });
   }
 
-  // ── Year range filtering ──
+  // ── Build full combined labels + data (historicals + forecast) ──
+  const hist=state.historicals;
+  const _histYrs=(hist&&hist.enabled&&hist.years)?Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort():[];
+  if(_histYrs.length){
+    // Prepend historical data to all datasets
+    const fullLabels=[..._histYrs,...yearLabels];
+    datasets.forEach(ds=>{
+      const l=ds.label.toLowerCase();
+      const hData=_histYrs.map(yr=>{
+        const h=hist.years[yr];
+        if(l==='c&b'||l==='c&b (opex)')return h.cb||0;
+        if(l==='oao')return (h.oao||0);
+        if(l==='d&a')return h.da||0;
+        if(l==='capex')return -(h.capex||0);
+        return 0;
+      });
+      ds.data=[...hData,...ds.data];
+    });
+    acctData.forEach(ad=>{
+      const hData=_histYrs.map(()=>0); // historicals don't have Y/Y arrow data
+      ad.data=[...hData,...ad.data];
+    });
+    yearLabels=fullLabels;
+  }
+
+  // ── Year range filtering (slider controls full combined range) ──
   const yrStartEl=document.getElementById('ltfYearStart');
   const yrEndEl=document.getElementById('ltfYearEnd');
   let sliceStart=yrStartEl?parseInt(yrStartEl.value):0;
-  let sliceEnd=yrEndEl?parseInt(yrEndEl.value):5;
+  let sliceEnd=yrEndEl?parseInt(yrEndEl.value):yearLabels.length-1;
+  if(sliceEnd>=yearLabels.length)sliceEnd=yearLabels.length-1;
   if(sliceEnd<sliceStart){const t=sliceStart;sliceStart=sliceEnd;sliceEnd=t}
 
   let chartLabels=yearLabels.slice(sliceStart,sliceEnd+1);
   datasets.forEach(ds=>{ds.data=ds.data.slice(sliceStart,sliceEnd+1)});
   acctData.forEach(ad=>{ad.data=ad.data.slice(sliceStart,sliceEnd+1)});
-
-  // ── Prepend historicals if enabled ──
-  const hist=state.historicals;
-  if(hist&&hist.enabled&&hist.years){
-    const histYears=Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort();
-    if(histYears.length){
-      chartLabels=[...histYears,...chartLabels];
-      datasets.forEach(ds=>{
-        const l=ds.label.toLowerCase();
-        const histData=histYears.map(yr=>{
-          const h=hist.years[yr];
-          if(l==='c&b'||l==='c&b (opex)')return h.cb||0;
-          if(l==='oao')return h.oao||0;
-          if(l==='d&a')return h.da||0;
-          if(l==='capex')return -(h.capex||0);
-          return 0;
-        });
-        ds.data=[...histData,...ds.data];
-      });
-    }
-  }
 
   window.stackedBarDatalabels(datasets,tickColor,8,'ltf');
   if(isPnl)datasets.filter(d=>d.label==='CapEx').forEach(d=>{d.datalabels={display:false}});

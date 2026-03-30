@@ -326,6 +326,56 @@ function initDataPanel(){
   }
   renderHistoricalsList();
 
+  // ── Saved Historical Sets ──
+  if(!state.historicalSets)state.historicalSets=[];
+  function renderHistSavedSets(){
+    const list=document.getElementById('histSavedSetsList');
+    if(!list)return;
+    if(!state.historicalSets.length){list.innerHTML='<div style="font-size:.72rem;color:var(--text-dim)">No saved sets</div>';return}
+    list.innerHTML=state.historicalSets.map((s,i)=>`
+      <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--bg-elevated);border-radius:4px;border:1px solid var(--border-light);font-size:.72rem">
+        <span style="flex:1;font-weight:500;color:var(--text)">${esc(s.name)}</span>
+        <span style="color:var(--tertiary);font-size:.62rem">${Object.keys(s.years||{}).length} yrs</span>
+        <button class="hist-set-load" data-idx="${i}" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:.68rem;font-weight:600">Load</button>
+        <button class="hist-set-del" data-idx="${i}" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:.68rem">×</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('.hist-set-load').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const s=state.historicalSets[+btn.dataset.idx];
+        if(!s)return;
+        state.historicals.years=JSON.parse(JSON.stringify(s.years));
+        state.historicals.enabled=true;
+        if(histToggle)histToggle.checked=true;
+        if(window.saveState)window.saveState();
+        renderHistoricalsList();
+        try{if(window.renderLtfChart)window.renderLtfChart()}catch(e){}
+        try{if(window.renderLandingCharts)window.renderLandingCharts()}catch(e){}
+      });
+    });
+    list.querySelectorAll('.hist-set-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        state.historicalSets.splice(+btn.dataset.idx,1);
+        if(window.saveState)window.saveState();
+        renderHistSavedSets();
+      });
+    });
+  }
+  const histSaveBtn=document.getElementById('histSaveSetBtn');
+  if(histSaveBtn){
+    histSaveBtn.addEventListener('click',()=>{
+      const inp=document.getElementById('histSaveSetName');
+      const name=(inp?inp.value:'').trim()||('Set '+(state.historicalSets.length+1));
+      const hist=state.historicals;
+      if(!hist||!hist.years||!Object.keys(hist.years).length){alert('No historical data to save');return}
+      state.historicalSets.push({name,years:JSON.parse(JSON.stringify(hist.years)),savedAt:Date.now()});
+      if(inp)inp.value='';
+      if(window.saveState)window.saveState();
+      renderHistSavedSets();
+    });
+  }
+  renderHistSavedSets();
+
   // Download All Input Templates — single workbook with sheets for each import type + reference values
   document.getElementById('dataPanelDlAllTemplates').addEventListener('click',()=>{
     if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}

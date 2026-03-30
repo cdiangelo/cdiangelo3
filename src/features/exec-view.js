@@ -289,8 +289,10 @@ function renderExecView(){
   const isAnnual=execPeriod==='annual';
   const allMonths=[0,1,2,3,4,5,6,7,8,9,10,11];
   const periodMonths=execSelectedMonths.size>0?allMonths.filter(m=>execSelectedMonths.has(m)):allMonths;
-  // Annual mode: show all years from forecast
-  const annualYears=isAnnual?[DISPLAY_BASE_YEAR,...FORECAST_YEARS]:[];
+  // Annual mode: show all years from forecast + historicals
+  const _histState=window.state&&window.state.historicals;
+  const _histYrsExec=(_histState&&_histState.enabled&&_histState.years)?Object.keys(_histState.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort().map(Number):[];
+  const annualYears=isAnnual?[..._histYrsExec,DISPLAY_BASE_YEAR,...FORECAST_YEARS]:[];
   // Build labels based on period + year selection
   let periodLabels;
   if(isAllYears&&!isAnnual&&!isQuarterly){
@@ -471,11 +473,17 @@ function renderExecView(){
         monthlyData[g]=allData;
       }
     } else if(isAnnual){
-      // Annual: one value per year (current + forecast years)
+      // Annual: one value per year (historicals + current + forecast)
       const gEmps=splitGroups[g];
       const curYearTotal=transformed.reduce((a,v)=>a+v,0);
       const fcRows=projectForecast(gEmps);
-      const yearTotals=[curYearTotal];
+      // Historical annual values
+      const histVals=_histYrsExec.map(yr=>{
+        if(!_histState||!_histState.years||!_histState.years[String(yr)])return 0;
+        const h=_histState.years[String(yr)];
+        return execView==='opex'?(h.cb||0)-(h.capex||0):(h.cb||0);
+      });
+      const yearTotals=[...histVals,curYearTotal];
       for(let yi=1;yi<=FORECAST_YEARS.length;yi++){
         const fr=fcRows[yi];
         if(fr){yearTotals.push(execView==='opex'?fr.opex:fr.total)}

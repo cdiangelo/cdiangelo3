@@ -118,8 +118,8 @@ td.spreadsheet-selected{outline:2px solid var(--accent);outline-offset:-1px;z-in
 input.spreadsheet-active{background:var(--accent-soft)!important;font-weight:600}
 
 /* Dual range slider thumbs */
-#ltfYearStart::-webkit-slider-thumb,#ltfYearEnd::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;pointer-events:auto;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-#ltfYearStart::-moz-range-thumb,#ltfYearEnd::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;pointer-events:auto;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+#ltfYearStart::-webkit-slider-thumb,#ltfYearEnd::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;pointer-events:auto;border:none;box-shadow:none}
+#ltfYearStart::-moz-range-thumb,#ltfYearEnd::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;pointer-events:auto;border:none;box-shadow:none}
 
 /* Remote cursor badges for collaboration */
 .remote-cursor{animation:remoteCursorFade 5s ease forwards}
