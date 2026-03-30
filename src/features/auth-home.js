@@ -401,6 +401,8 @@ async function openPlan(plan){
 
   window.saveState=function(){
     if(origSaveState)origSaveState();
+    // Broadcast to other users via WebSocket
+    if(window._broadcastPlanState)try{window._broadcastPlanState()}catch(e){}
     if(_planSaveTimer)clearTimeout(_planSaveTimer);
     _planSaveTimer=setTimeout(()=>doServerSave(0),500);
     const savedEl=document.getElementById('planHdrSaved');
@@ -507,12 +509,19 @@ function connectPlanWebSocket(plan,user){
       try{
         const msg=JSON.parse(ev.data);
         if(msg.type==='state_sync'&&String(msg.fromAccountId)!==String(user.id)){
-          // Apply remote state
+          // Apply remote state changes
           const parsed=JSON.parse(msg.stateData);
           Object.keys(parsed).forEach(k=>{state[k]=parsed[k]});
           window.state=state;
           ensureStateFields();
-          if(window.renderAll)try{window.renderAll()}catch(e){}
+          // Re-render all visible views
+          try{if(window.renderPnlWalk)window.renderPnlWalk()}catch(e){}
+          try{if(window.renderLandingCharts)window.renderLandingCharts()}catch(e){}
+          try{if(window.renderExecView)window.renderExecView()}catch(e){}
+          try{if(window.renderEmployees)window.renderEmployees()}catch(e){}
+          try{if(window.renderLtfChart)window.renderLtfChart()}catch(e){}
+          try{if(window.renderPivot)window.renderPivot()}catch(e){}
+          try{if(window.initOtherTab)window.initOtherTab()}catch(e){}
         }
         if(msg.type==='presence'){
           const dots=document.getElementById('planHdrUsers');

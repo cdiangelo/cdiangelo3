@@ -844,28 +844,16 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- C&B Other Tab (separate tab under C&B module) -->
 <div id="tab-cb-other" class="tab-content" style="padding-top:56px">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;margin-top:8px">
+<div style="padding:12px 0">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
 <h4 style="font-size:.92rem;font-weight:600;color:var(--text);margin:0">C&B Other</h4>
-<span style="font-size:.72rem;color:var(--text-dim)">Severance, signing bonuses, equity, etc. — feeds into C&B totals</span>
-<div style="margin-left:auto;display:flex;gap:4px;align-items:center">
-<input id="cbOtherNewName" placeholder="Row name..." style="padding:3px 8px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:150px">
-<button class="btn btn-sm" id="cbOtherAddBtn" style="padding:3px 10px;font-size:.74rem">+ Add</button>
+<span style="font-size:.72rem;color:var(--text-dim)">Feeds into C&B totals across summaries</span>
+<div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+<input id="cbOtherNewName" placeholder="Add row name..." style="padding:5px 10px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);width:180px">
+<button class="btn" id="cbOtherAddBtn" style="padding:5px 14px;font-size:.78rem">+ Add Row</button>
 </div>
 </div>
-<div style="overflow-x:auto;overflow-y:visible">
-<table class="comp-table" id="cbOtherTable" style="font-size:.8rem;min-width:1400px">
-<thead><tr>
-<th style="min-width:180px">Description</th>
-<th class="num-col-lg" style="font-weight:700;white-space:nowrap">Full Year</th>
-<th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
-<th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
-<th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
-<th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
-<th style="width:40px"></th>
-</tr></thead>
-<tbody id="cbOtherTbody"></tbody>
-<tfoot id="cbOtherTotalRow"></tfoot>
-</table>
+<div id="cbOtherGridWrap"></div>
 </div>
 </div>
 
@@ -1817,29 +1805,17 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <!-- OAO Other Tab — monthly grid like T&E -->
-<div id="vtab-vendor-other" class="vtab-content" style="display:none;padding-top:8px">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+<div id="vtab-vendor-other" class="vtab-content" style="display:none">
+<div style="padding:12px 0">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
 <h4 style="font-size:.88rem;font-weight:600;color:var(--text);margin:0">OAO Other</h4>
-<span style="font-size:.7rem;color:var(--text-dim)">Misc operating expenses — feeds into OAO totals</span>
-<div style="margin-left:auto;display:flex;gap:4px;align-items:center">
-<input id="oaoOtherNewName" placeholder="Row name..." style="padding:3px 8px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:150px">
-<button class="btn btn-sm" id="oaoOtherAddBtn" style="padding:3px 10px;font-size:.74rem">+ Add</button>
+<span style="font-size:.7rem;color:var(--text-dim)">Feeds into OAO totals across summaries</span>
+<div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+<input id="oaoOtherNewName" placeholder="Add row name..." style="padding:5px 10px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);width:180px">
+<button class="btn" id="oaoOtherAddBtn" style="padding:5px 14px;font-size:.78rem">+ Add Row</button>
 </div>
 </div>
-<div style="overflow-x:auto;overflow-y:visible">
-<table class="comp-table" id="oaoOtherTable" style="font-size:.8rem;min-width:1400px">
-<thead><tr>
-<th style="min-width:180px">Description</th>
-<th class="num-col-lg" style="font-weight:700;white-space:nowrap">Full Year</th>
-<th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
-<th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
-<th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
-<th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
-<th style="width:40px"></th>
-</tr></thead>
-<tbody id="oaoOtherTbody"></tbody>
-<tfoot id="oaoOtherTotalRow"></tfoot>
-</table>
+<div id="oaoOtherGridWrap"></div>
 </div>
 </div>
 
