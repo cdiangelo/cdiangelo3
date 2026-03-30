@@ -3142,7 +3142,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Data Management Slide Panel -->
 <div class="data-slide-panel" id="dataSlidePanel">
 <button class="panel-close-btn" onclick="document.getElementById('dataToggleBtn').click()">&times; Close</button>
-<h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Data Management</h3>
+<h3 style="color:var(--accent);font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Data Management</h3>
 
 <div class="data-section">
 <h4>Current Plan Year</h4>
@@ -3238,7 +3238,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <!-- Dimensions Slide Panel -->
 <div class="dims-slide-panel" id="dimsSlidePanel">
 <button class="panel-close-btn" onclick="document.getElementById('dimsToggleBtn').click()">&times; Close Dimensions</button>
-<h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Dimensions &amp; Reference Data</h3>
+<h3 style="color:var(--accent);font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Dimensions &amp; Reference Data</h3>
 
 <!-- Markets -->
 <div class="data-section">
@@ -3402,6 +3402,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="panel-close-btn" onclick="document.getElementById('settingsSlidePanel').classList.remove('open');document.getElementById('settingsSlidePanel').style.transform='translateX(100%)'">× Close Settings</button>
 
 <h3 style="margin-bottom:20px">Settings</h3>
+
+<!-- Appearance -->
+<div style="margin-bottom:24px">
+<h4 style="margin-bottom:10px;font-size:.82rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em">Appearance</h4>
+<label class="header-toggle" style="margin-bottom:12px"><input type="checkbox" id="globalToggleDark"><span class="toggle-track"></span> Dark Mode</label>
+</div>
 
 <!-- Ops View Toggle -->
 <div style="margin-bottom:24px">

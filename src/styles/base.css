@@ -1,30 +1,30 @@
 /* Reset & Root Variables — traverse-dark as CSS fallback */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0a0d14;--panel:#12161e;--panel-inset:#0e1218;
-  --bg-elevated:#1a1e28;--bg-overlay:#222830;--bg-input:#10141a;
-  --border:rgba(120,130,150,0.13);--border-light:rgba(120,130,150,0.07);
-  --border-strong:rgba(120,130,150,0.22);--border-accent:rgba(139,42,42,0.30);
-  --text:#E4DED6;--text-dim:#7a8498;--text-dark:#E4DED6;--tertiary:#505c6e;
-  --accent:#7a3030;--accent-light:#a85050;--accent-mid:rgba(122,48,48,0.50);
-  --accent-soft:rgba(122,48,48,0.10);--accent-glow:rgba(122,48,48,0.06);
-  --accent-glow-lg:rgba(122,48,48,0.14);
-  --secondary:#4a5c78;--secondary-soft:rgba(74,92,120,0.12);
-  --chart-1:#3B7DD8;--chart-1-fill:rgba(59,125,216,0.15);
-  --chart-2:#8B2020;--chart-2-fill:rgba(139,32,32,0.15);
-  --chart-3:#D4A870;--chart-3-fill:rgba(212,168,112,0.15);
-  --chart-4:#60A0D8;--chart-4-fill:rgba(96,160,216,0.15);
-  --chart-5:#B04040;--chart-5-fill:rgba(176,64,64,0.15);
-  --chart-6:#8898B8;--chart-6-fill:rgba(136,152,184,0.15);
-  --chart-7:#E8C890;--chart-7-fill:rgba(232,200,144,0.15);
-  --chart-8:#1A4A8C;--chart-8-fill:rgba(26,74,140,0.15);
-  --chart-grid:rgba(120,130,150,0.04);--chart-axis:rgba(120,130,150,0.08);
-  --chart-tooltip-bg:rgba(18,22,30,0.96);
-  --success:#4a8a68;--success-soft:rgba(74,138,104,0.12);
-  --warning:#D4A870;--warning-soft:rgba(212,168,112,0.12);
-  --danger:#8B2020;--danger-soft:rgba(139,32,32,0.12);
-  --flag-bg:rgba(122,48,48,0.06);--flag-border:rgba(122,48,48,0.16);
-  --toolbar-bg:#060910;--toolbar-text:#E4DED6;--toolbar-text-dim:#7a8498;--toolbar-border:rgba(120,130,150,0.10);
+  --bg:#0c0f16;--panel:#141820;--panel-inset:#10141c;
+  --bg-elevated:#1c2028;--bg-overlay:#242830;--bg-input:#12161e;
+  --border:rgba(140,155,175,0.14);--border-light:rgba(140,155,175,0.08);
+  --border-strong:rgba(140,155,175,0.24);--border-accent:rgba(100,160,220,0.25);
+  --text:#F0EDE8;--text-dim:#a0aab8;--text-dark:#F0EDE8;--tertiary:#6e7a8e;
+  --accent:#4a8cc8;--accent-light:#6aacE8;--accent-mid:rgba(74,140,200,0.45);
+  --accent-soft:rgba(74,140,200,0.10);--accent-glow:rgba(74,140,200,0.06);
+  --accent-glow-lg:rgba(74,140,200,0.12);
+  --secondary:#5a7898;--secondary-soft:rgba(90,120,152,0.14);
+  --chart-1:#5a9de8;--chart-1-fill:rgba(90,157,232,0.18);
+  --chart-2:#c85858;--chart-2-fill:rgba(200,88,88,0.18);
+  --chart-3:#e0b878;--chart-3-fill:rgba(224,184,120,0.18);
+  --chart-4:#70b8e8;--chart-4-fill:rgba(112,184,232,0.18);
+  --chart-5:#d07070;--chart-5-fill:rgba(208,112,112,0.18);
+  --chart-6:#98a8c8;--chart-6-fill:rgba(152,168,200,0.18);
+  --chart-7:#f0d8a0;--chart-7-fill:rgba(240,216,160,0.18);
+  --chart-8:#3868b0;--chart-8-fill:rgba(56,104,176,0.18);
+  --chart-grid:rgba(140,155,175,0.06);--chart-axis:rgba(140,155,175,0.10);
+  --chart-tooltip-bg:rgba(16,20,28,0.96);
+  --success:#58a878;--success-soft:rgba(88,168,120,0.14);
+  --warning:#e0b878;--warning-soft:rgba(224,184,120,0.14);
+  --danger:#c85858;--danger-soft:rgba(200,88,88,0.14);
+  --flag-bg:rgba(74,140,200,0.06);--flag-border:rgba(74,140,200,0.16);
+  --toolbar-bg:#080b12;--toolbar-text:#F0EDE8;--toolbar-text-dim:#8898b0;--toolbar-border:rgba(140,155,175,0.12);
 }
 
 [data-theme="light"]{
@@ -54,18 +54,18 @@
   --toolbar-bg:#0B1628;--toolbar-text:#E8F0F8;--toolbar-text-dim:#6A90B8;--toolbar-border:rgba(106,144,184,0.15);
 }
 
-/* ═══ THEME: TRAVERSE DARK (merged midnight + slate steel) ═══ */
+/* ═══ THEME: TRAVERSE DARK ═══ */
 [data-accent="traverse-dark"]{
-  --bg:#0a0d14;--panel:#12161e;--panel-inset:#0e1218;--bg-elevated:#1a1e28;--bg-overlay:#222830;--bg-input:#10141a;
-  --border:rgba(120,130,150,0.13);--border-light:rgba(120,130,150,0.07);--border-strong:rgba(120,130,150,0.22);--border-accent:rgba(139,42,42,0.30);
-  --text:#E4DED6;--text-dim:#7a8498;--text-dark:#E4DED6;--tertiary:#505c6e;
-  --accent:#7a3030;--accent-light:#a85050;--accent-mid:rgba(122,48,48,0.50);--accent-soft:rgba(122,48,48,0.10);--accent-glow:rgba(122,48,48,0.06);--accent-glow-lg:rgba(122,48,48,0.14);
-  --secondary:#4a5c78;--secondary-soft:rgba(74,92,120,0.12);
-  --chart-1:#3B7DD8;--chart-1-fill:rgba(59,125,216,0.15);--chart-2:#8B2020;--chart-2-fill:rgba(139,32,32,0.15);--chart-3:#D4A870;--chart-3-fill:rgba(212,168,112,0.15);--chart-4:#60A0D8;--chart-4-fill:rgba(96,160,216,0.15);--chart-5:#B04040;--chart-5-fill:rgba(176,64,64,0.15);--chart-6:#8898B8;--chart-6-fill:rgba(136,152,184,0.15);--chart-7:#E8C890;--chart-7-fill:rgba(232,200,144,0.15);--chart-8:#1A4A8C;--chart-8-fill:rgba(26,74,140,0.15);
-  --chart-grid:rgba(120,130,150,0.04);--chart-axis:rgba(120,130,150,0.08);--chart-tooltip-bg:rgba(18,22,30,0.96);
-  --success:#4a8a68;--success-soft:rgba(74,138,104,0.12);--warning:#D4A870;--warning-soft:rgba(212,168,112,0.12);--danger:#8B2020;--danger-soft:rgba(139,32,32,0.12);
-  --flag-bg:rgba(122,48,48,0.06);--flag-border:rgba(122,48,48,0.16);
-  --toolbar-bg:#060910;--toolbar-text:#E4DED6;--toolbar-text-dim:#7a8498;--toolbar-border:rgba(120,130,150,0.10);
+  --bg:#0c0f16;--panel:#141820;--panel-inset:#10141c;--bg-elevated:#1c2028;--bg-overlay:#242830;--bg-input:#12161e;
+  --border:rgba(140,155,175,0.14);--border-light:rgba(140,155,175,0.08);--border-strong:rgba(140,155,175,0.24);--border-accent:rgba(100,160,220,0.25);
+  --text:#F0EDE8;--text-dim:#a0aab8;--text-dark:#F0EDE8;--tertiary:#6e7a8e;
+  --accent:#4a8cc8;--accent-light:#6aacE8;--accent-mid:rgba(74,140,200,0.45);--accent-soft:rgba(74,140,200,0.10);--accent-glow:rgba(74,140,200,0.06);--accent-glow-lg:rgba(74,140,200,0.12);
+  --secondary:#5a7898;--secondary-soft:rgba(90,120,152,0.14);
+  --chart-1:#5a9de8;--chart-1-fill:rgba(90,157,232,0.18);--chart-2:#c85858;--chart-2-fill:rgba(200,88,88,0.18);--chart-3:#e0b878;--chart-3-fill:rgba(224,184,120,0.18);--chart-4:#70b8e8;--chart-4-fill:rgba(112,184,232,0.18);--chart-5:#d07070;--chart-5-fill:rgba(208,112,112,0.18);--chart-6:#98a8c8;--chart-6-fill:rgba(152,168,200,0.18);--chart-7:#f0d8a0;--chart-7-fill:rgba(240,216,160,0.18);--chart-8:#3868b0;--chart-8-fill:rgba(56,104,176,0.18);
+  --chart-grid:rgba(140,155,175,0.06);--chart-axis:rgba(140,155,175,0.10);--chart-tooltip-bg:rgba(16,20,28,0.96);
+  --success:#58a878;--success-soft:rgba(88,168,120,0.14);--warning:#e0b878;--warning-soft:rgba(224,184,120,0.14);--danger:#c85858;--danger-soft:rgba(200,88,88,0.14);
+  --flag-bg:rgba(74,140,200,0.06);--flag-border:rgba(74,140,200,0.16);
+  --toolbar-bg:#080b12;--toolbar-text:#F0EDE8;--toolbar-text-dim:#8898b0;--toolbar-border:rgba(140,155,175,0.12);
 }
 
 
@@ -90,6 +90,12 @@ button,a,.btn,select,input,textarea,.card,.stat-card,.toggle-track,.home-plan-ca
 
 /* Light mode form elements */
 [data-theme="light"] select,[data-theme="light"] input,[data-theme="light"] textarea{background:var(--bg-input);border-color:var(--border);color:var(--text)}
+/* Dark mode form elements — soft inputs, not bright */
+:root select,:root input,:root textarea{background:var(--bg-input);border-color:var(--border);color:var(--text)}
+.dark select,.dark input,.dark textarea{background:var(--bg-input);border-color:var(--border);color:var(--text)}
+.dark .comp-table td,.dark .pnl-walk-table td{border-bottom-color:var(--border-light)}
+.dark .card,.dark .stat-card{background:var(--panel);border-color:var(--border)}
+.dark .settings-slide-panel{background:var(--panel)}
 
 /* Hover states */
 tr:hover{background:var(--bg-elevated)}

@@ -5,11 +5,41 @@
 
 export function initDarkMode(){
   const toggleOps=document.getElementById('globalToggleOps');
+  const toggleDark=document.getElementById('globalToggleDark');
 
-  // ── Force light mode always ──
-  document.documentElement.setAttribute('data-theme','light');
-  document.documentElement.classList.remove('dark');
-  document.documentElement.setAttribute('data-accent','traverse-cloud');
+  // ── Theme mode ──
+  function applyTheme(isDark){
+    if(isDark){
+      document.documentElement.removeAttribute('data-theme');
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-accent','traverse-dark');
+    } else {
+      document.documentElement.setAttribute('data-theme','light');
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-accent','traverse-cloud');
+    }
+    // Re-render all charts and tables to pick up new CSS vars
+    setTimeout(()=>{
+      try{if(window.renderAll)window.renderAll()}catch(e){}
+      try{if(window.renderVendorGrid)window.renderVendorGrid()}catch(e){}
+      try{if(window.renderTeGrid)window.renderTeGrid()}catch(e){}
+      try{if(window.renderContractorGrid)window.renderContractorGrid()}catch(e){}
+    },50);
+  }
+
+  // Restore saved preference or default to light
+  const savedTheme=localStorage.getItem('compPlanTheme');
+  const isDark=savedTheme==='dark';
+  applyTheme(isDark);
+  if(toggleDark)toggleDark.checked=isDark;
+
+  if(toggleDark){
+    toggleDark.addEventListener('change',()=>{
+      const dark=toggleDark.checked;
+      localStorage.setItem('compPlanTheme',dark?'dark':'light');
+      applyTheme(dark);
+    });
+  }
 
   // ── Ops View ──
   if(toggleOps){
