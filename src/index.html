@@ -681,20 +681,22 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 <div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Account</label><select id="pivotChartAccount" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="totinv">Tot Inv</option><option value="opex">OpEx</option><option value="ebitda">EBITDA</option><option value="cb">C&amp;B</option><option value="oao">OAO</option><option value="te">T&amp;E</option><option value="ctr">CTR</option><option value="capex">CapEx</option><option value="da">D&amp;A</option><option value="hc">HC</option></select></div>
 </div>
+<!-- Chart + Table side by side -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:60px;align-items:start">
 <!-- Chart -->
-<div class="card" style="margin-bottom:12px;padding:16px 20px">
+<div class="card" style="padding:12px 16px">
 <div style="position:relative;height:35vh;min-height:250px">
 <canvas id="pivotChart"></canvas>
 </div>
 </div>
-
 <!-- P&L Table -->
-<div class="card" style="padding:0;overflow:hidden;margin-bottom:60px">
-<div class="table-wrap" style="border:none;border-radius:0;max-height:55vh;overflow:auto">
-<table id="pivotTable" class="pnl-walk-table" style="font-size:.8rem">
+<div class="card" style="padding:0;overflow:hidden">
+<div style="max-height:40vh;overflow:auto">
+<table id="pivotTable" class="pnl-walk-table" style="font-size:.68rem">
 <thead id="pivotThead"></thead>
 <tbody id="pivotTbody"></tbody>
 </table>
+</div>
 </div>
 </div>
 
