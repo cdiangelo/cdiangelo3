@@ -37,21 +37,10 @@ export function initDarkMode(){
     const wrap=document.getElementById('adminControlsWrap');
     if(wrap&&user&&user.isAdmin){
       wrap.style.display='';
-      try{initAdminOpsControl()}catch(e){console.warn('initAdminOpsControl:',e)}
-      try{initModuleAccessControl()}catch(e){console.warn('initModuleAccessControl:',e)}
+      try{initAdminUserAccess()}catch(e){console.warn('initAdminUserAccess:',e)}
     }
   }
   showAdminIfAllowed();
-  // Collapsible admin sections
-  document.querySelectorAll('.admin-collapse-toggle').forEach(h=>{
-    h.addEventListener('click',()=>{
-      const body=h.nextElementSibling;
-      if(!body)return;
-      const open=body.style.display!=='none';
-      body.style.display=open?'none':'';
-      h.innerHTML=(open?'&#9654; ':'&#9660; ')+h.textContent.replace(/^[▶▼]\s*/,'');
-    });
-  });
   // Re-check when settings panel opens
   const settingsPanel=document.getElementById('settingsSlidePanel');
   if(settingsPanel){
@@ -122,8 +111,8 @@ function checkOpsRestriction(){
   }catch(e){}
 }
 
-function initAdminOpsControl(){
-  const listEl=document.getElementById('adminOpsUserList');
+function initAdminUserAccess(){
+  const listEl=document.getElementById('adminUserAccessList');
   if(!listEl)return;
 
   function getKnownUsers(){
@@ -131,66 +120,86 @@ function initAdminOpsControl(){
   }
 
   async function render(){
-    // Merge local known users with shared users from active plan
     const known=getKnownUsers();
     let sharedUsers=[];
     const plan=window._activePlan;
-    if(plan&&plan.id){
-      try{
-        const r=await fetch('/api/plan-files/'+plan.id+'/access');
-        if(r.ok) sharedUsers=await r.json();
-      }catch(e){}
-    }
-    // Build merged list keyed by email
+    if(plan&&plan.id){try{const r=await fetch('/api/plan-files/'+plan.id+'/access');if(r.ok)sharedUsers=await r.json()}catch(e){}}
     const merged=new Map();
-    known.forEach(u=>{
-      if(u.email) merged.set(u.email.toLowerCase(),{email:u.email,name:u.name||'',initials:u.initials||'',source:'local'});
-    });
-    sharedUsers.forEach(u=>{
-      if(!u.email)return;
-      const key=u.email.toLowerCase();
-      if(merged.has(key)){
-        const existing=merged.get(key);
-        if(!existing.name&&u.email) existing.name=u.email;
-      } else {
-        merged.set(key,{email:u.email,name:u.email,initials:u.initials||'',source:'shared'});
-      }
-    });
+    known.forEach(u=>{if(u.email)merged.set(u.email.toLowerCase(),{email:u.email,name:u.name||'',initials:u.initials||''})});
+    sharedUsers.forEach(u=>{if(u.email&&!merged.has(u.email.toLowerCase()))merged.set(u.email.toLowerCase(),{email:u.email,name:u.email,initials:u.initials||''})});
     const allUsers=[...merged.values()];
-    const rules=getOpsRules();
+    const opsRules=getOpsRules();
+    const modRules=getModuleAccess();
     listEl.innerHTML='';
-    if(!allUsers.length){
-      listEl.innerHTML='<p style="font-size:.75rem;color:var(--tertiary)">No users yet. Share a plan or have users log in.</p>';
-      return;
-    }
+    if(!allUsers.length){listEl.innerHTML='<p style="font-size:.75rem;color:var(--tertiary)">No users yet. Share a plan or have users log in.</p>';return}
+
     allUsers.forEach(u=>{
       const email=u.email.toLowerCase();
-      const rule=rules.find(r=>r.email.toLowerCase()===email);
-      const isRestricted=rule&&rule.mode==='restricted';
-      const row=document.createElement('label');
-      row.style.cssText='display:flex;gap:10px;align-items:center;padding:6px 0;cursor:pointer;font-size:.78rem';
-      row.innerHTML=`
-        <input type="checkbox" ${isRestricted?'checked':''} style="accent-color:var(--accent);cursor:pointer">
-        <span style="flex:1;color:var(--text)">${u.name||u.email} <span style="color:var(--tertiary);font-size:.7rem">${u.email}</span></span>`;
-      const cb=row.querySelector('input');
-      cb.addEventListener('change',()=>{
+      const opsRule=opsRules.find(r=>r.email.toLowerCase()===email);
+      const isRestricted=opsRule&&opsRule.mode==='restricted';
+      const userMods=modRules[email]||{};
+
+      const card=document.createElement('div');
+      card.style.cssText='padding:8px 10px;background:var(--bg-elevated);border-radius:6px;border:1px solid var(--border-light)';
+      card.innerHTML=`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:.78rem;font-weight:600;color:var(--text);flex:1">${u.name||u.email}${u.name?` <span style="color:var(--tertiary);font-size:.68rem">${u.email}</span>`:''}</span>
+          <label style="display:flex;align-items:center;gap:4px;font-size:.7rem;cursor:pointer;white-space:nowrap;color:var(--tertiary)"><input type="checkbox" class="ua-ops" ${isRestricted?'checked':''} style="accent-color:var(--danger)"> Ops Only</label>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 8px">${MODULES.map(m=>{
+          const allowed=userMods[m.key]!==false;
+          return `<label style="display:flex;align-items:center;gap:3px;font-size:.68rem;cursor:pointer;color:var(--text-dim);padding:1px 0"><input type="checkbox" class="ua-mod" data-mod="${m.key}" ${allowed?'checked':''} style="accent-color:var(--accent);width:13px;height:13px">${m.label}</label>`;
+        }).join('')}</div>`;
+
+      // Ops checkbox
+      card.querySelector('.ua-ops').addEventListener('change',function(){
         const r=getOpsRules();
         const idx=r.findIndex(x=>x.email.toLowerCase()===email);
-        if(cb.checked){
-          if(idx>=0)r[idx].mode='restricted';
-          else r.push({email:u.email,mode:'restricted'});
-        } else {
-          if(idx>=0)r.splice(idx,1);
-        }
-        saveOpsRules(r);
-        checkOpsRestriction();
+        if(this.checked){if(idx>=0)r[idx].mode='restricted';else r.push({email:u.email,mode:'restricted'})}
+        else{if(idx>=0)r.splice(idx,1)}
+        saveOpsRules(r);checkOpsRestriction();
       });
-      listEl.appendChild(row);
+      // Module checkboxes
+      card.querySelectorAll('.ua-mod').forEach(cb=>{
+        cb.addEventListener('change',()=>{
+          const r=getModuleAccess();
+          if(!r[email])r[email]={};
+          r[email][cb.dataset.mod]=cb.checked;
+          saveModuleAccess(r);checkModuleAccess();
+        });
+      });
+      listEl.appendChild(card);
     });
+
+    // Apply button
+    const existingApply=listEl.parentElement.querySelector('.admin-apply-btn');
+    if(existingApply)existingApply.remove();
+    const applyBtn=document.createElement('button');
+    applyBtn.className='btn btn-primary btn-sm admin-apply-btn';
+    applyBtn.style.cssText='margin-top:10px;padding:6px 20px;font-size:.78rem;font-weight:600;width:100%';
+    applyBtn.textContent='Apply Access Controls';
+    applyBtn.addEventListener('click',async()=>{
+      const r={};
+      listEl.querySelectorAll('.ua-mod').forEach(cb=>{
+        const card=cb.closest('[style]');
+        const emailKey=card?[...card.querySelectorAll('.ua-ops')].map(()=>email)[0]:'';
+        // Re-gather from current state
+      });
+      // Use current saved state
+      const plan=window._activePlan;
+      if(plan&&plan.id&&window.state){
+        try{
+          await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(window.state)})});
+          applyBtn.textContent='Applied \u2713';applyBtn.style.background='var(--success)';
+          setTimeout(()=>{applyBtn.textContent='Apply Access Controls';applyBtn.style.background=''},2000);
+        }catch(e){applyBtn.textContent='Save failed';setTimeout(()=>{applyBtn.textContent='Apply Access Controls'},2000)}
+      }
+      checkModuleAccess();checkOpsRestriction();
+    });
+    listEl.parentElement.appendChild(applyBtn);
   }
 
   render();
-  // Re-render when settings panel opens (in case new users logged in or plan shared)
   const panel=document.getElementById('settingsSlidePanel');
   if(panel){
     const observer=new MutationObserver(()=>{if(panel.classList.contains('open'))render()});
@@ -276,86 +285,4 @@ window.isModuleAllowed=isModuleAllowed;
 window.checkModuleAccess=checkModuleAccess;
 window.checkOpsRestriction=checkOpsRestriction;
 
-function initModuleAccessControl(){
-  const listEl=document.getElementById('adminModuleAccessList');
-  if(!listEl)return;
-
-  function getKnownUsers(){
-    try{return JSON.parse(localStorage.getItem('webplan-known-users')||'[]')}catch(e){return[]}
-  }
-
-  async function render(){
-    const known=getKnownUsers();
-    // Also get shared users
-    let sharedUsers=[];
-    const plan=window._activePlan;
-    if(plan&&plan.id){try{const r=await fetch('/api/plan-files/'+plan.id+'/access');if(r.ok)sharedUsers=await r.json()}catch(e){}}
-    const merged=new Map();
-    known.forEach(u=>{if(u.email)merged.set(u.email.toLowerCase(),{email:u.email,name:u.name||''})});
-    sharedUsers.forEach(u=>{if(u.email&&!merged.has(u.email.toLowerCase()))merged.set(u.email.toLowerCase(),{email:u.email,name:u.email})});
-    const allUsers=[...merged.values()];
-    const rules=getModuleAccess();
-    listEl.innerHTML='';
-    if(!allUsers.length){listEl.innerHTML='<p style="font-size:.75rem;color:var(--tertiary)">No users yet.</p>';return}
-    allUsers.forEach(u=>{
-      const email=u.email.toLowerCase();
-      const userRules=rules[email]||{};
-      const row=document.createElement('div');
-      row.style.cssText='padding:8px;background:var(--bg-elevated);border-radius:6px;border:1px solid var(--border-light)';
-      row.innerHTML=`<div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:4px">${u.name||u.email}</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">${MODULES.map(m=>{
-          const allowed=userRules[m.key]!==false;
-          return `<label style="display:flex;align-items:center;gap:3px;font-size:.7rem;cursor:pointer;color:var(--text-dim)"><input type="checkbox" ${allowed?'checked':''} data-email="${email}" data-mod="${m.key}" style="accent-color:var(--accent)">${m.label}</label>`;
-        }).join('')}</div>`;
-      row.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
-        cb.addEventListener('change',()=>{
-          const r=getModuleAccess();
-          if(!r[cb.dataset.email])r[cb.dataset.email]={};
-          r[cb.dataset.email][cb.dataset.mod]=cb.checked;
-          saveModuleAccess(r);
-          checkModuleAccess();
-        });
-      });
-      listEl.appendChild(row);
-    });
-
-    // Add Apply button
-    const existingApply=listEl.parentElement.querySelector('.admin-apply-btn');
-    if(existingApply)existingApply.remove();
-    const applyBtn=document.createElement('button');
-    applyBtn.className='btn btn-primary btn-sm admin-apply-btn';
-    applyBtn.style.cssText='margin-top:12px;padding:6px 20px;font-size:.78rem;font-weight:600';
-    applyBtn.textContent='Apply Access Controls';
-    applyBtn.addEventListener('click',async()=>{
-      // Gather all checkbox states
-      const r={};
-      listEl.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
-        if(!r[cb.dataset.email])r[cb.dataset.email]={};
-        r[cb.dataset.email][cb.dataset.mod]=cb.checked;
-      });
-      saveModuleAccess(r);
-      // Force immediate server save (no debounce)
-      const plan=window._activePlan;
-      if(plan&&plan.id&&window.state){
-        try{
-          await fetch('/api/plan-files/'+plan.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(window.state)})});
-          applyBtn.textContent='Applied ✓';
-          applyBtn.style.background='var(--success)';
-          setTimeout(()=>{applyBtn.textContent='Apply Access Controls';applyBtn.style.background=''},2000);
-        }catch(e){applyBtn.textContent='Save failed';setTimeout(()=>{applyBtn.textContent='Apply Access Controls'},2000)}
-      }
-      checkModuleAccess();
-    });
-    listEl.parentElement.appendChild(applyBtn);
-  }
-
-  render();
-  const panel=document.getElementById('settingsSlidePanel');
-  if(panel){
-    const observer=new MutationObserver(()=>{if(panel.classList.contains('open'))render()});
-    observer.observe(panel,{attributes:true,attributeFilter:['class']});
-  }
-}
-
 try{initDarkMode()}catch(e){console.warn('initDarkMode error:',e)}
-try{initModuleAccessControl()}catch(e){console.warn('initModuleAccessControl error:',e)}
