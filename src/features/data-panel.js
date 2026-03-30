@@ -35,12 +35,10 @@ function closeAllSidePanels(){
   panels.forEach(p=>{
     const el=document.getElementById(p.panel);
     if(!el)return;
-    if(el.classList.contains('open')){
-      el.classList.remove('open');
-      el.style.transform='translateX(100%)';
-      if(p.cls)document.body.classList.remove(p.cls);
-      if(p.btn){const bt=document.getElementById(p.btn);if(bt){const ar=bt.querySelector('.arrow');if(ar)ar.innerHTML='&#9654;'}}
-    }
+    el.classList.remove('open');
+    el.style.transform='translateX(100%)';
+    if(p.cls)document.body.classList.remove(p.cls);
+    if(p.btn){const bt=document.getElementById(p.btn);if(bt){const ar=bt.querySelector('.arrow');if(ar)ar.innerHTML='&#9654;'}}
   });
 }
 
@@ -54,6 +52,7 @@ function initGuidePanel(){
     closeAllSidePanels();
     if(!wasOpen){
       guidePanel.classList.add('open');
+      guidePanel.style.transform='translateX(0)';
       document.body.classList.add('guide-open');
       guideArrow.innerHTML='&#9664;';
     }
@@ -147,6 +146,7 @@ function initDataPanel(){
     closeAllSidePanels();
     if(!wasOpen){
       dataPanel.classList.add('open');
+      dataPanel.style.transform='translateX(0)';
       document.body.classList.add('data-open');
       dataArrow.innerHTML='&#9664;';
       renderDataPanelWsList();
@@ -730,9 +730,12 @@ function initValidationPanel(){
   const btn=document.getElementById('btbValidation');
   if(btn&&panel){
     btn.addEventListener('click',()=>{
+      const wasOpen=panel.classList.contains('open');
       closeAllSidePanels();
-      panel.classList.add('open');
-      panel.style.transform='translateX(0)';
+      if(!wasOpen){
+        panel.classList.add('open');
+        panel.style.transform='translateX(0)';
+      }
     });
   }
   const runBtn=document.getElementById('runValidationBtn');
@@ -826,6 +829,7 @@ function initDimensionsPanel(){
     closeAllSidePanels();
     if(!wasOpen){
       dimsPanel.classList.add('open');
+      dimsPanel.style.transform='translateX(0)';
       document.body.classList.add('dims-open');
       if(dimsArrow)dimsArrow.innerHTML='&#9664;';
       renderDimsPanel();

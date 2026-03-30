@@ -2023,6 +2023,7 @@ function initScenarioPane(){
     if(window.closeAllSidePanels)window.closeAllSidePanels();
     if(!wasOpen){
       panel.classList.add('open');
+      panel.style.transform='translateX(0)';
       document.body.classList.add('scenario-open');
       arrowSpan.innerHTML='&#9664;';
       if(!budgetScenario)initBudgetScenario();if(!forecastScenario)initForecastScenario();
