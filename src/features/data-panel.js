@@ -1016,21 +1016,63 @@ function initDimensionsPanel(){
   }
 
   // ── Functional Pillars ──
+  function renderPillarTypes(){
+    const list=document.getElementById('dimPillarTypesList');
+    if(!list)return;
+    if(!state.pillarTypes)state.pillarTypes=['Pillar 1','Pillar 2','Pillar 3'];
+    list.innerHTML=state.pillarTypes.map((p,i)=>`<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 8px;background:var(--bg-elevated);border-radius:4px;font-size:.74rem;border:1px solid var(--border-light)"><input class="dpt-name" data-idx="${i}" value="${esc(p)}" style="border:none;background:transparent;font-size:.74rem;width:${Math.max(50,p.length*8)}px;padding:0;color:var(--text)"><button class="dpt-del" data-idx="${i}" style="border:none;background:transparent;cursor:pointer;color:var(--danger);font-size:.7rem;padding:0 2px" title="Remove">×</button></span>`).join('');
+    list.querySelectorAll('.dpt-name').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const oldName=state.pillarTypes[+inp.dataset.idx];
+        const newName=inp.value.trim();
+        if(!newName){inp.value=oldName;return}
+        state.pillarTypes[+inp.dataset.idx]=newName;
+        // Rename in assignments
+        Object.keys(state.functionalPillars||{}).forEach(fn=>{
+          if(state.functionalPillars[fn]===oldName)state.functionalPillars[fn]=newName;
+        });
+        saveState();renderDimPillars();
+      });
+    });
+    list.querySelectorAll('.dpt-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const name=state.pillarTypes[+btn.dataset.idx];
+        state.pillarTypes.splice(+btn.dataset.idx,1);
+        // Clear assignments using deleted pillar
+        Object.keys(state.functionalPillars||{}).forEach(fn=>{
+          if(state.functionalPillars[fn]===name)state.functionalPillars[fn]='';
+        });
+        saveState();renderPillarTypes();renderDimPillars();
+      });
+    });
+  }
+
+  document.getElementById('dimBtnAddPillar').addEventListener('click',()=>{
+    const inp=document.getElementById('dimNewPillarName');
+    const name=inp.value.trim();
+    if(!name){return}
+    if(!state.pillarTypes)state.pillarTypes=[];
+    if(state.pillarTypes.includes(name)){alert('Pillar already exists');return}
+    state.pillarTypes.push(name);
+    saveState();renderPillarTypes();renderDimPillars();
+    inp.value='';
+  });
+
   function renderDimPillars(){
+    renderPillarTypes();
     const body=document.getElementById('dimPillarsBody');
     if(!body)return;
     const FUNCTIONS=window.FUNCTIONS||[];
     const pillars=state.functionalPillars||{};
+    const types=state.pillarTypes||[];
     const allFuncs=[...new Set([...FUNCTIONS,...Object.keys(pillars)])];
     body.innerHTML=allFuncs.map(f=>{
       const cur=pillars[f]||'';
+      const opts=types.map(t=>`<option value="${esc(t)}"${cur===t?' selected':''}>${esc(t)}</option>`).join('');
       return `<tr>
         <td style="font-size:.78rem">${esc(f)}</td>
         <td><select class="dp-pillar" data-func="${esc(f)}" style="padding:2px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px">
-          <option value="">—</option>
-          <option value="Vertical"${cur==='Vertical'?' selected':''}>Vertical</option>
-          <option value="Horizontal"${cur==='Horizontal'?' selected':''}>Horizontal</option>
-          <option value="Platform/Central"${cur==='Platform/Central'?' selected':''}>Platform/Central</option>
+          <option value="">—</option>${opts}
         </select></td>
       </tr>`;
     }).join('');

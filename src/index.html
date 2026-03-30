@@ -3326,7 +3326,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div class="data-section">
 <h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Functional Pillars</h4>
 <div class="data-group-body" style="display:none">
-<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">Map functions to organizational pillars: Vertical, Horizontal, or Platform/Central.</p>
+<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:4px">Define pillars, then assign each function.</p>
+<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+<div id="dimPillarTypesList" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+<input id="dimNewPillarName" placeholder="New pillar" style="width:100px;padding:2px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px">
+<button class="btn btn-sm" id="dimBtnAddPillar" style="padding:2px 8px;font-size:.74rem">+</button>
+</div>
 <div style="max-height:300px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Function</th><th>Pillar</th></tr></thead><tbody id="dimPillarsBody"></tbody></table></div>
 </div>
 </div>

@@ -146,13 +146,15 @@ export function ensureStateFields(){
   if(!state.guideChecked)state.guideChecked={};
   // Long-term forecast: OAO Y/Y growth, D&A asset lifecycle, custom adjustments
   if(!state.oaoGrowthPct)state.oaoGrowthPct=[5,5,5,5,5];
+  // Pillar type definitions (user-editable)
+  if(!state.pillarTypes||!state.pillarTypes.length)state.pillarTypes=['Pillar 1','Pillar 2','Pillar 3'];
   // Functional pillar mappings: function → pillar type
   if(!state.functionalPillars)state.functionalPillars={
-    'Engineering':'Vertical','Product':'Vertical','Design':'Vertical',
-    'Data':'Vertical','Research':'Vertical',
-    'Sales':'Horizontal','Marketing':'Horizontal','Partnerships':'Horizontal',
-    'Finance':'Platform/Central','HR':'Platform/Central','Legal':'Platform/Central',
-    'IT':'Platform/Central','Operations':'Platform/Central','Security':'Platform/Central'
+    'Engineering':'Pillar 1','Product':'Pillar 1','Design':'Pillar 1',
+    'Data':'Pillar 1','Research':'Pillar 1',
+    'Sales':'Pillar 2','Marketing':'Pillar 2','Partnerships':'Pillar 2',
+    'Finance':'Pillar 3','HR':'Pillar 3','Legal':'Pillar 3',
+    'IT':'Pillar 3','Operations':'Pillar 3','Security':'Pillar 3'
   };
   if(!state.cbOtherRows)state.cbOtherRows=[];
   if(!state.cbOtherRows.length)state.cbOtherRows=[
