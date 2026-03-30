@@ -55,7 +55,7 @@ function buildExecTrendYearToggle(){
   const wrap=document.getElementById('execTrendYearToggle');
   if(!wrap)return;
   const dYears=getDisplayYears();
-  const hist=state.historicals;
+  const hist=state?state.historicals:null;
   const histYears=(hist&&hist.enabled&&hist.years)?Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort():[];
   wrap.innerHTML='<button class="btn'+(execTrendYear==='all'?' active':'')+'" data-etrendyr="all">All</button>'+
     histYears.map(y=>'<button class="btn'+(execTrendYear===y?' active':'')+'" data-etrendyr="'+y+'" style="opacity:.7;font-style:italic">'+y+'</button>').join('')+
