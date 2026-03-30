@@ -183,8 +183,8 @@ function resolveColor(c){if(!c||COLOR_MAP[c])return COLOR_MAP[c||''];return c.st
       }
       // Tint matching day cell color
       const pr=parseInt(primaryColor.slice(1,3),16),pg=parseInt(primaryColor.slice(3,5),16),pb=parseInt(primaryColor.slice(5,7),16);
-      const cardBg=`rgba(${pr},${pg},${pb},0.15)`;
-      const cardBorder=`rgba(${pr},${pg},${pb},0.28)`;
+      const cardBg=`rgba(${pr},${pg},${pb},0.30)`;
+      const cardBorder=`rgba(${pr},${pg},${pb},0.45)`;
       return `<div style="padding:10px 14px;border-radius:8px;background:${cardBg};border:1px solid ${cardBorder};margin-bottom:6px">
         <div style="font-size:.65rem;font-weight:600;color:var(--text);letter-spacing:.08em;margin-bottom:4px;opacity:.7">${dateLabel}</div>
         ${rows}
