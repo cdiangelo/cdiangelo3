@@ -466,6 +466,8 @@ async function openPlan(plan){
   if(window.initDropdowns)try{window.initDropdowns()}catch(e){}
   if(window.renderPnlWalk)try{window.renderPnlWalk()}catch(e){}
   if(window.renderLandingCharts)try{window.renderLandingCharts()}catch(e){}
+  // Init Other tabs after state is loaded
+  if(window.initOtherTab)try{window.initOtherTab()}catch(e){}
 
   // appShell now properly wraps <main> so display:none works correctly
 

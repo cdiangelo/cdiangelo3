@@ -2260,8 +2260,7 @@ window.getCbOtherByMonth=getCbOtherByMonth;
 window.getOaoOtherTotal=getOaoOtherTotal;
 window.getOaoOtherByMonth=getOaoOtherByMonth;
 
-// Auto-init Other grids on load (C&B Other is in employees tab, OAO Other in vendor tab)
-setTimeout(initOtherTab,200);
+// initOtherTab called from openPlan after state is loaded
 
 /* ── window assignments for cross-module access ── */
 window.initVendorModule = initVendorModule;
