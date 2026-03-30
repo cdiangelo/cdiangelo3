@@ -53,7 +53,7 @@ nav button.active{background:var(--accent);border-color:var(--accent);color:#fff
 .scenario-toggle-btn,.guide-toggle-btn,.data-toggle-btn,.dims-toggle-btn{display:none!important}
 
 /* Slide panels — now slide from the RIGHT */
-.scenario-slide-panel,.guide-slide-panel,.data-slide-panel,.dims-slide-panel{position:fixed;right:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-left:1px solid var(--border);z-index:1050;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto;padding:20px;box-shadow:-4px 0 20px rgba(0,0,0,.12)}
+.scenario-slide-panel,.guide-slide-panel,.data-slide-panel,.dims-slide-panel{position:fixed;right:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-left:1px solid var(--border);z-index:1050;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto;padding:20px 20px 60px;box-shadow:-4px 0 20px rgba(0,0,0,.12)}
 .scenario-slide-panel.open,.guide-slide-panel.open,.data-slide-panel.open,.dims-slide-panel.open{transform:translateX(0)}
 
 /* Content shift — push content left when panel is open from the right */

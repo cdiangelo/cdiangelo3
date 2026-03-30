@@ -836,16 +836,6 @@ function initDimensionsPanel(){
     }
   });
 
-  // Collapsible sections
-  dimsPanel.querySelectorAll('.data-group-toggle').forEach(h=>{
-    h.addEventListener('click',()=>{
-      const body=h.nextElementSibling;
-      const open=body.style.display!=='none';
-      body.style.display=open?'none':'block';
-      h.innerHTML=(open?'&#9654; ':'&#9660; ')+h.textContent.replace(/^[▶▼]\s*/,'');
-    });
-  });
-
   // ── Markets ──
   function renderDimMarkets(){
     const body=document.getElementById('dimMarketsBody');
