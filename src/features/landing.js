@@ -191,14 +191,15 @@ else{
 }
 
 // P&L mode toggle (cost vs revenue/profitability)
-document.getElementById('landingPnlModeToggle').querySelectorAll('[data-pnlmode]').forEach(btn=>{
+const _pnlModeToggle=document.getElementById('landingPnlModeToggle');
+if(_pnlModeToggle){_pnlModeToggle.querySelectorAll('[data-pnlmode]').forEach(btn=>{
   btn.addEventListener('click',function(){
-    document.querySelectorAll('#landingPnlModeToggle .btn').forEach(b=>b.classList.remove('active'));
+    _pnlModeToggle.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
     this.classList.add('active');
     state.landingPnlMode=this.dataset.pnlmode;
     saveState();renderPnlWalk();renderLandingCharts();
   });
-});
+});}
 
 
 // P&L filter dropdowns

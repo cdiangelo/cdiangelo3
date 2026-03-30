@@ -37,8 +37,8 @@ export function initDarkMode(){
     const wrap=document.getElementById('adminControlsWrap');
     if(wrap&&user&&user.isAdmin){
       wrap.style.display='';
-      initAdminOpsControl();
-      initModuleAccessControl();
+      try{initAdminOpsControl()}catch(e){console.warn('initAdminOpsControl:',e)}
+      try{initModuleAccessControl()}catch(e){console.warn('initModuleAccessControl:',e)}
     }
   }
   showAdminIfAllowed();
@@ -357,5 +357,5 @@ function initModuleAccessControl(){
   }
 }
 
-initDarkMode();
-initModuleAccessControl();
+try{initDarkMode()}catch(e){console.warn('initDarkMode error:',e)}
+try{initModuleAccessControl()}catch(e){console.warn('initModuleAccessControl error:',e)}
