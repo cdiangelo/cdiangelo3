@@ -17,7 +17,7 @@
 .chevron-item.expanded .chevron-shape{background:var(--accent-soft);border-color:var(--border-accent);border-left-color:var(--accent)}
 
 /* Sub-menu — right of card, vertically centered */
-.chevron-submenu{display:none;flex-direction:column;gap:6px;position:absolute;left:calc(100% + 16px);top:50%;transform:translateY(-50%);width:240px;z-index:10}
+.chevron-submenu{display:none;flex-direction:column;gap:6px;position:absolute;left:calc(100% + 16px);top:50%;transform:translateY(-50%);width:240px;z-index:100}
 .chevron-item.expanded .chevron-submenu{display:flex}
 .chevron-sub-item{padding:12px 18px;background:var(--panel);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:.82rem;color:var(--text-dim);font-weight:500;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .chevron-sub-item:hover{background:var(--accent-glow);border-color:var(--border-accent);color:var(--text)}
@@ -25,12 +25,12 @@
 .chevron-sub-item:hover::after{opacity:1;transform:translateY(-50%) translateX(2px)}
 
 /* ═══ BOTTOM TOOLBAR ═══ */
-#bottomToolbar{position:fixed;bottom:0;left:0;right:0;z-index:1100;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:#fff;border-top:1px solid var(--border);box-shadow:0 -1px 4px rgba(0,0,0,.06);color:var(--text)}
+#bottomToolbar{position:fixed;bottom:0;left:0;right:0;z-index:1100;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:var(--toolbar-bg);border-top:1px solid var(--toolbar-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 -2px 8px rgba(0,0,0,.1);color:var(--toolbar-text)}
 .btb-left{display:flex;align-items:center;gap:10px}
-.btb-plan-name,.btb-plan-version,.btb-email{font-size:.78rem;font-weight:500;color:var(--accent);padding:5px 14px;background:var(--accent-glow);border:1px solid var(--border);border-radius:8px}
+.btb-plan-name,.btb-plan-version,.btb-email{font-size:.78rem;font-weight:500;color:#fff;padding:5px 14px;background:rgba(255,255,255,.06);border:1px solid var(--toolbar-border);border-radius:8px}
 .btb-right{display:flex;align-items:center;gap:8px}
-.btb-btn{padding:7px 18px;font-size:.78rem;font-weight:500;color:var(--text-dim);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:inherit}
-.btb-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.btb-btn{padding:7px 18px;font-size:.78rem;font-weight:500;color:#fff;background:rgba(255,255,255,.06);border:1px solid var(--toolbar-border);border-radius:8px;cursor:pointer;font-family:inherit}
+.btb-btn:hover{border-color:var(--accent);color:var(--accent-light);background:rgba(255,255,255,.1)}
 /* ═══ SIDE CALENDAR ═══ */
 .plan-calendar{position:fixed;right:24px;top:56px;bottom:60px;width:30%;min-width:280px;max-width:400px;background:var(--panel);border:1px solid var(--border-light);border-radius:12px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.08);overflow-y:auto;z-index:50;display:flex;flex-direction:column}
 #calToggleBtn{position:fixed;right:24px;top:56px;z-index:51;background:var(--panel);border:1px solid var(--border-light);border-radius:8px;padding:6px 12px;font-size:.7rem;font-weight:500;color:var(--tertiary);cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.06)}

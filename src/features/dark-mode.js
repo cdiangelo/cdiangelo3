@@ -37,8 +37,8 @@ export function initDarkMode(){
     const wrap=document.getElementById('adminControlsWrap');
     if(wrap&&user&&user.isAdmin){
       wrap.style.display='';
-      initAdminOpsControl();
-      initModuleAccessControl();
+      try{initAdminOpsControl()}catch(e){console.warn('initAdminOpsControl:',e)}
+      try{initModuleAccessControl()}catch(e){console.warn('initModuleAccessControl:',e)}
     }
   }
   showAdminIfAllowed();
@@ -105,6 +105,7 @@ function checkOpsRestriction(){
     const raw=localStorage.getItem('compPlanUser');
     if(!raw)return;
     const user=JSON.parse(raw);
+    if(user.isAdmin)return; // Admins skip ops restrictions
     const email=(user.email||'').toLowerCase();
     const rule=rules.find(r=>r.email.toLowerCase()===email);
     if(rule&&rule.mode==='restricted'){
@@ -220,6 +221,7 @@ function saveModuleAccess(rules){
 function checkModuleAccess(){
   const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
   if(!user||!user.email)return;
+  if(user.isAdmin)return; // Admins always have full access
   const rules=getModuleAccess();
   const userRules=rules[user.email.toLowerCase()];
   if(!userRules)return;
@@ -264,6 +266,7 @@ function checkModuleAccess(){
 function isModuleAllowed(moduleKey){
   const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
   if(!user||!user.email)return true;
+  if(user.isAdmin)return true; // Admins always have full access
   const rules=getModuleAccess();
   const userRules=rules[user.email.toLowerCase()];
   if(!userRules)return true;
@@ -354,5 +357,5 @@ function initModuleAccessControl(){
   }
 }
 
-initDarkMode();
-initModuleAccessControl();
+try{initDarkMode()}catch(e){console.warn('initDarkMode error:',e)}
+try{initModuleAccessControl()}catch(e){console.warn('initModuleAccessControl error:',e)}

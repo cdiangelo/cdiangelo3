@@ -224,8 +224,8 @@ function renderPivotTable(data){
   const compCols=compData?cols:[];
 
   // Header — if comparison, show main + comp columns
-  let hdrHtml=`<th style="text-align:left;min-width:180px;position:sticky;top:0;z-index:2;background:var(--panel)">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>`;
-  cols.forEach(c=>hdrHtml+=`<th style="text-align:right;${c.narrow?'width:50px;':'min-width:80px;'}position:sticky;top:0;z-index:2;background:var(--panel)">${c.label}</th>`);
+  let hdrHtml=`<th style="text-align:left;min-width:100px;position:sticky;top:0;z-index:2;background:var(--panel);padding:4px 6px;font-size:.64rem">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>`;
+  cols.forEach(c=>hdrHtml+=`<th style="text-align:right;${c.narrow?'width:30px;':'min-width:50px;'}position:sticky;top:0;z-index:2;background:var(--panel);padding:4px 4px;font-size:.62rem">${c.label}</th>`);
   if(compData){
     hdrHtml+=`<th style="position:sticky;top:0;z-index:2;background:var(--panel);border-left:2px solid var(--accent);width:4px"></th>`;
     compCols.forEach(c=>hdrHtml+=`<th style="text-align:right;${c.narrow?'width:50px;':'min-width:80px;'}position:sticky;top:0;z-index:2;background:var(--panel);color:var(--text-dim);font-style:italic">${c.label}</th>`);
@@ -248,7 +248,7 @@ function renderPivotTable(data){
     const hasChildren=childNames.length>0;
     const arrow=hasChildren?'&#9660; ':'';
 
-    let rowHtml=`<td class="section-label" style="cursor:${hasChildren?'pointer':'default'}" data-toggle="${name}">${arrow}${name}</td>${cols.map(c=>`<td class="num">${fv(r[c.key],c.isHC)}</td>`).join('')}`;
+    let rowHtml=`<td class="section-label" style="cursor:${hasChildren?'pointer':'default'};padding:3px 6px;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px" data-toggle="${name}">${arrow}${name}</td>${cols.map(c=>`<td class="num" style="padding:3px 4px;font-size:.66rem">${fv(r[c.key],c.isHC)}</td>`).join('')}`;
     if(compData){
       rowHtml+=compSep;
       if(compData[name]){
@@ -264,7 +264,7 @@ function renderPivotTable(data){
     if(hasChildren){
       childNames.forEach(cn=>{
         const cr=calcDerived(children[cn],daPerRow/childNames.length);
-        let childHtml=`<td class="label-cell" style="padding-left:24px">${cn}</td>${cols.map(c=>`<td class="num">${fv(cr[c.key],c.isHC)}</td>`).join('')}`;
+        let childHtml=`<td class="label-cell" style="padding-left:16px;font-size:.62rem;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${cn}</td>${cols.map(c=>`<td class="num" style="padding:2px 4px;font-size:.62rem">${fv(cr[c.key],c.isHC)}</td>`).join('')}`;
         if(compData)childHtml+=compSep+compCols.map(()=>`<td></td>`).join('');
         html+=`<tr class="child-row" data-parent="${name}">${childHtml}</tr>`;
       });
@@ -273,7 +273,7 @@ function renderPivotTable(data){
 
   // Total row
   const t=calcDerived(totals,daTotal);
-  let totalHtml=`<td>Total</td>${cols.map(c=>`<td class="num" style="font-weight:700">${fv(t[c.key],c.isHC)}</td>`).join('')}`;
+  let totalHtml=`<td style="padding:3px 6px;font-size:.66rem;font-weight:700">Total</td>${cols.map(c=>`<td class="num" style="font-weight:700;padding:3px 4px;font-size:.66rem">${fv(t[c.key],c.isHC)}</td>`).join('')}`;
   if(compData&&compTotals){
     const ct=calcDerived(compTotals,daTotal);
     totalHtml+=compSep+compCols.map(c=>`<td class="num" style="font-weight:700;color:var(--text-dim)">${fv(ct[c.key],c.isHC)}</td>`).join('');
