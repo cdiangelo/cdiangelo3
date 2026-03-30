@@ -323,7 +323,7 @@ function initVendorModule(){
     return isDark?TAG_COLORS_DARK.slice():TAG_COLORS_LIGHT.slice();
   }
 
-  function fields2colSpan(prefix){return prefix==='vr'?12:11}
+  function fields2colSpan(prefix){return prefix==='vr'?11:10}
 
   function renderFooter(tfootEl,dataArr,colSpan,monthFilter){
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
