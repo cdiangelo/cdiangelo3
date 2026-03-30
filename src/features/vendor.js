@@ -100,7 +100,7 @@ function initVendorModule(){
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">%</label><input class="${prefix}-field ${prefix}-ri-pct" data-f="_rateIncPct" type="number" value="${riPct||''}" step="any" style="width:55px;font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)"></div>`;
     h+=`<button class="btn btn-sm ${prefix}-apply-ri" data-vi="${i}" style="padding:2px 8px;font-size:.68rem;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#6366f1;margin-top:2px">Apply increase</button>`;
     h+=`</div></td>`;
-    h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
+    h+=`<td class="${prefix}-fy" style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
     MO.forEach(m=>{
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
       const displayed=scaleVal(parseFloat(raw)||0);
@@ -169,8 +169,8 @@ function initVendorModule(){
         }
         if(el.classList.contains(`${prefix}-mo`)){
           const fy2=MO.reduce((s,m)=>s+(parseFloat(dataArr[i][m])||0),0);
-          const cells=el.closest('tr').querySelectorAll('td');
-          cells[cells.length-2].textContent=fmtScaled(fy2);
+          const fyCell=el.closest('tr').querySelector(`.${prefix}-fy`);
+          if(fyCell)fyCell.textContent=fmtScaled(fy2);
           // Recalc footer
           renderFooter(tfootEl,dataArr,fields2colSpan(prefix),monthFilter);
         }
@@ -800,7 +800,7 @@ function initVendorModule(){
     else fyDisplay=rawFy;
     const fySuffix=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
     const fyScaled=contractorAmtScale===1?fyDisplay:Math.round((fyDisplay/contractorAmtScale)*100)/100;
-    h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">$${fyScaled.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuffix}</td>`;
+    h+=`<td class="cr-fy" style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">$${fyScaled.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuffix}</td>`;
     // Monthly columns — display based on view toggle
     MO.forEach(m=>{
       const raw=parseFloat(row[m])||0;
@@ -892,6 +892,14 @@ function initVendorModule(){
           const rawVal=parseFloat(String(el.value).replace(/[$,]/g,''))||0;
           el.dataset.raw=rawVal;
           row[f]=Math.round(rawVal*contractorAmtScale);
+          // Update row FY cell
+          const capPct=parseFloat(row.capPct)||0;
+          const rawFy=MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
+          let fyDisplay=contractorView==='capex'?Math.round(rawFy*capPct/100):contractorView==='opex'?rawFy-Math.round(rawFy*capPct/100):rawFy;
+          const fySuffix=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
+          const fyScaled=contractorAmtScale===1?fyDisplay:Math.round((fyDisplay/contractorAmtScale)*100)/100;
+          const fyCell=tr.querySelector('.cr-fy');
+          if(fyCell)fyCell.textContent='$'+fyScaled.toLocaleString('en-US',{maximumFractionDigits:2})+fySuffix;
           // Recalc footer
           renderContractorFooter();
         } else if(f==='capPct'){
@@ -2171,7 +2179,7 @@ function initOtherTab(){
       const fy=OTHER_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
       h+=`<tr data-oi="${i}">`;
       h+=`<td><input class="${prefix}-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
-      h+=`<td style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
+      h+=`<td class="${prefix}-fy" style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
       OTHER_MO.forEach(m=>{
         const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
         const displayed=parseFloat(raw)||0;
