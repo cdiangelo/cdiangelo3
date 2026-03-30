@@ -689,12 +689,12 @@ function renderLandingCharts(){
   const budgetTbl=document.getElementById('budgetDetailTable');
   if(budgetTbl){
     const fv=v=>v?'$'+(Math.abs(v)/1e6).toFixed(2)+'M':'—';
-    let h='<thead style="position:sticky;top:0;background:var(--panel);z-index:1"><tr><th style="text-align:left">Month</th><th>C&B</th><th>OAO</th><th>CapEx</th><th>Total</th></tr></thead><tbody>';
+    let h='<thead style="position:sticky;top:0;background:var(--panel);z-index:1"><tr><th style="text-align:left;width:60px">Month</th><th style="text-align:right">C&B</th><th style="text-align:right">OAO</th><th style="text-align:right">CapEx</th><th style="text-align:right;font-weight:700">Total</th></tr></thead><tbody>';
     MO_SHORT.forEach((mo,mi)=>{
       const cb=emps.reduce((s,e)=>s+getMonthlyComp(e,mi),0);
       const cap=emps.reduce((s,e)=>s+getMonthlyCapEx(e,mi),0);
       const oao=(getVendorOaoByMonth?getVendorOaoByMonth():[0,0,0,0,0,0,0,0,0,0,0,0])[mi]||0;
-      h+=`<tr><td style="font-weight:600">${mo}</td><td class="num">${fv(cb)}</td><td class="num">${fv(oao)}</td><td class="num">${fv(cap)}</td><td class="num" style="font-weight:600">${fv(cb+oao)}</td></tr>`;
+      h+=`<tr><td style="font-weight:600">${mo}</td><td style="text-align:right">${fv(cb)}</td><td style="text-align:right">${fv(oao)}</td><td style="text-align:right">${fv(cap)}</td><td style="text-align:right;font-weight:600">${fv(cb+oao)}</td></tr>`;
     });
     h+='</tbody>';
     budgetTbl.innerHTML=h;
@@ -712,17 +712,26 @@ function renderLandingCharts(){
 
   // ── LTF Overview Detail Table ──
   const ltfOvTbl=document.getElementById('ltfOverviewDetailTable');
-  if(ltfOvTbl){
+  if(ltfOvTbl&&emps.length){
+    try{
     const fv=v=>v?'$'+(Math.abs(v)/1e6).toFixed(2)+'M':'—';
     const yl=window.getDisplayFcLabels?window.getDisplayFcLabels():['2026','2027','2028','2029','2030','2031'];
-    let h='<thead style="position:sticky;top:0;background:var(--panel);z-index:1"><tr><th style="text-align:left">Year</th><th>HC</th><th>C&B</th><th>OAO</th><th>D&A</th><th>CapEx</th><th style="font-weight:700">Total</th></tr></thead><tbody>';
+    const _cbR=projectForecast(emps);
+    const _oaoB=getVendorOaoTotal();
+    const _oaoG=state.oaoGrowthPct||[5,5,5,5,5];
+    const _oaoY=[_oaoB];for(let i=0;i<5;i++)_oaoY.push(Math.round(_oaoY[i]*(1+(_oaoG[i]||0)/100)));
+    const _daB=getDepreciationTotal();
+    const _daY=[_daB];const _al=state.daAssetLifeYrs||5;const _cCE=getContractorCapExTotal();
+    for(let yr=1;yr<=5;yr++){let yd=0;for(let v=0;v<yr;v++){if(yr-v<=_al)yd+=Math.round((_cbR[v].capex+_cCE)/_al)}yd+=Math.max(0,Math.round(_daB*(1-yr/_al)));_daY.push(yd)}
+    let h='<thead style="position:sticky;top:0;background:var(--panel);z-index:1"><tr><th style="text-align:left;width:60px">Year</th><th style="text-align:right">HC</th><th style="text-align:right">C&B</th><th style="text-align:right">OAO</th><th style="text-align:right">D&A</th><th style="text-align:right">CapEx</th><th style="text-align:right;font-weight:700">Total</th></tr></thead><tbody>';
     yl.forEach((yr,i)=>{
-      const r=cbRows[i];if(!r)return;
-      const oao=oaoYears[i]||0,da=daYears[i]||0,cap=cbCapex[i]||0;
-      h+=`<tr><td style="font-weight:600">${yr}</td><td class="num">${r.hc}</td><td class="num">${fv(r.total)}</td><td class="num">${fv(oao)}</td><td class="num">${fv(da)}</td><td class="num">${fv(cap)}</td><td class="num" style="font-weight:600">${fv(r.total+oao+da)}</td></tr>`;
+      const r=_cbR[i];if(!r)return;
+      const oao=_oaoY[i]||0,da=_daY[i]||0,cap=r.capex+_cCE;
+      h+=`<tr><td style="font-weight:600">${yr}</td><td style="text-align:right">${r.hc}</td><td style="text-align:right">${fv(r.total)}</td><td style="text-align:right">${fv(oao)}</td><td style="text-align:right">${fv(da)}</td><td style="text-align:right">${fv(cap)}</td><td style="text-align:right;font-weight:600">${fv(r.total+oao+da)}</td></tr>`;
     });
     h+='</tbody>';
     ltfOvTbl.innerHTML=h;
+    }catch(e){console.warn('LTF detail table error:',e)}
   }
   const ltfOvToggle=document.getElementById('ltfOverviewDetailToggle');
   const ltfOvWrap=document.getElementById('ltfOverviewDetailWrap');
