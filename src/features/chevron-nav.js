@@ -303,6 +303,8 @@
   if(btbGuide)btbGuide.addEventListener('click',()=>{const btn=document.getElementById('guideToggleBtn');if(btn)btn.click()});
   if(btbScenario)btbScenario.addEventListener('click',()=>{const btn=document.getElementById('scenarioToggleBtn');if(btn)btn.click()});
   if(btbData)btbData.addEventListener('click',()=>{const btn=document.getElementById('dataToggleBtn');if(btn)btn.click()});
+  const btbDims=document.getElementById('btbDims');
+  if(btbDims)btbDims.addEventListener('click',()=>{const btn=document.getElementById('dimsToggleBtn');if(btn)btn.click()});
   if(btbSettings)btbSettings.addEventListener('click',()=>{
     const panel=document.getElementById('settingsSlidePanel');
     if(panel){

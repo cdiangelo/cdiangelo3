@@ -36,10 +36,11 @@
   #vendorNav .btn{padding:5px 8px;font-size:.72rem;flex:1;min-width:0;text-align:center}
   .vtab-content .card{padding:10px}
   /* Full-screen slide panels on mobile */
-  .scenario-slide-panel,.data-slide-panel{width:100vw!important;min-width:0!important}
+  .scenario-slide-panel,.data-slide-panel,.dims-slide-panel{width:100vw!important;min-width:0!important}
   body.scenario-open main,body.scenario-open header,body.scenario-open #landingPage{margin-left:0!important}
   body.data-open main,body.data-open header,body.data-open #landingPage{margin-left:0!important}
-  body.scenario-open .scenario-toggle-btn,body.scenario-open .data-toggle-btn,body.data-open .data-toggle-btn,body.data-open .scenario-toggle-btn{display:none}
+  body.dims-open main,body.dims-open header,body.dims-open #landingPage{margin-left:0!important}
+  body.scenario-open .scenario-toggle-btn,body.scenario-open .data-toggle-btn,body.data-open .data-toggle-btn,body.data-open .scenario-toggle-btn,body.dims-open .dims-toggle-btn{display:none}
   .panel-close-btn{display:flex!important}
   /* Taller sparklines on mobile */
   .stat-card canvas.sparkline{height:40px}
@@ -88,7 +89,7 @@
   /* P&L table horizontal scroll contained within card */
   .pnl-walk .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
   /* Slide panels: contain overflow */
-  .scenario-slide-panel,.data-slide-panel{overflow-x:hidden!important;box-sizing:border-box;padding:12px!important}
+  .scenario-slide-panel,.data-slide-panel,.dims-slide-panel{overflow-x:hidden!important;box-sizing:border-box;padding:12px!important}
   .chatbot-header{flex-wrap:wrap;gap:4px;padding:6px 8px;font-size:.78rem}
   .chatbot-header>div{flex-wrap:wrap;gap:3px}
   .chatbot-header .btn,.chatbot-header .btn-sm{font-size:.68rem!important;padding:2px 6px!important}

@@ -27,6 +27,7 @@ function closeAllSidePanels(){
   const panels=[
     {panel:'guideSlidePanel',btn:'guideToggleBtn',cls:'guide-open'},
     {panel:'dataSlidePanel',btn:'dataToggleBtn',cls:'data-open'},
+    {panel:'dimsSlidePanel',btn:'dimsToggleBtn',cls:'dims-open'},
     {panel:'scenarioSlidePanel',btn:'scenarioToggleBtn',cls:'scenario-open'},
     {panel:'settingsSlidePanel'},
     {panel:'validationSlidePanel'}
@@ -814,9 +815,326 @@ function runValidationChecks(){
     </div>`).join('');
 }
 
+// ── DIMENSIONS SLIDE PANEL ──
+function initDimensionsPanel(){
+  const dimsPanel=document.getElementById('dimsSlidePanel');
+  const dimsBtn=document.getElementById('dimsToggleBtn');
+  if(!dimsPanel||!dimsBtn)return;
+  const dimsArrow=dimsBtn.querySelector('.arrow');
+  dimsBtn.addEventListener('click',()=>{
+    const wasOpen=dimsPanel.classList.contains('open');
+    closeAllSidePanels();
+    if(!wasOpen){
+      dimsPanel.classList.add('open');
+      document.body.classList.add('dims-open');
+      if(dimsArrow)dimsArrow.innerHTML='&#9664;';
+      renderDimsPanel();
+    }
+  });
+
+  // Collapsible sections
+  dimsPanel.querySelectorAll('.data-group-toggle').forEach(h=>{
+    h.addEventListener('click',()=>{
+      const body=h.nextElementSibling;
+      const open=body.style.display!=='none';
+      body.style.display=open?'none':'block';
+      h.innerHTML=(open?'&#9654; ':'&#9660; ')+h.textContent.replace(/^[▶▼]\s*/,'');
+    });
+  });
+
+  // ── Markets ──
+  function renderDimMarkets(){
+    const body=document.getElementById('dimMarketsBody');
+    if(!body)return;
+    body.innerHTML=(state.markets||[]).map(m=>`<tr>
+      <td><input class="dm-code dim-edit-input" data-code="${esc(m.code)}" value="${esc(m.code)}" style="font-weight:600;color:var(--accent);width:70px"></td>
+      <td><input class="dm-name dim-edit-input" data-code="${esc(m.code)}" value="${esc(m.name)}" style="width:140px"></td>
+      <td><button class="btn btn-sm btn-danger dm-del" data-code="${esc(m.code)}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
+    </tr>`).join('');
+    body.querySelectorAll('.dm-code').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const oldCode=inp.dataset.code;const newCode=inp.value.trim().toUpperCase();
+        if(!newCode||state.markets.some(x=>x.code!==oldCode&&x.code===newCode)){inp.value=oldCode;return}
+        const m=state.markets.find(x=>x.code===oldCode);
+        if(m){state.projects.forEach(p=>{if(p.marketCode===oldCode)p.marketCode=newCode});m.code=newCode;saveState();renderDimsPanel();syncAllDimViews()}
+      });
+    });
+    body.querySelectorAll('.dm-name').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const m=state.markets.find(x=>x.code===inp.dataset.code);
+        if(m){m.name=inp.value;saveState();syncAllDimViews()}
+      });
+    });
+    body.querySelectorAll('.dm-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(!confirm('Delete market '+btn.dataset.code+'?'))return;
+        state.markets=state.markets.filter(m=>m.code!==btn.dataset.code);
+        saveState();renderDimsPanel();syncAllDimViews();
+      });
+    });
+  }
+
+  document.getElementById('dimBtnAddMarket').addEventListener('click',()=>{
+    const code=document.getElementById('dimMktCode').value.trim().toUpperCase();
+    const name=document.getElementById('dimMktName').value.trim();
+    if(!code||!name){alert('Fill code and name');return}
+    if(!/^[A-Z]{2}\d{4}$/.test(code)){alert('Market code must be 2 letters + 4 digits (e.g. JP0011)');return}
+    if(state.markets.some(m=>m.code===code)){alert('Market code already exists');return}
+    state.markets.push({code,name});
+    saveState();renderDimsPanel();syncAllDimViews();
+    document.getElementById('dimMktCode').value='';document.getElementById('dimMktName').value='';
+  });
+
+  // ── Business Lines ──
+  function renderDimBizLines(){
+    const body=document.getElementById('dimBizBody');
+    if(!body)return;
+    body.innerHTML=(state.bizLines||[]).map(b=>`<tr>
+      <td><input class="db-code dim-edit-input" data-code="${esc(b.code)}" value="${esc(b.code)}" style="font-weight:600;color:var(--accent);width:60px"></td>
+      <td><input class="db-name dim-edit-input" data-code="${esc(b.code)}" value="${esc(b.name)}" style="width:140px"></td>
+      <td><button class="btn btn-sm btn-danger db-del" data-code="${esc(b.code)}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
+    </tr>`).join('');
+    body.querySelectorAll('.db-code').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const oldCode=inp.dataset.code;const newCode=inp.value.trim();
+        if(!newCode||state.bizLines.some(x=>x.code!==oldCode&&x.code===newCode)){inp.value=oldCode;return}
+        const b=state.bizLines.find(x=>x.code===oldCode);
+        if(b){
+          (state.employees||[]).forEach(e=>{if(e.businessLine===oldCode)e.businessLine=newCode});
+          (state.vendorRows||[]).forEach(r=>{if(r.bizLine===oldCode)r.bizLine=newCode});
+          (state.teRows||[]).forEach(r=>{if(r.bizLine===oldCode)r.bizLine=newCode});
+          b.code=newCode;saveState();renderDimsPanel();syncAllDimViews();
+        }
+      });
+    });
+    body.querySelectorAll('.db-name').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        const b=state.bizLines.find(x=>x.code===inp.dataset.code);
+        if(b){b.name=inp.value;saveState();syncAllDimViews()}
+      });
+    });
+    body.querySelectorAll('.db-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(!confirm('Delete business line '+btn.dataset.code+'?'))return;
+        state.bizLines=state.bizLines.filter(b=>b.code!==btn.dataset.code);
+        saveState();renderDimsPanel();syncAllDimViews();
+      });
+    });
+  }
+
+  document.getElementById('dimBtnAddBizLine').addEventListener('click',()=>{
+    const code=document.getElementById('dimBizCode').value.trim();
+    const name=document.getElementById('dimBizName').value.trim();
+    if(!code||!name){alert('Fill code and name');return}
+    if(!/^\d+$/.test(code)){alert('Code must be numeric');return}
+    if(state.bizLines.some(b=>b.code===code)){alert('Code already exists');return}
+    state.bizLines.push({code,name});
+    saveState();renderDimsPanel();syncAllDimViews();
+    document.getElementById('dimBizCode').value='';document.getElementById('dimBizName').value='';
+  });
+
+  // ── Projects ──
+  function renderDimProjects(){
+    const body=document.getElementById('dimProjectsBody');
+    if(!body)return;
+    body.innerHTML=(state.projects||[]).map(p=>{
+      const mkt=state.markets.find(m=>m.code===p.marketCode);
+      return `<tr>
+        <td style="font-weight:600;color:var(--accent)">${esc(p.code)}</td>
+        <td>${esc(p.product||'')}</td><td>${esc(p.category||'')}</td>
+        <td style="font-size:.78rem">${mkt?esc(mkt.code+' — '+mkt.name):'—'}</td>
+        <td><button class="btn btn-sm btn-danger dp-del" data-pid="${p.id}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
+      </tr>`;
+    }).join('');
+    body.querySelectorAll('.dp-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const pid=btn.dataset.pid;
+        const p=state.projects.find(x=>x.id===pid);
+        if(!confirm('Delete project '+(p?p.code:pid)+'?'))return;
+        state.projects=state.projects.filter(x=>x.id!==pid);
+        (state.employees||[]).forEach(e=>{if(e.allocations)e.allocations=e.allocations.filter(a=>a.projId!==pid)});
+        saveState();renderDimsPanel();syncAllDimViews();
+      });
+    });
+    // Populate market select
+    const mktSel=document.getElementById('dimProjMarket');
+    if(mktSel){
+      const cur=mktSel.value;
+      mktSel.innerHTML='<option value="">—</option>'+(state.markets||[]).map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
+      if(cur)mktSel.value=cur;
+    }
+  }
+
+  document.getElementById('dimBtnAddProject').addEventListener('click',()=>{
+    const code=document.getElementById('dimProjCode').value.trim();
+    const product=document.getElementById('dimProjProduct').value.trim();
+    const category=document.getElementById('dimProjCategory').value.trim();
+    const marketCode=document.getElementById('dimProjMarket').value;
+    if(!code||!product||!category){alert('Fill code, product, and category');return}
+    if(state.projects.some(p=>p.code===code)){alert('Project code already exists');return}
+    const uid=()=>'p'+Date.now()+Math.random().toString(36).slice(2,6);
+    state.projects.push({id:uid(),code,product,category,marketCode,description:''});
+    saveState();renderDimsPanel();syncAllDimViews();
+    document.getElementById('dimProjCode').value='';document.getElementById('dimProjProduct').value='';document.getElementById('dimProjCategory').value='';document.getElementById('dimProjMarket').value='';
+  });
+
+  // ── Accounts ──
+  function renderDimAccounts(){
+    const body=document.getElementById('dimAcctBody');
+    if(!body)return;
+    body.innerHTML=(state.accounts||[]).map((a,i)=>`<tr>
+      <td style="font-weight:600;color:var(--accent)">${esc(a.code)}</td>
+      <td>${esc(a.description)}</td>
+      <td style="font-size:.72rem">${esc(a.category||'')}</td>
+      <td style="font-size:.72rem">${esc(a.group||'')}</td>
+      <td><button class="btn btn-sm btn-danger da-del" data-idx="${i}" style="padding:2px 6px;font-size:.7rem">Del</button></td>
+    </tr>`).join('');
+    body.querySelectorAll('.da-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const idx=parseInt(btn.dataset.idx);
+        if(!confirm('Delete account '+(state.accounts[idx]?.code||'(blank)')+'?'))return;
+        state.accounts.splice(idx,1);
+        saveState();renderDimsPanel();syncAllDimViews();
+      });
+    });
+  }
+
+  document.getElementById('dimBtnAddAcct').addEventListener('click',()=>{
+    const code=document.getElementById('dimAcctCode').value.trim();
+    const desc=document.getElementById('dimAcctDesc').value.trim();
+    const cat=document.getElementById('dimAcctCategory').value;
+    const grp=document.getElementById('dimAcctGroup').value;
+    if(!code||!desc){alert('Please fill account code and description');return}
+    if(state.accounts.some(a=>a.code===code)){alert('Account code already exists');return}
+    state.accounts.push({code,description:desc,category:cat,group:grp});
+    saveState();renderDimsPanel();syncAllDimViews();
+    document.getElementById('dimAcctCode').value='';document.getElementById('dimAcctDesc').value='';document.getElementById('dimAcctCategory').value='';
+  });
+
+  // ── Functions & Seniority (read-only reference) ──
+  function renderDimFuncSeniority(){
+    const fList=document.getElementById('dimFunctionsList');
+    const sList=document.getElementById('dimSeniorityList');
+    const FUNCTIONS=window.FUNCTIONS||[];
+    const SENIORITY=window.SENIORITY||[];
+    if(fList)fList.innerHTML=FUNCTIONS.map(f=>`<div style="padding:3px 8px;font-size:.76rem;background:var(--bg-elevated);border-radius:4px">${esc(f)}</div>`).join('');
+    if(sList)sList.innerHTML=SENIORITY.map(s=>`<div style="padding:3px 8px;font-size:.76rem;background:var(--bg-elevated);border-radius:4px">${esc(s)}</div>`).join('');
+  }
+
+  // ── Functional Pillars ──
+  function renderDimPillars(){
+    const body=document.getElementById('dimPillarsBody');
+    if(!body)return;
+    const FUNCTIONS=window.FUNCTIONS||[];
+    const pillars=state.functionalPillars||{};
+    const allFuncs=[...new Set([...FUNCTIONS,...Object.keys(pillars)])];
+    body.innerHTML=allFuncs.map(f=>{
+      const cur=pillars[f]||'';
+      return `<tr>
+        <td style="font-size:.78rem">${esc(f)}</td>
+        <td><select class="dp-pillar" data-func="${esc(f)}" style="padding:2px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px">
+          <option value="">—</option>
+          <option value="Vertical"${cur==='Vertical'?' selected':''}>Vertical</option>
+          <option value="Horizontal"${cur==='Horizontal'?' selected':''}>Horizontal</option>
+          <option value="Platform/Central"${cur==='Platform/Central'?' selected':''}>Platform/Central</option>
+        </select></td>
+      </tr>`;
+    }).join('');
+    body.querySelectorAll('.dp-pillar').forEach(sel=>{
+      sel.addEventListener('change',()=>{
+        if(!state.functionalPillars)state.functionalPillars={};
+        state.functionalPillars[sel.dataset.func]=sel.value;
+        saveState();
+      });
+    });
+  }
+
+  // ── Mapping Rules ──
+  function renderDimMappingRules(){
+    const list=document.getElementById('dimMappingRulesList');
+    if(!list)return;
+    const rules=state.mappingRules||[];
+    if(!rules.length){
+      list.innerHTML='<div style="font-size:.78rem;color:var(--tertiary);padding:8px;text-align:center">No mapping rules defined.</div>';
+      return;
+    }
+    list.innerHTML=rules.map((r,i)=>{
+      const parts=[];
+      if(r.market)parts.push('Market: '+r.market);
+      if(r.bizLine)parts.push('Biz Line: '+r.bizLine);
+      if(r.product)parts.push('Product: '+r.product);
+      if(r.category)parts.push('Category: '+r.category);
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:var(--bg-elevated);border-left:3px solid var(--accent)">
+        <span style="font-size:.76rem;font-weight:500">Project ${esc(r.projectCode||'Any')}</span>
+        <span style="font-size:.72rem;color:var(--tertiary)">→</span>
+        <span style="font-size:.74rem;color:var(--text-dim);flex:1">${parts.join(' · ')||'No mappings'}</span>
+        <button class="btn btn-sm dmr-del" data-idx="${i}" style="padding:2px 6px;font-size:.68rem;color:var(--danger)">×</button>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.dmr-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        rules.splice(+btn.dataset.idx,1);
+        saveState();renderDimMappingRules();
+      });
+    });
+    // Populate rule dropdowns
+    populateRuleDropdowns();
+  }
+
+  function populateRuleDropdowns(){
+    const projSel=document.getElementById('dimRuleProject');
+    const mktSel=document.getElementById('dimRuleMarket');
+    const blSel=document.getElementById('dimRuleBizLine');
+    if(projSel)projSel.innerHTML='<option value="">Select...</option>'+(state.projects||[]).filter(p=>p.code!=='GEN-000').map(p=>`<option value="${esc(p.code)}">${esc(p.code)} — ${esc(p.product||'')}</option>`).join('');
+    if(mktSel)mktSel.innerHTML='<option value="">—</option>'+(state.markets||[]).map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
+    if(blSel)blSel.innerHTML='<option value="">—</option>'+(state.bizLines||[]).map(b=>`<option value="${esc(b.code)}">${esc(b.code)} — ${esc(b.name)}</option>`).join('');
+  }
+
+  document.getElementById('dimBtnAddRule').addEventListener('click',()=>{
+    const projCode=document.getElementById('dimRuleProject').value;
+    if(!projCode){alert('Select a project');return}
+    const market=document.getElementById('dimRuleMarket').value;
+    const bizLine=document.getElementById('dimRuleBizLine').value;
+    const product=document.getElementById('dimRuleProduct').value.trim();
+    const category=document.getElementById('dimRuleCategory').value.trim();
+    if(!market&&!bizLine&&!product&&!category){alert('Set at least one mapping');return}
+    if(!state.mappingRules)state.mappingRules=[];
+    state.mappingRules.push({projectCode:projCode,market,bizLine,product,category});
+    saveState();renderDimMappingRules();
+    document.getElementById('dimRuleProject').value='';document.getElementById('dimRuleMarket').value='';document.getElementById('dimRuleBizLine').value='';
+    document.getElementById('dimRuleProduct').value='';document.getElementById('dimRuleCategory').value='';
+  });
+
+  // ── Master render ──
+  function renderDimsPanel(){
+    renderDimMarkets();
+    renderDimBizLines();
+    renderDimProjects();
+    renderDimAccounts();
+    renderDimFuncSeniority();
+    renderDimPillars();
+    renderDimMappingRules();
+    populateRuleDropdowns();
+  }
+
+  // Sync other views when dims change
+  function syncAllDimViews(){
+    if(typeof window.refreshAllDropdowns==='function')window.refreshAllDropdowns();
+    if(typeof window.renderMarkets==='function')window.renderMarkets();
+    if(typeof window.renderBizLines==='function')window.renderBizLines();
+    if(typeof window.renderProjects==='function')window.renderProjects();
+    if(typeof window.renderVendorGrid==='function')window.renderVendorGrid();
+    if(typeof window.renderTeGrid==='function')window.renderTeGrid();
+    if(typeof window.refreshProjectDropdown==='function')window.refreshProjectDropdown();
+    if(typeof window.renderMappingRules==='function')window.renderMappingRules();
+    if(typeof window.renderDimProductList==='function')window.renderDimProductList();
+  }
+}
+
 window.initValidationPanel=initValidationPanel;
 window.initDataPanel = initDataPanel;
+window.initDimensionsPanel = initDimensionsPanel;
 window.closeAllSidePanels = closeAllSidePanels;
 
 /* ── named exports ── */
-export { initDataPanel, renderDataPanelWsList };
+export { initDataPanel, initDimensionsPanel, renderDataPanelWsList };

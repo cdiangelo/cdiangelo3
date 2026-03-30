@@ -100,8 +100,8 @@ tr:hover{background:var(--bg-elevated)}
 [data-theme="light"] .chart-container{background:transparent}
 .modal-overlay{background:rgba(0,0,0,.45)}
 [data-theme="light"] .modal-overlay{background:rgba(15,23,42,.30)}
-.scenario-slide-panel table td,.data-slide-panel table td{color:var(--text)}
-.scenario-slide-panel table th,.data-slide-panel table th{color:var(--text-dim)}
+.scenario-slide-panel table td,.data-slide-panel table td,.dims-slide-panel table td{color:var(--text)}
+.scenario-slide-panel table th,.data-slide-panel table th,.dims-slide-panel table th{color:var(--text-dim)}
 
 /* Operations mode */
 body.ops-mode .comp-sensitive{color:transparent!important;user-select:none}

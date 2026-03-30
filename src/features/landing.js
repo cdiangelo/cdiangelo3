@@ -1757,7 +1757,7 @@ function runInitSequence(){
   safeRun('initDropdowns',()=>initDropdowns());
   safeRun('initBizLines',()=>initBizLines());
   safeRun('renderAll',()=>renderAll());
-  safeRun('initScenarioPane',()=>{initScenarioPane();initDataPanel();if(window.initValidationPanel)window.initValidationPanel();window._scenInited=true});
+  safeRun('initScenarioPane',()=>{initScenarioPane();initDataPanel();if(window.initDimensionsPanel)window.initDimensionsPanel();if(window.initValidationPanel)window.initValidationPanel();window._scenInited=true});
   safeRun('initSessionModal',()=>initSessionModal());
   safeRun('renderPnlWalk',()=>renderPnlWalk());
   safeRun('renderLandingCharts',()=>renderLandingCharts());

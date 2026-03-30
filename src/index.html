@@ -1268,7 +1268,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" data-vtab="vendor-contractors">Contractors</button>
 <button class="btn" data-vtab="vendor-te">T&amp;E</button>
 <button class="btn" data-vtab="vendor-other">OAO Other</button>
-<button class="btn" data-vtab="vendor-dims">Dimensions</button>
 </nav>
 </div>
 <main class="container" style="padding-top:24px">
@@ -3142,7 +3141,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- Data Management Slide Panel -->
 <div class="data-slide-panel" id="dataSlidePanel">
-<button class="panel-close-btn" onclick="document.getElementById('dataToggleBtn').click()">&times; Close Data</button>
+<button class="panel-close-btn" onclick="document.getElementById('dataToggleBtn').click()">&times; Close</button>
 <h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Data Management</h3>
 
 <div class="data-section">
@@ -3207,24 +3206,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <div class="data-section">
-<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Comp Assumptions</h4>
-<div class="data-group-body" style="display:none">
-<div class="data-sub"><h5>Bonus Matrix</h5><p>Upload bonus percentages as a Seniority × Function grid.</p>
-<button class="btn" id="btnDlBonusTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBonus">Upload Bonus</button>
-<input type="file" id="bonusFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
-<div class="data-sub"><h5>Benefits Matrix</h5><p>Upload benefits percentages and country multipliers.</p>
-<button class="btn" id="btnDlBenefitsTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBenefits">Upload Benefits</button>
-<input type="file" id="benefitsFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
-<div class="data-sub"><h5>Base Comp Rates</h5><p>Upload seniority base salaries, function &amp; country multipliers.</p>
-<button class="btn" id="btnDlBaseCompTemplate">Download Template</button>
-<button class="btn btn-primary" id="btnUploadBaseComp">Upload Base Comp</button>
-<input type="file" id="baseCompFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
-</div>
-</div>
-
-<div class="data-section">
 <h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Backup &amp; Share</h4>
 <div class="data-group-body" style="display:none">
 <p>Full application state backup or shareable HTML export.</p>
@@ -3250,6 +3231,142 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 
 <div id="uploadResultBox" style="display:none" class="card-inset"><pre id="uploadResultText" style="white-space:pre-wrap;font-size:.82rem;max-height:300px;overflow:auto"></pre></div>
+</div>
+
+<button class="dims-toggle-btn" id="dimsToggleBtn" style="display:none"><span class="arrow">&#9654;</span>D I M S</button>
+
+<!-- Dimensions Slide Panel -->
+<div class="dims-slide-panel" id="dimsSlidePanel">
+<button class="panel-close-btn" onclick="document.getElementById('dimsToggleBtn').click()">&times; Close Dimensions</button>
+<h3 style="color:#7b1fa2;font-size:1.1rem;font-weight:700;margin:0 0 16px 0">Dimensions &amp; Reference Data</h3>
+
+<!-- Markets -->
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Markets</h4>
+<div class="data-group-body" style="display:none">
+<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">Shared across all modules. Code format: 2 letters + 4 digits (e.g. US0001).</p>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="dimMktCode" style="width:70px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px;text-transform:uppercase" placeholder="US0001" maxlength="6"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Name</label><br><input id="dimMktName" style="width:130px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="United States"></div>
+<button class="btn btn-sm btn-primary" id="dimBtnAddMarket" style="padding:3px 10px;font-size:.8rem">Add</button>
+</div>
+<div style="max-height:240px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Name</th><th></th></tr></thead><tbody id="dimMarketsBody"></tbody></table></div>
+</div>
+</div>
+
+<!-- Business Lines -->
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Business Lines</h4>
+<div class="data-group-body" style="display:none">
+<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">Shared across all modules. Numeric codes.</p>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="dimBizCode" style="width:60px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="800"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Name</label><br><input id="dimBizName" style="width:140px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Line Name"></div>
+<button class="btn btn-sm btn-primary" id="dimBtnAddBizLine" style="padding:3px 10px;font-size:.8rem">Add</button>
+</div>
+<div style="max-height:240px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Name</th><th></th></tr></thead><tbody id="dimBizBody"></tbody></table></div>
+</div>
+</div>
+
+<!-- Projects -->
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Projects</h4>
+<div class="data-group-body" style="display:none">
+<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">Project codes with product, category, and market assignment.</p>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="dimProjCode" style="width:80px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="PRJ-001"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Product</label><br><input id="dimProjProduct" style="width:110px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Product"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Category</label><br><input id="dimProjCategory" style="width:90px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Category"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Market</label><br><select id="dimProjMarket" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px"><option value="">—</option></select></div>
+<button class="btn btn-sm btn-primary" id="dimBtnAddProject" style="padding:3px 10px;font-size:.8rem">Add</button>
+</div>
+<div style="max-height:280px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Product</th><th>Category</th><th>Market</th><th></th></tr></thead><tbody id="dimProjectsBody"></tbody></table></div>
+</div>
+</div>
+
+<!-- Accounts -->
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Accounts</h4>
+<div class="data-group-body" style="display:none">
+<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">Chart of accounts. Description maps to code. Used across all modules.</p>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.7rem;color:var(--text-dim)">Code</label><br><input id="dimAcctCode" style="width:70px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="54000"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Description</label><br><input id="dimAcctDesc" style="width:160px;padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px" placeholder="Software Licenses"></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Category</label><br><select id="dimAcctCategory" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px">
+<option value="">—</option><option value="Software &amp; Licenses">Software &amp; Licenses</option><option value="Professional Services">Professional Services</option><option value="Data &amp; Analytics">Data &amp; Analytics</option><option value="T&amp;E">T&amp;E</option><option value="Infrastructure">Infrastructure</option><option value="Other OpEx">Other OpEx</option>
+</select></div>
+<div><label style="font-size:.7rem;color:var(--text-dim)">Tab</label><br><select id="dimAcctGroup" style="padding:3px 6px;font-size:.8rem;border:1px solid var(--border);border-radius:4px">
+<option value="vendor">Vendor</option><option value="te">T&amp;E</option><option value="depreciation">Depreciation</option>
+</select></div>
+<button class="btn btn-sm btn-primary" id="dimBtnAddAcct" style="padding:3px 10px;font-size:.8rem">Add</button>
+</div>
+<div style="max-height:280px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Code</th><th>Description</th><th>Category</th><th>Tab</th><th></th></tr></thead><tbody id="dimAcctBody"></tbody></table></div>
+</div>
+</div>
+
+<!-- Functions / Seniority -->
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Functions &amp; Seniority</h4>
+<div class="data-group-body" style="display:none">
+<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">Reference values for employee classification.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div>
+<h5 style="font-size:.76rem;font-weight:600;margin-bottom:4px">Functions</h5>
+<div id="dimFunctionsList" style="display:flex;flex-direction:column;gap:2px;max-height:200px;overflow-y:auto"></div>
+</div>
+<div>
+<h5 style="font-size:.76rem;font-weight:600;margin-bottom:4px">Seniority Levels</h5>
+<div id="dimSeniorityList" style="display:flex;flex-direction:column;gap:2px;max-height:200px;overflow-y:auto"></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Functional Pillars -->
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Functional Pillars</h4>
+<div class="data-group-body" style="display:none">
+<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">Map functions to organizational pillars: Vertical, Horizontal, or Platform/Central.</p>
+<div style="max-height:300px;overflow-y:auto"><table class="comp-table" style="font-size:.8rem"><thead><tr><th>Function</th><th>Pillar</th></tr></thead><tbody id="dimPillarsBody"></tbody></table></div>
+</div>
+</div>
+
+<!-- Mapping Rules -->
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Mapping Rules</h4>
+<div class="data-group-body" style="display:none">
+<p style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">Auto-populate dimensions when a project is selected. Rules apply across vendor, T&amp;E, contractor, and employee modules.</p>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end">
+<div><label style="font-size:.68rem">Project</label><select id="dimRuleProject" style="padding:3px 6px;font-size:.78rem"><option value="">Select...</option></select></div>
+<div><label style="font-size:.68rem">→ Market</label><select id="dimRuleMarket" style="padding:3px 6px;font-size:.78rem"><option value="">—</option></select></div>
+<div><label style="font-size:.68rem">→ Biz Line</label><select id="dimRuleBizLine" style="padding:3px 6px;font-size:.78rem"><option value="">—</option></select></div>
+<div><label style="font-size:.68rem">→ Product</label><input id="dimRuleProduct" placeholder="Product" style="width:100px;padding:3px 6px;font-size:.78rem"></div>
+<div><label style="font-size:.68rem">→ Category</label><input id="dimRuleCategory" placeholder="Category" style="width:100px;padding:3px 6px;font-size:.78rem"></div>
+<button class="btn btn-sm btn-primary" id="dimBtnAddRule" style="padding:3px 8px;font-size:.78rem">Add Rule</button>
+</div>
+<div id="dimMappingRulesList" style="display:flex;flex-direction:column;gap:4px"></div>
+</div>
+</div>
+
+<!-- Comp Assumptions (moved from data panel) -->
+<div class="data-section">
+<h4 class="data-group-toggle" style="cursor:pointer;user-select:none">&#9654; Comp Assumptions</h4>
+<div class="data-group-body" style="display:none">
+<div class="data-sub"><h5>Bonus Matrix</h5><p>Upload bonus percentages as a Seniority × Function grid.</p>
+<button class="btn" id="btnDlBonusTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBonus">Upload Bonus</button>
+<input type="file" id="bonusFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
+<div class="data-sub"><h5>Benefits Matrix</h5><p>Upload benefits percentages and country multipliers.</p>
+<button class="btn" id="btnDlBenefitsTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBenefits">Upload Benefits</button>
+<input type="file" id="benefitsFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
+<div class="data-sub"><h5>Base Comp Rates</h5><p>Upload seniority base salaries, function &amp; country multipliers.</p>
+<button class="btn" id="btnDlBaseCompTemplate">Download Template</button>
+<button class="btn btn-primary" id="btnUploadBaseComp">Upload Base Comp</button>
+<input type="file" id="baseCompFileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>
+</div>
+</div>
+
 </div>
 
 <div id="undoToast"><span id="undoToastMsg"></span><button id="undoToastBtn">Undo</button></div>
@@ -3324,7 +3441,8 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btb-btn" id="btbSettings">settings</button>
 <button class="btb-btn" id="btbScenario">scenario comp.</button>
 <button class="btb-btn" id="btbValidation">validation</button>
-<button class="btb-btn" id="btbData">data &amp; dimensions</button>
+<button class="btb-btn" id="btbDims">dimensions</button>
+<button class="btb-btn" id="btbData">data</button>
 </div>
 </div>
 

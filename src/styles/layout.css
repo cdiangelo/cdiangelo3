@@ -50,28 +50,29 @@ nav button.active{background:var(--accent);border-color:var(--accent);color:#fff
 #globalToolbar .btn:hover{color:var(--accent-light);border-color:var(--accent)}
 
 /* Left-side toggle buttons — hidden, replaced by bottom toolbar */
-.scenario-toggle-btn,.guide-toggle-btn,.data-toggle-btn{display:none!important}
+.scenario-toggle-btn,.guide-toggle-btn,.data-toggle-btn,.dims-toggle-btn{display:none!important}
 
 /* Slide panels — now slide from the RIGHT */
-.scenario-slide-panel,.guide-slide-panel,.data-slide-panel{position:fixed;right:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-left:1px solid var(--border);z-index:1050;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto;padding:20px;box-shadow:-4px 0 20px rgba(0,0,0,.12)}
-.scenario-slide-panel.open,.guide-slide-panel.open,.data-slide-panel.open{transform:translateX(0)}
+.scenario-slide-panel,.guide-slide-panel,.data-slide-panel,.dims-slide-panel{position:fixed;right:0;top:0;bottom:0;width:50vw;min-width:480px;background:var(--bg);border-left:1px solid var(--border);z-index:1050;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto;padding:20px;box-shadow:-4px 0 20px rgba(0,0,0,.12)}
+.scenario-slide-panel.open,.guide-slide-panel.open,.data-slide-panel.open,.dims-slide-panel.open{transform:translateX(0)}
 
 /* Content shift — push content left when panel is open from the right */
 body.scenario-open main,body.scenario-open header,body.scenario-open #landingPage{margin-right:50vw;transition:margin-right .3s ease}
 body:not(.scenario-open) main,body:not(.scenario-open) header,body:not(.scenario-open) #landingPage{transition:margin-right .3s ease}
-body.scenario-open .section-title,body.data-open .section-title{font-size:.88rem}
-body.scenario-open header h1,body.data-open header h1{font-size:1rem}
-body.scenario-open nav button,body.data-open nav button{font-size:.72rem;padding:4px 8px}
-body.scenario-open #landingPage,body.data-open #landingPage{max-width:100%;padding:20px}
-body.scenario-open .landing-modules,body.data-open .landing-modules{grid-template-columns:1fr}
-body.scenario-open .landing-charts,body.data-open .landing-charts{grid-template-columns:1fr}
-body.scenario-open #landingPnlGrid,body.data-open #landingPnlGrid{grid-template-columns:1fr}
-body.scenario-open .pnl-walk .table-wrap,body.data-open .pnl-walk .table-wrap{overflow-x:auto}
+body.scenario-open .section-title,body.data-open .section-title,body.dims-open .section-title{font-size:.88rem}
+body.scenario-open header h1,body.data-open header h1,body.dims-open header h1{font-size:1rem}
+body.scenario-open nav button,body.data-open nav button,body.dims-open nav button{font-size:.72rem;padding:4px 8px}
+body.scenario-open #landingPage,body.data-open #landingPage,body.dims-open #landingPage{max-width:100%;padding:20px}
+body.scenario-open .landing-modules,body.data-open .landing-modules,body.dims-open .landing-modules{grid-template-columns:1fr}
+body.scenario-open .landing-charts,body.data-open .landing-charts,body.dims-open .landing-charts{grid-template-columns:1fr}
+body.scenario-open #landingPnlGrid,body.data-open #landingPnlGrid,body.dims-open #landingPnlGrid{grid-template-columns:1fr}
+body.scenario-open .pnl-walk .table-wrap,body.data-open .pnl-walk .table-wrap,body.dims-open .pnl-walk .table-wrap{overflow-x:auto}
 
 body.guide-open main,body.guide-open header,body.guide-open #landingPage{margin-right:50vw;transition:margin-right .3s ease}
 body.data-open main,body.data-open header,body.data-open #landingPage{margin-right:50vw;transition:margin-right .3s ease}
+body.dims-open main,body.dims-open header,body.dims-open #landingPage{margin-right:50vw;transition:margin-right .3s ease}
 
-body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptionsModal,body.guide-open #forecastAssumptionsModal{padding-right:50vw;transition:padding-right .3s ease}
+body.scenario-open #forecastAssumptionsModal,body.data-open #forecastAssumptionsModal,body.guide-open #forecastAssumptionsModal,body.dims-open #forecastAssumptionsModal{padding-right:50vw;transition:padding-right .3s ease}
 
 /* Guide panel internal styles */
 .guide-slide-panel .guide-section{border-bottom:1px solid var(--border);padding:12px 0}
