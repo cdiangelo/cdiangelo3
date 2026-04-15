@@ -2167,92 +2167,137 @@ function getContractorCapExByMonth(mi){
 }
 
 
-// ── Other Tabs (C&B Other + OAO Other) — monthly grids ──
+// ── Unified Other Tab (C&B + OAO rows with Type column) ──
 const OTHER_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 function initOtherTab(){
   if(!state.cbOtherRows)state.cbOtherRows=[];
   if(!state.oaoOtherRows)state.oaoOtherRows=[];
 
-  function renderOtherGrid(prefix,arr,tbodyEl,tfootEl){
+  // Build a unified view: each entry is {cat, idx, row}
+  function getUnifiedRows(){
+    const rows=[];
+    state.cbOtherRows.forEach((row,idx)=>rows.push({cat:'cb',idx,row}));
+    state.oaoOtherRows.forEach((row,idx)=>rows.push({cat:'oao',idx,row}));
+    return rows;
+  }
+
+  function renderUnifiedOther(){
+    const tbody=document.getElementById('unifiedOtherTbody');
+    const tfoot=document.getElementById('unifiedOtherTotalRow');
+    if(!tbody||!tfoot)return;
+    const unified=getUnifiedRows();
     let h='';
-    arr.forEach((row,i)=>{
+    unified.forEach((entry,ri)=>{
+      const {cat,idx,row}=entry;
       const fy=OTHER_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
-      h+=`<tr data-oi="${i}">`;
-      h+=`<td><input class="${prefix}-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
-      h+=`<td class="${prefix}-fy" style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
+      h+=`<tr data-ri="${ri}" data-cat="${cat}" data-idx="${idx}">`;
+      h+=`<td><select class="uo-type" style="width:100%;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);font-size:.74rem;padding:2px 4px">
+        <option value="cb"${cat==='cb'?' selected':''}>C&B</option>
+        <option value="oao"${cat==='oao'?' selected':''}>OAO</option>
+      </select></td>`;
+      h+=`<td><input class="uo-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+      h+=`<td class="uo-fy" style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
       OTHER_MO.forEach(m=>{
         const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
         const displayed=parseFloat(raw)||0;
         const formatted=displayed?'$'+Number(displayed).toLocaleString('en-US'):'0';
-        h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:85px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right"></td>`;
+        h+=`<td><input class="uo-field uo-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:85px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right"></td>`;
       });
-      h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-oi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
+      h+=`<td><button class="btn btn-sm btn-danger uo-del" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     });
-    tbodyEl.innerHTML=h;
+    tbody.innerHTML=h;
 
-    // Footer total
-    const moTotals=OTHER_MO.map(m=>arr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
-    const fyTotal=moTotals.reduce((s,v)=>s+v,0);
-    let ft=`<tr style="font-weight:700;background:var(--panel);border-top:2px solid var(--border)"><td style="font-size:.78rem">TOTAL</td><td style="text-align:right;font-size:.82rem">${fmtScaled(fyTotal)}</td>`;
-    moTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
+    // Footer totals — split into two rows: C&B total and OAO total
+    const cbTotals=OTHER_MO.map(m=>(state.cbOtherRows||[]).reduce((s,r)=>s+(parseFloat(r[m])||0),0));
+    const oaoTotals=OTHER_MO.map(m=>(state.oaoOtherRows||[]).reduce((s,r)=>s+(parseFloat(r[m])||0),0));
+    const cbFy=cbTotals.reduce((s,v)=>s+v,0);
+    const oaoFy=oaoTotals.reduce((s,v)=>s+v,0);
+    let ft='';
+    ft+=`<tr style="font-weight:700;background:var(--panel);border-top:2px solid var(--border)"><td style="font-size:.72rem;color:var(--accent)">C&B</td><td style="font-size:.78rem">Subtotal</td><td style="text-align:right;font-size:.82rem">${fmtScaled(cbFy)}</td>`;
+    cbTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
     ft+='<td></td></tr>';
-    tfootEl.innerHTML=ft;
+    ft+=`<tr style="font-weight:700;background:var(--panel)"><td style="font-size:.72rem;color:var(--accent)">OAO</td><td style="font-size:.78rem">Subtotal</td><td style="text-align:right;font-size:.82rem">${fmtScaled(oaoFy)}</td>`;
+    oaoTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
+    ft+='<td></td></tr>';
+    tfoot.innerHTML=ft;
+
+    // Bind type selects (moves row between arrays)
+    tbody.querySelectorAll('.uo-type').forEach(sel=>{
+      sel.addEventListener('change',()=>{
+        const tr=sel.closest('tr');
+        const oldCat=tr.dataset.cat;
+        const oldIdx=parseInt(tr.dataset.idx);
+        const newCat=sel.value;
+        if(oldCat===newCat)return;
+        const srcArr=oldCat==='cb'?state.cbOtherRows:state.oaoOtherRows;
+        const destArr=newCat==='cb'?state.cbOtherRows:state.oaoOtherRows;
+        const [row]=srcArr.splice(oldIdx,1);
+        destArr.push(row);
+        saveState();renderUnifiedOther();
+        try{renderPnlWalk()}catch(e){}
+        try{renderLandingCharts()}catch(e){}
+      });
+    });
 
     // Bind field inputs
-    tbodyEl.querySelectorAll(`.${prefix}-field`).forEach(inp=>{
+    tbody.querySelectorAll('.uo-field').forEach(inp=>{
       const handler=()=>{
-        const idx=+inp.closest('tr').dataset.oi;
+        const tr=inp.closest('tr');
+        const cat=tr.dataset.cat;
+        const idx=parseInt(tr.dataset.idx);
+        const arr=cat==='cb'?state.cbOtherRows:state.oaoOtherRows;
+        if(!arr[idx])return;
         const f=inp.dataset.f;
-        if(inp.classList.contains(`${prefix}-mo`)){
-          const v=parseFloat(inp.value.replace(/[$,]/g,''))||0;
+        if(inp.classList.contains('uo-mo')){
+          const v=parseFloat(String(inp.value).replace(/[$,]/g,''))||0;
           arr[idx][f]=v;
           inp.dataset.raw=v;
         } else {
           arr[idx][f]=inp.value;
         }
-        saveState();renderOtherGrid(prefix,arr,tbodyEl,tfootEl);
-        renderPnlWalk();renderLandingCharts();
+        saveState();renderUnifiedOther();
+        try{renderPnlWalk()}catch(e){}
+        try{renderLandingCharts()}catch(e){}
       };
-      if(inp.classList.contains(`${prefix}-mo`)){
+      if(inp.classList.contains('uo-mo')){
         inp.addEventListener('focus',()=>{inp.value=inp.dataset.raw||'0';inp.select()});
         inp.addEventListener('blur',handler);
       } else {
         inp.addEventListener('change',handler);
       }
     });
-    // Delete
-    tbodyEl.querySelectorAll(`.${prefix}-del`).forEach(btn=>{
-      btn.addEventListener('click',()=>{arr.splice(+btn.dataset.oi,1);saveState();renderOtherGrid(prefix,arr,tbodyEl,tfootEl);renderPnlWalk();renderLandingCharts()});
+
+    // Bind delete
+    tbody.querySelectorAll('.uo-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const tr=btn.closest('tr');
+        const cat=tr.dataset.cat;
+        const idx=parseInt(tr.dataset.idx);
+        const arr=cat==='cb'?state.cbOtherRows:state.oaoOtherRows;
+        arr.splice(idx,1);
+        saveState();renderUnifiedOther();
+        try{renderPnlWalk()}catch(e){}
+        try{renderLandingCharts()}catch(e){}
+      });
     });
   }
 
-  // C&B Other
-  const cbTbody=document.getElementById('cbOtherTbody');
-  const cbTfoot=document.getElementById('cbOtherTotalRow');
-  if(cbTbody&&cbTfoot){
-    renderOtherGrid('cbo',state.cbOtherRows,cbTbody,cbTfoot);
-    const cbAddBtn=document.getElementById('cbOtherAddBtn');
-    if(cbAddBtn)cbAddBtn.onclick=()=>{
-      const inp=document.getElementById('cbOtherNewName');
-      const name=(inp?inp.value:'').trim();if(!name)return;
-      state.cbOtherRows.push({description:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
-      if(inp)inp.value='';saveState();
-      renderOtherGrid('cbo',state.cbOtherRows,cbTbody,cbTfoot);
-    };
-  }
+  renderUnifiedOther();
 
-  // OAO Other
-  const oaoTbody=document.getElementById('oaoOtherTbody');
-  const oaoTfoot=document.getElementById('oaoOtherTotalRow');
-  if(oaoTbody&&oaoTfoot){
-    renderOtherGrid('oaoo',state.oaoOtherRows,oaoTbody,oaoTfoot);
-    const oaoAddBtn=document.getElementById('oaoOtherAddBtn');
-    if(oaoAddBtn)oaoAddBtn.onclick=()=>{
-      const inp=document.getElementById('oaoOtherNewName');
-      const name=(inp?inp.value:'').trim();if(!name)return;
-      state.oaoOtherRows.push({description:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
-      if(inp)inp.value='';saveState();
-      renderOtherGrid('oaoo',state.oaoOtherRows,oaoTbody,oaoTfoot);
+  // Add row button
+  const addBtn=document.getElementById('unifiedOtherAddBtn');
+  if(addBtn){
+    addBtn.onclick=()=>{
+      const inp=document.getElementById('unifiedOtherNewName');
+      const typeSel=document.getElementById('unifiedOtherNewType');
+      const name=(inp?inp.value:'').trim();
+      const type=typeSel?typeSel.value:'cb';
+      if(!name)return;
+      const newRow={description:name,jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0};
+      if(type==='cb')state.cbOtherRows.push(newRow);
+      else state.oaoOtherRows.push(newRow);
+      if(inp)inp.value='';
+      saveState();renderUnifiedOther();
     };
   }
 }

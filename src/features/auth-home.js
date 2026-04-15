@@ -18,7 +18,21 @@ function getUser(){
   return raw?JSON.parse(raw):null;
 }
 function setUser(u){localStorage.setItem(USER_KEY,JSON.stringify(u))}
-function clearUser(){localStorage.removeItem(USER_KEY)}
+function clearUser(){
+  localStorage.removeItem(USER_KEY);
+  // Clear user-specific data that could leak between accounts on shared devices
+  localStorage.removeItem('webplan-activity-log');
+  localStorage.removeItem('compPlanSession');
+  localStorage.removeItem('compPlanOps');
+  localStorage.removeItem('webplan-ops-admin');
+  localStorage.removeItem('webplan-module-access');
+  // Invalidate in-memory plan cache
+  try{_planCache=null;_planCacheTime=0}catch(e){}
+  try{_cachedPlans=[]}catch(e){}
+  // Clear active plan and session context in memory
+  if(window._activePlan)window._activePlan=null;
+  if(window.sessionContext)window.sessionContext=null;
+}
 
 // API-backed plan file operations
 let _planCache=null;let _planCacheTime=0;
@@ -148,9 +162,13 @@ function showHomePage(){
   // Sign out
   document.getElementById('homeSignOut').onclick=()=>{
     clearUser();
+    // Clear UI to prevent showing cached plans from prior user
+    const planList=document.getElementById('homePlanList');if(planList)planList.innerHTML='';
+    const activityEl=document.getElementById('homeActivity');if(activityEl)activityEl.innerHTML='';
     document.getElementById('homePage').style.display='none';
     document.getElementById('authPage').style.display='';
     document.getElementById('authEmail').value='';
+    const adminPass=document.getElementById('authAdminPass');if(adminPass)adminPass.value='';
     document.querySelector('.auth-card').classList.remove('typing');
   };
 }

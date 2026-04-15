@@ -101,9 +101,9 @@
   const sumContent = document.getElementById('landingSummaryContent');
 
   function resetSubNavLabels(){
-    if(overviewBtn){overviewBtn.textContent='Overview';overviewBtn.onclick=()=>showOverviewTab()}
-    if(compBtn){compBtn.textContent='Exec Comp';compBtn.onclick=()=>showExecCompTab()}
-    if(pivotBtn){pivotBtn.style.display='';pivotBtn.onclick=()=>showPivotTab()}
+    if(overviewBtn){overviewBtn.textContent='Overview';overviewBtn.style.display='';overviewBtn.onclick=()=>showOverviewTab()}
+    if(compBtn){compBtn.textContent='Exec Comp';compBtn.style.display='';compBtn.onclick=()=>showExecCompTab()}
+    if(pivotBtn){pivotBtn.textContent='Pivot';pivotBtn.style.display='';pivotBtn.onclick=()=>showPivotTab()}
   }
 
   function clearExecSubNav(){
@@ -167,10 +167,10 @@
       const title=document.querySelector('#compHeaderBar .module-title');
       if(title)title.textContent='Compensation & Benefits';
       if(sumContent)sumContent.style.display='none';
-      // Sub-nav: Exec Comp + Employees + C&B Other
+      // Sub-nav: Exec Comp + Employees (C&B Other moved to Budget > Other)
       if(overviewBtn)overviewBtn.textContent='Exec Comp';
       if(compBtn)compBtn.textContent='Employees';
-      if(pivotBtn){pivotBtn.textContent='C&B Other';pivotBtn.style.display=''}
+      if(pivotBtn){pivotBtn.style.display='none'}
       // Default to exec comp
       document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'));
       const execTab=document.getElementById('tab-exec');if(execTab)execTab.classList.add('active');
@@ -189,12 +189,6 @@
         const et=document.getElementById('tab-employees');if(et)et.classList.add('active');
         compBtn.classList.add('active');
         if(window.renderEmployees)try{window.renderEmployees()}catch(e){}
-      };
-      if(pivotBtn)pivotBtn.onclick=()=>{
-        clearCbTabs();
-        const et=document.getElementById('tab-cb-other');if(et)et.classList.add('active');
-        pivotBtn.classList.add('active');
-        if(window.initOtherTab)try{window.initOtherTab()}catch(e){}
       };
       const prefix=window.planContext==='forecast'?'FCAST':'BUD';
       if(window._broadcastTab)window._broadcastTab(prefix+' - C&B');
@@ -231,8 +225,29 @@
     } else if(module==='ltf'){
       if(window.showLtf)window.showLtf();
       if(window._broadcastTab)window._broadcastTab('FCAST');
+
+    } else if(module==='other'){
+      // Unified Other tab: shows both C&B and OAO other rows
+      if(window.showApp)window.showApp();
+      const hb=document.getElementById('compHeaderBar');if(hb)hb.style.display='';
+      const title=document.querySelector('#compHeaderBar .module-title');
+      if(title)title.textContent='Other';
+      if(sumContent)sumContent.style.display='none';
+      // Hide all sub-nav buttons (only title shown)
+      if(overviewBtn)overviewBtn.style.display='none';
+      if(compBtn)compBtn.style.display='none';
+      if(pivotBtn)pivotBtn.style.display='none';
+      // Show the unified other tab
+      document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'));
+      const ot=document.getElementById('tab-cb-other');if(ot)ot.classList.add('active');
+      if(window.initOtherTab)try{window.initOtherTab()}catch(e){}
+      const prefix=window.planContext==='forecast'?'FCAST':'BUD';
+      if(window._broadcastTab)window._broadcastTab(prefix+' - Other');
     }
   }
+
+  // Expose for use by other navigation flows
+  window.navigateToModule = navigateToModule;
 
   // ═══ EXEC SUMMARY SUB-TABS ═══
 

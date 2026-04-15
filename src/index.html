@@ -248,6 +248,7 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="chevron-sub-item" data-module="contractors">Contractors</div>
 <div class="chevron-sub-item" data-module="te">T&amp;E</div>
 <div class="chevron-sub-item" data-module="depreciation">Depreciation, Capex, Assets</div>
+<div class="chevron-sub-item" data-module="other">Other</div>
 </div>
 </div>
 <div class="chevron-item" id="chevForecast" data-target="forecast">
@@ -847,17 +848,22 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- C&B Other Tab (separate tab under C&B module) -->
 <div id="tab-cb-other" class="tab-content" style="padding-top:56px">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;margin-top:8px">
-<h4 style="font-size:.92rem;font-weight:600;color:var(--text);margin:0">C&B Other</h4>
-<span style="font-size:.72rem;color:var(--text-dim)">Severance, signing bonuses, equity, etc. — feeds into C&B totals</span>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;margin-top:8px">
+<h4 style="font-size:.92rem;font-weight:600;color:var(--text);margin:0">Other</h4>
+<span style="font-size:.72rem;color:var(--text-dim)">Miscellaneous C&amp;B and OAO rows. The Type column determines whether each row flows into C&amp;B or OAO totals.</span>
 <div style="margin-left:auto;display:flex;gap:4px;align-items:center">
-<input id="cbOtherNewName" placeholder="Row name..." style="padding:3px 8px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:150px">
-<button class="btn btn-sm" id="cbOtherAddBtn" style="padding:3px 10px;font-size:.74rem">+ Add</button>
+<input id="unifiedOtherNewName" placeholder="Row name..." style="padding:3px 8px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:150px">
+<select id="unifiedOtherNewType" style="padding:3px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
+<option value="cb">C&amp;B</option>
+<option value="oao">OAO</option>
+</select>
+<button class="btn btn-sm" id="unifiedOtherAddBtn" style="padding:3px 10px;font-size:.74rem">+ Add</button>
 </div>
 </div>
 <div style="overflow-x:auto;overflow-y:visible">
-<table class="comp-table" id="cbOtherTable" style="font-size:.8rem;min-width:1400px">
+<table class="comp-table" id="unifiedOtherTable" style="font-size:.8rem;min-width:1500px">
 <thead><tr>
+<th style="min-width:80px">Type</th>
 <th style="min-width:180px">Description</th>
 <th class="num-col-lg" style="font-weight:700;white-space:nowrap">Full Year</th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
@@ -866,9 +872,16 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th class="v-hdr">Oct</th><th class="v-hdr">Nov</th><th class="v-hdr">Dec</th>
 <th style="width:40px"></th>
 </tr></thead>
-<tbody id="cbOtherTbody"></tbody>
-<tfoot id="cbOtherTotalRow"></tfoot>
+<tbody id="unifiedOtherTbody"></tbody>
+<tfoot id="unifiedOtherTotalRow"></tfoot>
 </table>
+</div>
+<!-- Legacy elements kept hidden for backwards compat with existing handlers -->
+<div style="display:none">
+<tbody id="cbOtherTbody"></tbody><tfoot id="cbOtherTotalRow"></tfoot>
+<tbody id="oaoOtherTbody"></tbody><tfoot id="oaoOtherTotalRow"></tfoot>
+<input id="cbOtherNewName"><button id="cbOtherAddBtn"></button>
+<input id="oaoOtherNewName"><button id="oaoOtherAddBtn"></button>
 </div>
 </div>
 
@@ -1270,7 +1283,6 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn active" data-vtab="vendor-grid">Vendor Spend</button>
 <button class="btn" data-vtab="vendor-contractors">Contractors</button>
 <button class="btn" data-vtab="vendor-te">T&amp;E</button>
-<button class="btn" data-vtab="vendor-other">OAO Other</button>
 </nav>
 </div>
 <main class="container" style="padding-top:24px">
