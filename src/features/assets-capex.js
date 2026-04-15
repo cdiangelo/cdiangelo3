@@ -12,7 +12,7 @@ const escHtml = (s) => window.escHtml ? window.escHtml(s) : String(s||'').replac
 
 // ── ASSETS & CAPEX MODULE ──
 // ══════════════════════════════════════════════════════════════════
-let assetScale=1;
+let assetScale=1000;
 let assetExpandedYears=new Set();
 const ASSET_YEARS=['2026','2027','2028','2029','2030'];
 const ASSET_MO_KEYS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
@@ -72,8 +72,8 @@ function renderAssetGrid(){
   th+='<th style="min-width:110px">Asset Type</th><th style="min-width:100px">Acquisition Date</th>';
   th+='<th style="min-width:80px">Life (Yrs)</th><th style="min-width:100px">Total Cost</th>';
   th+='<th style="min-width:110px">Acc. Depr</th><th style="min-width:100px">NBV</th>';
-  th+='<th style="min-width:100px">Notes</th><th style="min-width:100px">BU</th><th style="min-width:100px">Bus. Line</th>';
-  th+='<th style="min-width:80px">Market</th><th style="min-width:80px">Project</th><th style="min-width:120px">Account</th><th style="min-width:80px">Code</th>';
+  th+='<th style="min-width:100px">Notes</th><th class="cf-col" style="min-width:100px">BU</th><th class="cf-col" style="min-width:100px">Bus. Line</th>';
+  th+='<th class="cf-col" style="min-width:80px">Market</th><th class="cf-col" style="min-width:80px">Project</th><th class="cf-col" style="min-width:120px">Account</th><th class="cf-col" style="min-width:80px">Code</th>';
   let hasExpanded=false;
   ASSET_YEARS.forEach(yr=>{
     if(assetExpandedYears.has(yr)){
@@ -116,7 +116,8 @@ function renderAssetGrid(){
   const totalAccDepr=(state.assetRows||[]).reduce((s,r)=>s+(parseFloat(r.accDepr)||0),0);
   const totalCostAll=(state.assetRows||[]).reduce((s,r)=>s+(parseFloat(r.totalCost)||0),0);
   const totalNbv=totalCostAll-totalAccDepr;
-  let ft='<tr style="font-weight:700;background:var(--panel-inset)"><td colspan="2"></td><td>TOTAL</td><td colspan="4"></td><td class="num">'+fmtScaled(totalCostAll,assetScale)+'</td><td class="num">'+fmtScaled(totalAccDepr,assetScale)+'</td><td class="num" style="color:'+(totalNbv<0?'var(--danger)':'inherit')+'">'+fmtScaled(totalNbv,assetScale)+'</td><td colspan="6"></td>';
+  // Footer: 2 (drag/color) + 1 TOTAL + 4 (vendor/type/date/life) + 3 (totalCost/accDepr/nbv) + 1 notes + 6 cf-col = 17 cells before year cols
+  let ft='<tr style="font-weight:700;background:var(--panel-inset)"><td colspan="2"></td><td>TOTAL</td><td colspan="4"></td><td class="num">'+fmtScaled(totalCostAll,assetScale)+'</td><td class="num">'+fmtScaled(totalAccDepr,assetScale)+'</td><td class="num" style="color:'+(totalNbv<0?'var(--danger)':'inherit')+'">'+fmtScaled(totalNbv,assetScale)+'</td><td></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td>';
   ASSET_YEARS.forEach(yr=>{
     if(assetExpandedYears.has(yr)){
       ASSET_MO_KEYS.forEach(m=>{

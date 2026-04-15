@@ -46,7 +46,7 @@ function initVendorModule(){
   }
 
   function getBlankBg(){const dk=document.documentElement.classList.contains('dark');const cr=window.chartColorScheme==='crisp';if(dk)return cr?'background:#1e1e22;color:#555':'background:#2a2a2a;color:#666';return cr?'background:#ddd;color:#888':'background:#e8e8e8;color:#888'}
-  let vendorAmtScale=1;
+  let vendorAmtScale=1000;
   function getScaleLabel(){return vendorAmtScale===1000?'K':vendorAmtScale===1000000?'M':'$'}
   function scaleVal(v){return vendorAmtScale===1?v:Math.round((v/vendorAmtScale)*100)/100}
   function unscaleVal(v){return v*vendorAmtScale}
@@ -105,7 +105,7 @@ function initVendorModule(){
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
       const displayed=scaleVal(parseFloat(raw)||0);
       const formatted=vendorAmtScale===1&&displayed?'$'+Number(displayed).toLocaleString('en-US'):''+displayed;
-      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:85px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right" step="any"></td>`;
+      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:54px;border:none;background:transparent;font-size:.72rem;padding:2px 4px;text-align:right" step="any"></td>`;
     });
     h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-vi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     return h;
@@ -330,10 +330,16 @@ function initVendorModule(){
     const moTotals=MO.map(m=>dataArr.reduce((s,r)=>s+(parseFloat(r[m])||0),0));
     const hasFilter=monthFilter&&monthFilter.size>0&&monthFilter.size<12;
     const fyTotal=hasFilter?moTotals.filter((_,i)=>monthFilter.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
-    // Use individual <td>s instead of colspan to prevent column misalignment
+    // Use individual <td>s instead of colspan to prevent column misalignment.
+    // Padding layout: N empty cells where the 6 cells preceding the last (rateIncrease)
+    // correspond to chartfield columns — they must carry .cf-col so collapsing stays aligned.
     const label=`TOTAL${hasFilter?' (filtered)':''}`;
     let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${label}</td>`;
-    for(let c=1;c<colSpan;c++)ft+='<td></td>';
+    const loopCount=colSpan-1; // number of padding cells after label
+    for(let c=1;c<=loopCount;c++){
+      const isCf=c>=loopCount-6&&c<=loopCount-1;
+      ft+=isCf?'<td class="cf-col"></td>':'<td></td>';
+    }
     ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;font-weight:700">${fmtScaled(fyTotal)}</td>`;
     moTotals.forEach((t,mi)=>{
       const dim=hasFilter&&!monthFilter.has(mi)?'opacity:.35;':'';
@@ -725,7 +731,7 @@ function initVendorModule(){
 
   // ── Contractors Tab ──
   let contractorSelectedMonths=new Set();
-  let contractorAmtScale=1;
+  let contractorAmtScale=1000;
   let contractorView='expense'; // expense, capex, opex
   let contractorSortCol=null,contractorSortAsc=true;
 
@@ -812,7 +818,7 @@ function initVendorModule(){
       else displayed=contractorAmtScale===1?raw:Math.round((raw/contractorAmtScale)*100)/100;
       const isReadonly=contractorView!=='expense';
       const fmtDisp=contractorAmtScale===1&&displayed?'$'+Number(displayed).toLocaleString('en-US'):''+displayed;
-      h+=`<td><input class="cr-field cr-mo" data-f="${m}" type="text" value="${isReadonly?fmtDisp:fmtDisp}" data-raw="${displayed}" style="width:100%;min-width:80px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right${isReadonly?';color:var(--text-dim)':''}" step="any" ${isReadonly?'readonly':''}></td>`;
+      h+=`<td><input class="cr-field cr-mo" data-f="${m}" type="text" value="${isReadonly?fmtDisp:fmtDisp}" data-raw="${displayed}" style="width:100%;min-width:54px;border:none;background:transparent;font-size:.72rem;padding:2px 4px;text-align:right${isReadonly?';color:var(--text-dim)':''}" step="any" ${isReadonly?'readonly':''}></td>`;
     });
     h+=`<td><button class="btn btn-sm btn-danger cr-del" data-ci="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     return h;
@@ -833,9 +839,13 @@ function initVendorModule(){
     });
     const hasFilter=contractorSelectedMonths.size>0&&contractorSelectedMonths.size<12;
     const fyTotal=hasFilter?moTotals.filter((_,i)=>contractorSelectedMonths.has(i)).reduce((s,v)=>s+v,0):moTotals.reduce((s,v)=>s+v,0);
-    // Use individual <td>s instead of colspan to prevent column misalignment with data rows
+    // Use individual <td>s instead of colspan to prevent column misalignment with data rows.
+    // Contractor data row cells 0-15 before FY: drag(0) color(1) name(2) vendor(3) rate(4) startEnd(5) capPct(6)
+    // notes(7) BU(8)* bizLine(9)* market(10)* project(11)* acctDesc(12)* acctCode(13)* rateIncrease(14) FY(15)
+    // Footer: empty(0) empty(1) TOTAL(2) empty(3) empty(4) empty(5) empty(6) empty(7)
+    //   cf(8) cf(9) cf(10) cf(11) cf(12) cf(13) empty(14) FY(15)
     const totalLabel=`TOTAL${hasFilter?' (filtered)':''}${contractorView!=='expense'?' — '+contractorView.toUpperCase():''}`;
-    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${totalLabel}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>`;
+    let ft=`<tr style="font-weight:700;background:var(--panel);border-bottom:2px solid var(--border)"><td></td><td></td><td style="font-size:.8rem;white-space:nowrap">${totalLabel}</td><td></td><td></td><td></td><td></td><td></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td></td>`;
     const fySv=contractorAmtScale===1?fyTotal:Math.round((fyTotal/contractorAmtScale)*100)/100;
     const fySuf=contractorAmtScale===1000?'K':contractorAmtScale===1000000?'M':'';
     ft+=`<td style="text-align:right;font-size:.82rem;white-space:nowrap;font-weight:700">$${fySv.toLocaleString('en-US',{maximumFractionDigits:2})}${fySuf}</td>`;
@@ -2216,7 +2226,7 @@ function initOtherTab(){
         const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
         const displayed=parseFloat(raw)||0;
         const formatted=displayed?'$'+Number(displayed).toLocaleString('en-US'):'0';
-        h+=`<td><input class="uo-field uo-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:85px;border:none;background:transparent;font-size:.74rem;padding:3px 6px;text-align:right"></td>`;
+        h+=`<td><input class="uo-field uo-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:54px;border:none;background:transparent;font-size:.72rem;padding:2px 4px;text-align:right"></td>`;
       });
       h+=`<td><button class="btn btn-sm btn-danger uo-del" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     });

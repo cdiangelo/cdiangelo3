@@ -102,11 +102,13 @@ th.num-col-sm,td.num-col-sm{min-width:70px;text-align:right;white-space:nowrap}
 th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 
 /* Compact input tables — reduce padding + font so more content fits without scrolling */
-.comp-table.compact-input th,.comp-table.compact-input td{padding:3px 5px}
-.comp-table.compact-input th{font-size:.66rem;letter-spacing:.04em}
-.comp-table.compact-input input,.comp-table.compact-input select{font-size:.74rem}
-.comp-table.compact-input td,.comp-table.compact-input td input{font-size:.74rem}
-.comp-table.compact-input .v-hdr{min-width:70px}
+.comp-table.compact-input th,.comp-table.compact-input td{padding:2px 4px}
+.comp-table.compact-input th{font-size:.64rem;letter-spacing:.04em}
+.comp-table.compact-input input,.comp-table.compact-input select{font-size:.72rem}
+.comp-table.compact-input td,.comp-table.compact-input td input{font-size:.72rem}
+.comp-table.compact-input .v-hdr{min-width:54px;max-width:66px;text-align:right}
+.comp-table.compact-input .num-col-lg{min-width:72px}
+.comp-table.compact-input td input[type="text"],.comp-table.compact-input td input[type="number"]{min-width:0}
 /* Collapse chartfield columns */
 .comp-table.cf-collapsed th.cf-col,.comp-table.cf-collapsed td.cf-col{display:none}
 .cf-toggle-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-mid)}

@@ -10,7 +10,7 @@ function initDepScratch() { if(window.initDepScratch) window.initDepScratch(); }
 // ── DEPRECIATION MODULE ──
 // ══════════════════════════════════════════════════════════════════
 let depModuleInited=false;
-let depScale=1,depSelectedMonths=new Set();
+let depScale=1000,depSelectedMonths=new Set();
 const moKeys=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 let depExpandedCategories=new Set();
 let depSortCol='',depSortDir=1;
@@ -128,9 +128,11 @@ function renderDepreciationGrid(){
   let h='';
   (state.depreciationRows||[]).forEach((row,i)=>{h+=buildDepRow(row,i)});
   tbody.innerHTML=h;
-  // Footer totals
+  // Footer totals — chartfield block emitted as individual .cf-col cells so
+  // collapsing chartfields keeps the footer aligned with data rows.
   let ft='<tr style="font-weight:700;background:var(--panel-inset)">';
-  ft+='<td colspan="2"></td><td>TOTAL</td><td colspan="6"></td><td colspan="6"></td>';
+  ft+='<td colspan="2"></td><td>TOTAL</td><td colspan="6"></td>';
+  ft+='<td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td>';
   moKeys.forEach(m=>{
     const t=(state.depreciationRows||[]).filter(r=>!r._isCategoryHeader).reduce((s,r)=>s+(parseFloat(r[m])||0),0);
     ft+='<td class="num">'+fmtScaled(t,depScale)+'</td>';

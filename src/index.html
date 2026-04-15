@@ -862,7 +862,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto;overflow-y:visible">
-<table class="comp-table compact-input" id="unifiedOtherTable" style="font-size:.75rem;min-width:2200px">
+<table class="comp-table compact-input" id="unifiedOtherTable" style="font-size:.72rem;min-width:1700px">
 <thead><tr>
 <th style="min-width:70px">Type</th>
 <th style="min-width:180px">Description</th>
@@ -1436,11 +1436,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
 <h3 class="section-title" style="margin:0">Vendor Spend Detail</h3>
 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<div class="toggle-group" id="vendorScaleToggle" style="margin-right:8px">
-<button class="btn active" data-vscale="1" style="padding:3px 10px;font-size:.78rem">$ Singles</button>
-<button class="btn" data-vscale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
-<button class="btn" data-vscale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
+<div class="toggle-group" id="vendorScaleToggle" style="display:none">
+<button class="btn" data-vscale="1000">$K</button>
 </div>
+<span style="font-size:.7rem;color:var(--text-dim);margin-right:6px">Values in $K</span>
 <button class="btn" id="vendorAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
 <button class="btn" id="vendorClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All Rows</button>
 <button class="btn cf-toggle-btn" data-target="vendorTable" style="padding:4px 12px;font-size:.82rem">Collapse Chartfields</button>
@@ -1450,7 +1449,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table compact-input" id="vendorTable" style="font-size:.75rem;min-width:2200px">
+<table class="comp-table compact-input" id="vendorTable" style="font-size:.72rem;min-width:1800px">
 <thead><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
@@ -1620,11 +1619,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
 <h3 class="section-title" style="margin:0">Travel &amp; Entertainment</h3>
 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<div class="toggle-group" id="teScaleToggle" style="margin-right:8px">
-<button class="btn active" data-vscale="1">$ Singles</button>
-<button class="btn" data-vscale="1000">$K Thousands</button>
-<button class="btn" data-vscale="1000000">$M Millions</button>
+<div class="toggle-group" id="teScaleToggle" style="display:none">
+<button class="btn" data-vscale="1000">$K</button>
 </div>
+<span style="font-size:.7rem;color:var(--text-dim);margin-right:6px">Values in $K</span>
 <button class="btn" id="teAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
 <button class="btn" id="teClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All Rows</button>
 <button class="btn cf-toggle-btn" data-target="teTable" style="padding:4px 12px;font-size:.82rem">Collapse Chartfields</button>
@@ -1632,7 +1630,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table compact-input" id="teTable" style="font-size:.75rem;min-width:2200px">
+<table class="comp-table compact-input" id="teTable" style="font-size:.72rem;min-width:1700px">
 <thead><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
@@ -1789,11 +1787,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
 <h3 class="section-title" style="margin:0">Contractor Detail</h3>
 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<div class="toggle-group" id="contractorScaleToggle" style="margin-right:8px">
-<button class="btn active" data-cscale="1" style="padding:3px 10px;font-size:.78rem">$ Singles</button>
-<button class="btn" data-cscale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
-<button class="btn" data-cscale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
+<div class="toggle-group" id="contractorScaleToggle" style="display:none">
+<button class="btn" data-cscale="1000">$K</button>
 </div>
+<span style="font-size:.7rem;color:var(--text-dim);margin-right:6px">Values in $K</span>
 <div class="toggle-group" id="contractorViewToggle" style="margin-right:4px">
 <button class="btn active" data-cview="expense" style="padding:3px 10px;font-size:.78rem">Expense</button>
 <button class="btn" data-cview="capex" style="padding:3px 10px;font-size:.78rem">CapEx</button>
@@ -1808,7 +1805,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table compact-input" id="contractorTable" style="font-size:.75rem;min-width:2800px">
+<table class="comp-table compact-input" id="contractorTable" style="font-size:.72rem;min-width:2100px">
 <thead><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
@@ -2121,11 +2118,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
 <h3 class="section-title" style="margin:0">Depreciation Schedule</h3>
 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<div class="toggle-group" id="depScaleToggle" style="margin-right:8px">
-<button class="btn active" data-dscale="1" style="padding:3px 10px;font-size:.78rem">$ Singles</button>
-<button class="btn" data-dscale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
-<button class="btn" data-dscale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
+<div class="toggle-group" id="depScaleToggle" style="display:none">
+<button class="btn" data-dscale="1000">$K</button>
 </div>
+<span style="font-size:.7rem;color:var(--text-dim);margin-right:6px">Values in $K</span>
 <button class="btn" id="depAddCategory" style="padding:4px 12px;font-size:.82rem">+ Add Category</button>
 <button class="btn" id="depAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Entry</button>
 <button class="btn" id="depClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All</button>
@@ -2136,7 +2132,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table compact-input" id="depTable" style="font-size:.75rem;min-width:2000px">
+<table class="comp-table compact-input" id="depTable" style="font-size:.72rem;min-width:1650px">
 <thead><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
@@ -2249,11 +2245,10 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
 <h3 class="section-title" style="margin:0">Asset &amp; CapEx Detail</h3>
 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-<div class="toggle-group" id="assetScaleToggle" style="margin-right:8px">
-<button class="btn active" data-ascale="1" style="padding:3px 10px;font-size:.78rem">$ Singles</button>
-<button class="btn" data-ascale="1000" style="padding:3px 10px;font-size:.78rem">$K Thousands</button>
-<button class="btn" data-ascale="1000000" style="padding:3px 10px;font-size:.78rem">$M Millions</button>
+<div class="toggle-group" id="assetScaleToggle" style="display:none">
+<button class="btn" data-ascale="1000">$K</button>
 </div>
+<span style="font-size:.7rem;color:var(--text-dim);margin-right:6px">Values in $K</span>
 <span style="font-size:.7rem;color:var(--text-dim)">(Click year header to expand/collapse months)</span>
 <button class="btn" id="assetExpandAllYears" style="padding:2px 8px;font-size:.72rem">Expand All Years</button>
 <button class="btn" id="assetCollapseAllYears" style="padding:2px 8px;font-size:.72rem">Collapse All Years</button>
@@ -2266,7 +2261,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table compact-input" id="assetTable" style="font-size:.75rem;min-width:1600px">
+<table class="comp-table compact-input" id="assetTable" style="font-size:.72rem;min-width:1500px">
 <thead id="assetThead"><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
