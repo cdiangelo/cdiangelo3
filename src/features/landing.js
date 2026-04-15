@@ -1561,10 +1561,10 @@ function renderLtfChart(){
     } else {
       fteDatasets=[{label:'Projected FTEs',data:cbRows.map(r=>r.hc),borderColor:lcc[0],backgroundColor:hexToRgba(lcc[0],0.15),fill:true,tension:0.4,pointRadius:3,borderWidth:2}];
     }
-    // Total FTE datalabel on topmost dataset
+    // Total FTE datalabel on topmost dataset — placed ABOVE the line with offset so it stays visible
     fteDatasets.forEach((ds,i)=>{
       if(i===fteDatasets.length-1){
-        ds.datalabels={display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,weight:'bold'},
+        ds.datalabels={display:true,anchor:'end',align:'top',offset:8,clamp:true,color:tickColor,font:{size:11,weight:'bold'},
           formatter:(_,ctx)=>{let sum=0;fteDatasets.forEach(d=>{const v=d.data[ctx.dataIndex];if(typeof v==='number')sum+=v});return sum||''}};
       } else {
         ds.datalabels={display:false};
@@ -1572,7 +1572,7 @@ function renderLtfChart(){
     });
     ltfFteChartInst=new Chart(fteCanvas,{
       type:'line',data:{labels:yearLabels,datasets:fteDatasets},
-      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},
         plugins:{legend:{display:fteDatasets.length>1,position:'bottom',labels:{color:tickColor,boxWidth:14,font:{size:12},padding:14}},datalabels:{},tooltip:window.FTE_TOOLTIP||{}},
         scales:{
           x:{ticks:{color:tickColor,font:{size:11}},grid:{display:false},stacked:true},

@@ -2183,6 +2183,19 @@ function initOtherTab(){
   if(!state.cbOtherRows)state.cbOtherRows=[];
   if(!state.oaoOtherRows)state.oaoOtherRows=[];
 
+  // Local helpers (fmtScaled / BU_OPTIONS / acctDescToCode are closure-scoped to
+  // initVendorModule and not accessible here, so redefine minimal versions)
+  const OTHER_SCALE=1000;
+  function otherFmt(n){
+    const v=n/OTHER_SCALE;
+    return '$'+v.toLocaleString('en-US',{maximumFractionDigits:2})+'K';
+  }
+  const OTHER_BU=Object.values(COUNTRY_BU).filter((v,i,a)=>a.indexOf(v)===i);
+  function otherAcctCode(desc){
+    const a=(state.accounts||[]).find(x=>x.description===desc);
+    return a?a.code:'';
+  }
+
   // Build a unified view: each entry is {cat, idx, row}
   function getUnifiedRows(){
     const rows=[];
@@ -2197,10 +2210,10 @@ function initOtherTab(){
     if(!tbody||!tfoot)return;
     const unified=getUnifiedRows();
     let h='';
-    // Chartfield option builders (same as vendor/te)
-    const buOpts=BU_OPTIONS.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
-    const mktOpts=state.markets.map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
-    const blOpts=state.bizLines.map(b=>`<option value="${esc(b.code)}">${esc(b.code)} — ${esc(b.name)}</option>`).join('');
+    // Chartfield option builders
+    const buOpts=OTHER_BU.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    const mktOpts=(state.markets||[]).map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
+    const blOpts=(state.bizLines||[]).map(b=>`<option value="${esc(b.code)}">${esc(b.code)} — ${esc(b.name)}</option>`).join('');
     const projOpts=state.projects.map(p=>`<option value="${esc(p.id)}">${esc(p.code)}</option>`).join('');
     // Accounts — accept both cb and oao groups
     const acctOpts=state.accounts.filter(a=>{const g=a.group||'vendor';return g==='cb'||g==='oao'||g==='vendor'}).map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
@@ -2220,12 +2233,12 @@ function initOtherTab(){
       h+=`<td class="cf-col"><select class="uo-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
       h+=`<td class="cf-col"><select class="uo-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
       h+=`<td class="cf-col"><select class="uo-field uo-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
-      h+=`<td class="uo-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
-      h+=`<td class="uo-fy" style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
+      h+=`<td class="uo-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${otherAcctCode(row.acctDesc)}</td>`;
+      h+=`<td class="uo-fy" style="font-weight:700;text-align:right;font-size:.72rem;white-space:nowrap">${otherFmt(fy)}</td>`;
       OTHER_MO.forEach(m=>{
         const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
         const displayed=parseFloat(raw)||0;
-        const formatted=displayed?'$'+Number(displayed).toLocaleString('en-US'):'0';
+        const formatted=displayed?otherFmt(displayed):'0';
         h+=`<td><input class="uo-field uo-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:54px;border:none;background:transparent;font-size:.72rem;padding:2px 4px;text-align:right"></td>`;
       });
       h+=`<td><button class="btn btn-sm btn-danger uo-del" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
@@ -2255,8 +2268,8 @@ function initOtherTab(){
       ft+=`<td style="font-size:.78rem">Subtotal</td>`;
       // 6 chartfield empty cells
       for(let i=0;i<6;i++)ft+=`<td class="cf-col"></td>`;
-      ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(fy)}</td>`;
-      totals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
+      ft+=`<td style="text-align:right;font-size:.72rem">${otherFmt(fy)}</td>`;
+      totals.forEach(t=>ft+=`<td style="text-align:right;font-size:.72rem">${otherFmt(t)}</td>`);
       ft+='<td></td></tr>';
       return ft;
     }
