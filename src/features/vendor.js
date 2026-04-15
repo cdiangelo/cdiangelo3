@@ -2187,6 +2187,14 @@ function initOtherTab(){
     if(!tbody||!tfoot)return;
     const unified=getUnifiedRows();
     let h='';
+    // Chartfield option builders (same as vendor/te)
+    const buOpts=BU_OPTIONS.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    const mktOpts=state.markets.map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
+    const blOpts=state.bizLines.map(b=>`<option value="${esc(b.code)}">${esc(b.code)} — ${esc(b.name)}</option>`).join('');
+    const projOpts=state.projects.map(p=>`<option value="${esc(p.id)}">${esc(p.code)}</option>`).join('');
+    // Accounts — accept both cb and oao groups
+    const acctOpts=state.accounts.filter(a=>{const g=a.group||'vendor';return g==='cb'||g==='oao'||g==='vendor'}).map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
+
     unified.forEach((entry,ri)=>{
       const {cat,idx,row}=entry;
       const fy=OTHER_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
@@ -2195,30 +2203,56 @@ function initOtherTab(){
         <option value="cb"${cat==='cb'?' selected':''}>C&B</option>
         <option value="oao"${cat==='oao'?' selected':''}>OAO</option>
       </select></td>`;
-      h+=`<td><input class="uo-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+      h+=`<td><input class="uo-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:2px 4px"></td>`;
+      // Chartfield columns
+      h+=`<td class="cf-col"><select class="uo-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
+      h+=`<td class="cf-col"><select class="uo-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
+      h+=`<td class="cf-col"><select class="uo-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
+      h+=`<td class="cf-col"><select class="uo-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
+      h+=`<td class="cf-col"><select class="uo-field uo-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
+      h+=`<td class="uo-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
       h+=`<td class="uo-fy" style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${fmtScaled(fy)}</td>`;
       OTHER_MO.forEach(m=>{
         const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
         const displayed=parseFloat(raw)||0;
         const formatted=displayed?'$'+Number(displayed).toLocaleString('en-US'):'0';
-        h+=`<td><input class="uo-field uo-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:85px;border:none;background:transparent;font-size:.82rem;padding:3px 6px;text-align:right"></td>`;
+        h+=`<td><input class="uo-field uo-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:85px;border:none;background:transparent;font-size:.74rem;padding:3px 6px;text-align:right"></td>`;
       });
       h+=`<td><button class="btn btn-sm btn-danger uo-del" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
     });
     tbody.innerHTML=h;
 
+    // Set selected values on select fields
+    tbody.querySelectorAll('tr').forEach(tr=>{
+      const cat=tr.dataset.cat;const idx=parseInt(tr.dataset.idx);
+      const arr=cat==='cb'?state.cbOtherRows:state.oaoOtherRows;
+      const r=arr[idx];if(!r)return;
+      tr.querySelectorAll('select.uo-field').forEach(sel=>{
+        const f=sel.dataset.f;
+        if(r[f])sel.value=r[f];
+      });
+    });
+
     // Footer totals — split into two rows: C&B total and OAO total
+    // Column layout before FY: type(1) + desc(1) + 6 chartfield = 8 empty cells before Subtotal label
     const cbTotals=OTHER_MO.map(m=>(state.cbOtherRows||[]).reduce((s,r)=>s+(parseFloat(r[m])||0),0));
     const oaoTotals=OTHER_MO.map(m=>(state.oaoOtherRows||[]).reduce((s,r)=>s+(parseFloat(r[m])||0),0));
     const cbFy=cbTotals.reduce((s,v)=>s+v,0);
     const oaoFy=oaoTotals.reduce((s,v)=>s+v,0);
+    function footerRow(label,cat,fy,totals){
+      let ft=`<tr style="font-weight:700;background:var(--panel)${cat==='cb'?';border-top:2px solid var(--border)':''}">`;
+      ft+=`<td style="font-size:.72rem;color:var(--accent)">${label}</td>`;
+      ft+=`<td style="font-size:.78rem">Subtotal</td>`;
+      // 6 chartfield empty cells
+      for(let i=0;i<6;i++)ft+=`<td class="cf-col"></td>`;
+      ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(fy)}</td>`;
+      totals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
+      ft+='<td></td></tr>';
+      return ft;
+    }
     let ft='';
-    ft+=`<tr style="font-weight:700;background:var(--panel);border-top:2px solid var(--border)"><td style="font-size:.72rem;color:var(--accent)">C&B</td><td style="font-size:.78rem">Subtotal</td><td style="text-align:right;font-size:.82rem">${fmtScaled(cbFy)}</td>`;
-    cbTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
-    ft+='<td></td></tr>';
-    ft+=`<tr style="font-weight:700;background:var(--panel)"><td style="font-size:.72rem;color:var(--accent)">OAO</td><td style="font-size:.78rem">Subtotal</td><td style="text-align:right;font-size:.82rem">${fmtScaled(oaoFy)}</td>`;
-    oaoTotals.forEach(t=>ft+=`<td style="text-align:right;font-size:.82rem">${fmtScaled(t)}</td>`);
-    ft+='<td></td></tr>';
+    ft+=footerRow('C&B','cb',cbFy,cbTotals);
+    ft+=footerRow('OAO','oao',oaoFy,oaoTotals);
     tfoot.innerHTML=ft;
 
     // Bind type selects (moves row between arrays)
