@@ -855,7 +855,8 @@ const barTotalPlugin={
       if(x==null)continue;
       const y=yScale.getPixelForValue(sum);
       const label='$'+(sum/1e6).toFixed(2)+'M';
-      ctx.fillText(label,x,y-4);
+      // Offset higher to clear Y/Y growth pills from adjacent transitions
+      ctx.fillText(label,x,y-8);
     }
     ctx.restore();
   }
@@ -979,19 +980,30 @@ function initLtfModule(){
   const _yrLabel=document.getElementById('ltfYearRangeLabel');
   function updateYearRange(){
     if(!_yrStart||!_yrEnd)return;
+    // Build labels: historicals (if enabled) + forecast
+    const fcLabels=window.getDisplayFcLabels?window.getDisplayFcLabels():['2026','2027','2028','2029','2030','2031'];
+    const h=state.historicals;
+    const histYrs=(h&&h.enabled&&h.years)?Object.keys(h.years).filter(y=>parseInt(y)<window.CURRENT_YEAR).sort():[];
+    const labels=[...histYrs,...fcLabels];
+    const maxIdx=Math.max(0,labels.length-1);
+    // Sync slider max
+    if(parseInt(_yrStart.max)!==maxIdx){_yrStart.max=maxIdx;_yrEnd.max=maxIdx}
     let s=parseInt(_yrStart.value),e=parseInt(_yrEnd.value);
+    if(isNaN(s))s=0;if(isNaN(e))e=maxIdx;
+    if(s>maxIdx)s=maxIdx;if(e>maxIdx)e=maxIdx;
     if(s>e){const t=s;s=e;e=t}
-    const labels=window.getDisplayFcLabels?window.getDisplayFcLabels():['2026','2027','2028','2029','2030','2031'];
     // Update track highlight
     if(_yrTrack){
-      const pctL=(s/5)*100,pctR=(e/5)*100;
+      const pctL=maxIdx>0?(s/maxIdx)*100:0;
+      const pctR=maxIdx>0?(e/maxIdx)*100:100;
       _yrTrack.style.left=pctL+'%';_yrTrack.style.width=(pctR-pctL)+'%';
     }
     // Render year labels along track
     if(_yrDots){
       _yrDots.innerHTML=labels.map((yr,i)=>{
         const active=i>=s&&i<=e;
-        return `<span style="font-size:.62rem;color:${active?'var(--accent)':'var(--tertiary)'};font-weight:${active?'600':'400'};transition:color .15s">${yr}</span>`;
+        const isHist=i<histYrs.length;
+        return `<span style="font-size:.62rem;color:${active?'var(--accent)':'var(--tertiary)'};font-weight:${active?'600':'400'};${isHist?'font-style:italic;':''}transition:color .15s">${yr}</span>`;
       }).join('');
     }
     // Range label
@@ -1000,6 +1012,7 @@ function initLtfModule(){
   }
   if(_yrStart){_yrStart.addEventListener('input',updateYearRange);updateYearRange()}
   if(_yrEnd)_yrEnd.addEventListener('input',updateYearRange);
+  window.ltfUpdateYearRange=updateYearRange;
 
   // Methodology toggle
   const methToggle=document.getElementById('ltfMethodToggle');
@@ -1461,23 +1474,14 @@ function renderLtfChart(){
     });
   }
 
-  // ── Year range filtering ──
-  const yrStartEl=document.getElementById('ltfYearStart');
-  const yrEndEl=document.getElementById('ltfYearEnd');
-  let sliceStart=yrStartEl?parseInt(yrStartEl.value):0;
-  let sliceEnd=yrEndEl?parseInt(yrEndEl.value):5;
-  if(sliceEnd<sliceStart){const t=sliceStart;sliceStart=sliceEnd;sliceEnd=t}
-
-  let chartLabels=yearLabels.slice(sliceStart,sliceEnd+1);
-  datasets.forEach(ds=>{ds.data=ds.data.slice(sliceStart,sliceEnd+1)});
-  acctData.forEach(ad=>{ad.data=ad.data.slice(sliceStart,sliceEnd+1)});
-
-  // ── Prepend historicals if enabled ──
+  // ── Prepend historicals FIRST so the slider range covers them ──
   const hist=state.historicals;
+  let allLabels=yearLabels.slice();
+  let histYears=[];
   if(hist&&hist.enabled&&hist.years){
-    const histYears=Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort();
+    histYears=Object.keys(hist.years).filter(y=>parseInt(y)<CURRENT_YEAR).sort();
     if(histYears.length){
-      chartLabels=[...histYears,...chartLabels];
+      allLabels=[...histYears,...allLabels];
       datasets.forEach(ds=>{
         const l=ds.label.toLowerCase();
         const histData=histYears.map(yr=>{
@@ -1507,14 +1511,39 @@ function renderLtfChart(){
     }
   }
 
+  // ── Year range filtering — slider now ranges across historicals + forecast ──
+  const yrStartEl=document.getElementById('ltfYearStart');
+  const yrEndEl=document.getElementById('ltfYearEnd');
+  // Ensure slider min/max match current label count (dynamic when historicals are toggled)
+  if(yrStartEl&&yrEndEl){
+    const newMax=Math.max(0,allLabels.length-1);
+    const oldMax=parseInt(yrStartEl.max);
+    if(oldMax!==newMax){
+      const oldStart=parseInt(yrStartEl.value);
+      const oldEnd=parseInt(yrEndEl.value);
+      // Shift existing values to stay on same forecast years when hist added/removed
+      const shift=newMax-oldMax;
+      yrStartEl.max=newMax;yrEndEl.max=newMax;
+      yrStartEl.value=Math.max(0,Math.min(newMax,oldStart+(shift>0?shift:0)));
+      yrEndEl.value=Math.max(0,Math.min(newMax,oldEnd+(shift>0?shift:0)));
+    }
+  }
+  let sliceStart=yrStartEl?parseInt(yrStartEl.value):0;
+  let sliceEnd=yrEndEl?parseInt(yrEndEl.value):Math.max(0,allLabels.length-1);
+  if(sliceEnd<sliceStart){const t=sliceStart;sliceStart=sliceEnd;sliceEnd=t}
+
+  let chartLabels=allLabels.slice(sliceStart,sliceEnd+1);
+  datasets.forEach(ds=>{ds.data=ds.data.slice(sliceStart,sliceEnd+1)});
+  acctData.forEach(ad=>{ad.data=ad.data.slice(sliceStart,sliceEnd+1)});
+
   window.stackedBarDatalabels(datasets,tickColor,8,'ltf');
   if(isPnl)datasets.filter(d=>d.label==='CapEx').forEach(d=>{d.datalabels={display:false}});
 
   ltfChartInst=new Chart(canvas,{
     type:'bar',data:{labels:chartLabels,datasets},
     plugins:[ltfYoyPlugin,barTotalPlugin],
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},
-      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:12},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:11},ltfYoy:{accountData:acctData,byAccount}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},
+      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:12},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:11},ltfYoy:{accountData:acctData,byAccount},yoyArrows:false},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}
     }
   });

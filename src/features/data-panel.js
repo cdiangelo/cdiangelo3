@@ -222,6 +222,7 @@ function initDataPanel(){
       state.historicals.enabled=histToggle.checked;
       if(window.saveState)window.saveState();
       renderHistoricalsList();
+      try{if(window.ltfUpdateYearRange)window.ltfUpdateYearRange()}catch(e){}
       try{if(window.renderLtfChart)window.renderLtfChart()}catch(e){}
       try{if(window.buildExecTrendYearToggle)window.buildExecTrendYearToggle()}catch(e){}
       try{if(window.renderExecView)window.renderExecView()}catch(e){}
@@ -303,7 +304,9 @@ function initDataPanel(){
             if(histToggle)histToggle.checked=true;
             if(window.saveState)window.saveState();
             renderHistoricalsList();
+            try{if(window.ltfUpdateYearRange)window.ltfUpdateYearRange()}catch(e){}
             try{if(window.renderLtfChart)window.renderLtfChart()}catch(e){}
+            try{if(window.buildExecTrendYearToggle)window.buildExecTrendYearToggle()}catch(e){}
           }
         }catch(err){alert('Failed to parse file: '+err.message)}
       };
