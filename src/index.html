@@ -247,8 +247,8 @@ Template Mode &mdash; changes saved in this browser only.
 <div class="chevron-sub-item" data-module="vendor">Vendor Spend</div>
 <div class="chevron-sub-item" data-module="contractors">Contractors</div>
 <div class="chevron-sub-item" data-module="te">T&amp;E</div>
-<div class="chevron-sub-item" data-module="depreciation">Depreciation, Capex, Assets</div>
 <div class="chevron-sub-item" data-module="other">Other</div>
+<div class="chevron-sub-item" data-module="depreciation">Depreciation, Capex, Assets</div>
 </div>
 </div>
 <div class="chevron-item" id="chevForecast" data-target="forecast">
@@ -861,7 +861,7 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 </div>
 <div style="overflow-x:auto;overflow-y:visible">
-<table class="comp-table" id="unifiedOtherTable" style="font-size:.8rem;min-width:1500px">
+<table class="comp-table compact-input" id="unifiedOtherTable" style="font-size:.75rem;min-width:1500px">
 <thead><tr>
 <th style="min-width:80px">Type</th>
 <th style="min-width:180px">Description</th>
@@ -1436,13 +1436,14 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 <button class="btn" id="vendorAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
 <button class="btn" id="vendorClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All Rows</button>
+<button class="btn cf-toggle-btn" data-target="vendorTable" style="padding:4px 12px;font-size:.82rem">Collapse Chartfields</button>
 <button class="btn" id="vendorImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
 <button class="btn" id="vendorExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
 <input type="file" id="vendorFileInput" accept=".xlsx,.xls,.csv" style="display:none">
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table" id="vendorTable" style="font-size:.8rem;min-width:2200px">
+<table class="comp-table compact-input" id="vendorTable" style="font-size:.75rem;min-width:2200px">
 <thead><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
@@ -1450,12 +1451,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th class="sortable" data-vsort="vendorName" style="min-width:130px">Vendor Name <span class="sort-arrow"></span></th>
 <th class="sortable" data-vsort="vendorType" style="min-width:140px">Vendor Type <span class="sort-arrow"></span></th>
 <th style="min-width:100px">Notes</th>
-<th class="sortable" data-vsort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
-<th class="sortable" data-vsort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
-<th class="sortable" data-vsort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
-<th class="sortable" data-vsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
-<th class="sortable" data-vsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
-<th style="min-width:80px">Account Code</th>
+<th class="sortable cf-col" data-vsort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-vsort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-vsort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-vsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-vsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
+<th class="cf-col" style="min-width:80px">Account Code</th>
 <th style="min-width:110px">Rate Increase</th>
 <th class="sortable num-col-lg" data-vsort="fullYear" style="font-weight:700">Full Year <span class="sort-arrow"></span></th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
@@ -1619,23 +1620,24 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 <button class="btn" id="teAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
 <button class="btn" id="teClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All Rows</button>
+<button class="btn cf-toggle-btn" data-target="teTable" style="padding:4px 12px;font-size:.82rem">Collapse Chartfields</button>
 <button class="btn" id="teExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table" id="teTable" style="font-size:.8rem;min-width:2200px">
+<table class="comp-table compact-input" id="teTable" style="font-size:.75rem;min-width:2200px">
 <thead><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
 <th style="min-width:130px">Expense Type</th>
 <th style="min-width:120px">Description</th>
 <th style="min-width:100px">Notes</th>
-<th style="min-width:100px">Business Unit</th>
-<th style="min-width:120px">Bus. Line / Function</th>
-<th style="min-width:100px">Market</th>
-<th style="min-width:100px">Project</th>
-<th style="min-width:140px">Account Description</th>
-<th style="min-width:80px">Account Code</th>
+<th class="cf-col" style="min-width:100px">Business Unit</th>
+<th class="cf-col" style="min-width:120px">Bus. Line / Function</th>
+<th class="cf-col" style="min-width:100px">Market</th>
+<th class="cf-col" style="min-width:100px">Project</th>
+<th class="cf-col" style="min-width:140px">Account Description</th>
+<th class="cf-col" style="min-width:80px">Account Code</th>
 <th style="min-width:110px">Rate Increase</th>
 <th class="num-col-lg" style="font-weight:700">Full Year</th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
@@ -1792,13 +1794,14 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 <button class="btn" id="contractorAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Row</button>
 <button class="btn" id="contractorClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All Rows</button>
+<button class="btn cf-toggle-btn" data-target="contractorTable" style="padding:4px 12px;font-size:.82rem">Collapse Chartfields</button>
 <button class="btn" id="contractorImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
 <button class="btn" id="contractorExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
 <input type="file" id="contractorFileInput" accept=".xlsx,.xls,.csv" style="display:none">
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table" id="contractorTable" style="font-size:.8rem;min-width:2800px">
+<table class="comp-table compact-input" id="contractorTable" style="font-size:.75rem;min-width:2800px">
 <thead><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
@@ -1808,12 +1811,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th style="min-width:120px">Start / End Mo</th>
 <th style="min-width:80px">CapEx %</th>
 <th style="min-width:100px">Notes</th>
-<th class="sortable" data-csort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
-<th class="sortable" data-csort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
-<th class="sortable" data-csort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
-<th class="sortable" data-csort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
-<th class="sortable" data-csort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
-<th style="min-width:80px">Account Code</th>
+<th class="sortable cf-col" data-csort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-csort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-csort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-csort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-csort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
+<th class="cf-col" style="min-width:80px">Account Code</th>
 <th style="min-width:110px">Rate Increase</th>
 <th class="sortable num-col-lg" data-csort="fullYear" style="font-weight:700">Full Year <span class="sort-arrow"></span></th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
@@ -2119,13 +2122,14 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" id="depAddCategory" style="padding:4px 12px;font-size:.82rem">+ Add Category</button>
 <button class="btn" id="depAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Entry</button>
 <button class="btn" id="depClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All</button>
+<button class="btn cf-toggle-btn" data-target="depTable" style="padding:4px 12px;font-size:.82rem">Collapse Chartfields</button>
 <button class="btn" id="depImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
 <button class="btn" id="depExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
 <input type="file" id="depFileInput" accept=".xlsx,.xls,.csv" style="display:none">
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table" id="depTable" style="font-size:.8rem;min-width:2000px">
+<table class="comp-table compact-input" id="depTable" style="font-size:.75rem;min-width:2000px">
 <thead><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>
@@ -2136,12 +2140,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <th style="min-width:100px">Notes</th>
 <th style="min-width:110px">Amount</th>
 <th style="min-width:90px">Impairment</th>
-<th class="sortable" data-dsort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
-<th class="sortable" data-dsort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
-<th class="sortable" data-dsort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
-<th class="sortable" data-dsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
-<th class="sortable" data-dsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
-<th style="min-width:80px">Account Code</th>
+<th class="sortable cf-col" data-dsort="businessUnit" style="min-width:100px">Business Unit <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-dsort="bizLine" style="min-width:120px">Bus. Line / Function <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-dsort="market" style="min-width:100px">Market <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-dsort="project" style="min-width:100px">Project <span class="sort-arrow"></span></th>
+<th class="sortable cf-col" data-dsort="acctDesc" style="min-width:140px">Account Description <span class="sort-arrow"></span></th>
+<th class="cf-col" style="min-width:80px">Account Code</th>
 <th class="v-hdr">Jan</th><th class="v-hdr">Feb</th><th class="v-hdr">Mar</th>
 <th class="v-hdr">Apr</th><th class="v-hdr">May</th><th class="v-hdr">Jun</th>
 <th class="v-hdr">Jul</th><th class="v-hdr">Aug</th><th class="v-hdr">Sep</th>
@@ -2248,13 +2252,14 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn" id="assetCollapseAllYears" style="padding:2px 8px;font-size:.72rem">Collapse All Years</button>
 <button class="btn" id="assetAddRow" style="padding:4px 12px;font-size:.82rem">+ Add Asset</button>
 <button class="btn" id="assetClearAllRows" style="padding:4px 12px;font-size:.82rem;color:var(--danger,#c00)">Clear All</button>
+<button class="btn cf-toggle-btn" data-target="assetTable" style="padding:4px 12px;font-size:.82rem">Collapse Chartfields</button>
 <button class="btn" id="assetImportBtn" style="padding:4px 12px;font-size:.82rem">Import Excel</button>
 <button class="btn" id="assetExportBtn" style="padding:4px 12px;font-size:.82rem">Export Excel</button>
 <input type="file" id="assetFileInput" accept=".xlsx,.xls,.csv" style="display:none">
 </div>
 </div>
 <div style="overflow-x:auto">
-<table class="comp-table" id="assetTable" style="font-size:.8rem;min-width:1600px">
+<table class="comp-table compact-input" id="assetTable" style="font-size:.75rem;min-width:1600px">
 <thead id="assetThead"><tr>
 <th style="width:30px"></th>
 <th style="width:30px" title="Color tag">&#9679;</th>

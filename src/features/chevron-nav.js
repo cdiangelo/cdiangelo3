@@ -70,7 +70,9 @@
       else if (module === 'vendor') navigateToModule('vendor');
       else if (module === 'contractors') navigateToModule('contractors');
       else if (module === 'te') navigateToModule('te');
+      else if (module === 'other') navigateToModule('other');
       else if (module === 'depreciation') navigateToModule('depreciation');
+      else if (module === 'forecast' || module === 'ltf') navigateToModule('ltf');
     });
   });
 

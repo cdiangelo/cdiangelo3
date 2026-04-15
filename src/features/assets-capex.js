@@ -5,6 +5,10 @@ import { state, saveState } from '../lib/state.js';
 const showUndoToast    = (...a) => window.showUndoToast(...a);
 const exportGridToExcel = (...a) => window.exportGridToExcel(...a);
 const importGridFromExcel = (...a) => window.importGridFromExcel(...a);
+// Shared helpers defined in depreciation.js, exposed via window
+const buildDimCells = (...a) => window.buildDimCells(...a);
+const fmtScaled = (...a) => window.fmtScaled(...a);
+const escHtml = (s) => window.escHtml ? window.escHtml(s) : String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 // ── ASSETS & CAPEX MODULE ──
 // ══════════════════════════════════════════════════════════════════

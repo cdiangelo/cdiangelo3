@@ -101,6 +101,16 @@ th.num-col,td.num-col{min-width:90px;text-align:right;white-space:nowrap}
 th.num-col-sm,td.num-col-sm{min-width:70px;text-align:right;white-space:nowrap}
 th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 
+/* Compact input tables — reduce padding + font so more content fits without scrolling */
+.comp-table.compact-input th,.comp-table.compact-input td{padding:3px 5px}
+.comp-table.compact-input th{font-size:.66rem;letter-spacing:.04em}
+.comp-table.compact-input input,.comp-table.compact-input select{font-size:.74rem}
+.comp-table.compact-input td,.comp-table.compact-input td input{font-size:.74rem}
+.comp-table.compact-input .v-hdr{min-width:70px}
+/* Collapse chartfield columns */
+.comp-table.cf-collapsed th.cf-col,.comp-table.cf-collapsed td.cf-col{display:none}
+.cf-toggle-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-mid)}
+
 /* Vendor detail list (lines 822-835) */
 .vendor-detail-list .vendor-row{display:flex;align-items:center;padding:3px 8px;border-bottom:1px solid var(--border-light);gap:6px;font-size:.72rem}
 .vendor-detail-list .vendor-row:hover{background:rgba(142,107,192,.06)}

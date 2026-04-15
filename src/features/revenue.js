@@ -5,6 +5,9 @@ import { fmt } from '../lib/constants.js';
 /* ── globals accessed via window (not yet modularised) ── */
 const showUndoToast   = (...a) => window.showUndoToast(...a);
 const getChartColors  = (...a) => window.getChartColors(...a);
+// Shared helpers defined in depreciation.js, exposed via window
+const buildDimCells   = (...a) => window.buildDimCells(...a);
+const fmtScaled       = (...a) => window.fmtScaled(...a);
 
 /* ── CDN globals (loaded externally, accessed via window) ── */
 const XLSX = window.XLSX;

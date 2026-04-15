@@ -71,13 +71,13 @@ function buildDepRow(row,i){
 
 function buildDimCells(cls,i,row){
   let h='';
-  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="businessUnit" style="width:90px">'+buildBuOptions(row.businessUnit)+'</select></td>';
-  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="bizLine" style="width:100px">'+buildBizLineOptions(row.bizLine)+'</select></td>';
-  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="market" style="width:80px">'+buildMarketOptions(row.market)+'</select></td>';
-  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="project" style="width:80px">'+buildProjectOptions(row.project)+'</select></td>';
-  h+='<td><select class="'+cls+'" data-di="'+i+'" data-f="acctDesc" style="width:120px">'+buildAcctOptions(row.acctDesc)+'</select></td>';
+  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="businessUnit" style="width:90px">'+buildBuOptions(row.businessUnit)+'</select></td>';
+  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="bizLine" style="width:100px">'+buildBizLineOptions(row.bizLine)+'</select></td>';
+  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="market" style="width:80px">'+buildMarketOptions(row.market)+'</select></td>';
+  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="project" style="width:80px">'+buildProjectOptions(row.project)+'</select></td>';
+  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="acctDesc" style="width:120px">'+buildAcctOptions(row.acctDesc)+'</select></td>';
   const ac=(state.accounts||[]).find(a=>a.description===row.acctDesc);
-  h+='<td style="font-size:.72rem;color:var(--text-dim)">'+(ac?ac.code:'')+'</td>';
+  h+='<td class="cf-col" style="font-size:.72rem;color:var(--text-dim)">'+(ac?ac.code:'')+'</td>';
   return h;
 }
 
@@ -393,6 +393,15 @@ window.addDepRow = addDepRow;
 window.initDepModule = initDepModule;
 window.getDepreciationTotal = getDepreciationTotal;
 window.getDepreciationByMonth = getDepreciationByMonth;
+// Shared helpers used by assets-capex.js and revenue.js (same-file bundled as separate ES modules)
+window.buildDimCells = buildDimCells;
+window.buildBuOptions = buildBuOptions;
+window.buildBizLineOptions = buildBizLineOptions;
+window.buildMarketOptions = buildMarketOptions;
+window.buildProjectOptions = buildProjectOptions;
+window.buildAcctOptions = buildAcctOptions;
+window.fmtScaled = fmtScaled;
+window.escHtml = escHtml;
 
 /* ── named exports ── */
 export {

@@ -84,12 +84,12 @@ function initVendorModule(){
       h+=`<td style="${blk(row.description)}"><input class="${prefix}-field" data-f="description" value="${esc(row.description)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
       h+=`<td><input class="${prefix}-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
     }
-    h+=`<td style="${blk(row.businessUnit)}"><select class="${prefix}-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
-    h+=`<td style="${blk(row.bizLine)}"><select class="${prefix}-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
-    h+=`<td style="${blk(row.market)}"><select class="${prefix}-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
-    h+=`<td style="${blk(row.project)}"><select class="${prefix}-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
-    h+=`<td style="${blk(row.acctDesc)}"><select class="${prefix}-field ${prefix}-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
-    h+=`<td class="${prefix}-acctCode" style="font-size:.78rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
+    h+=`<td class="cf-col" style="${blk(row.businessUnit)}"><select class="${prefix}-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.bizLine)}"><select class="${prefix}-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.market)}"><select class="${prefix}-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.project)}"><select class="${prefix}-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.acctDesc)}"><select class="${prefix}-field ${prefix}-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
+    h+=`<td class="${prefix}-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
     // Rate Increase column
     const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const riMo=typeof row._rateIncMonth==='number'?row._rateIncMonth:-1;
@@ -777,12 +777,12 @@ function initVendorModule(){
     // Notes
     h+=`<td><input class="cr-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
     // Shared dimension columns
-    h+=`<td style="${blk(row.businessUnit)}"><select class="cr-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
-    h+=`<td style="${blk(row.bizLine)}"><select class="cr-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
-    h+=`<td style="${blk(row.market)}"><select class="cr-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
-    h+=`<td style="${blk(row.project)}"><select class="cr-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
-    h+=`<td style="${blk(row.acctDesc)}"><select class="cr-field cr-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
-    h+=`<td class="cr-acctCode" style="font-size:.78rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
+    h+=`<td class="cf-col" style="${blk(row.businessUnit)}"><select class="cr-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.bizLine)}"><select class="cr-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.market)}"><select class="cr-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.project)}"><select class="cr-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.acctDesc)}"><select class="cr-field cr-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
+    h+=`<td class="cr-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
     // Rate Increase column
     const riMo=typeof row._rateIncMonth==='number'?row._rateIncMonth:-1;
     const riPct=parseFloat(row._rateIncPct)||0;
@@ -2314,6 +2314,20 @@ window.getOaoOtherTotal=getOaoOtherTotal;
 window.getOaoOtherByMonth=getOaoOtherByMonth;
 
 // initOtherTab called from openPlan after state is loaded
+
+// ── Chartfield collapse toggle — wires any .cf-toggle-btn to toggle cf-collapsed on target table ──
+(function initCfToggle(){
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest('.cf-toggle-btn');
+    if(!btn)return;
+    const tid=btn.dataset.target;
+    const tbl=tid?document.getElementById(tid):btn.closest('table');
+    if(!tbl)return;
+    const collapsed=tbl.classList.toggle('cf-collapsed');
+    btn.classList.toggle('active',collapsed);
+    btn.textContent=collapsed?'Expand Chartfields':'Collapse Chartfields';
+  });
+})();
 
 /* ── window assignments for cross-module access ── */
 window.initVendorModule = initVendorModule;
