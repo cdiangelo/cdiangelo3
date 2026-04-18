@@ -45,10 +45,47 @@ function benchmark(sen,fn,country){
   return Math.round((SENIORITY_BASE[sen]||120000)*(FUNCTION_MULT[fn]||1)*(COUNTRY_MULT[country]||1));
 }
 
-export function generateSeedEmployees(){
+export function generateSeedProjects(){
+  const ids={
+    'PRJ-001':uid(),'PRJ-002':uid(),'PRJ-003':uid(),
+    'PRJ-004':uid(),'PRJ-005':uid(),'GEN-000':uid()
+  };
+  const projects=[
+    {id:ids['GEN-000'],code:'GEN-000',product:'General',category:'Overhead',marketCode:'GL0000',bizLineCode:'700000',description:'General allocation'},
+    {id:ids['PRJ-001'],code:'PRJ-001',product:'Platform Core',category:'Engineering',marketCode:'US0001',bizLineCode:'100000',description:'Core platform development'},
+    {id:ids['PRJ-002'],code:'PRJ-002',product:'Analytics Suite',category:'Product',marketCode:'US0001',bizLineCode:'400000',description:'Data analytics product'},
+    {id:ids['PRJ-003'],code:'PRJ-003',product:'Client Portal',category:'Engineering',marketCode:'UK0002',bizLineCode:'200000',description:'Client-facing portal'},
+    {id:ids['PRJ-004'],code:'PRJ-004',product:'Infrastructure',category:'Operations',marketCode:'US0001',bizLineCode:'500000',description:'Cloud infrastructure'},
+    {id:ids['PRJ-005'],code:'PRJ-005',product:'Security',category:'Operations',marketCode:'US0001',bizLineCode:'600000',description:'Security & compliance'}
+  ];
+  return {projects,projectIds:ids};
+}
+
+// Map functions to projects for realistic allocation
+const FUNC_PROJECT_MAP={
+  'Software Engineering':['PRJ-001','PRJ-003'],
+  'Data Engineering':['PRJ-002','PRJ-001'],
+  'DevOps/SRE':['PRJ-004','PRJ-001'],
+  'Product Management':['PRJ-001','PRJ-002','PRJ-003'],
+  'QA Engineering':['PRJ-001','PRJ-003'],
+  'Data Science':['PRJ-002'],
+  'IT Operations':['PRJ-004'],
+  'Security Engineering':['PRJ-005'],
+  'Cloud Architecture':['PRJ-004','PRJ-001'],
+  'Technical Program Management':['PRJ-001','PRJ-002','PRJ-003'],
+  'Finance':['GEN-000'],'HR':['GEN-000'],'Legal':['GEN-000'],
+  'Marketing':['GEN-000'],'Operations':['PRJ-004']
+};
+
+export function generateSeedEmployees(projectIds){
   const employees=[];
   let empNum=1,nhNum=1;
-  const defaultProj=uid();
+
+  function assignProject(fn){
+    const codes=FUNC_PROJECT_MAP[fn]||['PRJ-001'];
+    const code=pickRandom(codes);
+    return projectIds[code]||projectIds['PRJ-001'];
+  }
 
   // Existing employees (EMP#1 – EMP#80)
   FUNC_DIST.forEach(({fn,count})=>{
@@ -57,33 +94,22 @@ export function generateSeedEmployees(){
       const country=pickWeighted(COUNTRY_WEIGHTS);
       const bu=COUNTRY_BU[country]||'US001';
       const bl=pickRandom(DEFAULT_BIZ_LINES);
-      const base=benchmark(sen,fn,country);
-      // Add ±10% variance for realism
+      const actualFn=fn==='Other'?pickRandom(['Finance','HR','Legal','Marketing','Operations']):fn;
+      const base=benchmark(sen,actualFn,country);
       const adjBase=Math.round(base*(0.9+Math.random()*0.2));
-      const bonusPct=DEFAULT_BONUS[sen]||10;
-      const benefitsPct=DEFAULT_BENEFITS[sen]||20;
+      const projId=assignProject(actualFn);
       employees.push({
-        id:uid(),
-        name:'EMP#'+empNum,
-        function:fn==='Other'?pickRandom(['Finance','HR','Legal','Marketing','Operations']):fn,
-        seniority:sen,
-        country,
-        businessUnit:bu,
-        businessLine:bl.code,
-        baseSalary:adjBase,
-        bonusPct,
-        benefitsPct,
-        startMonth:0,
-        isNewHire:false,
-        allocations:[{projId:defaultProj,pct:100}],
-        _colorTag:''
+        id:uid(),name:'EMP#'+empNum,function:actualFn,seniority:sen,country,
+        businessUnit:bu,businessLine:bl.code,baseSalary:adjBase,
+        bonusPct:DEFAULT_BONUS[sen]||10,benefitsPct:DEFAULT_BENEFITS[sen]||20,
+        startMonth:0,isNewHire:false,
+        allocations:[{projId,pct:100}],_colorTag:''
       });
       empNum++;
     }
   });
 
   // New hires (NH#1 – NH#20)
-  // Weighted toward junior/mid — these are new hires
   const nhSenWeights={Junior:30,'Mid-Level':35,Senior:20,Staff:5,Principal:0,Manager:5,Director:3,'VP/Head':2};
   FUNC_DIST.forEach(({fn,nhCount})=>{
     for(let i=0;i<nhCount;i++){
@@ -91,41 +117,23 @@ export function generateSeedEmployees(){
       const country=pickWeighted(COUNTRY_WEIGHTS);
       const bu=COUNTRY_BU[country]||'US001';
       const bl=pickRandom(DEFAULT_BIZ_LINES);
-      const base=benchmark(sen,fn,country);
+      const actualFn=fn==='Other'?pickRandom(['Finance','HR','Legal','Marketing','Operations']):fn;
+      const base=benchmark(sen,actualFn,country);
       const adjBase=Math.round(base*(0.9+Math.random()*0.2));
       const startMo=NH_START_MONTHS[nhNum-1]||Math.floor(Math.random()*12);
+      const projId=assignProject(actualFn);
       employees.push({
-        id:uid(),
-        name:'NH#'+nhNum,
-        function:fn==='Other'?pickRandom(['Finance','HR','Legal','Marketing','Operations']):fn,
-        seniority:sen,
-        country,
-        businessUnit:bu,
-        businessLine:bl.code,
-        baseSalary:adjBase,
-        bonusPct:DEFAULT_BONUS[sen]||10,
-        benefitsPct:DEFAULT_BENEFITS[sen]||20,
-        startMonth:startMo,
-        isNewHire:true,
-        allocations:[{projId:defaultProj,pct:100}],
-        _colorTag:''
+        id:uid(),name:'NH#'+nhNum,function:actualFn,seniority:sen,country,
+        businessUnit:bu,businessLine:bl.code,baseSalary:adjBase,
+        bonusPct:DEFAULT_BONUS[sen]||10,benefitsPct:DEFAULT_BENEFITS[sen]||20,
+        startMonth:startMo,isNewHire:true,
+        allocations:[{projId,pct:100}],_colorTag:''
       });
       nhNum++;
     }
   });
 
-  return {employees,defaultProjId:defaultProj};
-}
-
-export function generateSeedProjects(defaultProjId){
-  return [
-    {id:defaultProjId||uid(),code:'GEN-000',product:'General',category:'Overhead',marketCode:'GL0000',bizLineCode:'700000',description:'General allocation'},
-    {id:uid(),code:'PRJ-001',product:'Platform Core',category:'Engineering',marketCode:'US0001',bizLineCode:'100000',description:'Core platform development'},
-    {id:uid(),code:'PRJ-002',product:'Analytics Suite',category:'Product',marketCode:'US0001',bizLineCode:'400000',description:'Data analytics product'},
-    {id:uid(),code:'PRJ-003',product:'Client Portal',category:'Engineering',marketCode:'UK0002',bizLineCode:'200000',description:'Client-facing portal'},
-    {id:uid(),code:'PRJ-004',product:'Infrastructure',category:'Operations',marketCode:'US0001',bizLineCode:'500000',description:'Cloud infrastructure'},
-    {id:uid(),code:'PRJ-005',product:'Security',category:'Operations',marketCode:'US0001',bizLineCode:'600000',description:'Security & compliance'}
-  ];
+  return {employees};
 }
 
 export function generateSeedVendorRows(){

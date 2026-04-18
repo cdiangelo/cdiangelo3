@@ -157,8 +157,8 @@ function showHomePage(){
         const result=await createPlanApi({name:slot.name,year,scenarioType:slot.type,accountId:user.id});
         if(result&&slot.type!=='ltp'){
           try{
-            const {employees,defaultProjId}=generateSeedEmployees();
-            const projects=generateSeedProjects(defaultProjId);
+            const {projects,projectIds}=generateSeedProjects();
+            const {employees}=generateSeedEmployees(projectIds);
             const vendorRows=generateSeedVendorRows();
             const teRows=generateSeedTeRows();
             const contractorRows=generateSeedContractorRows();
