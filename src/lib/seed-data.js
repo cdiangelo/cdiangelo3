@@ -73,8 +73,8 @@ const FUNC_PROJECT_MAP={
   'Security Engineering':['PRJ-005'],
   'Cloud Architecture':['PRJ-004','PRJ-001'],
   'Technical Program Management':['PRJ-001','PRJ-002','PRJ-003'],
-  'Finance':['GEN-000'],'HR':['GEN-000'],'Legal':['GEN-000'],
-  'Marketing':['GEN-000'],'Operations':['PRJ-004']
+  'Finance':['PRJ-001'],'HR':['PRJ-001'],'Legal':['PRJ-003'],
+  'Marketing':['PRJ-002'],'Operations':['PRJ-004']
 };
 
 export function generateSeedEmployees(projectIds){
