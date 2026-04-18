@@ -1,5 +1,6 @@
 // ═══ AUTH & HOME — Tier 1 email entry + Tier 2 file manager ═══
 import { state, saveState, loadState, ensureStateFields } from '../lib/state.js';
+import { generateSeedEmployees, generateSeedProjects, generateSeedVendorRows, generateSeedTeRows, generateSeedContractorRows, generateSeedOtherRows, generateActuals } from '../lib/seed-data.js';
 
 const USER_KEY='compPlanUser';
 
@@ -155,6 +156,20 @@ function showHomePage(){
     if(result){
       document.getElementById('homePlanName').value='';
       logActivity('Created plan',name+' ('+year+' '+type+')');
+      // Seed data into new plan (unless LTP which is forecast-only)
+      if(type!=='ltp'){
+        try{
+          const {employees,defaultProjId}=generateSeedEmployees();
+          const projects=generateSeedProjects(defaultProjId);
+          const vendorRows=generateSeedVendorRows();
+          const teRows=generateSeedTeRows();
+          const contractorRows=generateSeedContractorRows();
+          const {cbOtherRows,oaoOtherRows}=generateSeedOtherRows();
+          const seedState={employees,projects,vendorRows,teRows,contractorRows,cbOtherRows,oaoOtherRows};
+          // Save seed data to the newly created plan
+          await fetch('/api/plan-files/'+result.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(seedState)})});
+        }catch(e){console.warn('Seed data error:',e)}
+      }
       renderPlanList();
     } else {alert('Failed to create plan')}
   };
@@ -202,7 +217,8 @@ async function renderPlanList(){
     function renderCard(p){
       const date=new Date(p.updatedAt||p.createdAt);
       const timeStr=date.toLocaleDateString(undefined,{month:'short',day:'numeric'});
-      const type=p.scenarioType||p.type||'budget';
+      const rawType=p.scenarioType||p.type||'budget';
+      const type=rawType==='budget'?'AOP':rawType==='forecast'?'RF':rawType==='ltp'?'LTP':rawType.toUpperCase();
       const isOwner=p.role==='owner'||!p.role;
       const shareLabel=isOwner?'by me':'with me';
       const shareArrow=isOwner?'↗':'↙';

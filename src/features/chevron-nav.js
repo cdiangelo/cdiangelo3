@@ -34,11 +34,9 @@
     if (!shape) return;
     shape.addEventListener('click', () => {
       const target = item.dataset.target;
-      // Forecast — direct navigation, no submenu
-      if (target === 'forecast') {
-        navigateToModule('ltf');
-        return;
-      }
+      // Direct navigation (no submenu)
+      if (target === 'forecast') { navigateToModule('ltf'); return; }
+      if (target === 'actuals') { navigateToModule('actuals'); return; }
       // Others — toggle submenu
       if (item.classList.contains('has-submenu')) {
         const wasExpanded = item.classList.contains('expanded');
@@ -247,6 +245,22 @@
       if(window._broadcastTab)window._broadcastTab(prefix+' - Other');
     }
   }
+
+    } else if(module==='actuals'){
+      // Actuals module — non-editable realized data with variance
+      if(window.showApp)window.showApp();
+      const hb=document.getElementById('compHeaderBar');if(hb)hb.style.display='';
+      const title=document.querySelector('#compHeaderBar .module-title');
+      if(title)title.textContent='Actuals';
+      if(sumContent)sumContent.style.display='none';
+      if(overviewBtn)overviewBtn.style.display='none';
+      if(compBtn)compBtn.style.display='none';
+      if(pivotBtn)pivotBtn.style.display='none';
+      document.querySelectorAll('#appShell .tab-content').forEach(t=>t.classList.remove('active'));
+      const at=document.getElementById('tab-actuals');if(at)at.classList.add('active');
+      if(window.renderActuals)try{window.renderActuals()}catch(e){console.warn('renderActuals:',e)}
+      if(window._broadcastTab)window._broadcastTab('ACTUALS');
+    }
 
   // Expose for use by other navigation flows
   window.navigateToModule = navigateToModule;

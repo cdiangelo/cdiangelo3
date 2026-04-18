@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS plan_files (
   id             SERIAL PRIMARY KEY,
   name           TEXT NOT NULL,
   year           INTEGER NOT NULL,
-  scenario_type  TEXT NOT NULL CHECK (scenario_type IN ('budget','forecast','actual')),
+  scenario_type  TEXT NOT NULL CHECK (scenario_type IN ('budget','forecast','actual','ltp')),
   description    TEXT DEFAULT '',
   state_data     TEXT NOT NULL DEFAULT '{}',
   created_by     INTEGER REFERENCES accounts(id),
