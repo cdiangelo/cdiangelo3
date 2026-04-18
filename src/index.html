@@ -47,16 +47,16 @@
 <div class="home-main">
 <div class="home-create-section">
 <h3>Create New Plan</h3>
-<div class="home-create-form">
-<input id="homePlanName" placeholder="Plan name (e.g. Q3 Reforecast)" style="flex:1;min-width:160px">
-<select id="homePlanYear">
-<option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
-</select>
-<select id="homePlanType">
-<option value="budget">Annual Operating Plan</option><option value="forecast">Rolling Forecast</option><option value="ltp">Long-Term Plan</option>
-</select>
-<button class="btn btn-primary" id="homeCreatePlan">Create</button>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn btn-primary home-create-type" data-type="forecast" style="padding:10px 20px;font-size:.82rem;font-weight:600">Rolling Forecast</button>
+<button class="btn btn-primary home-create-type" data-type="budget" style="padding:10px 20px;font-size:.82rem;font-weight:600">Annual Operating Plan</button>
+<button class="btn home-create-type" data-type="ltp" style="padding:10px 20px;font-size:.82rem;font-weight:600">Long-Term Plan</button>
 </div>
+<!-- Hidden inputs kept for JS compatibility -->
+<input id="homePlanName" type="hidden" value="">
+<select id="homePlanYear" style="display:none"><option value="2026" selected>2026</option></select>
+<select id="homePlanType" style="display:none"><option value="budget">AOP</option></select>
+<button id="homeCreatePlan" style="display:none"></button>
 </div>
 <div class="home-plans-section">
 <h3>Your Plans</h3>

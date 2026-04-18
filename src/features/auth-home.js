@@ -143,19 +143,14 @@ function showHomePage(){
 
   renderPlanList();
 
-  // Create plan (use onclick to prevent duplicate handlers)
-  document.getElementById('homeCreatePlan').onclick=async()=>{
-    const name=document.getElementById('homePlanName').value.trim();
-    const year=document.getElementById('homePlanYear').value;
-    const type=document.getElementById('homePlanType').value;
-    if(!name){alert('Enter a plan name');return}
-    const btn=document.getElementById('homeCreatePlan');
-    btn.textContent='Creating...';btn.disabled=true;
+  // Create plan — auto-generate name from type + year
+  async function createPlanOfType(type){
+    const typeLabels={forecast:'Rolling Forecast',budget:'Annual Operating Plan',ltp:'Long-Term Plan'};
+    const year=new Date().getFullYear();
+    const name=typeLabels[type]||type;
     const result=await createPlanApi({name,year,scenarioType:type,accountId:user.id});
-    btn.textContent='Create';btn.disabled=false;
     if(result){
-      document.getElementById('homePlanName').value='';
-      logActivity('Created plan',name+' ('+year+' '+type+')');
+      logActivity('Created plan',name+' ('+year+')');
       // Seed data into new plan (unless LTP which is forecast-only)
       if(type!=='ltp'){
         try{
@@ -166,12 +161,28 @@ function showHomePage(){
           const contractorRows=generateSeedContractorRows();
           const {cbOtherRows,oaoOtherRows}=generateSeedOtherRows();
           const seedState={employees,projects,vendorRows,teRows,contractorRows,cbOtherRows,oaoOtherRows};
-          // Save seed data to the newly created plan
           await fetch('/api/plan-files/'+result.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(seedState)})});
         }catch(e){console.warn('Seed data error:',e)}
       }
       renderPlanList();
     } else {alert('Failed to create plan')}
+  }
+
+  // Wire type buttons
+  document.querySelectorAll('.home-create-type').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      const type=btn.dataset.type;
+      btn.textContent='Creating...';btn.disabled=true;
+      await createPlanOfType(type);
+      const labels={forecast:'Rolling Forecast',budget:'Annual Operating Plan',ltp:'Long-Term Plan'};
+      btn.textContent=labels[type]||type;btn.disabled=false;
+    });
+  });
+
+  // Legacy create button (hidden, kept for compat)
+  document.getElementById('homeCreatePlan').onclick=async()=>{
+    const type=document.getElementById('homePlanType').value||'budget';
+    await createPlanOfType(type);
   };
 
   // Sign out
