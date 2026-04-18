@@ -44,26 +44,69 @@
 </div>
 </div>
 <div class="home-body">
-<div class="home-main">
-<div class="home-create-section">
-<h3>Create New Plan</h3>
-<div style="display:flex;gap:8px;flex-wrap:wrap">
-<button class="btn btn-primary home-create-type" data-type="forecast" style="padding:10px 20px;font-size:.82rem;font-weight:600">2026 Rolling Forecast</button>
-<button class="btn btn-primary home-create-type" data-type="budget" style="padding:10px 20px;font-size:.82rem;font-weight:600">2026 Annual Operating Plan</button>
-<button class="btn home-create-type" data-type="ltp" style="padding:10px 20px;font-size:.82rem;font-weight:600">2026 Long-Term Plan</button>
+<div class="home-main" style="max-width:900px;margin:0 auto">
+
+<!-- 2026 Plan Navigation -->
+<div style="margin-bottom:24px">
+<h2 style="font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:16px">2026</h2>
+
+<!-- AOP -->
+<div style="background:var(--panel);border:1px solid var(--border-light);border-radius:10px;padding:14px 18px;margin-bottom:10px;cursor:pointer" class="plan-nav-card" data-plan-type="budget" data-plan-month="">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div>
+<span style="font-size:.92rem;font-weight:600;color:var(--text)">Annual Operating Plan</span>
+<span style="font-size:.68rem;padding:2px 8px;border-radius:10px;background:var(--accent-soft);color:var(--accent);margin-left:8px;font-weight:600">AOP</span>
 </div>
-<!-- Hidden inputs kept for JS compatibility -->
-<input id="homePlanName" type="hidden" value="">
-<select id="homePlanYear" style="display:none"><option value="2026" selected>2026</option></select>
-<select id="homePlanType" style="display:none"><option value="budget">AOP</option></select>
-<button id="homeCreatePlan" style="display:none"></button>
-</div>
-<div class="home-plans-section">
-<h3>Your Plans</h3>
-<div id="homePlanList" class="home-plan-list">
-<div class="home-plan-empty">No plans yet. Create one above.</div>
+<span style="font-size:.7rem;color:var(--tertiary)">&#8594;</span>
 </div>
 </div>
+
+<!-- RF -->
+<div style="background:var(--panel);border:1px solid var(--border-light);border-radius:10px;padding:14px 18px;margin-bottom:10px">
+<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" id="rfToggle">
+<div>
+<span style="font-size:.92rem;font-weight:600;color:var(--text)">Rolling Forecast</span>
+<span style="font-size:.68rem;padding:2px 8px;border-radius:10px;background:var(--accent-soft);color:var(--accent);margin-left:8px;font-weight:600">RF</span>
+</div>
+<span style="font-size:.7rem;color:var(--tertiary)" id="rfArrow">&#9654;</span>
+</div>
+<div id="rfMonthGrid" style="display:none;margin-top:12px">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="0" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">January</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="1" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">February</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="2" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">March</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="3" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">April</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="4" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">May</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="5" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">June</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="6" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">July</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="7" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">August</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="8" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">September</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="9" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">October</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="10" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">November</div>
+<div class="plan-nav-card rf-month" data-plan-type="forecast" data-plan-month="11" style="padding:8px 10px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border-light);cursor:pointer;text-align:center;font-size:.78rem;font-weight:500;color:var(--text)">December</div>
+</div>
+</div>
+</div>
+
+<!-- LTP -->
+<div style="background:var(--panel);border:1px solid var(--border-light);border-radius:10px;padding:14px 18px;margin-bottom:10px;cursor:pointer" class="plan-nav-card" data-plan-type="ltp" data-plan-month="">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div>
+<span style="font-size:.92rem;font-weight:600;color:var(--text)">Long-Term Plan</span>
+<span style="font-size:.68rem;padding:2px 8px;border-radius:10px;background:var(--secondary-soft);color:var(--secondary);margin-left:8px;font-weight:600">LTP</span>
+</div>
+<span style="font-size:.7rem;color:var(--tertiary)">&#8594;</span>
+</div>
+</div>
+</div>
+
+<!-- Add Year -->
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+<input type="number" id="homeNewYear" value="2027" min="2024" max="2035" style="width:80px;padding:6px 10px;font-size:.82rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);font-weight:600">
+<button class="btn btn-sm" id="homeAddYear" style="padding:6px 14px;font-size:.78rem">+ Add Year</button>
+<span style="font-size:.7rem;color:var(--tertiary)">Creates AOP + 12 RF months + LTP for the selected year</span>
+</div>
+
 <!-- Recent Activity -->
 <div class="home-activity-section" style="background:var(--panel);border:1px solid var(--border-light);border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
 <h3 style="font-size:.9rem;font-weight:500;color:var(--accent);margin:0 0 10px 0">Recent Activity</h3>
@@ -71,14 +114,18 @@
 <div style="font-size:.76rem;color:var(--tertiary);text-align:center;padding:8px">No recent activity</div>
 </div>
 </div>
+
+<!-- Hidden legacy elements for JS compat -->
+<div style="display:none">
+<input id="homePlanName" type="hidden" value="">
+<select id="homePlanYear"><option value="2026" selected>2026</option></select>
+<select id="homePlanType"><option value="budget">AOP</option></select>
+<button id="homeCreatePlan"></button>
+<div id="homePlanList"></div>
+<div id="homeStorageFill"></div>
+<div id="homeStorageLabel"></div>
 </div>
-<div class="home-sidebar">
-<h3>Storage</h3>
-<div class="home-storage-info">
-<div class="home-storage-bar"><div class="home-storage-fill" id="homeStorageFill"></div></div>
-<div class="home-storage-label" id="homeStorageLabel">0 plans</div>
-</div>
-</div>
+
 </div>
 </div>
 </div>

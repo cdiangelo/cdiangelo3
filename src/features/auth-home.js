@@ -141,49 +141,107 @@ function showHomePage(){
   const createSection=document.querySelector('.home-create-section');
   if(createSection)createSection.style.display=user.isAdmin?'':'none';
 
-  renderPlanList();
-
-  // Create plan — auto-generate name from type + year
-  async function createPlanOfType(type){
-    const typeLabels={forecast:'Rolling Forecast',budget:'Annual Operating Plan',ltp:'Long-Term Plan'};
-    const year=2026;
-    const name=year+' '+(typeLabels[type]||type);
-    const result=await createPlanApi({name,year,scenarioType:type,accountId:user.id});
-    if(result){
-      logActivity('Created plan',name+' ('+year+')');
-      // Seed data into new plan (unless LTP which is forecast-only)
-      if(type!=='ltp'){
-        try{
-          const {employees,defaultProjId}=generateSeedEmployees();
-          const projects=generateSeedProjects(defaultProjId);
-          const vendorRows=generateSeedVendorRows();
-          const teRows=generateSeedTeRows();
-          const contractorRows=generateSeedContractorRows();
-          const {cbOtherRows,oaoOtherRows}=generateSeedOtherRows();
-          const seedState={employees,projects,vendorRows,teRows,contractorRows,cbOtherRows,oaoOtherRows};
-          await fetch('/api/plan-files/'+result.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(seedState)})});
-        }catch(e){console.warn('Seed data error:',e)}
+  // ── Fixed workspace navigation ──
+  // Auto-provision 14 plan slots (1 AOP + 12 RF months + 1 LTP) for the year if they don't exist
+  async function ensureYearPlans(year){
+    const plans=await fetchPlans(user.id);
+    const yearPlans=plans.filter(p=>p.year===year);
+    const SLOTS=[
+      {name:year+' Annual Operating Plan',type:'budget',month:''},
+      ...['January','February','March','April','May','June','July','August','September','October','November','December'].map((m,i)=>({name:year+' RF — '+m,type:'forecast',month:String(i)})),
+      {name:year+' Long-Term Plan',type:'ltp',month:''}
+    ];
+    for(const slot of SLOTS){
+      const exists=yearPlans.find(p=>p.name===slot.name);
+      if(!exists){
+        const result=await createPlanApi({name:slot.name,year,scenarioType:slot.type,accountId:user.id});
+        if(result&&slot.type!=='ltp'){
+          try{
+            const {employees,defaultProjId}=generateSeedEmployees();
+            const projects=generateSeedProjects(defaultProjId);
+            const vendorRows=generateSeedVendorRows();
+            const teRows=generateSeedTeRows();
+            const contractorRows=generateSeedContractorRows();
+            const {cbOtherRows,oaoOtherRows}=generateSeedOtherRows();
+            const seedState={employees,projects,vendorRows,teRows,contractorRows,cbOtherRows,oaoOtherRows};
+            await fetch('/api/plan-files/'+result.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({stateData:JSON.stringify(seedState)})});
+          }catch(e){console.warn('Seed error:',e)}
+        }
       }
-      renderPlanList();
-    } else {alert('Failed to create plan')}
+    }
+    invalidatePlanCache();
+    return await fetchPlans(user.id);
   }
 
-  // Wire type buttons
-  document.querySelectorAll('.home-create-type').forEach(btn=>{
-    btn.addEventListener('click',async()=>{
-      const type=btn.dataset.type;
-      btn.textContent='Creating...';btn.disabled=true;
-      await createPlanOfType(type);
-      const labels={forecast:'Rolling Forecast',budget:'Annual Operating Plan',ltp:'Long-Term Plan'};
-      btn.textContent=labels[type]||type;btn.disabled=false;
+  // Provision 2026 on first load
+  ensureYearPlans(2026).then(plans=>{
+    window._allPlans=plans;
+    updateNavCardStates(plans);
+  });
+
+  function updateNavCardStates(plans){
+    // Mark RF months with actuals indicator for months before current
+    const curMonth=new Date().getMonth();
+    document.querySelectorAll('.rf-month').forEach(card=>{
+      const mi=parseInt(card.dataset.planMonth);
+      if(mi<curMonth){
+        card.style.borderColor='var(--success)';
+        card.style.opacity='0.7';
+        card.innerHTML=card.textContent+'<div style="font-size:.58rem;color:var(--success);margin-top:2px">Actuals</div>';
+      } else if(mi===curMonth){
+        card.style.borderColor='var(--accent)';
+        card.style.borderWidth='2px';
+      }
+    });
+  }
+
+  // RF toggle expand/collapse
+  const rfToggle=document.getElementById('rfToggle');
+  const rfGrid=document.getElementById('rfMonthGrid');
+  const rfArrow=document.getElementById('rfArrow');
+  if(rfToggle)rfToggle.addEventListener('click',()=>{
+    const show=rfGrid.style.display==='none';
+    rfGrid.style.display=show?'':'none';
+    rfArrow.innerHTML=show?'&#9660;':'&#9654;';
+  });
+
+  // Plan nav card click — find or open the plan
+  document.querySelectorAll('.plan-nav-card').forEach(card=>{
+    card.addEventListener('click',async()=>{
+      const type=card.dataset.planType;
+      const month=card.dataset.planMonth;
+      if(!type)return;
+      const plans=window._allPlans||await fetchPlans(user.id);
+      // Build expected name to match
+      const MO_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      let expectedName;
+      if(type==='budget')expectedName='2026 Annual Operating Plan';
+      else if(type==='ltp')expectedName='2026 Long-Term Plan';
+      else expectedName='2026 RF — '+MO_NAMES[parseInt(month)];
+      const plan=plans.find(p=>p.name===expectedName);
+      if(plan){
+        logActivity('Opened plan',plan.name);
+        openPlan(plan);
+      } else {
+        alert('Plan not found — try refreshing');
+      }
     });
   });
 
-  // Legacy create button (hidden, kept for compat)
-  document.getElementById('homeCreatePlan').onclick=async()=>{
-    const type=document.getElementById('homePlanType').value||'budget';
-    await createPlanOfType(type);
-  };
+  // Add Year button — create a new year's worth of plans
+  const addYearBtn=document.getElementById('homeAddYear');
+  if(addYearBtn)addYearBtn.addEventListener('click',async()=>{
+    const yearInput=document.getElementById('homeNewYear');
+    const year=yearInput?parseInt(yearInput.value):2027;
+    if(!year||year<2024||year>2035){alert('Enter a valid year');return}
+    addYearBtn.textContent='Creating...';addYearBtn.disabled=true;
+    await ensureYearPlans(year);
+    addYearBtn.textContent='+ Add Year';addYearBtn.disabled=false;
+    logActivity('Added year',String(year));
+  });
+
+  // Legacy compat
+  document.getElementById('homeCreatePlan').onclick=()=>{};
 
   // Sign out
   document.getElementById('homeSignOut').onclick=()=>{
