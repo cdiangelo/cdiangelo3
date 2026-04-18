@@ -149,7 +149,7 @@ function showHomePage(){
     const SLOTS=[
       {name:year+' Annual Operating Plan',type:'budget',month:''},
       ...['January','February','March','April','May','June','July','August','September','October','November','December'].map((m,i)=>({name:year+' RF — '+m,type:'forecast',month:String(i)})),
-      {name:year+' Long-Term Plan',type:'ltp',month:''}
+      {name:year+' Long-Term Plan',type:'forecast',month:''}
     ];
     for(const slot of SLOTS){
       const exists=yearPlans.find(p=>p.name===slot.name);
