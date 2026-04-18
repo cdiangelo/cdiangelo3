@@ -2386,6 +2386,24 @@ window.getOaoOtherByMonth=getOaoOtherByMonth;
   });
 })();
 
+// ── Month indicator — marks actuals (past) and current month columns ──
+function applyMonthIndicators(){
+  const curMonth=new Date().getMonth(); // 0=Jan
+  const MO_HEADERS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.querySelectorAll('.comp-table .v-hdr').forEach(th=>{
+    const label=th.textContent.trim();
+    const mi=MO_HEADERS.indexOf(label);
+    if(mi<0)return;
+    th.classList.remove('mo-actual','mo-current');
+    if(mi<curMonth)th.classList.add('mo-actual');
+    else if(mi===curMonth)th.classList.add('mo-current');
+  });
+}
+// Run after any grid render
+const _origInitVendor=initVendorModule;
+initVendorModule=function(){_origInitVendor();setTimeout(applyMonthIndicators,100)};
+window.applyMonthIndicators=applyMonthIndicators;
+
 /* ── window assignments for cross-module access ── */
 window.initVendorModule = initVendorModule;
 window.getVendorOaoTotal = getVendorOaoTotal;

@@ -36,7 +36,6 @@
       const target = item.dataset.target;
       // Direct navigation (no submenu)
       if (target === 'forecast') { navigateToModule('ltf'); return; }
-      if (target === 'actuals') { navigateToModule('actuals'); return; }
       // Others — toggle submenu
       if (item.classList.contains('has-submenu')) {
         const wasExpanded = item.classList.contains('expanded');
@@ -69,6 +68,7 @@
       else if (module === 'contractors') navigateToModule('contractors');
       else if (module === 'te') navigateToModule('te');
       else if (module === 'other') navigateToModule('other');
+      else if (module === 'actuals') navigateToModule('actuals');
       else if (module === 'depreciation') navigateToModule('depreciation');
       else if (module === 'forecast' || module === 'ltf') navigateToModule('ltf');
     });

@@ -712,6 +712,71 @@ window.onFormAllocProjChange = onFormAllocProjChange;
 window.onFormAllocPctChange = onFormAllocPctChange;
 window.removeFormAlloc = removeFormAlloc;
 window.renderEmployees = renderEmployees;
+
+// ── FTE Sparkline + TBD/TBH Adjustment ──
+let fteSparkChart=null;
+let fteAdjPending=0;
+function renderFteSparkline(){
+  const canvas=document.getElementById('empFteSparkline');
+  const totalEl=document.getElementById('fteTrendTotal');
+  if(!canvas||typeof Chart==='undefined')return;
+  const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const emps=state.employees||[];
+  const hcByMonth=MO.map((_,mi)=>emps.filter(e=>(e.startMonth||0)<=mi).length);
+  if(totalEl)totalEl.textContent=hcByMonth[hcByMonth.length-1]+' FTEs';
+  const colors=window.getChartColors?window.getChartColors():['#4a8cc8'];
+  if(fteSparkChart)fteSparkChart.destroy();
+  fteSparkChart=new Chart(canvas,{
+    type:'line',
+    data:{labels:MO,datasets:[{data:hcByMonth,borderColor:colors[0],backgroundColor:'transparent',borderWidth:2,pointRadius:2,pointBackgroundColor:colors[0],tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:4,right:4}},
+      plugins:{legend:{display:false},datalabels:{display:false},tooltip:{enabled:true,callbacks:{label:ctx=>ctx.parsed.y+' FTEs'}}},
+      scales:{x:{display:false},y:{display:false,beginAtZero:true}}
+    }
+  });
+}
+
+function applyFteAdj(delta){
+  fteAdjPending+=delta;
+  const countEl=document.getElementById('fteAdjCount');
+  if(countEl)countEl.textContent=fteAdjPending>0?'+'+fteAdjPending:String(fteAdjPending);
+  if(delta>0){
+    // Add a TBH (to-be-hired) placeholder
+    const nextNum=(state.employees||[]).filter(e=>e.name&&e.name.startsWith('TBH#')).length+1;
+    state.employees.push({
+      id:'tbh'+Date.now()+Math.random().toString(36).slice(2,5),
+      name:'TBH#'+nextNum,
+      function:'Software Engineering',seniority:'Mid-Level',country:'United States',
+      businessUnit:'US001',businessLine:'100000',
+      baseSalary:118000,bonusPct:8,benefitsPct:20,
+      startMonth:Math.min(11,new Date().getMonth()+1),
+      isNewHire:true,allocations:[],_colorTag:''
+    });
+  } else if(delta<0){
+    // Add a TBD (to-be-determined/removed) — negative adjustment
+    const nextNum=(state.employees||[]).filter(e=>e.name&&e.name.startsWith('TBD#')).length+1;
+    state.employees.push({
+      id:'tbd'+Date.now()+Math.random().toString(36).slice(2,5),
+      name:'TBD#'+nextNum,
+      function:'',seniority:'',country:'United States',
+      businessUnit:'US001',businessLine:'',
+      baseSalary:0,bonusPct:0,benefitsPct:0,
+      startMonth:new Date().getMonth(),
+      isNewHire:false,_isTBD:true,allocations:[],_colorTag:''
+    });
+  }
+  saveState();renderEmployees();renderFteSparkline();
+}
+
+const adjPlus=document.getElementById('fteAdjPlus');
+const adjMinus=document.getElementById('fteAdjMinus');
+if(adjPlus)adjPlus.addEventListener('click',()=>applyFteAdj(1));
+if(adjMinus)adjMinus.addEventListener('click',()=>applyFteAdj(-1));
+
+// Render sparkline after employees render
+const _origRender=renderEmployees;
+renderEmployees=function(){_origRender();try{renderFteSparkline()}catch(e){}};
+window.renderEmployees=renderEmployees;
 window.openMassChange = openMassChange;
 window.closeMassChange = closeMassChange;
 window.applyMassChange = applyMassChange;

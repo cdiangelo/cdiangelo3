@@ -146,8 +146,8 @@ function showHomePage(){
   // Create plan — auto-generate name from type + year
   async function createPlanOfType(type){
     const typeLabels={forecast:'Rolling Forecast',budget:'Annual Operating Plan',ltp:'Long-Term Plan'};
-    const year=new Date().getFullYear();
-    const name=typeLabels[type]||type;
+    const year=2026;
+    const name=year+' '+(typeLabels[type]||type);
     const result=await createPlanApi({name,year,scenarioType:type,accountId:user.id});
     if(result){
       logActivity('Created plan',name+' ('+year+')');
