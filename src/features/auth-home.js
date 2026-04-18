@@ -555,6 +555,31 @@ async function openPlan(plan){
   const sumContent=document.getElementById('landingSummaryContent');if(sumContent)sumContent.style.display='none';
   const oldHdr=document.getElementById('landingHeaderOld');if(oldHdr)oldHdr.style.display='none';
 
+  // Adjust chevron nav based on plan type context
+  const isRF=plan.name&&plan.name.includes('RF —');
+  const isLTP=plan.name&&plan.name.includes('Long-Term Plan');
+  const budgetLabel=document.querySelector('#chevBudget .chevron-label');
+  const forecastChev=document.getElementById('chevForecast');
+  if(isRF){
+    // RF: Budget becomes "Actual", hide Forecast
+    if(budgetLabel)budgetLabel.textContent='Actual';
+    if(forecastChev)forecastChev.style.display='none';
+    // Generate actuals if not present
+    if(!state.actuals){
+      const {generateActuals}=await import('../lib/seed-data.js');
+      state.actuals=generateActuals(state);
+      if(window.saveState)window.saveState();
+    }
+  } else if(isLTP){
+    // LTP: hide Budget, only show Forecast
+    const budgetChev=document.getElementById('chevBudget');
+    if(budgetChev)budgetChev.style.display='none';
+  } else {
+    // AOP: standard labels
+    if(budgetLabel)budgetLabel.textContent='Budget';
+    if(forecastChev)forecastChev.style.display='';
+  }
+
   // Apply admin controls from plan state
   if(window.checkOpsRestriction)try{window.checkOpsRestriction()}catch(e){}
   if(window.checkModuleAccess)try{window.checkModuleAccess()}catch(e){}
