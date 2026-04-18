@@ -561,12 +561,11 @@ async function openPlan(plan){
   const budgetLabel=document.querySelector('#chevBudget .chevron-label');
   const forecastChev=document.getElementById('chevForecast');
   if(isRF){
-    // RF: determine if actuals-only month or future forecast month
     const MO_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
     const rfMonth=MO_NAMES.findIndex(m=>plan.name.includes(m));
-    const curMonth=new Date().getMonth();
-    const isFutureMonth=rfMonth>=0&&rfMonth>curMonth;
-    if(budgetLabel)budgetLabel.textContent=isFutureMonth?'Actual + Forecast':'Actual';
+    const actuals=rfMonth>=0?rfMonth+1:0;
+    const forecast=12-actuals;
+    if(budgetLabel)budgetLabel.textContent=actuals+'+'+forecast;
     if(forecastChev)forecastChev.style.display='none';
     // Generate actuals if not present
     if(!state.actuals){
