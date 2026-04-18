@@ -243,8 +243,6 @@
       if(window.initOtherTab)try{window.initOtherTab()}catch(e){}
       const prefix=window.planContext==='forecast'?'FCAST':'BUD';
       if(window._broadcastTab)window._broadcastTab(prefix+' - Other');
-    }
-  }
 
     } else if(module==='actuals'){
       // Actuals module — non-editable realized data with variance
@@ -261,7 +259,7 @@
       if(window.renderActuals)try{window.renderActuals()}catch(e){console.warn('renderActuals:',e)}
       if(window._broadcastTab)window._broadcastTab('ACTUALS');
     }
-
+  }
   // Expose for use by other navigation flows
   window.navigateToModule = navigateToModule;
 
