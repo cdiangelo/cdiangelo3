@@ -720,6 +720,9 @@ function renderFteSparkline(){
   const canvas=document.getElementById('empFteSparkline');
   const totalEl=document.getElementById('fteTrendTotal');
   if(!canvas||typeof Chart==='undefined')return;
+  // Constrain canvas parent height
+  canvas.parentElement.style.height='44px';
+  canvas.style.height='44px';
   const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const emps=state.employees||[];
   const hcByMonth=MO.map((_,mi)=>emps.filter(e=>(e.startMonth||0)<=mi).length);
@@ -728,10 +731,10 @@ function renderFteSparkline(){
   if(fteSparkChart)fteSparkChart.destroy();
   fteSparkChart=new Chart(canvas,{
     type:'line',
-    data:{labels:MO,datasets:[{data:hcByMonth,borderColor:colors[0],backgroundColor:'transparent',borderWidth:2,pointRadius:2,pointBackgroundColor:colors[0],tension:0.3}]},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:4,right:4}},
-      plugins:{legend:{display:false},datalabels:{display:false},tooltip:{enabled:true,callbacks:{label:ctx=>ctx.parsed.y+' FTEs'}}},
-      scales:{x:{display:false},y:{display:false,beginAtZero:true}}
+    data:{labels:MO,datasets:[{data:hcByMonth,borderColor:colors[0],backgroundColor:'transparent',borderWidth:2,pointRadius:2,pointBackgroundColor:colors[0],tension:0.3,datalabels:{display:false}}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:2,bottom:2,left:2,right:2}},
+      plugins:{legend:{display:false},datalabels:{display:false},tooltip:{enabled:true,callbacks:{label:ctx=>ctx.parsed.y+' FTEs'}},yoyArrows:false},
+      scales:{x:{display:false},y:{display:false}}
     }
   });
 }

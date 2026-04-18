@@ -766,12 +766,12 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 
 <!-- FTE Trend Sparkline + Adjustment -->
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:8px 12px;background:var(--panel);border:1px solid var(--border-light);border-radius:8px">
-<div style="flex:1;min-width:0">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+<div style="flex:1;min-width:0;max-height:48px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
 <span style="font-size:.72rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em">FTE Trend</span>
 <span id="fteTrendTotal" style="font-size:.78rem;font-weight:700;color:var(--accent)"></span>
 </div>
-<canvas id="empFteSparkline" style="width:100%;height:36px"></canvas>
+<div style="height:36px;position:relative"><canvas id="empFteSparkline"></canvas></div>
 </div>
 <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
 <button class="btn btn-sm" id="fteAdjMinus" style="padding:2px 8px;font-size:.82rem;font-weight:700">−</button>
