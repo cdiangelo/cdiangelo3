@@ -176,24 +176,44 @@ function showHomePage(){
   // Provision 2026 on first load
   ensureYearPlans(2026).then(plans=>{
     window._allPlans=plans;
-    updateNavCardStates(plans);
+    updateNavCardStates();
   });
 
-  function updateNavCardStates(plans){
-    // Mark RF months with actuals indicator for months before current
-    const curMonth=new Date().getMonth();
+  function updateNavCardStates(){
+    const MO_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const sel=document.getElementById('homeCurrentMonth');
+    const curMonth=sel?parseInt(sel.value):new Date().getMonth();
+    window._rfCurrentMonth=curMonth;
     document.querySelectorAll('.rf-month').forEach(card=>{
       const mi=parseInt(card.dataset.planMonth);
+      // Reset
+      card.style.borderColor='var(--border-light)';
+      card.style.borderWidth='1px';
+      card.style.opacity='1';
+      card.style.cursor='pointer';
+      card.innerHTML=MO_NAMES[mi];
       if(mi<curMonth){
+        // Actuals — completed months
         card.style.borderColor='var(--success)';
-        card.style.opacity='0.7';
-        card.innerHTML=card.textContent+'<div style="font-size:.58rem;color:var(--success);margin-top:2px">Actuals</div>';
+        card.style.background='rgba(88,168,120,0.08)';
+        card.innerHTML=MO_NAMES[mi]+'<div style="font-size:.56rem;color:var(--success);margin-top:1px;font-weight:600">Actuals</div>';
       } else if(mi===curMonth){
+        // Current month — highlighted
         card.style.borderColor='var(--accent)';
         card.style.borderWidth='2px';
+        card.style.background='var(--accent-glow)';
+      } else {
+        // Future months — greyed out
+        card.style.opacity='0.4';
+        card.style.cursor='not-allowed';
+        card.style.background='var(--bg-elevated)';
       }
     });
   }
+
+  // Current month selector drives card states
+  const monthSel=document.getElementById('homeCurrentMonth');
+  if(monthSel)monthSel.addEventListener('change',()=>updateNavCardStates());
 
   // RF toggle expand/collapse
   const rfToggle=document.getElementById('rfToggle');
@@ -211,6 +231,11 @@ function showHomePage(){
       const type=card.dataset.planType;
       const month=card.dataset.planMonth;
       if(!type)return;
+      // Block future RF months
+      if(type==='forecast'&&month!==''){
+        const curMonth=window._rfCurrentMonth!=null?window._rfCurrentMonth:new Date().getMonth();
+        if(parseInt(month)>curMonth)return;
+      }
       const plans=window._allPlans||await fetchPlans(user.id);
       // Build expected name to match
       const MO_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];

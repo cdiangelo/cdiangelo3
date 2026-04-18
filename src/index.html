@@ -48,7 +48,18 @@
 
 <!-- 2026 Plan Navigation -->
 <div style="margin-bottom:24px">
-<h2 style="font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:16px">2026</h2>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+<h2 style="font-size:1.3rem;font-weight:700;color:var(--text);margin:0">2026</h2>
+<div style="display:flex;align-items:center;gap:6px;margin-left:auto">
+<span style="font-size:.7rem;color:var(--tertiary)">Current Month:</span>
+<select id="homeCurrentMonth" style="padding:4px 8px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;background:var(--bg-input);color:var(--text);font-weight:600">
+<option value="0">January</option><option value="1">February</option><option value="2">March</option>
+<option value="3" selected>April</option><option value="4">May</option><option value="5">June</option>
+<option value="6">July</option><option value="7">August</option><option value="8">September</option>
+<option value="9">October</option><option value="10">November</option><option value="11">December</option>
+</select>
+</div>
+</div>
 
 <!-- AOP -->
 <div style="background:var(--panel);border:1px solid var(--border-light);border-radius:10px;padding:14px 18px;margin-bottom:10px;cursor:pointer" class="plan-nav-card" data-plan-type="budget" data-plan-month="">
