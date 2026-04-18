@@ -73,15 +73,16 @@
 html{transition:background-color .25s ease,color .2s ease}
 
 /* Body & Links */
-body{--font-mono:'JetBrains Mono','Fira Code','Source Code Pro',monospace;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;letter-spacing:.01em;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{--font-mono:'JetBrains Mono','Fira Code','Source Code Pro',monospace;--font-heading:'Outfit',sans-serif;--font-body:'Quicksand','Inter',sans-serif;font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;letter-spacing:.01em;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 a{color:var(--accent);transition:color .15s ease}
 a:hover{color:var(--accent-light)}
 
-/* ── Typography hierarchy — headings use --text, never --accent ── */
-h1{font-size:1.5rem;font-weight:600;color:var(--text);letter-spacing:-.01em;line-height:1.3}
-h2{font-size:1.25rem;font-weight:600;color:var(--text);letter-spacing:-.01em;line-height:1.3}
-h3{font-size:1.05rem;font-weight:600;color:var(--text);line-height:1.4}
-h4{font-size:.92rem;font-weight:500;color:var(--text);line-height:1.4}
+/* ── Typography hierarchy — Outfit for headings, Quicksand for body ── */
+h1{font-family:var(--font-heading);font-size:1.5rem;font-weight:600;color:var(--text);letter-spacing:-.01em;line-height:1.3}
+h2{font-family:var(--font-heading);font-size:1.25rem;font-weight:600;color:var(--text);letter-spacing:-.01em;line-height:1.3}
+h3{font-family:var(--font-heading);font-size:1.05rem;font-weight:600;color:var(--text);line-height:1.4}
+h4{font-family:var(--font-heading);font-size:.92rem;font-weight:500;color:var(--text);line-height:1.4}
+.section-title,.module-title,.chevron-label,.plan-hdr-badge,.home-logo .app-logo-text{font-family:var(--font-heading)}
 
 /* ── Global interactive transition ── */
 button,a,.btn,select,input,textarea,.card,.stat-card,.toggle-track,.home-plan-card,.landing-module,.chevron-shape,.chevron-sub-item,.btb-btn,.nav-group-btns button{
