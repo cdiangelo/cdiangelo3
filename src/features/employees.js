@@ -569,30 +569,46 @@ function renderEmployees(){
     const typeStyle=(e.empType||'existing')==='hire'?'color:#059669;font-weight:600':'color:var(--text-dim)';
     const allocs=(e.allocations&&e.allocations.length)?e.allocations:[];
 
-    // Build aligned split lines — each split is one line at matching height across all three cells
-    // Drop long labels (biz line name) when there's >1 split so codes line up cleanly
-    const multi=allocs.length>1;
-    function splitLines(getter,opts){
-      const rows=allocs.map((a,i)=>{
-        const v=getter(a);
-        return `<div class="emp-split-line" style="font-size:${multi?'.7rem':'.78rem'};line-height:16px;height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v}</div>`;
+    // Build aligned split lines — each split is one fixed-height line.
+    // Single-split employees use the SAME line layout so alignment is consistent.
+    function splitLines(getter){
+      const rows=(allocs.length?allocs:[null]).map((a,i)=>{
+        const v=a?getter(a):'—';
+        return `<div class="emp-split-line">${v}</div>`;
       });
-      return rows.join('')||'<span style="color:var(--text-dim)">—</span>';
+      return rows.join('');
     }
-    const mktHtml=splitLines(a=>a.market||'—');
-    const blHtml=splitLines(a=>{const bl=a.bizLine||e.businessLine||'';return bl||'—'});
-    const projHtmlFinal=splitLines(a=>{const p=a.projId?getProjectById(a.projId):null;return p?`<strong style="color:var(--accent)">${p.code}</strong> <span style="color:var(--tertiary);font-size:.64rem">${a.pct}%</span>`:'—'});
+    // Always-editable cells — inline selects/inputs for all chartfield + comp + dates
+    const projOptsIn=state.projects.map(p=>`<option value="${p.id}">${p.code}</option>`).join('');
+    const blOptsIn=state.bizLines.map(b=>`<option value="${b.code}">${b.code}</option>`).join('');
+    const mktOptsIn=state.markets.map(m=>`<option value="${m.code}">${m.code}</option>`).join('');
+    const buSet=[...new Set(Object.values(COUNTRY_BU))].sort();
+    const buOptsIn=buSet.map(b=>`<option value="${b}">${b}</option>`).join('');
+    function sel(v,opts){return v?opts.replace(`value="${v}"`,`value="${v}" selected`):opts}
+
+    const safeAllocs=allocs.length?allocs:[{projId:'',pct:100,bizLine:'',market:''}];
+    const mktHtml=safeAllocs.map((a,i)=>`<div class="emp-split-line"><select class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="market"><option value="">—</option>${sel(a.market||'',mktOptsIn)}</select></div>`).join('');
+    const blHtml=safeAllocs.map((a,i)=>`<div class="emp-split-line"><select class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="bizLine"><option value="">—</option>${sel(a.bizLine||e.businessLine||'',blOptsIn)}</select></div>`).join('');
+    const projHtmlFinal=safeAllocs.map((a,i)=>`<div class="emp-split-line" style="display:flex;gap:2px;align-items:center"><select class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="projId" style="flex:1;min-width:60px"><option value="">—</option>${sel(a.projId||'',projOptsIn)}</select><input type="number" class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="pct" value="${a.pct}" min="0" max="100" style="width:36px">%${safeAllocs.length>1?`<button class="emp-action-icon del" style="width:16px;height:16px;font-size:.68rem" title="Remove split" onclick="window.removeAllocSplit('${e.id}',${i})">&times;</button>`:''}</div>`).join('')+`<div class="emp-split-line"><button class="btn btn-sm" style="padding:0 6px;font-size:.64rem" onclick="window.addAllocSplit('${e.id}')">+ split</button></div>`;
 
     let html=`<tr data-id="${e.id}">
-      <td><div class="emp-actions"><button class="emp-action-icon" title="Quick edit" onclick="window.startInlineEdit('${e.id}')">&#9998;</button><button class="emp-action-icon" title="Open form" onclick="window.startEdit('${e.id}')">&#9881;</button><button class="emp-action-icon del" title="Delete" onclick="window.deleteEmp('${e.id}')">&times;</button></div></td>
-      <td>${e.name}</td><td style="${typeStyle};font-size:.78rem">${typeLabel}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
-      <td>${mktHtml}</td><td>${blHtml}</td>
-      <td class="ops-hide" style="font-size:.78rem">${e.businessUnit||'—'}</td>
+      <td><div class="emp-actions"><button class="emp-action-icon" title="Open form" onclick="window.startEdit('${e.id}')">&#9881;</button><button class="emp-action-icon del" title="Delete" onclick="window.deleteEmp('${e.id}')">&times;</button></div></td>
+      <td><input class="ec" data-eid="${e.id}" data-f="name" value="${e.name}" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:2px 4px"></td>
+      <td>${isOps?`<span style="${typeStyle};font-size:.78rem">${typeLabel}</span>`:`<select class="ec" data-eid="${e.id}" data-f="empType" style="font-size:.72rem"><option value="existing"${(e.empType||'existing')==='existing'?' selected':''}>Existing</option><option value="hire"${e.empType==='hire'?' selected':''}>New Hire</option></select>`}</td>
+      <td><select class="ec" data-eid="${e.id}" data-f="country" style="font-size:.72rem">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
+      <td><select class="ec" data-eid="${e.id}" data-f="seniority" style="font-size:.72rem">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td><select class="ec" data-eid="${e.id}" data-f="function" style="font-size:.72rem">${FUNCTIONS.map(f=>`<option${f===e.function?' selected':''}>${f}</option>`).join('')}</select></td>
+      <td>${mktHtml}</td>
+      <td>${blHtml}</td>
+      <td class="ops-hide"><select class="ec" data-eid="${e.id}" data-f="businessUnit" style="font-size:.72rem"><option value="">—</option>${sel(e.businessUnit||COUNTRY_BU[e.country]||'',buOptsIn)}</select></td>
       <td>${projHtmlFinal}</td>
       <td class="emp-comp-toggle-cell"></td>
-      <td class="${cs} emp-comp-col">${fmt(e.salary||e.baseSalary)}</td><td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
-      <td>${getCapPct(e)}%</td><td class="${cs} emp-comp-col">${fmt(getProratedOpEx(e))}</td><td class="${cs} emp-comp-col">${fmt(getProratedCapEx(e))}</td>
-      <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td>
+      <td class="${cs} emp-comp-col"><input class="ec" type="number" data-eid="${e.id}" data-f="salary" value="${e.salary||e.baseSalary||0}" style="width:88px"></td>
+      <td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
+      <td><input class="ec" type="number" min="0" max="100" data-eid="${e.id}" data-f="capPct" value="${e.capPct||0}" style="width:44px">%</td>
+      <td class="${cs} emp-comp-col">${fmt(getProratedOpEx(e))}</td><td class="${cs} emp-comp-col">${fmt(getProratedCapEx(e))}</td>
+      <td><input class="ec" type="date" data-eid="${e.id}" data-f="hireDate" value="${e.hireDate||''}" style="width:124px;font-size:.72rem"></td>
+      <td><input class="ec" type="date" data-eid="${e.id}" data-f="termDate" value="${e.termDate||''}" style="width:124px;font-size:.72rem"></td>
     </tr>`;
     return html;
   }).join('');
@@ -608,6 +624,61 @@ document.getElementById('empCompToggle').addEventListener('click',()=>{empCompEx
 // Re-sync after render
 const _origRenderEmployees=renderEmployees;
 renderEmployees=function(){_origRenderEmployees();syncEmpCompCols()};
+
+// Always-editable roster — auto-save on any .ec field change
+function saveEcField(el){
+  const eid=el.dataset.eid;
+  const f=el.dataset.f;
+  const aidx=el.dataset.aidx;
+  const emp=state.employees.find(x=>x.id===eid);
+  if(!emp)return;
+  let val=el.value;
+  if(el.type==='number')val=parseFloat(val)||0;
+  if(aidx!==undefined){
+    // Per-split field
+    if(!emp.allocations)emp.allocations=[];
+    const idx=parseInt(aidx);
+    if(!emp.allocations[idx])emp.allocations[idx]={projId:'',pct:0,bizLine:'',market:''};
+    emp.allocations[idx][f]=val;
+    // Auto-populate bizLine/market from project on project change
+    if(f==='projId'){
+      const p=state.projects.find(pr=>pr.id===val);
+      if(p){
+        if(!emp.allocations[idx].bizLine&&p.bizLineCode)emp.allocations[idx].bizLine=p.bizLineCode;
+        if(!emp.allocations[idx].market&&p.marketCode)emp.allocations[idx].market=p.marketCode;
+      }
+    }
+  } else {
+    emp[f]=val;
+    if(f==='country'&&COUNTRY_BU[val]&&!emp.businessUnit)emp.businessUnit=COUNTRY_BU[val];
+  }
+  saveState();
+  // Re-render only if field affects derived columns or split count
+  if(f==='country'||f==='seniority'||f==='function'||f==='salary'||f==='capPct'||f==='hireDate'||f==='termDate'||f==='projId'){
+    renderEmployees();
+  }
+}
+document.addEventListener('change',e=>{
+  if(e.target.classList&&e.target.classList.contains('ec'))saveEcField(e.target);
+});
+document.addEventListener('input',e=>{
+  if(e.target.classList&&e.target.classList.contains('ec')&&(e.target.tagName==='INPUT'&&e.target.type==='number'))saveEcField(e.target);
+});
+
+function addAllocSplit(eid){
+  const emp=state.employees.find(x=>x.id===eid);if(!emp)return;
+  if(!emp.allocations)emp.allocations=[];
+  emp.allocations.push({projId:'',pct:0,bizLine:'',market:'',primary:emp.allocations.length===0});
+  saveState();renderEmployees();
+}
+function removeAllocSplit(eid,idx){
+  const emp=state.employees.find(x=>x.id===eid);if(!emp||!emp.allocations)return;
+  emp.allocations.splice(idx,1);
+  if(emp.allocations.length&&!emp.allocations.some(a=>a.primary))emp.allocations[0].primary=true;
+  saveState();renderEmployees();
+}
+window.addAllocSplit=addAllocSplit;
+window.removeAllocSplit=removeAllocSplit;
 
 document.getElementById('empFilterName').addEventListener('input',renderEmployees);
 
