@@ -90,6 +90,7 @@ window.applyPlanChevronContext = function(plan){
       else if (module === 'te') navigateToModule('te');
       else if (module === 'other') navigateToModule('other');
       else if (module === 'actuals') navigateToModule('actuals');
+      else if (module === 'revenue') navigateToModule('revenue');
       else if (module === 'depreciation') navigateToModule('depreciation');
       else if (module === 'forecast' || module === 'ltf') navigateToModule('ltf');
     });
@@ -170,7 +171,7 @@ window.applyPlanChevronContext = function(plan){
   function navigateToModule(module){
     // Step 1: Hide everything including appShell
     // Check module access restrictions
-    const modKeyMap={comp:'comp',vendor:'vendor',contractors:'contractors',te:'te',depreciation:'depreciation',ltf:'forecast'};
+    const modKeyMap={comp:'comp',vendor:'vendor',contractors:'contractors',te:'te',revenue:'revenue',depreciation:'depreciation',ltf:'forecast'};
     const modKey=modKeyMap[module];
     if(modKey&&window.isModuleAllowed&&!window.isModuleAllowed(modKey)){
       alert('You do not have access to this module.');
@@ -239,6 +240,13 @@ window.applyPlanChevronContext = function(plan){
       if(tBtn)tBtn.click();
       const prefix=window.planContext==='forecast'?'FCAST':'BUD';
       if(window._broadcastTab)window._broadcastTab(prefix+' - T&E');
+
+    } else if(module==='revenue'){
+      if(window.showVendor)window.showVendor();
+      const rBtn=document.querySelector('#vendorNav [data-vtab="vendor-revenue"]');
+      if(rBtn)rBtn.click();
+      const prefix=window.planContext==='forecast'?'FCAST':'BUD';
+      if(window._broadcastTab)window._broadcastTab(prefix+' - Revenue');
 
     } else if(module==='depreciation'){
       if(window.showDepreciation)window.showDepreciation();

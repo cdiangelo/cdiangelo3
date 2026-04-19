@@ -34,6 +34,7 @@ function initVendorModule(){
       if(b.dataset.vtab==='vendor-other')initOtherTab();
       if(b.dataset.vtab==='vendor-te'){renderTeGrid();refreshTePivot()}
       if(b.dataset.vtab==='vendor-contractors'){renderContractorGrid();refreshContractorPivot()}
+      if(b.dataset.vtab==='vendor-revenue')initRevenueGrid()
     });
   });
 
@@ -44,8 +45,10 @@ function initVendorModule(){
     const a=state.accounts.find(x=>x.description===desc);
     return a?a.code:'';
   }
+  window._acctDescToCode=acctDescToCode;
 
   function getBlankBg(){const dk=document.documentElement.classList.contains('dark');const cr=window.chartColorScheme==='crisp';if(dk)return cr?'background:#1e1e22;color:#555':'background:#2a2a2a;color:#666';return cr?'background:#ddd;color:#888':'background:#e8e8e8;color:#888'}
+  window._getBlankBg=getBlankBg;
   let vendorAmtScale=1000;
   function getScaleLabel(){return vendorAmtScale===1000?'K':vendorAmtScale===1000000?'M':'$'}
   function scaleVal(v){return vendorAmtScale===1?v:Math.round((v/vendorAmtScale)*100)/100}
@@ -2404,9 +2407,127 @@ window.getVendorOaoByMonth = getVendorOaoByMonth;
 window.getContractorCapExTotal = getContractorCapExTotal;
 window.getContractorCapExByMonth = getContractorCapExByMonth;
 
+// ── Revenue Grid (simplified T&E-style monthly input) ──
+let revAmtScale=1000;
+
+function getRevenueTotal(){return (state.revenueRows||[]).reduce((s,r)=>REV_MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0)+s,0)}
+function getRevenueByMonth(mi){return (state.revenueRows||[]).reduce((s,r)=>s+(parseFloat(r[REV_MO[mi]])||0),0)}
+
+const REV_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+function revFmtScaled(n){
+  const v=n/revAmtScale;
+  if(revAmtScale===1)return fmt(n);
+  return '$'+v.toLocaleString('en-US',{maximumFractionDigits:2})+(revAmtScale===1000?'K':'M');
+}
+
+function buildRevRow(row,i){
+  const _BU=Object.values(COUNTRY_BU).filter((v,j,a)=>a.indexOf(v)===j);
+  const buOpts=_BU.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+  const mktOpts=state.markets.map(m=>`<option value="${esc(m.code)}">${esc(m.code)} — ${esc(m.name)}</option>`).join('');
+  const blOpts=state.bizLines.map(b=>`<option value="${esc(b.code)}">${esc(b.code)} — ${esc(b.name)}</option>`).join('');
+  const projOpts=state.projects.map(p=>`<option value="${esc(p.id)}">${esc(p.code)}</option>`).join('');
+  const acctOpts=state.accounts.filter(a=>(a.group||'vendor')==='revenue'||(a.group||'')==='').map(a=>`<option value="${esc(a.description)}">${esc(a.description)}</option>`).join('');
+  const fy=REV_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
+  const _blankBg=window._getBlankBg?window._getBlankBg():'';const blk=v=>!v?_blankBg:'';
+  let h=`<tr data-ri="${i}">`;
+  h+=`<td class="row-del-cell"><button class="btn btn-sm btn-danger rev-del" data-ri="${i}" title="Delete row">&times;</button></td>`;
+  h+=`<td style="${blk(row.streamName)}"><input class="ec rev-field" data-f="streamName" value="${esc(row.streamName||'')}"></td>`;
+  h+=`<td style="${blk(row.description)}"><input class="ec rev-field" data-f="description" value="${esc(row.description||'')}"></td>`;
+  h+=`<td><input class="ec rev-field" data-f="notes" value="${esc(row.notes||'')}"></td>`;
+  h+=`<td class="cf-col" style="${blk(row.businessUnit)}"><select class="ec rev-field" data-f="businessUnit"><option value="">—</option>${buOpts}</select></td>`;
+  h+=`<td class="cf-col" style="${blk(row.bizLine)}"><select class="ec rev-field" data-f="bizLine"><option value="">—</option>${blOpts}</select></td>`;
+  h+=`<td class="cf-col" style="${blk(row.market)}"><select class="ec rev-field" data-f="market"><option value="">—</option>${mktOpts}</select></td>`;
+  h+=`<td class="cf-col" style="${blk(row.project)}"><select class="ec rev-field" data-f="project"><option value="">—</option>${projOpts}</select></td>`;
+  h+=`<td class="cf-col" style="${blk(row.acctDesc)}"><select class="ec rev-field rev-acctDesc" data-f="acctDesc"><option value="">—</option>${acctOpts}</select></td>`;
+  h+=`<td class="rev-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${(window._acctDescToCode||((d)=>''))(row.acctDesc)}</td>`;
+  h+=`<td class="rev-fy" style="font-weight:700;text-align:right;font-size:.82rem;white-space:nowrap">${revFmtScaled(fy)}</td>`;
+  REV_MO.forEach(m=>{
+    const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
+    const displayed=parseFloat(raw)||0;const sc=displayed/revAmtScale;
+    const formatted=revAmtScale===1&&displayed?'$'+Number(displayed).toLocaleString('en-US'):''+sc;
+    h+=`<td><input class="ec rev-field rev-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${sc}"></td>`;
+  });
+  h+=`</tr>`;
+  return h;
+}
+
+function renderRevenueGrid(){
+  const tbody=document.getElementById('revTbody');
+  const tfoot=document.getElementById('revTfoot');
+  if(!tbody)return;
+  if(!state.revenueRows)state.revenueRows=[];
+  let h='';
+  state.revenueRows.forEach((row,i)=>{h+=buildRevRow(row,i)});
+  tbody.innerHTML=h;
+  // Set selected values
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    const i=+tr.dataset.ri;const row=state.revenueRows[i];
+    tr.querySelectorAll('select.rev-field').forEach(sel=>{
+      const f=sel.dataset.f;if(row[f])sel.value=row[f];
+    });
+  });
+  // Bind
+  tbody.querySelectorAll('.rev-field').forEach(el=>{
+    const ev=el.tagName==='SELECT'?'change':'input';
+    if(el.classList.contains('rev-mo')){
+      el.addEventListener('focus',()=>{const raw=el.dataset.raw||el.value.replace(/[$,]/g,'');el.value=raw;el.type='number';el.select()});
+      el.addEventListener('blur',()=>{const val=parseFloat(el.value)||0;el.dataset.raw=val;el.type='text';el.value=revAmtScale===1&&val?'$'+Number(val).toLocaleString('en-US'):''+val});
+    }
+    el.addEventListener(ev,()=>{
+      const i=+el.closest('tr').dataset.ri;const f=el.dataset.f;
+      if(el.classList.contains('rev-mo')){
+        const rawVal=parseFloat(String(el.value).replace(/[$,]/g,''))||0;el.dataset.raw=rawVal;
+        state.revenueRows[i][f]=rawVal*revAmtScale;
+      } else {state.revenueRows[i][f]=el.value}
+      if(f==='acctDesc')el.closest('tr').querySelector('.rev-acctCode').textContent=(window._acctDescToCode||((d)=>''))(el.value);
+      if(el.classList.contains('rev-mo')){
+        const fy2=REV_MO.reduce((s,m)=>s+(parseFloat(state.revenueRows[i][m])||0),0);
+        el.closest('tr').querySelector('.rev-fy').textContent=revFmtScaled(fy2);
+        renderRevFooter();
+      }
+      saveState();
+    });
+  });
+  tbody.querySelectorAll('.rev-del').forEach(btn=>{
+    btn.addEventListener('click',()=>{state.revenueRows.splice(+btn.dataset.ri,1);saveState();renderRevenueGrid()});
+  });
+  renderRevFooter();
+}
+
+function renderRevFooter(){
+  const tfoot=document.getElementById('revTfoot');if(!tfoot)return;
+  const totals=REV_MO.map(m=>(state.revenueRows||[]).reduce((s,r)=>s+(parseFloat(r[m])||0),0));
+  const fy=totals.reduce((s,v)=>s+v,0);
+  let ft=`<tr style="font-weight:700;background:var(--panel);border-top:2px solid var(--border)">`;
+  ft+=`<td></td><td colspan="2">TOTAL</td><td></td>`;
+  for(let i=0;i<6;i++)ft+=`<td class="cf-col"></td>`;
+  ft+=`<td style="text-align:right;font-size:.82rem">${revFmtScaled(fy)}</td>`;
+  totals.forEach(t=>ft+=`<td style="text-align:right;font-size:.72rem">${revFmtScaled(t)}</td>`);
+  ft+='</tr>';
+  tfoot.innerHTML=ft;
+}
+
+function initRevenueGrid(){
+  const scaleEl=document.getElementById('revAmtScale');
+  if(scaleEl)scaleEl.addEventListener('change',()=>{revAmtScale=parseInt(scaleEl.value)||1000;renderRevenueGrid()});
+  const addBtn=document.getElementById('revAddRowBtn');
+  if(addBtn)addBtn.addEventListener('click',()=>{
+    if(!state.revenueRows)state.revenueRows=[];
+    state.revenueRows.push({streamName:'',description:'',notes:'',businessUnit:'',bizLine:'',market:'',project:'',acctDesc:'',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0});
+    saveState();renderRevenueGrid();
+  });
+  renderRevenueGrid();
+}
+window.initRevenueGrid=initRevenueGrid;
+window.renderRevenueGrid=renderRevenueGrid;
+window.getRevenueTotal=getRevenueTotal;
+window.getRevenueByMonth=getRevenueByMonth;
+
 /* ── named exports ── */
 export {
   initVendorModule,
   getVendorOaoTotal, getVendorOaoByMonth,
-  getContractorCapExTotal, getContractorCapExByMonth
+  getContractorCapExTotal, getContractorCapExByMonth,
+  getRevenueTotal, getRevenueByMonth
 };

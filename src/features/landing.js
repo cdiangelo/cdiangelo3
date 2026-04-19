@@ -127,10 +127,7 @@ function showDepreciation(){
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
 function showRevenue(){
-  hideAllModules();
-  document.getElementById('revenueModule').style.display='';
-  initRevenueModule();
-  if(window._updateGlobalToolbar)window._updateGlobalToolbar();
+  if(window.navigateToModule)window.navigateToModule('revenue');
 }
 
 let ltfModuleInited=false;

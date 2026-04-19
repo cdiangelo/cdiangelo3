@@ -264,7 +264,7 @@ function checkModuleAccess(){
     '#chevBudget','#chevForecast',
     '[data-module="comp"]','[data-module="vendor"]','[data-module="contractors"]',
     '[data-module="te"]','[data-module="depreciation"]','[data-module="other"]',
-    '[data-module="actuals"]','[data-module="forecast"]','[data-module="ltf"]',
+    '[data-module="actuals"]','[data-module="revenue"]','[data-module="forecast"]','[data-module="ltf"]',
     '#revenueModule','.revenue-toggle','[data-pnlmode="revenue"]',
     '[data-vtab="vendor-grid"]','[data-vtab="vendor-te"]',
     '[data-vtab="vendor-contractors"]','[data-vtab="vendor-other"]'
