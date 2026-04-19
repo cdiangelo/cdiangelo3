@@ -3,6 +3,17 @@
 #empTable th.diag{position:sticky;top:0;height:110px;white-space:nowrap;vertical-align:bottom;padding:0 2px 8px 2px;text-align:left;overflow:visible;min-width:75px;border-bottom:2px solid var(--accent)}
 #empTable th.diag .diag-text{display:inline-block;transform:rotate(-45deg);transform-origin:bottom left;white-space:nowrap;font-size:.82rem;letter-spacing:.03em;position:relative;bottom:0;left:6px}
 #empTable th.diag.num-col,#empTable th.diag.num-col-sm,#empTable th.diag.num-col-lg{min-width:85px;text-align:right}
+
+/* Multiselect dropdown filter */
+.ms-dropdown{position:relative;flex-shrink:0}
+.ms-btn{padding:3px 8px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.ms-btn::after{content:'▾';font-size:.6rem;color:var(--tertiary)}
+.ms-btn.has-sel{border-color:var(--accent);color:var(--accent);font-weight:600}
+.ms-popout{display:none;position:absolute;top:100%;left:0;margin-top:2px;min-width:140px;max-height:200px;overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:100;padding:4px 0}
+.ms-dropdown.open .ms-popout{display:block}
+.ms-popout label{display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:.72rem;cursor:pointer;color:var(--text);white-space:nowrap}
+.ms-popout label:hover{background:var(--accent-glow)}
+.ms-popout input[type="checkbox"]{width:13px;height:13px;accent-color:var(--accent)}
 #empTable th:nth-child(1),#empTable th:nth-child(2){border-bottom:2px solid var(--accent);height:auto;vertical-align:middle;font-size:.82rem}
 /* Frozen columns for employee roster -- Actions + Name */
 #empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;background:var(--panel);min-width:150px;width:150px;max-width:150px}

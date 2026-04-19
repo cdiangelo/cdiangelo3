@@ -904,13 +904,13 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 <div class="emp-filter-bar" style="display:flex;flex-wrap:nowrap;gap:6px;align-items:center;margin-bottom:8px;padding:6px 10px;background:var(--panel-inset);border-radius:6px;border:1px solid var(--border);overflow-x:auto">
 <span style="font-size:.72rem;font-weight:600;color:var(--text-dim);white-space:nowrap">Filters:</span>
-<input id="empFilterName" placeholder="Name…" style="padding:3px 6px;font-size:.76rem;border:1px solid var(--border);border-radius:4px;min-width:90px;width:110px;flex-shrink:1">
-<select id="empFilterCountry" multiple style="padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;min-width:80px;max-width:140px;height:auto;max-height:52px;flex-shrink:1"><option value="">Country</option></select>
-<select id="empFilterSeniority" multiple style="padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;min-width:80px;max-width:140px;height:auto;max-height:52px;flex-shrink:1"><option value="">Seniority</option></select>
-<select id="empFilterFunction" multiple style="padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;min-width:80px;max-width:140px;height:auto;max-height:52px;flex-shrink:1"><option value="">Function</option></select>
-<select id="empFilterMarket" multiple style="padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;min-width:80px;max-width:140px;height:auto;max-height:52px;flex-shrink:1"><option value="">Market</option></select>
-<select id="empFilterBizLine" multiple style="padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;min-width:80px;max-width:140px;height:auto;max-height:52px;flex-shrink:1"><option value="">Biz Line</option></select>
-<select id="empFilterProject" multiple style="padding:2px 4px;font-size:.72rem;border:1px solid var(--border);border-radius:4px;min-width:80px;max-width:140px;height:auto;max-height:52px;flex-shrink:1"><option value="">Project</option></select>
+<input id="empFilterName" placeholder="Name…" style="padding:3px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;min-width:80px;width:100px;flex-shrink:1;background:var(--bg-input);color:var(--text)">
+<div class="ms-dropdown" data-filter="empFilterCountry"><button class="ms-btn" type="button">Country</button><div class="ms-popout"></div></div>
+<div class="ms-dropdown" data-filter="empFilterSeniority"><button class="ms-btn" type="button">Seniority</button><div class="ms-popout"></div></div>
+<div class="ms-dropdown" data-filter="empFilterFunction"><button class="ms-btn" type="button">Function</button><div class="ms-popout"></div></div>
+<div class="ms-dropdown" data-filter="empFilterMarket"><button class="ms-btn" type="button">Market</button><div class="ms-popout"></div></div>
+<div class="ms-dropdown" data-filter="empFilterBizLine"><button class="ms-btn" type="button">Biz Line</button><div class="ms-popout"></div></div>
+<div class="ms-dropdown" data-filter="empFilterProject"><button class="ms-btn" type="button">Project</button><div class="ms-popout"></div></div>
 <button class="btn btn-sm" id="empFilterClear" style="padding:2px 8px;font-size:.68rem;white-space:nowrap;flex-shrink:0">Clear</button>
 </div>
 <div class="table-wrap"><table id="empTable"><thead>
