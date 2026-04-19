@@ -735,6 +735,69 @@ initPivot();
     setPivotCfg({title:'',xTitle:'',yTitle:'',yMin:'',yMax:'',yStep:'',legend:'bottom',height:50});
     loadFields();saveFromFields();
   });
+
+  // ── Calculated Metrics wiring ──
+  const ACCT_LABELS={cb:'C&B',oao:'OAO',ctr:'CTR',te:'T&E',da:'D&A',capex:'CapEx',opex:'OpEx',ebitda:'EBITDA',totinv:'Tot Inv',hc:'HC'};
+  function refreshCalcList(){
+    const list=el('pivotCalcList');if(!list)return;
+    const ms=getCalcMetrics();
+    if(!ms.length){list.innerHTML='<div style="font-size:.68rem;color:var(--text-dim);padding:2px 0">No calculated metrics defined.</div>';return}
+    list.innerHTML=ms.map(m=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 6px;background:var(--bg-elevated);border-radius:4px;font-size:.7rem">
+      <span style="flex:1"><strong>${m.name}</strong> <span style="color:var(--text-dim);font-size:.66rem">= ${ACCT_LABELS[m.numerator]||m.numerator} / ${ACCT_LABELS[m.denominator]||m.denominator}</span></span>
+      <button class="btn btn-sm" data-calc-del="${m.id}" style="padding:1px 6px;font-size:.64rem;color:var(--danger);border-color:var(--danger)">Del</button>
+    </div>`).join('');
+    list.querySelectorAll('[data-calc-del]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const id=btn.dataset.calcDel;
+        setCalcMetrics(getCalcMetrics().filter(x=>x.id!==id));
+        refreshCalcList();refreshAcctDropdown();
+        if(window.renderPivot)try{window.renderPivot()}catch(e){}
+      });
+    });
+  }
+  function refreshAcctDropdown(){
+    const sel=el('pivotChartAccount');if(!sel)return;
+    const current=sel.value;
+    // Base options (preserved)
+    const baseOptions=[
+      {v:'totinv',t:'Tot Inv'},{v:'opex',t:'OpEx'},{v:'ebitda',t:'EBITDA'},
+      {v:'cb',t:'C&B'},{v:'oao',t:'OAO'},{v:'te',t:'T&E'},{v:'ctr',t:'CTR'},
+      {v:'capex',t:'CapEx'},{v:'da',t:'D&A'},{v:'hc',t:'HC'}
+    ];
+    const calcs=getCalcMetrics();
+    let html=baseOptions.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
+    if(calcs.length){
+      html+='<optgroup label="Calculated">'+calcs.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')+'</optgroup>';
+    }
+    sel.innerHTML=html;
+    // Also refresh scatter X/Y dropdowns
+    ['pivotScatterX','pivotScatterY'].forEach(axId=>{
+      const axSel=el(axId);if(!axSel)return;
+      const cur=axSel.value;
+      let axHtml=baseOptions.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
+      if(calcs.length)axHtml+='<optgroup label="Calculated">'+calcs.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')+'</optgroup>';
+      axSel.innerHTML=axHtml;
+      if(cur)axSel.value=cur;
+    });
+    if(current)sel.value=current;
+  }
+  const addBtn=el('pivotCalcAdd');
+  if(addBtn)addBtn.addEventListener('click',()=>{
+    const nameInp=el('pivotCalcName');
+    const num=el('pivotCalcNum');
+    const den=el('pivotCalcDen');
+    const name=(nameInp?.value||'').trim();
+    if(!name){alert('Enter a metric name');return}
+    if(num.value===den.value){alert('Numerator and denominator must differ');return}
+    const ms=getCalcMetrics();
+    const id='calc_'+Date.now().toString(36);
+    ms.push({id,name,numerator:num.value,denominator:den.value});
+    setCalcMetrics(ms);
+    if(nameInp)nameInp.value='';
+    refreshCalcList();refreshAcctDropdown();
+  });
+  refreshCalcList();
+  refreshAcctDropdown();
   // Templates
   function getTemplates(){try{return JSON.parse(localStorage.getItem('pivotChartTemplates')||'{}')}catch(e){return{}}}
   function setTemplates(t){localStorage.setItem('pivotChartTemplates',JSON.stringify(t))}
