@@ -564,12 +564,20 @@ document.getElementById('empFilterName').addEventListener('input',renderEmployee
 document.addEventListener('click',e=>{
   const dd=e.target.closest('.ms-dropdown');
   if(e.target.closest('.ms-btn')){
-    // Toggle this dropdown, close others
     document.querySelectorAll('.ms-dropdown.open').forEach(d=>{if(d!==dd)d.classList.remove('open')});
-    if(dd)dd.classList.toggle('open');
+    if(dd){
+      dd.classList.toggle('open');
+      if(dd.classList.contains('open')){
+        const btn=dd.querySelector('.ms-btn');
+        const popout=dd.querySelector('.ms-popout');
+        const rect=btn.getBoundingClientRect();
+        popout.style.top=(rect.bottom+2)+'px';
+        popout.style.left=rect.left+'px';
+      }
+    }
     return;
   }
-  if(!dd)document.querySelectorAll('.ms-dropdown.open').forEach(d=>d.classList.remove('open'));
+  if(!e.target.closest('.ms-popout'))document.querySelectorAll('.ms-dropdown.open').forEach(d=>d.classList.remove('open'));
 });
 
 const clearFiltersBtn=document.getElementById('empFilterClear');
