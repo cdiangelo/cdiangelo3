@@ -1,5 +1,26 @@
 // ── chevron-nav.js — Chevron navigation + bottom toolbar ──
 
+// Reusable: applies plan-type chevron visibility AFTER checkModuleAccess resets.
+// AOP → Budget+Forecast+Exec; RF → N+M label + hide Forecast; LTP → hide Budget.
+window.applyPlanChevronContext = function(plan){
+  const budgetChev=document.getElementById('chevBudget');
+  const forecastChev=document.getElementById('chevForecast');
+  const budgetLabel=document.querySelector('#chevBudget .chevron-label');
+  if(budgetLabel)budgetLabel.textContent='Budget';
+  if(!plan||!plan.name)return;
+  const isRF=plan.name.includes('RF —');
+  const isLTP=plan.name.includes('Long-Term Plan');
+  if(isRF){
+    const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const mi=MO.findIndex(m=>plan.name.includes(m));
+    const actuals=mi>=0?mi+1:0;
+    if(budgetLabel)budgetLabel.textContent=actuals+'+'+(12-actuals);
+    if(forecastChev)forecastChev.style.display='none';
+  } else if(isLTP){
+    if(budgetChev)budgetChev.style.display='none';
+  }
+};
+
 (function(){
   const chevronNav = document.getElementById('chevronNav');
   if (!chevronNav) return;
@@ -88,6 +109,8 @@
       if(window.showLanding)window.showLanding();
       if(window._showCalendar)window._showCalendar();
       if(window.checkModuleAccess)window.checkModuleAccess();
+      // Re-apply plan-type chevron overrides (checkModuleAccess just reset them)
+      if(window.applyPlanChevronContext)window.applyPlanChevronContext(window._activePlan);
       backToNavBtn.style.display='none';
       window.scrollTo(0,0);
     });

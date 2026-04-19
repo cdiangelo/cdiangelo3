@@ -258,6 +258,19 @@ function saveModuleAccess(rules){
 }
 
 function checkModuleAccess(){
+  // Step 1: Reset every element this function can hide so we don't accumulate
+  // stale display:none across repeat calls (was causing chevron decay).
+  const RESET_SELECTORS=[
+    '#chevBudget','#chevForecast',
+    '[data-module="comp"]','[data-module="vendor"]','[data-module="contractors"]',
+    '[data-module="te"]','[data-module="depreciation"]','[data-module="other"]',
+    '[data-module="actuals"]','[data-module="forecast"]','[data-module="ltf"]',
+    '#revenueModule','.revenue-toggle','[data-pnlmode="revenue"]',
+    '[data-vtab="vendor-grid"]','[data-vtab="vendor-te"]',
+    '[data-vtab="vendor-contractors"]','[data-vtab="vendor-other"]'
+  ];
+  RESET_SELECTORS.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.style.display=''));
+
   const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
   if(!user||!user.email)return;
   if(user.isAdmin)return; // Admins always have full access
@@ -268,7 +281,6 @@ function checkModuleAccess(){
   // Hide chevron sub-items for restricted modules
   MODULES.forEach(m=>{
     if(userRules[m.key]===false){
-      // Hide chevron sub-items
       document.querySelectorAll(`[data-module="${m.key}"]`).forEach(el=>el.style.display='none');
     }
   });
@@ -286,15 +298,10 @@ function checkModuleAccess(){
     if(chevFc)chevFc.style.display='none';
   }
 
-  // Hide depreciation chevron sub-item
   if(userRules.depreciation===false)document.querySelectorAll('[data-module="depreciation"]').forEach(el=>el.style.display='none');
-
-  // Hide revenue pane toggle if restricted
   if(userRules.revenue===false){
     document.querySelectorAll('#revenueModule,.revenue-toggle,[data-pnlmode="revenue"]').forEach(el=>el.style.display='none');
   }
-
-  // Also hide vtab buttons in vendor module
   if(userRules.vendor===false)document.querySelectorAll('[data-vtab="vendor-grid"]').forEach(el=>el.style.display='none');
   if(userRules.te===false)document.querySelectorAll('[data-vtab="vendor-te"]').forEach(el=>el.style.display='none');
   if(userRules.contractors===false)document.querySelectorAll('[data-vtab="vendor-contractors"]').forEach(el=>el.style.display='none');

@@ -580,37 +580,20 @@ async function openPlan(plan){
   const sumContent=document.getElementById('landingSummaryContent');if(sumContent)sumContent.style.display='none';
   const oldHdr=document.getElementById('landingHeaderOld');if(oldHdr)oldHdr.style.display='none';
 
-  // Adjust chevron nav based on plan type context
-  const isRF=plan.name&&plan.name.includes('RF —');
-  const isLTP=plan.name&&plan.name.includes('Long-Term Plan');
-  const budgetLabel=document.querySelector('#chevBudget .chevron-label');
-  const budgetChev=document.getElementById('chevBudget');
-  const forecastChev=document.getElementById('chevForecast');
-  // Reset visibility every load so state doesn't decay across plan switches
-  if(budgetChev)budgetChev.style.display='';
-  if(forecastChev)forecastChev.style.display='';
-  if(budgetLabel)budgetLabel.textContent='Budget';
-  if(isRF){
-    const MO_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const rfMonth=MO_NAMES.findIndex(m=>plan.name.includes(m));
-    const actuals=rfMonth>=0?rfMonth+1:0;
-    const forecast=12-actuals;
-    if(budgetLabel)budgetLabel.textContent=actuals+'+'+forecast;
-    if(forecastChev)forecastChev.style.display='none';
-    // Generate actuals if not present
-    if(!state.actuals){
-      const {generateActuals}=await import('../lib/seed-data.js');
-      state.actuals=generateActuals(state);
-      if(window.saveState)window.saveState();
-    }
-  } else if(isLTP){
-    // LTP: hide Budget, only show Forecast
-    if(budgetChev)budgetChev.style.display='none';
-  }
-
-  // Apply admin controls from plan state
+  // Apply admin controls FIRST so plan-type overrides below can't be undone by a
+  // later checkModuleAccess reset (that function clears display before re-applying rules).
   if(window.checkOpsRestriction)try{window.checkOpsRestriction()}catch(e){}
   if(window.checkModuleAccess)try{window.checkModuleAccess()}catch(e){}
+
+  // Ensure RF actuals seed exists before chevron context is applied
+  const isRF=plan.name&&plan.name.includes('RF —');
+  if(isRF&&!state.actuals){
+    const {generateActuals}=await import('../lib/seed-data.js');
+    state.actuals=generateActuals(state);
+    if(window.saveState)window.saveState();
+  }
+  // Apply plan-type-specific chevron visibility (RF hides Forecast, LTP hides Budget)
+  if(window.applyPlanChevronContext)window.applyPlanChevronContext(plan);
 
   // Show plan header bar + bottom toolbar
   if(window._showCalendar)try{window._showCalendar()}catch(e){}
