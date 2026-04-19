@@ -740,17 +740,42 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 </div>
 <div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Account</label><select id="pivotChartAccount" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="totinv">Tot Inv</option><option value="opex">OpEx</option><option value="ebitda">EBITDA</option><option value="cb">C&amp;B</option><option value="oao">OAO</option><option value="te">T&amp;E</option><option value="ctr">CTR</option><option value="capex">CapEx</option><option value="da">D&amp;A</option><option value="hc">HC</option></select></div>
 </div>
+<!-- Pivot settings + export controls -->
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+<button class="btn btn-sm" id="pivotSettingsToggle" style="padding:2px 10px;font-size:.72rem">&#9881; Chart Settings</button>
+<button class="btn btn-sm" id="pivotExportChart" style="padding:2px 10px;font-size:.72rem">&#128247; Export PNG</button>
+<button class="btn btn-sm" id="pivotExportTable" style="padding:2px 10px;font-size:.72rem">&#128196; Export Table</button>
+<select id="pivotVariance" style="padding:2px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);display:none"><option value="overlay">Variance: Overlay</option><option value="split">Variance: 3-Split</option><option value="shaded">Variance: Shaded</option></select>
+</div>
+<div id="pivotSettingsPanel" style="display:none;background:var(--panel);border:1px solid var(--border-light);border-radius:8px;padding:12px;margin-bottom:8px">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 16px;font-size:.72rem">
+<div><label style="display:block;font-size:.66rem;color:var(--tertiary);margin-bottom:2px">Chart Title</label><input id="pivotCfgTitle" placeholder="(none)" style="width:100%;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"></div>
+<div><label style="display:block;font-size:.66rem;color:var(--tertiary);margin-bottom:2px">X Axis Title</label><input id="pivotCfgXTitle" placeholder="(none)" style="width:100%;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"></div>
+<div><label style="display:block;font-size:.66rem;color:var(--tertiary);margin-bottom:2px">Y Axis Title</label><input id="pivotCfgYTitle" placeholder="(none)" style="width:100%;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"></div>
+<div><label style="display:block;font-size:.66rem;color:var(--tertiary);margin-bottom:2px">Y Min</label><input id="pivotCfgYMin" type="number" placeholder="auto" style="width:100%;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"></div>
+<div><label style="display:block;font-size:.66rem;color:var(--tertiary);margin-bottom:2px">Y Max</label><input id="pivotCfgYMax" type="number" placeholder="auto" style="width:100%;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"></div>
+<div><label style="display:block;font-size:.66rem;color:var(--tertiary);margin-bottom:2px">Y Step</label><input id="pivotCfgYStep" type="number" placeholder="auto" style="width:100%;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"></div>
+<div><label style="display:block;font-size:.66rem;color:var(--tertiary);margin-bottom:2px">Legend</label><select id="pivotCfgLegend" style="width:100%;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="top">Top</option><option value="bottom" selected>Bottom</option><option value="left">Left</option><option value="right">Right</option><option value="none">Hidden</option></select></div>
+<div><label style="display:block;font-size:.66rem;color:var(--tertiary);margin-bottom:2px">Chart Height</label><select id="pivotCfgHeight" style="width:100%;padding:2px 6px;font-size:.74rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="35">Compact (35vh)</option><option value="50" selected>Normal (50vh)</option><option value="65">Large (65vh)</option><option value="80">XL (80vh)</option></select></div>
+<div style="grid-column:1/-1;display:flex;gap:6px;margin-top:4px">
+<button class="btn btn-sm" id="pivotCfgSaveTemplate" style="padding:2px 10px;font-size:.7rem">Save as Template</button>
+<select id="pivotCfgLoadTemplate" style="padding:2px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);flex:1"><option value="">Load template…</option></select>
+<button class="btn btn-sm" id="pivotCfgReset" style="padding:2px 10px;font-size:.7rem">Reset</button>
+</div>
+</div>
+</div>
+
 <!-- Chart + Table side by side -->
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:60px;align-items:start">
 <!-- Chart -->
 <div class="card" style="padding:12px 16px">
-<div style="position:relative;height:35vh;min-height:250px">
+<div id="pivotChartWrap" style="position:relative;height:50vh;min-height:320px">
 <canvas id="pivotChart"></canvas>
 </div>
 </div>
 <!-- P&L Table -->
 <div class="card" style="padding:0;overflow:hidden">
-<div style="max-height:40vh;overflow:auto">
+<div style="max-height:55vh;overflow:auto">
 <table id="pivotTable" class="pnl-walk-table" style="font-size:.68rem">
 <thead id="pivotThead"></thead>
 <tbody id="pivotTbody"></tbody>

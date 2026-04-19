@@ -1,8 +1,48 @@
 // ── P&L Pivot Table ──
 // Full P&L walk: HC, C&B, OAO, EBITDA, D&A, OpEx, CapEx, Tot Inv
-import { state } from '../lib/state.js';
+import { state, saveState } from '../lib/state.js';
 import { fmt, CURRENT_YEAR } from '../lib/constants.js';
 import { getMonthlyComp, getMonthlyCapEx } from '../lib/proration.js';
+
+// ── User-customizable chart settings (persists via localStorage + state) ──
+function getPivotCfg(){
+  try{
+    const s=JSON.parse(localStorage.getItem('pivotChartCfg')||'{}');
+    return Object.assign({title:'',xTitle:'',yTitle:'',yMin:'',yMax:'',yStep:'',legend:'bottom',height:50},s);
+  }catch(e){return {title:'',xTitle:'',yTitle:'',yMin:'',yMax:'',yStep:'',legend:'bottom',height:50}}
+}
+function setPivotCfg(cfg){localStorage.setItem('pivotChartCfg',JSON.stringify(cfg))}
+
+// Apply saved settings to a Chart.js options object in place
+function applyPivotCfgToOptions(opts){
+  const cfg=getPivotCfg();
+  opts.plugins=opts.plugins||{};
+  // Title
+  opts.plugins.title={display:!!cfg.title,text:cfg.title||'',font:{size:13,weight:'600'},padding:{top:2,bottom:8}};
+  // Legend
+  if(cfg.legend==='none'){opts.plugins.legend={display:false}}
+  else{opts.plugins.legend=Object.assign(opts.plugins.legend||{},{display:true,position:cfg.legend||'bottom'})}
+  // Axis titles + min/max/step
+  opts.scales=opts.scales||{};
+  opts.scales.x=opts.scales.x||{};
+  opts.scales.y=opts.scales.y||{};
+  opts.scales.x.title={display:!!cfg.xTitle,text:cfg.xTitle||''};
+  opts.scales.y.title={display:!!cfg.yTitle,text:cfg.yTitle||''};
+  if(cfg.yMin!==''&&cfg.yMin!=null&&!isNaN(cfg.yMin))opts.scales.y.min=parseFloat(cfg.yMin);
+  if(cfg.yMax!==''&&cfg.yMax!=null&&!isNaN(cfg.yMax))opts.scales.y.max=parseFloat(cfg.yMax);
+  if(cfg.yStep!==''&&cfg.yStep!=null&&!isNaN(cfg.yStep)){
+    opts.scales.y.ticks=opts.scales.y.ticks||{};
+    opts.scales.y.ticks.stepSize=parseFloat(cfg.yStep);
+  }
+  return opts;
+}
+window._applyPivotCfg=applyPivotCfgToOptions;
+
+// Wrap pivot chart creation so cfg is applied to every variant (bar/line/bubble/etc)
+function makePivotChart(canvas,config){
+  if(config.options)applyPivotCfgToOptions(config.options);
+  return new Chart(canvas,config);
+}
 
 const getChartColors=()=>window.getChartColors();
 const hexToRgba=(...a)=>window.hexToRgba(...a);
@@ -343,7 +383,7 @@ function renderPivotChart(data){
       const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
       const maxVal=Math.max(...vals.map(Math.abs),1);
       const bubbleData=vals.map((v,i)=>({x:i,y:0,r:Math.max(5,Math.sqrt(Math.abs(v)/maxVal)*35),_label:rowNames[i],_val:v}));
-      pivotChart=new Chart(canvas,{
+      pivotChart=makePivotChart(canvas,{
         type:'bubble',
         data:{datasets:[{label:acctKey.toUpperCase(),data:bubbleData,backgroundColor:hexToRgba(colors[0],0.45),borderColor:colors[0],borderWidth:1}]},
         options:{
@@ -383,7 +423,7 @@ function renderPivotChart(data){
       });
       const row1Labels=rowNames.map(n=>n.length>14?n.slice(0,12)+'…':n);
       const row2Labels=row2Names.map(n=>n.length>14?n.slice(0,12)+'…':n);
-      pivotChart=new Chart(canvas,{
+      pivotChart=makePivotChart(canvas,{
         type:'bubble',
         data:{datasets:[{label:acctKey.toUpperCase(),data:bubbleData,backgroundColor:hexToRgba(colors[0],0.45),borderColor:colors[0],borderWidth:1}]},
         options:{
@@ -408,7 +448,7 @@ function renderPivotChart(data){
 
     if(!dim2||row2Names.length===0){
       const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
-      pivotChart=new Chart(canvas,{
+      pivotChart=makePivotChart(canvas,{
         type:'line',
         data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,borderColor:colors[0],backgroundColor:hexToRgba(colors[0],0.15),fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:colors[0]}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}}
@@ -420,7 +460,7 @@ function renderPivotChart(data){
         const data=rowNames.map(name=>{const ch=(rows[name].children||{})[k2];if(!ch)return 0;const r=calcDerived(ch,(daTotal/nRows)/Math.max(Object.keys(rows[name].children||{}).length,1));return r[acctKey]||0});
         return {label:k2,data,borderColor:c,backgroundColor:hexToRgba(c,0.1),fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:c};
       });
-      pivotChart=new Chart(canvas,{
+      pivotChart=makePivotChart(canvas,{
         type:'line',
         data:{labels,datasets},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},datalabels:{display:false},yoyArrows:false},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}}
@@ -436,7 +476,7 @@ function renderPivotChart(data){
 
     if(!dim2||row2Names.length===0){
       const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
-      pivotChart=new Chart(canvas,{
+      pivotChart=makePivotChart(canvas,{
         type:'bar',
         data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,backgroundColor:hexToRgba(colors[0],0.7),borderColor:colors[0],borderWidth:1}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:tickFmt}}}}
@@ -448,7 +488,7 @@ function renderPivotChart(data){
         const data=rowNames.map(name=>{const ch=(rows[name].children||{})[k2];if(!ch)return 0;const r=calcDerived(ch,(daTotal/nRows)/Math.max(Object.keys(rows[name].children||{}).length,1));return r[acctKey]||0});
         return {label:k2,data,backgroundColor:hexToRgba(c,0.7),borderColor:c,borderWidth:1,stack:'s'};
       });
-      pivotChart=new Chart(canvas,{
+      pivotChart=makePivotChart(canvas,{
         type:'bar',
         data:{labels,datasets},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},datalabels:{display:false},yoyArrows:false},scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:tickFmt}}}}
@@ -563,3 +603,104 @@ function initPivot(){
 window.initPivot=initPivot;
 window.renderPivot=renderPivot;
 initPivot();
+
+// ── Pivot settings panel wiring ──
+(function wirePivotSettings(){
+  const cfg=getPivotCfg();
+  const el=id=>document.getElementById(id);
+  function loadFields(){
+    const c=getPivotCfg();
+    if(el('pivotCfgTitle'))el('pivotCfgTitle').value=c.title||'';
+    if(el('pivotCfgXTitle'))el('pivotCfgXTitle').value=c.xTitle||'';
+    if(el('pivotCfgYTitle'))el('pivotCfgYTitle').value=c.yTitle||'';
+    if(el('pivotCfgYMin'))el('pivotCfgYMin').value=c.yMin||'';
+    if(el('pivotCfgYMax'))el('pivotCfgYMax').value=c.yMax||'';
+    if(el('pivotCfgYStep'))el('pivotCfgYStep').value=c.yStep||'';
+    if(el('pivotCfgLegend'))el('pivotCfgLegend').value=c.legend||'bottom';
+    if(el('pivotCfgHeight'))el('pivotCfgHeight').value=String(c.height||50);
+    applyChartHeight();
+  }
+  function applyChartHeight(){
+    const wrap=document.getElementById('pivotChartWrap');
+    const c=getPivotCfg();
+    if(wrap)wrap.style.height=(c.height||50)+'vh';
+  }
+  function saveFromFields(){
+    const c=getPivotCfg();
+    if(el('pivotCfgTitle'))c.title=el('pivotCfgTitle').value;
+    if(el('pivotCfgXTitle'))c.xTitle=el('pivotCfgXTitle').value;
+    if(el('pivotCfgYTitle'))c.yTitle=el('pivotCfgYTitle').value;
+    if(el('pivotCfgYMin'))c.yMin=el('pivotCfgYMin').value;
+    if(el('pivotCfgYMax'))c.yMax=el('pivotCfgYMax').value;
+    if(el('pivotCfgYStep'))c.yStep=el('pivotCfgYStep').value;
+    if(el('pivotCfgLegend'))c.legend=el('pivotCfgLegend').value;
+    if(el('pivotCfgHeight'))c.height=parseInt(el('pivotCfgHeight').value)||50;
+    setPivotCfg(c);
+    applyChartHeight();
+    if(window.renderPivot)try{window.renderPivot()}catch(e){}
+  }
+  const toggle=el('pivotSettingsToggle');
+  const panel=el('pivotSettingsPanel');
+  if(toggle&&panel){
+    toggle.addEventListener('click',()=>{
+      panel.style.display=panel.style.display==='none'?'':'none';
+      if(panel.style.display!=='none')loadFields();
+    });
+  }
+  ['pivotCfgTitle','pivotCfgXTitle','pivotCfgYTitle','pivotCfgYMin','pivotCfgYMax','pivotCfgYStep','pivotCfgLegend','pivotCfgHeight'].forEach(id=>{
+    const e=el(id);if(!e)return;
+    e.addEventListener('change',saveFromFields);
+    if(e.tagName==='INPUT')e.addEventListener('input',saveFromFields);
+  });
+  // Reset
+  const reset=el('pivotCfgReset');
+  if(reset)reset.addEventListener('click',()=>{
+    setPivotCfg({title:'',xTitle:'',yTitle:'',yMin:'',yMax:'',yStep:'',legend:'bottom',height:50});
+    loadFields();saveFromFields();
+  });
+  // Templates
+  function getTemplates(){try{return JSON.parse(localStorage.getItem('pivotChartTemplates')||'{}')}catch(e){return{}}}
+  function setTemplates(t){localStorage.setItem('pivotChartTemplates',JSON.stringify(t))}
+  function refreshTemplateList(){
+    const sel=el('pivotCfgLoadTemplate');if(!sel)return;
+    const tpls=getTemplates();const keys=Object.keys(tpls);
+    sel.innerHTML='<option value="">Load template…</option>'+keys.map(k=>`<option value="${k}">${k}</option>`).join('')+(keys.length?'<option value="__del">— Delete last used —</option>':'');
+  }
+  const saveTpl=el('pivotCfgSaveTemplate');
+  if(saveTpl)saveTpl.addEventListener('click',()=>{
+    const name=prompt('Template name:');if(!name)return;
+    const tpls=getTemplates();tpls[name]=getPivotCfg();setTemplates(tpls);refreshTemplateList();
+  });
+  const loadTpl=el('pivotCfgLoadTemplate');
+  if(loadTpl)loadTpl.addEventListener('change',()=>{
+    const name=loadTpl.value;if(!name)return;
+    if(name==='__del'){
+      const tpls=getTemplates();const keys=Object.keys(tpls);
+      if(keys.length){const last=keys[keys.length-1];if(confirm('Delete template "'+last+'"?')){delete tpls[last];setTemplates(tpls);refreshTemplateList()}}
+      loadTpl.value='';return;
+    }
+    const tpls=getTemplates();if(tpls[name]){setPivotCfg(tpls[name]);loadFields();if(window.renderPivot)try{window.renderPivot()}catch(e){}}
+    loadTpl.value='';
+  });
+  refreshTemplateList();
+  loadFields();
+
+  // Export PNG
+  const exportPng=el('pivotExportChart');
+  if(exportPng)exportPng.addEventListener('click',()=>{
+    const canvas=document.getElementById('pivotChart');if(!canvas){alert('No chart to export');return}
+    const link=document.createElement('a');
+    link.download='pivot-chart-'+Date.now()+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  });
+
+  // Export Table to Excel
+  const exportTbl=el('pivotExportTable');
+  if(exportTbl)exportTbl.addEventListener('click',()=>{
+    if(typeof XLSX==='undefined'){alert('XLSX library not loaded');return}
+    const tbl=document.getElementById('pivotTable');if(!tbl){alert('No table to export');return}
+    const wb=XLSX.utils.table_to_book(tbl,{sheet:'Pivot'});
+    XLSX.writeFile(wb,'pivot-table-'+Date.now()+'.xlsx');
+  });
+})();
