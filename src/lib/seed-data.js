@@ -100,7 +100,7 @@ export function generateSeedEmployees(projectIds){
       const projId=assignProject(actualFn);
       employees.push({
         id:uid(),name:'EMP#'+empNum,function:actualFn,seniority:sen,country,
-        businessUnit:bu,businessLine:bl.code,baseSalary:adjBase,
+        businessUnit:bu,businessLine:bl.code,salary:adjBase,baseSalary:adjBase,
         bonusPct:DEFAULT_BONUS[sen]||10,benefitsPct:DEFAULT_BENEFITS[sen]||20,
         startMonth:0,isNewHire:false,
         allocations:[{projId,pct:100}],_colorTag:''
@@ -124,7 +124,7 @@ export function generateSeedEmployees(projectIds){
       const projId=assignProject(actualFn);
       employees.push({
         id:uid(),name:'NH#'+nhNum,function:actualFn,seniority:sen,country,
-        businessUnit:bu,businessLine:bl.code,baseSalary:adjBase,
+        businessUnit:bu,businessLine:bl.code,salary:adjBase,baseSalary:adjBase,
         bonusPct:DEFAULT_BONUS[sen]||10,benefitsPct:DEFAULT_BENEFITS[sen]||20,
         startMonth:startMo,isNewHire:true,
         allocations:[{projId,pct:100}],_colorTag:''
