@@ -533,17 +533,51 @@ function renderEmployees(){
     }
     const typeLabel=(e.empType||'existing')==='hire'?'New Hire':'Existing';
     const typeStyle=(e.empType||'existing')==='hire'?'color:#059669;font-weight:600':'color:var(--text-dim)';
-    return `<tr data-id="${e.id}">
-      <td style="white-space:nowrap"><button class="btn btn-sm" onclick="window.startInlineEdit('${e.id}')">Edit</button> <button class="btn btn-sm" onclick="window.startEdit('${e.id}')">Form</button> <button class="btn btn-sm" style="background:#555;border-color:#555;color:#fff" onclick="window.deleteEmp('${e.id}')">Del</button></td>
-      <td>${e.name}</td><td style="${typeStyle};font-size:.78rem">${typeLabel}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
-      <td style="font-size:.82rem">${(()=>{const mkts=getEmpMarkets(e);return mkts.map(m=>`<div>${m.code}${mkts.length>1?` <span style="font-size:.75rem;color:var(--text-dim)">${m.pct}%</span>`:''}</div>`).join('')})()}</td><td style="font-size:.82rem">${window.getBizLineName(e.businessLine)}</td>
-      <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||'—'}</td>
-      <td style="min-width:180px">${projHtml}</td>
+    const allocs=(e.allocations&&e.allocations.length)?e.allocations:[];
+    const primary=allocs[0]||{};
+    const primaryProj=primary.projId?getProjectById(primary.projId):null;
+    const pMarket=primary.market||(primaryProj&&primaryProj.marketCode)||'';
+    const pBizLine=primary.bizLine||e.businessLine||(primaryProj&&primaryProj.bizLineCode)||'';
+    const pPct=primary.pct||100;
+    const pProjDisplay=primaryProj?`<strong style="color:var(--accent)">${primaryProj.code}</strong> <span style="font-size:.72rem;color:var(--text-dim)">${pPct}%</span>`:'<span style="color:var(--text-dim)">—</span>';
+    const bizLineName=pBizLine?window.getBizLineName(pBizLine):'—';
+
+    // Primary row — employee info + first split's chartfields in their actual columns
+    let html=`<tr data-id="${e.id}">
+      <td><div class="emp-actions"><button class="emp-action-icon" title="Quick edit" onclick="window.startInlineEdit('${e.id}')">&#9998;</button><button class="emp-action-icon" title="Open form" onclick="window.startEdit('${e.id}')">&#9881;</button><button class="emp-action-icon del" title="Delete" onclick="window.deleteEmp('${e.id}')">&times;</button></div></td>
+      <td>${e.name}${allocs.length>1?`<span style="font-size:.62rem;color:var(--tertiary);margin-left:4px">(${allocs.length} splits)</span>`:''}</td><td style="${typeStyle};font-size:.78rem">${typeLabel}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
+      <td style="font-size:.78rem">${pMarket||'—'}</td><td style="font-size:.78rem">${bizLineName}</td>
+      <td class="ops-hide" style="font-size:.78rem">${e.businessUnit||'—'}</td>
+      <td style="font-size:.78rem">${pProjDisplay}</td>
       <td class="emp-comp-toggle-cell"></td>
       <td class="${cs} emp-comp-col">${fmt(e.salary)}</td><td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
       <td>${getCapPct(e)}%</td><td class="${cs} emp-comp-col">${fmt(getProratedOpEx(e))}</td><td class="${cs} emp-comp-col">${fmt(getProratedCapEx(e))}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td>
     </tr>`;
+
+    // Secondary rows for additional splits — only Market / Biz Line / Project columns populated
+    for(let si=1;si<allocs.length;si++){
+      const a=allocs[si];
+      const p=a.projId?getProjectById(a.projId):null;
+      const aMkt=a.market||(p&&p.marketCode)||'';
+      const aBl=a.bizLine||(p&&p.bizLineCode)||'';
+      const aBlName=aBl?window.getBizLineName(aBl):'—';
+      const aProjDisplay=p?`<strong style="color:var(--accent)">${p.code}</strong> <span style="font-size:.72rem;color:var(--text-dim)">${a.pct}%</span>`:'<span style="color:var(--text-dim)">—</span>';
+      html+=`<tr class="emp-split-row" data-id="${e.id}" data-split="${si}">
+        <td></td>
+        <td style="font-size:.7rem;color:var(--tertiary);padding-left:20px">↳ split ${si+1}</td>
+        <td></td><td></td><td></td><td></td>
+        <td style="font-size:.74rem;color:var(--text)">${aMkt||'—'}</td>
+        <td style="font-size:.74rem;color:var(--text)">${aBlName}</td>
+        <td class="ops-hide"></td>
+        <td style="font-size:.74rem">${aProjDisplay}</td>
+        <td class="emp-comp-toggle-cell"></td>
+        <td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td>
+        <td></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td>
+        <td></td><td></td>
+      </tr>`;
+    }
+    return html;
   }).join('');
 }
 // Comp detail column toggle
@@ -809,12 +843,17 @@ function renderFteSparkline(){
   const minHC=Math.min(...hcByMonth);
   const maxHC=Math.max(...hcByMonth);
   const pad=Math.max(3,Math.ceil((maxHC-minHC)*0.3)||3);
+  // Bump the container a bit to leave room for data labels above bars
+  canvas.parentElement.style.height='48px';
+  canvas.style.height='48px';
   if(fteSparkChart)fteSparkChart.destroy();
   fteSparkChart=new Chart(canvas,{
     type:'bar',
-    data:{labels:MO,datasets:[{data:hcByMonth,backgroundColor:colors[0]+'88',borderColor:colors[0],borderWidth:1,borderRadius:2,datalabels:{display:false}}]},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:2,bottom:2,left:2,right:2}},
-      plugins:{legend:{display:false},datalabels:{display:false},tooltip:{enabled:true,callbacks:{label:ctx=>ctx.parsed.y+' FTEs'}},yoyArrows:false,barTotal:false},
+    data:{labels:MO,datasets:[{data:hcByMonth,backgroundColor:colors[0]+'88',borderColor:colors[0],borderWidth:1,borderRadius:2,
+      datalabels:{display:true,anchor:'end',align:'top',offset:1,clamp:true,color:'var(--text-dim)',font:{size:9,weight:'600'},formatter:v=>v}
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:10,bottom:2,left:2,right:2}},
+      plugins:{legend:{display:false},tooltip:{enabled:false},yoyArrows:false,barTotal:false},
       scales:{x:{display:false},y:{display:false,min:Math.max(0,minHC-pad),max:maxHC+pad}}
     }
   });
@@ -825,27 +864,35 @@ function applyFteAdj(delta){
   const countEl=document.getElementById('fteAdjCount');
   if(countEl)countEl.textContent=fteAdjPending>0?'+'+fteAdjPending:String(fteAdjPending);
   if(delta>0){
-    // Add a TBH (to-be-hired) placeholder
+    // Add a TBH (to-be-hired) placeholder — base comp from benchmark
     const nextNum=(state.employees||[]).filter(e=>e.name&&e.name.startsWith('TBH#')).length+1;
+    const fn='Software Engineering',sen='Mid-Level',country='United States';
+    const sal=benchmark(sen,fn,country);
+    // Default project from seed map (SWE → PRJ-001)
+    const defProj=(state.projects||[]).find(p=>p.code==='PRJ-001')||(state.projects||[])[0];
     state.employees.push({
       id:'tbh'+Date.now()+Math.random().toString(36).slice(2,5),
-      name:'TBH#'+nextNum,
-      function:'Software Engineering',seniority:'Mid-Level',country:'United States',
+      name:'TBH#'+nextNum,empType:'hire',
+      function:fn,seniority:sen,country,
       businessUnit:'US001',businessLine:'100000',
-      baseSalary:118000,bonusPct:8,benefitsPct:20,
+      salary:sal,baseSalary:sal,bonusPct:8,benefitsPct:20,
       startMonth:Math.min(11,new Date().getMonth()+1),
-      isNewHire:true,allocations:[],_colorTag:''
+      isNewHire:true,
+      allocations:defProj?[{projId:defProj.id,pct:100,bizLine:'100000',market:'US0001',primary:true}]:[],
+      _colorTag:''
     });
   } else if(delta<0){
-    // Add a TBD (to-be-determined/removed) — negative adjustment
+    // Add a TBD (to-be-decided reduction) — placeholder for a future termination
     const nextNum=(state.employees||[]).filter(e=>e.name&&e.name.startsWith('TBD#')).length+1;
+    const fn='Software Engineering',sen='Mid-Level',country='United States';
+    const sal=benchmark(sen,fn,country);
     state.employees.push({
       id:'tbd'+Date.now()+Math.random().toString(36).slice(2,5),
-      name:'TBD#'+nextNum,
-      function:'',seniority:'',country:'United States',
-      businessUnit:'US001',businessLine:'',
-      baseSalary:0,bonusPct:0,benefitsPct:0,
-      startMonth:new Date().getMonth(),
+      name:'TBD#'+nextNum,empType:'existing',
+      function:fn,seniority:sen,country,
+      businessUnit:'US001',businessLine:'100000',
+      salary:sal,baseSalary:sal,bonusPct:8,benefitsPct:20,
+      startMonth:0,
       isNewHire:false,_isTBD:true,allocations:[],_colorTag:''
     });
   }
