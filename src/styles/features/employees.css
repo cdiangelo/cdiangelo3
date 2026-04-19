@@ -24,16 +24,18 @@
 .ms-popout label:hover{background:var(--accent-glow)}
 .ms-popout input[type="checkbox"]{width:13px;height:13px;accent-color:var(--accent)}
 #empTable th:nth-child(1),#empTable th:nth-child(2){border-bottom:2px solid var(--accent);height:auto;vertical-align:middle;font-size:.82rem}
-/* Frozen columns for employee roster -- Actions + Name (solid bg so rows don't bleed through) */
+/* Frozen columns: Actions (tight) + Name, both sticky so they stay visible while scrolling horizontally */
 #empTable td:nth-child(1),#empTable td:nth-child(2){background:var(--panel)!important}
-/* Actions column: wide enough for 2 icons + padding, can never be overlapped */
-#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:4;min-width:72px;width:72px;max-width:72px;text-align:center;vertical-align:middle;padding:4px 4px;overflow:visible}
-/* Name column: starts at exactly left:72px so it abuts Actions without overlap */
-#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:72px;z-index:3;min-width:130px;width:130px;max-width:130px;white-space:nowrap;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;border-left:1px solid var(--border-light);padding-left:8px}
+/* Actions column: tight fit for 2 icons (18px + 3px gap + 18px = 39px + 8px padding = 47px) */
+#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:4;min-width:48px;width:48px;max-width:48px;text-align:center;vertical-align:middle;padding:4px 2px;overflow:visible}
+/* Name column: starts at exactly left:48px so it abuts Actions; 120px width, content clips cleanly with ellipsis */
+#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:48px;z-index:3;min-width:120px;width:120px;max-width:120px;white-space:nowrap;vertical-align:middle;padding:4px 6px;border-right:1px solid var(--border-light)}
+#empTable td:nth-child(2) input.ec{max-width:100%;overflow:hidden;text-overflow:ellipsis}
 /* Header corners: highest z so sticky-both-axes works */
 #empTable thead th:nth-child(1),#empTable thead th:nth-child(2){z-index:9;background:var(--panel)!important}
-/* Row hover shouldn't tint the Name input bg over the Actions cell */
-#empTable tr:hover td:nth-child(1){background:var(--panel)!important}
+/* Make Actions icons smaller so they fit in 48px */
+.emp-action-icon{width:18px!important;height:18px!important;font-size:.68rem!important}
+.emp-actions{gap:2px!important}
 
 /* Horizontal icon action buttons in the first column */
 .emp-actions{display:flex;flex-direction:row;gap:3px;align-items:center;justify-content:center}
