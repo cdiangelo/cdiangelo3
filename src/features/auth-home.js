@@ -674,11 +674,14 @@ function connectPlanWebSocket(plan,user){
           const dots=document.getElementById('planHdrUsers');
           if(dots&&msg.users){
             // Short plan labels (e.g. "RF — Jan" → "Jan", "Long-Term Plan" → "LTP", "AOP" → "AOP")
+            const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
             const shortPlan=p=>{
               if(!p)return '';
               if(p.includes('Long-Term'))return 'LTP';
-              const rfMatch=p.match(/RF\s*—\s*(\w{3,})/);
-              if(rfMatch)return rfMatch[1].slice(0,3);
+              if(p.includes('RF')){
+                const mi=MO.findIndex(m=>p.includes(m));
+                if(mi>=0)return (mi+1)+'+'+(12-(mi+1));
+              }
               return p.slice(0,6);
             };
             dots.innerHTML=msg.users.map(u=>{
