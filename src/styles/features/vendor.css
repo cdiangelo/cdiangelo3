@@ -134,6 +134,9 @@ th.num-col-lg,td.num-col-lg{min-width:110px;text-align:right;white-space:nowrap}
 .comp-table input[type="number"]::-webkit-outer-spin-button,
 .comp-table input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .comp-table input[type="number"]{-moz-appearance:textfield}
+/* Multi-cell selection highlight */
+.comp-table td.spreadsheet-selected{background:var(--accent-glow)!important;outline:1.5px solid var(--accent);outline-offset:-1px}
+.comp-table td.spreadsheet-selected input,.comp-table td.spreadsheet-selected select{background:transparent!important}
 /* Paste flash — brief highlight on cells that received pasted data */
 @keyframes paste-flash{0%{background:var(--accent)}50%{background:var(--accent-glow)}100%{background:transparent}}
 .paste-flash{animation:paste-flash .6s ease-out}
