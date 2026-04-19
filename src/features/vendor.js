@@ -29,6 +29,7 @@ function initVendorModule(){
       b.classList.add('active');
       document.querySelectorAll('.vtab-content').forEach(t=>t.style.display='none');
       document.getElementById('vtab-'+b.dataset.vtab).style.display='block';
+      window.scrollTo(0,0);
       if(b.dataset.vtab==='vendor-scratch')setTimeout(initVendorScratch,50);
       if(b.dataset.vtab==='vendor-dims')renderVendorDims();
       if(b.dataset.vtab==='vendor-other')initOtherTab();

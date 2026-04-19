@@ -98,7 +98,7 @@ function showLanding(){
   const sumContent=document.getElementById('landingSummaryContent');
   if(chevNav)chevNav.style.display='';
   if(sumContent)sumContent.style.display='none';
-  renderPnlWalk();renderLandingCharts();renderLandingRevenue();
+  renderPnlWalk();renderLandingCharts();
   if(window._updateGlobalToolbar)window._updateGlobalToolbar();
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
@@ -161,8 +161,9 @@ const landingToggleRevenue=document.getElementById('landingToggleRevenue');
 function setRevenueMode(on){
   localStorage.setItem('compPlanRevenue',on?'1':'0');
   landingToggleRevenue.checked=on;
-  document.getElementById('modRevenue').style.display=on?'':'none';
-  document.getElementById('landingRevenuePane').style.display=on?'':'none';
+  // Old standalone revenue module removed — revenue is now a Budget sub-tab
+  document.getElementById('modRevenue').style.display='none';
+  document.getElementById('landingRevenuePane').style.display='none';
 }
 landingToggleRevenue.addEventListener('change',function(){
   setRevenueMode(this.checked);

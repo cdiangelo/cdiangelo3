@@ -2,7 +2,7 @@
 #landingPage{padding:40px 80px;max-width:100%;margin:0 auto;padding-bottom:80px}
 
 /* ═══ CHEVRON NAV — Clean card style ═══ */
-.chevron-nav{display:flex;flex-direction:column;gap:12px;width:100%;max-width:480px;margin:0;padding:48px 0 40px 48px;position:relative}
+.chevron-nav{display:flex;flex-direction:column;gap:12px;width:100%;max-width:480px;margin:0 auto;padding:0;position:relative;justify-content:center;min-height:calc(100vh - 200px)}
 .chevron-item{position:relative}
 .chevron-shape{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:12px;cursor:pointer;min-height:64px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .chevron-shape:hover{background:linear-gradient(90deg,var(--accent-glow) 0%,var(--accent-glow) 30%,var(--panel) 100%);border-color:var(--border-accent);border-left-color:var(--accent);box-shadow:0 4px 16px var(--accent-glow-lg)}
@@ -16,8 +16,8 @@
 /* Expanded state */
 .chevron-item.expanded .chevron-shape{background:var(--accent-soft);border-color:var(--border-accent);border-left-color:var(--accent)}
 
-/* Sub-menu — right of card, vertically centered */
-.chevron-submenu{display:none;flex-direction:column;gap:6px;position:absolute;left:calc(100% + 16px);top:50%;transform:translateY(-50%);width:240px;z-index:100}
+/* Sub-menu — right of card, top-aligned so long lists don't clip off-screen */
+.chevron-submenu{display:none;flex-direction:column;gap:6px;position:absolute;left:calc(100% + 16px);top:0;width:240px;z-index:100}
 .chevron-item.expanded .chevron-submenu{display:flex}
 .chevron-sub-item{padding:12px 18px;background:var(--panel);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:.82rem;color:var(--text-dim);font-weight:500;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .chevron-sub-item:hover{background:var(--accent-glow);border-color:var(--border-accent);color:var(--text)}
