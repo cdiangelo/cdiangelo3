@@ -737,8 +737,13 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <button class="btn active" data-pchart="bar" style="padding:2px 10px;font-size:.72rem">Stacked Bar</button>
 <button class="btn" data-pchart="line" style="padding:2px 10px;font-size:.72rem">Line</button>
 <button class="btn" data-pchart="bubble" style="padding:2px 10px;font-size:.72rem">Bubble</button>
+<button class="btn" data-pchart="scatter" style="padding:2px 10px;font-size:.72rem">Scatter</button>
 </div>
 <div class="form-group" style="margin-bottom:0"><label style="margin-bottom:0;font-size:.68rem">Account</label><select id="pivotChartAccount" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:auto"><option value="totinv">Tot Inv</option><option value="opex">OpEx</option><option value="ebitda">EBITDA</option><option value="cb">C&amp;B</option><option value="oao">OAO</option><option value="te">T&amp;E</option><option value="ctr">CTR</option><option value="capex">CapEx</option><option value="da">D&amp;A</option><option value="hc">HC</option></select></div>
+<div id="pivotScatterAxes" style="display:none;align-items:center;gap:6px">
+<label style="font-size:.68rem">X</label><select id="pivotScatterX" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="hc">HC</option><option value="cb">C&amp;B</option><option value="oao">OAO</option><option value="totinv">Tot Inv</option><option value="opex">OpEx</option><option value="ebitda">EBITDA</option></select>
+<label style="font-size:.68rem">Y</label><select id="pivotScatterY" style="padding:2px 5px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="totinv">Tot Inv</option><option value="cb">C&amp;B</option><option value="ebitda">EBITDA</option><option value="opex">OpEx</option><option value="oao">OAO</option><option value="hc">HC</option></select>
+</div>
 </div>
 <!-- Pivot settings + export controls -->
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
@@ -762,11 +767,26 @@ Long Term Forecast<span id="execFcViewLabel" style="font-weight:400;color:var(--
 <select id="pivotCfgLoadTemplate" style="padding:2px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);flex:1"><option value="">Load template…</option></select>
 <button class="btn btn-sm" id="pivotCfgReset" style="padding:2px 10px;font-size:.7rem">Reset</button>
 </div>
+<!-- Calculated metrics -->
+<div style="grid-column:1/-1;border-top:1px solid var(--border-light);padding-top:10px;margin-top:6px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+<label style="font-size:.68rem;color:var(--tertiary);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin:0">Calculated Metrics</label>
+<span style="font-size:.66rem;color:var(--text-dim)">Add metrics like Cost/HC, EBITDA/HC — available in Account selector</span>
+</div>
+<div id="pivotCalcList" style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px"></div>
+<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+<input id="pivotCalcName" placeholder="Name (e.g. Cost per FTE)" style="padding:2px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);width:160px">
+<select id="pivotCalcNum" style="padding:2px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="cb">C&amp;B</option><option value="oao">OAO</option><option value="totinv">Tot Inv</option><option value="opex">OpEx</option><option value="ebitda">EBITDA</option><option value="hc">HC</option><option value="capex">CapEx</option></select>
+<span style="font-size:.78rem;color:var(--text-dim)">÷</span>
+<select id="pivotCalcDen" style="padding:2px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)"><option value="hc">HC</option><option value="cb">C&amp;B</option><option value="totinv">Tot Inv</option><option value="opex">OpEx</option></select>
+<button class="btn btn-sm" id="pivotCalcAdd" style="padding:2px 10px;font-size:.7rem">+ Add</button>
+</div>
+</div>
 </div>
 </div>
 
 <!-- Chart + Table side by side -->
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:60px;align-items:start">
+<div style="display:grid;grid-template-columns:7fr 5fr;gap:12px;margin-bottom:60px;align-items:start">
 <!-- Chart -->
 <div class="card" style="padding:12px 16px">
 <div id="pivotChartWrap" style="position:relative;height:50vh;min-height:320px">

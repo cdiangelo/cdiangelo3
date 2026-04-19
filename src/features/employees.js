@@ -589,7 +589,7 @@ function renderEmployees(){
     const safeAllocs=allocs.length?allocs:[{projId:'',pct:100,bizLine:'',market:''}];
     const mktHtml=safeAllocs.map((a,i)=>`<div class="emp-split-line"><select class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="market"><option value="">—</option>${sel(a.market||'',mktOptsIn)}</select></div>`).join('');
     const blHtml=safeAllocs.map((a,i)=>`<div class="emp-split-line"><select class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="bizLine"><option value="">—</option>${sel(a.bizLine||e.businessLine||'',blOptsIn)}</select></div>`).join('');
-    const projHtmlFinal=safeAllocs.map((a,i)=>`<div class="emp-split-line" style="display:flex;gap:2px;align-items:center"><select class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="projId" style="flex:1;min-width:60px"><option value="">—</option>${sel(a.projId||'',projOptsIn)}</select><input type="number" class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="pct" value="${a.pct}" min="0" max="100" style="width:36px">%${safeAllocs.length>1?`<button class="emp-action-icon del" style="width:16px;height:16px;font-size:.68rem" title="Remove split" onclick="window.removeAllocSplit('${e.id}',${i})">&times;</button>`:''}</div>`).join('')+`<div class="emp-split-line"><button class="btn btn-sm" style="padding:0 6px;font-size:.64rem" onclick="window.addAllocSplit('${e.id}')">+ split</button></div>`;
+    const projHtmlFinal=safeAllocs.map((a,i)=>`<div class="emp-split-line" style="display:flex;gap:2px;align-items:center"><select class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="projId" style="flex:1;min-width:0"><option value="">—</option>${sel(a.projId||'',projOptsIn)}</select><input type="number" class="ec" data-eid="${e.id}" data-aidx="${i}" data-f="pct" value="${a.pct}" min="0" max="100" style="width:36px">${safeAllocs.length>1?`<span class="emp-split-remove" onclick="window.removeAllocSplit('${e.id}',${i})" title="Remove split">&times;</span>`:''}</div>`).join('')+`<div class="emp-split-line"><span class="emp-split-add" onclick="window.addAllocSplit('${e.id}')" title="Add split">+</span></div>`;
 
     let html=`<tr data-id="${e.id}">
       <td><div class="emp-actions"><button class="emp-action-icon" title="Open form" onclick="window.startEdit('${e.id}')">&#9881;</button><button class="emp-action-icon del" title="Delete" onclick="window.deleteEmp('${e.id}')">&times;</button></div></td>
@@ -603,12 +603,12 @@ function renderEmployees(){
       <td class="ops-hide"><select class="ec" data-eid="${e.id}" data-f="businessUnit" style="font-size:.72rem"><option value="">—</option>${sel(e.businessUnit||COUNTRY_BU[e.country]||'',buOptsIn)}</select></td>
       <td>${projHtmlFinal}</td>
       <td class="emp-comp-toggle-cell"></td>
-      <td class="${cs} emp-comp-col"><input class="ec" type="number" data-eid="${e.id}" data-f="salary" value="${e.salary||e.baseSalary||0}" style="width:88px"></td>
+      <td class="${cs} emp-comp-col"><input class="ec" type="number" data-eid="${e.id}" data-f="salary" value="${e.salary||e.baseSalary||0}"></td>
       <td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
-      <td><input class="ec" type="number" min="0" max="100" data-eid="${e.id}" data-f="capPct" value="${e.capPct||0}" style="width:44px">%</td>
+      <td><input class="ec" type="number" min="0" max="100" data-eid="${e.id}" data-f="capPct" value="${e.capPct||0}"></td>
       <td class="${cs} emp-comp-col">${fmt(getProratedOpEx(e))}</td><td class="${cs} emp-comp-col">${fmt(getProratedCapEx(e))}</td>
-      <td><input class="ec" type="date" data-eid="${e.id}" data-f="hireDate" value="${e.hireDate||''}" style="width:124px;font-size:.72rem"></td>
-      <td><input class="ec" type="date" data-eid="${e.id}" data-f="termDate" value="${e.termDate||''}" style="width:124px;font-size:.72rem"></td>
+      <td><input class="ec" type="date" data-eid="${e.id}" data-f="hireDate" value="${e.hireDate||''}"></td>
+      <td><input class="ec" type="date" data-eid="${e.id}" data-f="termDate" value="${e.termDate||''}"></td>
     </tr>`;
     return html;
   }).join('');

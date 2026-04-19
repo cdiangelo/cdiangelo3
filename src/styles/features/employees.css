@@ -35,9 +35,61 @@
 .emp-action-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-light);border-radius:4px;background:var(--bg-elevated);color:var(--text-dim);cursor:pointer;font-size:.72rem;padding:0;line-height:1;transition:all .12s}
 .emp-action-icon:hover{color:var(--accent);border-color:var(--accent)}
 .emp-action-icon.del:hover{color:var(--danger);border-color:var(--danger)}
-/* Split lines: fixed 16px rows so values align horizontally across Market / BizLine / Project cells */
-#empTable .emp-split-line{padding:0 2px}
-#empTable td:has(.emp-split-line){padding-top:3px;padding-bottom:3px;vertical-align:top}
+/* Split lines: fixed 18px rows so values align horizontally across Market / BizLine / Project cells */
+#empTable .emp-split-line{padding:0;line-height:18px;height:18px;display:flex;align-items:center}
+#empTable td:has(.emp-split-line){padding-top:2px;padding-bottom:2px;vertical-align:top}
+
+/* Spreadsheet-style editable cells — plain text by default, border + bg only on hover/focus */
+#empTable input.ec,#empTable select.ec{
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--text);
+  padding:1px 4px;
+  font-family:inherit;
+  font-size:.74rem;
+  border-radius:3px;
+  width:100%;
+  outline:none;
+  transition:border-color .12s,background-color .12s;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  cursor:cell;
+}
+#empTable select.ec{
+  padding-right:14px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' opacity='0'><path d='M2 4l3 3 3-3' stroke='%23888' fill='none'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 2px center;
+  background-size:9px 9px;
+}
+#empTable tr:hover input.ec,#empTable tr:hover select.ec{background:var(--bg-elevated)}
+#empTable input.ec:hover,#empTable select.ec:hover{border-color:var(--border-light)}
+#empTable input.ec:focus,#empTable select.ec:focus{
+  border-color:var(--accent);
+  background:var(--bg-input);
+  cursor:text;
+}
+#empTable select.ec:focus{
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><path d='M2 4l3 3 3-3' stroke='%23888' fill='none' stroke-width='1.2'/></svg>");
+}
+/* Number inputs — right-aligned like a spreadsheet */
+#empTable input.ec[type="number"]{text-align:right;font-variant-numeric:tabular-nums}
+/* Date inputs — show without the browser's picker styling */
+#empTable input.ec[type="date"]{color:var(--text-dim);font-size:.72rem}
+#empTable input.ec[type="date"]:focus,#empTable tr:hover input.ec[type="date"]{color:var(--text)}
+#empTable input.ec[type="date"]::-webkit-calendar-picker-indicator{opacity:.3;cursor:pointer}
+#empTable input.ec[type="date"]:hover::-webkit-calendar-picker-indicator{opacity:.7}
+/* Empty placeholder — show a subtle "—" dash when value is blank */
+#empTable select.ec:not(:focus) option:checked[value=""]{color:var(--tertiary)}
+/* Cell padding so content isn't cramped */
+#empTable td{padding:4px 6px}
+
+/* Inline split add/remove — subtle text links, not buttons */
+.emp-split-add,.emp-split-remove{display:inline-block;width:14px;height:14px;line-height:13px;text-align:center;font-size:.7rem;color:var(--tertiary);cursor:pointer;border-radius:3px;opacity:.35;transition:opacity .12s,color .12s,background-color .12s}
+.emp-split-add:hover{opacity:1;color:var(--accent);background:var(--accent-glow)}
+.emp-split-remove:hover{opacity:1;color:var(--danger);background:var(--danger-soft)}
+#empTable tr:hover .emp-split-add,#empTable tr:hover .emp-split-remove{opacity:.7}
 
 /* Split rows — subtle, indented, no hover highlight on empty cells */
 #empTable tr.emp-split-row{background:var(--panel-inset)}

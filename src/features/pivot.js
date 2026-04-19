@@ -348,7 +348,20 @@ function renderPivotTable(data){
 }
 
 // ── Render chart ──
-let pivotChartType='bar'; // bar | line | bubble
+let pivotChartType='bar'; // bar | line | bubble | scatter
+
+// ── Calculated Metrics (persistent) ──
+function getCalcMetrics(){try{return JSON.parse(localStorage.getItem('pivotCalcMetrics')||'[]')}catch(e){return[]}}
+function setCalcMetrics(m){localStorage.setItem('pivotCalcMetrics',JSON.stringify(m))}
+function evalCalcMetric(m,derived){
+  const num=derived[m.numerator]||0;
+  const den=derived[m.denominator]||0;
+  if(!den)return 0;
+  return num/den;
+}
+// ── Variance mode ──
+function getVarMode(){return document.getElementById('pivotVariance')?.value||'overlay'}
+
 function renderPivotChart(data){
   if(typeof Chart==='undefined')return;
   const canvas=document.getElementById('pivotChart');
@@ -363,8 +376,38 @@ function renderPivotChart(data){
   const nRows=rowNames.length||1;
   const colors=getChartColors();
   const labels=rowNames.map(n=>n.length>18?n.slice(0,16)+'…':n);
+  const calcMetrics=getCalcMetrics();
+  const calcMetric=calcMetrics.find(m=>m.id===acctKey);
   const isHC=acctKey==='hc';
-  const tickFmt=isHC?v=>Math.round(v):v=>'$'+(Math.abs(v)/1e6).toFixed(1);
+  const isCalc=!!calcMetric;
+  const tickFmt=isHC?v=>Math.round(v):isCalc?v=>Math.round(v*100)/100:v=>'$'+(Math.abs(v)/1e6).toFixed(1);
+  const compData=data.compRows;
+  const varMode=getVarMode();
+
+  // Scatter: X = metric A, Y = metric B, each row is a point with label
+  if(pivotChartType==='scatter'){
+    const xMetric=document.getElementById('pivotScatterX')?.value||'hc';
+    const yMetric=document.getElementById('pivotScatterY')?.value||'totinv';
+    const pts=rowNames.map((name,i)=>{
+      const r=calcDerived(rows[name],daTotal/nRows);
+      const x=calcMetrics.find(m=>m.id===xMetric)?evalCalcMetric(calcMetrics.find(m=>m.id===xMetric),r):(r[xMetric]||0);
+      const y=calcMetrics.find(m=>m.id===yMetric)?evalCalcMetric(calcMetrics.find(m=>m.id===yMetric),r):(r[yMetric]||0);
+      return {x,y,_label:name,backgroundColor:colors[i%colors.length]};
+    });
+    pivotChart=makePivotChart(canvas,{
+      type:'scatter',
+      data:{datasets:[{label:'',data:pts,pointRadius:8,pointHoverRadius:10,backgroundColor:ctx=>ctx.raw?.backgroundColor||colors[0],borderColor:'#0002',borderWidth:1,
+        datalabels:{display:true,anchor:'center',align:'top',offset:6,font:{size:10,weight:'600'},formatter:(_,c)=>c.raw?._label||''}
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},datalabels:{},yoyArrows:false,
+          tooltip:{callbacks:{label:ctx=>{const d=ctx.raw;return d._label+' — '+xMetric.toUpperCase()+': '+Math.round(d.x)+', '+yMetric.toUpperCase()+': '+Math.round(d.y)}}}
+        },
+        scales:{x:{title:{display:true,text:xMetric.toUpperCase()},ticks:{font:{size:10}}},y:{title:{display:true,text:yMetric.toUpperCase()},ticks:{font:{size:10}}}}
+      }
+    });
+    return;
+  }
 
   if(pivotChartType==='bubble'){
     // Bubble matrix: X = Row 1, Y = Row 2, size = account amount
@@ -447,11 +490,23 @@ function renderPivotChart(data){
     const row2Names=[...row2Set].sort(isTimeDim(dim2)?timeSort:undefined);
 
     if(!dim2||row2Names.length===0){
-      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+      const vals=rowNames.map(name=>{const r=calcDerived(isCalc?rows[name]:rows[name],daTotal/nRows);return isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0)});
+      const datasets=[{label:(isCalc?calcMetric.name:acctKey.toUpperCase()),data:vals,borderColor:colors[0],backgroundColor:hexToRgba(colors[0],0.15),fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:colors[0]}];
+      // Variance overlay: add compData series
+      if(compData){
+        const compVals=rowNames.map(name=>{const c=compData[name];if(!c)return 0;const r=calcDerived(c,daTotal/nRows);return isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0)});
+        if(varMode==='shaded'){
+          // Shaded area between current and comparison
+          datasets.push({label:'Comparison',data:compVals,borderColor:colors[1]||'#8B2020',borderDash:[4,3],backgroundColor:hexToRgba(colors[1]||'#8B2020',0.12),fill:'-1',tension:0.3,pointRadius:3,pointBackgroundColor:colors[1]||'#8B2020'});
+        } else {
+          // Overlay: dashed comparison line
+          datasets.push({label:'Comparison',data:compVals,borderColor:colors[1]||'#8B2020',borderDash:[4,3],backgroundColor:'transparent',fill:false,tension:0.3,pointRadius:3,pointBackgroundColor:colors[1]||'#8B2020'});
+        }
+      }
       pivotChart=makePivotChart(canvas,{
         type:'line',
-        data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,borderColor:colors[0],backgroundColor:hexToRgba(colors[0],0.15),fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:colors[0]}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}}
+        data:{labels,datasets},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:compData?true:false,position:'bottom'},datalabels:{display:false},yoyArrows:false},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:tickFmt}}}}
       });
     } else {
       // Each Row2 value = separate line
@@ -475,11 +530,23 @@ function renderPivotChart(data){
     const row2Names=[...row2Set].sort(isTimeDim(dim2)?timeSort:undefined);
 
     if(!dim2||row2Names.length===0){
-      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0)});
+      const datasets=[{label:(isCalc?calcMetric.name:acctKey.toUpperCase()),data:vals,backgroundColor:hexToRgba(colors[0],0.7),borderColor:colors[0],borderWidth:1}];
+      if(compData){
+        const compVals=rowNames.map(name=>{const c=compData[name];if(!c)return 0;const r=calcDerived(c,daTotal/nRows);return isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0)});
+        if(varMode==='shaded'){
+          // Variance bar — shows positive/negative diff on top of primary
+          const varVals=vals.map((v,i)=>v-(compVals[i]||0));
+          datasets.push({label:'Variance',data:varVals,backgroundColor:varVals.map(v=>v>=0?hexToRgba(colors[2]||'#D4A870',0.45):hexToRgba(colors[1]||'#B04040',0.45)),borderColor:'#888',borderWidth:1,stack:'var'});
+        } else {
+          // Overlay — side-by-side comparison bar
+          datasets.push({label:'Comparison',data:compVals,backgroundColor:hexToRgba(colors[1]||'#8B2020',0.55),borderColor:colors[1]||'#8B2020',borderWidth:1,borderDash:[4,3]});
+        }
+      }
       pivotChart=makePivotChart(canvas,{
         type:'bar',
-        data:{labels,datasets:[{label:acctKey.toUpperCase(),data:vals,backgroundColor:hexToRgba(colors[0],0.7),borderColor:colors[0],borderWidth:1}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},yoyArrows:false},scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:tickFmt}}}}
+        data:{labels,datasets},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:compData?true:false,position:'bottom'},datalabels:{display:false},yoyArrows:false},scales:{x:{stacked:varMode==='shaded',ticks:{font:{size:10}}},y:{stacked:varMode==='shaded',ticks:{font:{size:10},callback:tickFmt}}}}
       });
     } else {
       // Each Row2 value = stacked segment
@@ -546,6 +613,9 @@ async function renderPivot(){
     const compData=buildPnlData(compState);
     data.compRows=compData.rows;
   }
+  // Show variance selector when a comparison scenario is picked
+  const varSel=document.getElementById('pivotVariance');
+  if(varSel)varSel.style.display=compState?'':'none';
   renderPivotChart(data);
   renderPivotTable(data);
   // Update header label
@@ -580,8 +650,15 @@ function initPivot(){
       document.querySelectorAll('#pivotChartType .btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       pivotChartType=btn.dataset.pchart;
+      // Show/hide scatter axis selectors
+      const sa=document.getElementById('pivotScatterAxes');
+      if(sa)sa.style.display=pivotChartType==='scatter'?'flex':'none';
       renderPivot();
     });
+  });
+  // Scatter axis change
+  ['pivotScatterX','pivotScatterY','pivotVariance'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.addEventListener('change',()=>renderPivot());
   });
   // Account filter for chart
   const acctSel=document.getElementById('pivotChartAccount');
