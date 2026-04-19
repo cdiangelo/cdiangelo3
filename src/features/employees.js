@@ -489,47 +489,79 @@ function renderEmployees(){
     if(inlineEditId===e.id){
       const ieAllocs=inlineEditAllocs||(e.allocations?e.allocations.map(a=>({...a})):[]);
       if(!inlineEditAllocs)inlineEditAllocs=ieAllocs;
+      if(!ieAllocs.length){ieAllocs.push({projId:'',pct:100,primary:true,bizLine:'',market:''})}
+      const projOpts=state.projects.map(p=>`<option value="${p.id}">${p.code}</option>`).join('');
       const blOpts=state.bizLines.map(b=>`<option value="${b.code}">${b.code} — ${b.name}</option>`).join('');
       const mktOpts=state.markets.map(m=>`<option value="${m.code}">${m.code}</option>`).join('');
-      let allocEditHtml=ieAllocs.map((a,i)=>{
+      function setSel(html,val){return html.replace(`value="${val}"`,`value="${val}" selected`)}
+
+      // Build per-split inline cell (project + pct + star)
+      function buildProjCell(a,i){
         const starStyle=a.primary?'color:var(--accent);cursor:pointer':'color:var(--border);cursor:pointer';
-        return `<div style="display:flex;gap:3px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
-          <span style="${starStyle};font-size:.9rem" title="${a.primary?'Primary':'Set as primary'}" onclick="window.setInlinePrimary(${i})">&#9733;</span>
-          <select class="ie-alloc-proj" data-ai="${i}" style="width:90px;padding:2px;font-size:.72rem">
-            <option value="">Proj</option>${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code}</option>`).join('')}
-          </select>
-          <select class="ie-alloc-bl" data-ai="${i}" style="width:90px;padding:2px;font-size:.72rem">
-            <option value="">BizLine</option>${blOpts.replace(`value="${a.bizLine||''}"`,`value="${a.bizLine||''}" selected`)}
-          </select>
-          <select class="ie-alloc-mkt" data-ai="${i}" style="width:70px;padding:2px;font-size:.72rem">
-            <option value="">Mkt</option>${mktOpts.replace(`value="${a.market||''}"`,`value="${a.market||''}" selected`)}
-          </select>
-          <input type="number" class="ie-alloc-pct" data-ai="${i}" value="${a.pct}" min="0" max="100" style="width:45px;padding:2px;font-size:.72rem">%
-          <button class="btn btn-sm btn-danger" style="padding:1px 5px;font-size:.68rem" onclick="window.removeInlineAlloc(${i})">×</button>
+        return `<div style="display:flex;gap:2px;align-items:center">
+          <span style="${starStyle};font-size:.8rem" title="${a.primary?'Primary':'Set as primary'}" onclick="window.setInlinePrimary(${i})">&#9733;</span>
+          <select class="ie-alloc-proj" data-ai="${i}" style="width:80px;padding:2px;font-size:.72rem"><option value="">Proj</option>${setSel(projOpts,a.projId||'')}</select>
+          <input type="number" class="ie-alloc-pct" data-ai="${i}" value="${a.pct}" min="0" max="100" style="width:42px;padding:2px;font-size:.72rem">%
         </div>`;
-      }).join('');
-      allocEditHtml+=`<button class="btn btn-sm" style="padding:2px 8px;font-size:.72rem;margin-top:2px" onclick="window.addInlineAlloc()">+ Add</button>`;
+      }
+      function buildMktCell(a,i){
+        return `<select class="ie-alloc-mkt" data-ai="${i}" style="width:72px;padding:2px;font-size:.72rem"><option value="">—</option>${setSel(mktOpts,a.market||'')}</select>`;
+      }
+      function buildBlCell(a,i){
+        return `<select class="ie-alloc-bl" data-ai="${i}" style="width:100px;padding:2px;font-size:.72rem"><option value="">—</option>${setSel(blOpts,a.bizLine||'')}</select>`;
+      }
+
+      const primary=ieAllocs[0];
       const typeLabel=(e.empType||'existing')==='hire'?'New Hire':'Existing';
       const typeStyle=(e.empType||'existing')==='hire'?'color:#059669;font-weight:600':'color:var(--text-dim)';
-      return `<tr data-id="${e.id}" class="inline-edit">
-        <td><button class="btn btn-sm btn-primary" onclick="window.saveInlineEdit('${e.id}')">Save</button> <button class="btn btn-sm" onclick="window.cancelInlineEdit()">Cancel</button></td>
-        <td><input class="ie-name" value="${e.name}"></td>
-        <td>${isOps?`<span style="${typeStyle};font-size:.78rem">${typeLabel}</span>`:`<select class="ie-emptype" style="font-size:.78rem"><option value="existing"${(e.empType||'existing')==='existing'?' selected':''}>Existing</option><option value="hire"${e.empType==='hire'?' selected':''}>New Hire</option></select>`}</td>
-        <td><select class="ie-country">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
-        <td><select class="ie-seniority">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
-        <td><select class="ie-function">${FUNCTIONS.map(f=>`<option${f===e.function?' selected':''}>${f}</option>`).join('')}</select></td>
-        <td style="font-size:.82rem">${(()=>{const mkts=getEmpMarkets(e);return mkts.map(m=>`<div>${m.code}${mkts.length>1?` <span style="font-size:.75rem;color:var(--text-dim)">${m.pct}%</span>`:''}</div>`).join('')})()}</td>
-        <td><select class="ie-bizline"><option value="">—</option>${state.bizLines.map(b=>`<option value="${b.code}"${b.code===(e.businessLine||'')?' selected':''}>${b.code} — ${b.name}</option>`).join('')}</select></td>
-        <td class="ops-hide" style="font-size:.82rem">${e.businessUnit||COUNTRY_BU[e.country]||'—'}</td>
-        <td style="min-width:200px">${allocEditHtml}</td>
+
+      let html=`<tr data-id="${e.id}" class="inline-edit">
+        <td><div class="emp-actions"><button class="emp-action-icon" title="Save" style="color:var(--accent);border-color:var(--accent)" onclick="window.saveInlineEdit('${e.id}')">&#10004;</button><button class="emp-action-icon" title="Cancel" onclick="window.cancelInlineEdit()">&#10006;</button></div></td>
+        <td><input class="ie-name" value="${e.name}" style="width:100%;font-size:.78rem"></td>
+        <td>${isOps?`<span style="${typeStyle};font-size:.78rem">${typeLabel}</span>`:`<select class="ie-emptype" style="font-size:.72rem"><option value="existing"${(e.empType||'existing')==='existing'?' selected':''}>Existing</option><option value="hire"${e.empType==='hire'?' selected':''}>New Hire</option></select>`}</td>
+        <td><select class="ie-country" style="font-size:.72rem">${COUNTRIES.map(c=>`<option${c===e.country?' selected':''}>${c}</option>`).join('')}</select></td>
+        <td><select class="ie-seniority" style="font-size:.72rem">${SENIORITY.map(s=>`<option${s===e.seniority?' selected':''}>${s}</option>`).join('')}</select></td>
+        <td><select class="ie-function" style="font-size:.72rem">${FUNCTIONS.map(f=>`<option${f===e.function?' selected':''}>${f}</option>`).join('')}</select></td>
+        <td>${buildMktCell(primary,0)}</td>
+        <td>${buildBlCell(primary,0)}</td>
+        <td class="ops-hide" style="font-size:.78rem">${e.businessUnit||COUNTRY_BU[e.country]||'—'}</td>
+        <td>${buildProjCell(primary,0)}</td>
         <td class="emp-comp-toggle-cell"></td>
-        <td class="${cs} emp-comp-col"><input class="ie-salary" type="number" value="${e.salary}"></td>
+        <td class="${cs} emp-comp-col"><input class="ie-salary" type="number" value="${e.salary||e.baseSalary||0}" style="width:90px"></td>
         <td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col">${fmt(tc)}</td>
         <td><input class="ie-cappct" type="number" min="0" max="100" value="${e.capPct||0}" style="width:55px"></td>
         <td class="${cs} emp-comp-col">${fmt(getOpEx(e))}</td><td class="${cs} emp-comp-col">${fmt(getCapEx(e))}</td>
-        <td><input class="ie-hire" type="date" value="${e.hireDate||''}"></td>
-        <td><input class="ie-term" type="date" value="${e.termDate||''}"></td>
+        <td><input class="ie-hire" type="date" value="${e.hireDate||''}" style="width:130px;font-size:.72rem"></td>
+        <td><input class="ie-term" type="date" value="${e.termDate||''}" style="width:130px;font-size:.72rem"></td>
       </tr>`;
+
+      // Additional split rows — inline editable in their actual columns
+      for(let si=1;si<ieAllocs.length;si++){
+        const a=ieAllocs[si];
+        html+=`<tr class="inline-edit emp-split-row" data-id="${e.id}" data-split="${si}">
+          <td><button class="emp-action-icon del" title="Remove split" onclick="window.removeInlineAlloc(${si})" style="margin:auto;display:flex">&times;</button></td>
+          <td style="font-size:.7rem;color:var(--tertiary);padding-left:20px">↳ split ${si+1}</td>
+          <td></td><td></td><td></td><td></td>
+          <td>${buildMktCell(a,si)}</td>
+          <td>${buildBlCell(a,si)}</td>
+          <td class="ops-hide"></td>
+          <td>${buildProjCell(a,si)}</td>
+          <td class="emp-comp-toggle-cell"></td>
+          <td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td>
+          <td></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td>
+          <td></td><td></td>
+        </tr>`;
+      }
+      // Trailing + Add row (compact, single cell with full-width button centered under Projects)
+      html+=`<tr class="inline-edit emp-split-add-row" data-id="${e.id}">
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="ops-hide"></td>
+        <td><button class="btn btn-sm" style="padding:2px 8px;font-size:.7rem" onclick="window.addInlineAlloc()">+ Add split</button></td>
+        <td class="emp-comp-toggle-cell"></td>
+        <td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td>
+        <td></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td>
+        <td></td><td></td>
+      </tr>`;
+      return html;
     }
     const typeLabel=(e.empType||'existing')==='hire'?'New Hire':'Existing';
     const typeStyle=(e.empType||'existing')==='hire'?'color:#059669;font-weight:600':'color:var(--text-dim)';
@@ -839,20 +871,21 @@ function renderFteSparkline(){
   const hcByMonth=MO.map((_,mi)=>emps.filter(e=>(e.startMonth||0)<=mi).length);
   if(totalEl)totalEl.textContent=hcByMonth[hcByMonth.length-1]+' FTEs';
   const colors=window.getChartColors?window.getChartColors():['#4a8cc8'];
+  const isDark=document.documentElement.classList.contains('dark')||!document.documentElement.hasAttribute('data-theme');
   // Y-axis range: pad min/max so small changes are visible
   const minHC=Math.min(...hcByMonth);
   const maxHC=Math.max(...hcByMonth);
   const pad=Math.max(3,Math.ceil((maxHC-minHC)*0.3)||3);
   // Bump the container a bit to leave room for data labels above bars
-  canvas.parentElement.style.height='48px';
-  canvas.style.height='48px';
+  canvas.parentElement.style.height='56px';
+  canvas.style.height='56px';
   if(fteSparkChart)fteSparkChart.destroy();
   fteSparkChart=new Chart(canvas,{
     type:'bar',
     data:{labels:MO,datasets:[{data:hcByMonth,backgroundColor:colors[0]+'88',borderColor:colors[0],borderWidth:1,borderRadius:2,
-      datalabels:{display:true,anchor:'end',align:'top',offset:1,clamp:true,color:'var(--text-dim)',font:{size:9,weight:'600'},formatter:v=>v}
+      datalabels:{display:true,anchor:'end',align:'top',offset:2,clamp:true,color:isDark?'#c8d0dc':'#556070',font:{size:10,weight:'600'},formatter:v=>v}
     }]},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:10,bottom:2,left:2,right:2}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16,bottom:2,left:2,right:2}},
       plugins:{legend:{display:false},tooltip:{enabled:false},yoyArrows:false,barTotal:false},
       scales:{x:{display:false},y:{display:false,min:Math.max(0,minHC-pad),max:maxHC+pad}}
     }

@@ -1,12 +1,17 @@
-/* Diagonal headers for large tables (lines 69-85) */
+/* Employee roster: constrained-height scroll container for sticky headers to work */
+#tab-employees .table-wrap{max-height:calc(100vh - 260px);overflow:auto}
+
+/* Diagonal headers for large tables */
 #empTable thead{border-bottom:2px solid var(--border)}
-#empTable thead tr{position:sticky;top:42px;z-index:5;background:var(--panel)}
-#empTable th.diag{position:sticky;top:42px;height:110px;white-space:nowrap;vertical-align:bottom;padding:0 2px 8px 2px;text-align:left;overflow:visible;min-width:75px;border-bottom:2px solid var(--accent);background:var(--panel);z-index:4}
+#empTable thead th{position:sticky;top:0;z-index:5;background:var(--panel)}
+#empTable th.diag{position:sticky;top:0;height:110px;white-space:nowrap;vertical-align:bottom;padding:0 2px 8px 2px;text-align:left;overflow:visible;min-width:75px;border-bottom:2px solid var(--accent);background:var(--panel);z-index:4}
 #empTable th.diag .diag-text{display:inline-block;transform:rotate(-45deg);transform-origin:bottom left;white-space:nowrap;font-size:.82rem;letter-spacing:.03em;position:relative;bottom:0;left:6px}
 #empTable th.diag.num-col,#empTable th.diag.num-col-sm,#empTable th.diag.num-col-lg{min-width:85px;text-align:right}
+/* Sticky corners (frozen col + frozen header) need higher z */
+#empTable thead th:nth-child(1),#empTable thead th:nth-child(2){z-index:8}
 
-/* Sticky filter bar above the table */
-.emp-filter-bar{position:sticky;top:0;z-index:6;background:var(--panel-inset)!important}
+/* Sticky filter bar — sticks above the table-wrap container */
+.emp-filter-bar{position:sticky;top:0;z-index:10;background:var(--panel-inset)!important}
 
 /* Multiselect dropdown filter */
 .ms-dropdown{position:relative;flex-shrink:0}
@@ -21,13 +26,13 @@
 #empTable th:nth-child(1),#empTable th:nth-child(2){border-bottom:2px solid var(--accent);height:auto;vertical-align:middle;font-size:.82rem}
 /* Frozen columns for employee roster -- Actions + Name (solid bg so rows don't bleed through) */
 #empTable td:nth-child(1),#empTable td:nth-child(2){background:var(--panel)!important}
-#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;min-width:74px;width:74px;max-width:74px;text-align:center;vertical-align:middle}
-#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:74px;z-index:2;min-width:140px;white-space:nowrap;vertical-align:middle}
+#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;min-width:80px;width:80px;max-width:80px;text-align:center;vertical-align:middle}
+#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:80px;z-index:2;min-width:140px;white-space:nowrap;vertical-align:middle}
 #empTable th:nth-child(1),#empTable th:nth-child(2){z-index:7;background:var(--panel)!important}
 
-/* Vertical icon action buttons in the first column */
-.emp-actions{display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center}
-.emp-action-icon{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-light);border-radius:4px;background:var(--bg-elevated);color:var(--text-dim);cursor:pointer;font-size:.78rem;padding:0;line-height:1;transition:all .12s}
+/* Horizontal icon action buttons in the first column */
+.emp-actions{display:flex;flex-direction:row;gap:3px;align-items:center;justify-content:center}
+.emp-action-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-light);border-radius:4px;background:var(--bg-elevated);color:var(--text-dim);cursor:pointer;font-size:.72rem;padding:0;line-height:1;transition:all .12s}
 .emp-action-icon:hover{color:var(--accent);border-color:var(--accent)}
 .emp-action-icon.del:hover{color:var(--danger);border-color:var(--danger)}
 
