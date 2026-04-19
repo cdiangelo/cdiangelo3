@@ -150,6 +150,13 @@ export function ensureStateFields(){
   if(!state.oaoGrowthPct)state.oaoGrowthPct=[5,5,5,5,5];
   // Pillar type definitions (user-editable)
   if(!state.pillarTypes||!state.pillarTypes.length)state.pillarTypes=['Pillar 1','Pillar 2','Pillar 3'];
+  // Migrate legacy default pillar names → Pillar 1/2/3
+  const LEGACY_PILLAR_MAP={'Horizontal':'Pillar 1','Vertical':'Pillar 2','Platform':'Pillar 3','Central':'Pillar 3','Platform/Central':'Pillar 3'};
+  if(state.pillarTypes.some(p=>LEGACY_PILLAR_MAP[p])){
+    state.pillarTypes=state.pillarTypes.map(p=>LEGACY_PILLAR_MAP[p]||p);
+    // De-dupe while preserving order
+    state.pillarTypes=[...new Set(state.pillarTypes)];
+  }
   // Functional pillar mappings: function → pillar type
   if(!state.functionalPillars)state.functionalPillars={
     'Engineering':'Pillar 1','Product':'Pillar 1','Design':'Pillar 1',
@@ -158,6 +165,11 @@ export function ensureStateFields(){
     'Finance':'Pillar 3','HR':'Pillar 3','Legal':'Pillar 3',
     'IT':'Pillar 3','Operations':'Pillar 3','Security':'Pillar 3'
   };
+  // Migrate legacy values in functionalPillars mapping
+  Object.keys(state.functionalPillars).forEach(fn=>{
+    const v=state.functionalPillars[fn];
+    if(LEGACY_PILLAR_MAP[v])state.functionalPillars[fn]=LEGACY_PILLAR_MAP[v];
+  });
   if(!state.cbOtherRows)state.cbOtherRows=[];
   if(!state.cbOtherRows.length)state.cbOtherRows=[
     {description:'Severance',jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0},
