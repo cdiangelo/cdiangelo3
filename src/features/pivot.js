@@ -41,6 +41,15 @@ window._applyPivotCfg=applyPivotCfgToOptions;
 // Wrap pivot chart creation so cfg is applied to every variant (bar/line/bubble/etc)
 function makePivotChart(canvas,config){
   if(config.options)applyPivotCfgToOptions(config.options);
+  // If a calc metric is selected, let chart auto-scale Y axis
+  // (saved yMin/yMax from a different account would make values invisible)
+  const acctKey=document.getElementById('pivotChartAccount')?.value||'';
+  const isCalcMetric=getCalcMetrics().some(m=>m.id===acctKey);
+  if(isCalcMetric&&config.options?.scales?.y){
+    delete config.options.scales.y.min;
+    delete config.options.scales.y.max;
+    if(config.options.scales.y.ticks)delete config.options.scales.y.ticks.stepSize;
+  }
   return new Chart(canvas,config);
 }
 
