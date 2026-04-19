@@ -26,9 +26,14 @@
 #empTable th:nth-child(1),#empTable th:nth-child(2){border-bottom:2px solid var(--accent);height:auto;vertical-align:middle;font-size:.82rem}
 /* Frozen columns for employee roster -- Actions + Name (solid bg so rows don't bleed through) */
 #empTable td:nth-child(1),#empTable td:nth-child(2){background:var(--panel)!important}
-#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;min-width:68px;width:68px;max-width:68px;text-align:center;vertical-align:middle}
-#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:68px;z-index:2;min-width:110px;width:110px;white-space:nowrap;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
-#empTable th:nth-child(1),#empTable th:nth-child(2){z-index:7;background:var(--panel)!important}
+/* Actions column: wide enough for 2 icons + padding, can never be overlapped */
+#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:4;min-width:72px;width:72px;max-width:72px;text-align:center;vertical-align:middle;padding:4px 4px;overflow:visible}
+/* Name column: starts at exactly left:72px so it abuts Actions without overlap */
+#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:72px;z-index:3;min-width:130px;width:130px;max-width:130px;white-space:nowrap;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;border-left:1px solid var(--border-light);padding-left:8px}
+/* Header corners: highest z so sticky-both-axes works */
+#empTable thead th:nth-child(1),#empTable thead th:nth-child(2){z-index:9;background:var(--panel)!important}
+/* Row hover shouldn't tint the Name input bg over the Actions cell */
+#empTable tr:hover td:nth-child(1){background:var(--panel)!important}
 
 /* Horizontal icon action buttons in the first column */
 .emp-actions{display:flex;flex-direction:row;gap:3px;align-items:center;justify-content:center}
