@@ -213,8 +213,9 @@ function fv(v,isHC){
 
 // ── Columns config ──
 function getCols(){
+  let base;
   if(currentView==='expanded'){
-    return [
+    base=[
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
       {key:'oao',label:'OAO'},
@@ -226,9 +227,8 @@ function getCols(){
       {key:'capex',label:'CAPEX'},
       {key:'totinv',label:'TOT INV'},
     ];
-  }
-  if(currentView==='totinv'){
-    return [
+  } else if(currentView==='totinv'){
+    base=[
       {key:'hc',label:'HC',narrow:true,isHC:true},
       {key:'cb',label:'C&B'},
       {key:'oao',label:'OAO'},
@@ -236,14 +236,23 @@ function getCols(){
       {key:'te',label:'T&E'},
       {key:'totinv',label:'TOT INV'},
     ];
+  } else {
+    // collapsed = cost view
+    base=[
+      {key:'hc',label:'HC',narrow:true,isHC:true},
+      {key:'cb',label:'C&B'},
+      {key:'oao',label:'OAO'},
+      {key:'ebitda',label:'ADJ EBITDA'},
+    ];
   }
-  // collapsed = cost view
-  return [
-    {key:'hc',label:'HC',narrow:true,isHC:true},
-    {key:'cb',label:'C&B'},
-    {key:'oao',label:'OAO'},
-    {key:'ebitda',label:'ADJ EBITDA'},
-  ];
+  // Append any currently-selected calculated metric as an extra column
+  const acctKey=document.getElementById('pivotChartAccount')?.value||'';
+  const calcs=getCalcMetrics();
+  const calc=calcs.find(m=>m.id===acctKey);
+  if(calc){
+    base.push({key:calc.id,label:calc.name,isCalc:true,calcMetric:calc});
+  }
+  return base;
 }
 
 // ── Render table ──
@@ -263,12 +272,18 @@ function renderPivotTable(data){
   const compData=data.compRows||null;
   const compCols=compData?cols:[];
 
+  // Active account (from chart selector) — column gets highlighted to match chart
+  const activeAcctKey=document.getElementById('pivotChartAccount')?.value||'';
   // Header
   let hdrHtml=`<th style="text-align:left;min-width:120px;position:sticky;top:0;z-index:2;background:var(--panel)">${document.getElementById('pivotRowDim').selectedOptions[0]?.text||'CATEGORY'}</th>`;
   cols.forEach(c=>{
-    const w=c.narrow?'width:36px;':'min-width:55px;';
+    const w=c.narrow?'width:36px;':c.isCalc?'min-width:80px;':'min-width:55px;';
     const isSub=c.key==='ebitda'||c.key==='totinv';
-    const extra=isSub?'font-weight:700;color:var(--accent);':'';
+    const isActive=c.key===activeAcctKey;
+    let extra='';
+    if(isActive)extra='background:var(--accent-glow)!important;font-weight:700;color:var(--accent);border-bottom:2px solid var(--accent);';
+    else if(isSub)extra='font-weight:700;color:var(--accent);';
+    if(c.isCalc)extra+='font-style:italic;';
     hdrHtml+=`<th style="text-align:right;${w}${extra}position:sticky;top:0;z-index:2;background:var(--panel)">${c.label}</th>`;
   });
   if(compData){
@@ -296,14 +311,24 @@ function renderPivotTable(data){
     let rowHtml=`<td class="section-label" style="cursor:${hasChildren?'pointer':'default'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;position:sticky;left:0;background:var(--panel);z-index:1" data-toggle="${name}"><span style="font-size:.6rem;margin-right:4px;display:inline-block;width:10px;color:var(--text-dim)">${arrow}</span>${name}</td>`;
     rowHtml+=cols.map(c=>{
       const isSub=c.key==='ebitda'||c.key==='totinv';
-      return `<td class="num" style="${isSub?'font-weight:700;color:var(--accent);':''}">${fv(r[c.key],c.isHC)}</td>`;
+      const isActive=c.key===activeAcctKey;
+      const val=c.isCalc?evalCalcMetric(c.calcMetric,r):r[c.key];
+      const disp=c.isCalc?(Math.round((val||0)*100)/100).toLocaleString():fv(val,c.isHC);
+      let style='';
+      if(isActive)style+='background:var(--accent-glow);font-weight:700;color:var(--accent);';
+      else if(isSub)style+='font-weight:700;color:var(--accent);';
+      return `<td class="num" style="${style}">${disp}</td>`;
     }).join('');
     if(compData){
       rowHtml+=compSep;
       if(compData[name]){
         const cr=calcDerived(compData[name],daTotal/compNRows);
         Object.keys(compTotals).forEach(k=>{compTotals[k]+=(cr[k]||0)});
-        rowHtml+=compCols.map(c=>`<td class="num" style="color:var(--text-dim)">${fv(cr[c.key],c.isHC)}</td>`).join('');
+        rowHtml+=compCols.map(c=>{
+          const val=c.isCalc?evalCalcMetric(c.calcMetric,cr):cr[c.key];
+          const disp=c.isCalc?(Math.round((val||0)*100)/100).toLocaleString():fv(val,c.isHC);
+          return `<td class="num" style="color:var(--text-dim)">${disp}</td>`;
+        }).join('');
       } else {
         rowHtml+=compCols.map(()=>`<td class="num" style="color:var(--text-dim)">—</td>`).join('');
       }
@@ -316,7 +341,13 @@ function renderPivotTable(data){
         let childHtml=`<td class="label-cell" style="padding-left:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;position:sticky;left:0;background:var(--panel-inset);z-index:1;font-size:.76rem;color:var(--text-dim)">${cn}</td>`;
         childHtml+=cols.map(c=>{
           const isSub=c.key==='ebitda'||c.key==='totinv';
-          return `<td class="num" style="font-size:.76rem;color:var(--text-dim)${isSub?';font-weight:600;color:var(--accent)':''}">${fv(cr[c.key],c.isHC)}</td>`;
+          const isActive=c.key===activeAcctKey;
+          const val=c.isCalc?evalCalcMetric(c.calcMetric,cr):cr[c.key];
+          const disp=c.isCalc?(Math.round((val||0)*100)/100).toLocaleString():fv(val,c.isHC);
+          let style='font-size:.76rem;color:var(--text-dim);';
+          if(isActive)style+='background:var(--accent-glow);color:var(--accent);font-weight:600;';
+          else if(isSub)style+='font-weight:600;color:var(--accent);';
+          return `<td class="num" style="${style}">${disp}</td>`;
         }).join('');
         if(compData)childHtml+=compSep+compCols.map(()=>`<td></td>`).join('');
         html+=`<tr class="child-row" data-parent="${name}" style="background:var(--panel-inset)">${childHtml}</tr>`;
@@ -326,10 +357,21 @@ function renderPivotTable(data){
 
   // Total row
   const t=calcDerived(totals,daTotal);
-  let totalHtml=`<td style="position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:10px;margin-right:4px"></span>Total</td>${cols.map(c=>`<td class="num">${fv(t[c.key],c.isHC)}</td>`).join('')}`;
+  let totalHtml=`<td style="position:sticky;left:0;background:var(--panel);z-index:1"><span style="display:inline-block;width:10px;margin-right:4px"></span>Total</td>`;
+  totalHtml+=cols.map(c=>{
+    const isActive=c.key===activeAcctKey;
+    const val=c.isCalc?evalCalcMetric(c.calcMetric,t):t[c.key];
+    const disp=c.isCalc?(Math.round((val||0)*100)/100).toLocaleString():fv(val,c.isHC);
+    const style=isActive?'background:var(--accent-glow);color:var(--accent);font-weight:700;':'';
+    return `<td class="num" style="${style}">${disp}</td>`;
+  }).join('');
   if(compData&&compTotals){
     const ct=calcDerived(compTotals,daTotal);
-    totalHtml+=compSep+compCols.map(c=>`<td class="num" style="color:var(--text-dim)">${fv(ct[c.key],c.isHC)}</td>`).join('');
+    totalHtml+=compSep+compCols.map(c=>{
+      const val=c.isCalc?evalCalcMetric(c.calcMetric,ct):ct[c.key];
+      const disp=c.isCalc?(Math.round((val||0)*100)/100).toLocaleString():fv(val,c.isHC);
+      return `<td class="num" style="color:var(--text-dim)">${disp}</td>`;
+    }).join('');
   }
   html+=`<tr class="total">${totalHtml}</tr>`;
 
@@ -381,6 +423,8 @@ function renderPivotChart(data){
   const isHC=acctKey==='hc';
   const isCalc=!!calcMetric;
   const tickFmt=isHC?v=>Math.round(v):isCalc?v=>Math.round(v*100)/100:v=>'$'+(Math.abs(v)/1e6).toFixed(1);
+  // Unified value extractor: calc metric OR base account
+  const valOf=r=>isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0);
   const compData=data.compRows;
   const varMode=getVarMode();
 
@@ -423,7 +467,7 @@ function renderPivotChart(data){
 
     if(!dim2||row2Names.length===0){
       // No Row 2 selected — fall back to simple bar-like bubbles on a single axis
-      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return r[acctKey]||0});
+      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return valOf(r)});
       const maxVal=Math.max(...vals.map(Math.abs),1);
       const bubbleData=vals.map((v,i)=>({x:i,y:0,r:Math.max(5,Math.sqrt(Math.abs(v)/maxVal)*35),_label:rowNames[i],_val:v}));
       pivotChart=makePivotChart(canvas,{
@@ -449,7 +493,7 @@ function renderPivotChart(data){
         row2Names.forEach(k2=>{
           if(children[k2]){
             const r=calcDerived(children[k2],(daTotal/nRows)/Math.max(Object.keys(children).length,1));
-            const v=Math.abs(r[acctKey]||0);
+            const v=Math.abs(valOf(r));
             if(v>maxVal)maxVal=v;
           }
         });
@@ -459,7 +503,7 @@ function renderPivotChart(data){
         row2Names.forEach((k2,yi)=>{
           if(children[k2]){
             const r=calcDerived(children[k2],(daTotal/nRows)/Math.max(Object.keys(children).length,1));
-            const v=r[acctKey]||0;
+            const v=valOf(r);
             if(v!==0) bubbleData.push({x:xi,y:yi,r:Math.max(4,Math.sqrt(Math.abs(v)/maxVal)*30),_r1:name,_r2:k2,_val:v});
           }
         });
@@ -490,11 +534,11 @@ function renderPivotChart(data){
     const row2Names=[...row2Set].sort(isTimeDim(dim2)?timeSort:undefined);
 
     if(!dim2||row2Names.length===0){
-      const vals=rowNames.map(name=>{const r=calcDerived(isCalc?rows[name]:rows[name],daTotal/nRows);return isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0)});
+      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return valOf(r)});
       const datasets=[{label:(isCalc?calcMetric.name:acctKey.toUpperCase()),data:vals,borderColor:colors[0],backgroundColor:hexToRgba(colors[0],0.15),fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:colors[0]}];
       // Variance overlay: add compData series
       if(compData){
-        const compVals=rowNames.map(name=>{const c=compData[name];if(!c)return 0;const r=calcDerived(c,daTotal/nRows);return isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0)});
+        const compVals=rowNames.map(name=>{const c=compData[name];if(!c)return 0;const r=calcDerived(c,daTotal/nRows);return valOf(r)});
         if(varMode==='shaded'){
           // Shaded area between current and comparison
           datasets.push({label:'Comparison',data:compVals,borderColor:colors[1]||'#8B2020',borderDash:[4,3],backgroundColor:hexToRgba(colors[1]||'#8B2020',0.12),fill:'-1',tension:0.3,pointRadius:3,pointBackgroundColor:colors[1]||'#8B2020'});
@@ -512,7 +556,7 @@ function renderPivotChart(data){
       // Each Row2 value = separate line
       const datasets=row2Names.map((k2,i)=>{
         const c=colors[i%colors.length];
-        const data=rowNames.map(name=>{const ch=(rows[name].children||{})[k2];if(!ch)return 0;const r=calcDerived(ch,(daTotal/nRows)/Math.max(Object.keys(rows[name].children||{}).length,1));return r[acctKey]||0});
+        const data=rowNames.map(name=>{const ch=(rows[name].children||{})[k2];if(!ch)return 0;const r=calcDerived(ch,(daTotal/nRows)/Math.max(Object.keys(rows[name].children||{}).length,1));return valOf(r)});
         return {label:k2,data,borderColor:c,backgroundColor:hexToRgba(c,0.1),fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:c};
       });
       pivotChart=makePivotChart(canvas,{
@@ -530,10 +574,10 @@ function renderPivotChart(data){
     const row2Names=[...row2Set].sort(isTimeDim(dim2)?timeSort:undefined);
 
     if(!dim2||row2Names.length===0){
-      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0)});
+      const vals=rowNames.map(name=>{const r=calcDerived(rows[name],daTotal/nRows);return valOf(r)});
       const datasets=[{label:(isCalc?calcMetric.name:acctKey.toUpperCase()),data:vals,backgroundColor:hexToRgba(colors[0],0.7),borderColor:colors[0],borderWidth:1}];
       if(compData){
-        const compVals=rowNames.map(name=>{const c=compData[name];if(!c)return 0;const r=calcDerived(c,daTotal/nRows);return isCalc?evalCalcMetric(calcMetric,r):(r[acctKey]||0)});
+        const compVals=rowNames.map(name=>{const c=compData[name];if(!c)return 0;const r=calcDerived(c,daTotal/nRows);return valOf(r)});
         if(varMode==='shaded'){
           // Variance bar — shows positive/negative diff on top of primary
           const varVals=vals.map((v,i)=>v-(compVals[i]||0));
@@ -552,7 +596,7 @@ function renderPivotChart(data){
       // Each Row2 value = stacked segment
       const datasets=row2Names.map((k2,i)=>{
         const c=colors[i%colors.length];
-        const data=rowNames.map(name=>{const ch=(rows[name].children||{})[k2];if(!ch)return 0;const r=calcDerived(ch,(daTotal/nRows)/Math.max(Object.keys(rows[name].children||{}).length,1));return r[acctKey]||0});
+        const data=rowNames.map(name=>{const ch=(rows[name].children||{})[k2];if(!ch)return 0;const r=calcDerived(ch,(daTotal/nRows)/Math.max(Object.keys(rows[name].children||{}).length,1));return valOf(r)});
         return {label:k2,data,backgroundColor:hexToRgba(c,0.7),borderColor:c,borderWidth:1,stack:'s'};
       });
       pivotChart=makePivotChart(canvas,{
