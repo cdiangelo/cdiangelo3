@@ -133,11 +133,11 @@ function initVendorModule(){
       if(el.classList.contains(`${prefix}-mo`)){
         el.addEventListener('focus',()=>{
           const raw=el.dataset.raw||el.value.replace(/[$,]/g,'');
-          el.value=raw;el.type='number';el.select();
+          el.value=raw;el.select();
         });
         el.addEventListener('blur',()=>{
           const val=parseFloat(el.value)||0;
-          el.dataset.raw=val;el.type='text';
+          el.dataset.raw=val;
           el.value=vendorAmtScale===1&&val?'$'+Number(val).toLocaleString('en-US'):''+val;
         });
       }
@@ -884,11 +884,11 @@ function initVendorModule(){
       el.addEventListener('focus',()=>{
         if(contractorView!=='expense')return;
         const raw=el.dataset.raw||el.value.replace(/[$,]/g,'');
-        el.value=raw;el.type='number';el.select();
+        el.value=raw;el.select();
       });
       el.addEventListener('blur',()=>{
         const val=parseFloat(el.value)||0;
-        el.dataset.raw=val;el.type='text';
+        el.dataset.raw=val;
         el.value=contractorAmtScale===1&&val?'$'+Number(val).toLocaleString('en-US'):''+val;
       });
     });
@@ -2337,6 +2337,7 @@ function initOtherTab(){
   }
 
   renderUnifiedOther();
+  attachSpreadsheetNav('unifiedOtherTbody','uo-mo');
 
   // Add row button
   const addBtn=document.getElementById('unifiedOtherAddBtn');
@@ -2472,8 +2473,8 @@ function renderRevenueGrid(){
   tbody.querySelectorAll('.rev-field').forEach(el=>{
     const ev=el.tagName==='SELECT'?'change':'input';
     if(el.classList.contains('rev-mo')){
-      el.addEventListener('focus',()=>{const raw=el.dataset.raw||el.value.replace(/[$,]/g,'');el.value=raw;el.type='number';el.select()});
-      el.addEventListener('blur',()=>{const val=parseFloat(el.value)||0;el.dataset.raw=val;el.type='text';el.value=revAmtScale===1&&val?'$'+Number(val).toLocaleString('en-US'):''+val});
+      el.addEventListener('focus',()=>{const raw=el.dataset.raw||el.value.replace(/[$,]/g,'');el.value=raw;el.select()});
+      el.addEventListener('blur',()=>{const val=parseFloat(el.value)||0;el.dataset.raw=val;el.value=revAmtScale===1&&val?'$'+Number(val).toLocaleString('en-US'):''+val});
     }
     el.addEventListener(ev,()=>{
       const i=+el.closest('tr').dataset.ri;const f=el.dataset.f;
@@ -2494,6 +2495,7 @@ function renderRevenueGrid(){
     btn.addEventListener('click',()=>{state.revenueRows.splice(+btn.dataset.ri,1);saveState();renderRevenueGrid()});
   });
   renderRevFooter();
+  attachSpreadsheetNav('revTbody','rev-mo');
 }
 
 function renderRevFooter(){

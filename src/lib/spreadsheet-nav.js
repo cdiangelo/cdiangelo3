@@ -148,6 +148,7 @@ export function attachSpreadsheetNav(tbodyId, moClass) {
 
     // Parse pasted data — support tab-separated (columns) and newline-separated (rows)
     const pasteRows = text.split(/\r?\n/).map(line => line.split('\t'));
+    let pasteCount = 0;
 
     for (let r = 0; r < pasteRows.length; r++) {
       for (let c = 0; c < pasteRows[r].length; c++) {
@@ -159,10 +160,30 @@ export function attachSpreadsheetNav(tbodyId, moClass) {
           const val = parseFloat(pasteRows[r][c].replace(/[$,]/g, ''));
           if (!isNaN(val)) {
             target.value = val;
+            target.dataset.raw = val;
+            target.dispatchEvent(new Event('input', { bubbles: true }));
             target.dispatchEvent(new Event('change', { bubbles: true }));
+            // Visual flash on pasted cell
+            const td = target.closest('td');
+            if (td) { td.classList.remove('paste-flash'); void td.offsetWidth; td.classList.add('paste-flash'); }
+            pasteCount++;
           }
         }
       }
+    }
+    // Brief confirmation toast
+    if (pasteCount > 0) {
+      let toast = document.getElementById('paste-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'paste-toast';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:6px 18px;border-radius:8px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = `Pasted ${pasteCount} cell${pasteCount > 1 ? 's' : ''}`;
+      toast.style.opacity = '1';
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 1500);
     }
   });
 }
