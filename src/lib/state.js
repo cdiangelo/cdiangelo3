@@ -53,6 +53,8 @@ export function ensureStateFields(){
   // Sync module-level state with window.state (external code may reassign window.state directly)
   if(window.state && window.state !== state) state = window.state;
   if(!state.employees)state.employees=[];
+  // Migrate baseSalary → salary for seeded employees missing salary field
+  state.employees.forEach(e=>{if(!e.salary&&e.baseSalary)e.salary=e.baseSalary});
   if(!state.bonusMatrix){state.bonusMatrix={};SENIORITY.forEach(s=>{state.bonusMatrix[s]={};FUNCTIONS.forEach(f=>{state.bonusMatrix[s][f]=DEFAULT_BONUS[s]})})}
   if(!state.projects)state.projects=[];
   state.projects.forEach(p=>{if(!p.description)p.description='';if(!p.marketCode)p.marketCode='';if(!p.bizLineCode)p.bizLineCode=''});
@@ -248,15 +250,15 @@ export function logAudit(action,detail){
 }
 
 export function getBonusPct(emp){if(!emp||!emp.seniority)return 10;return state.bonusMatrix[emp.seniority]?.[emp.function]??DEFAULT_BONUS[emp.seniority]??10}
-export function getBonusAmt(emp){if(!emp)return 0;return Math.round((emp.salary||0)*getBonusPct(emp)/100)}
+export function getBonusAmt(emp){if(!emp)return 0;return Math.round((emp.salary||emp.baseSalary||0)*getBonusPct(emp)/100)}
 export function getBenefitsPct(emp){
   if(!emp||!emp.seniority)return 20;
   const base=state.benefitsMatrix[emp.seniority]?.[emp.function]??DEFAULT_BENEFITS[emp.seniority]??20;
   const countryMult=state.benefitsCountryMult[emp.country]??BENEFITS_COUNTRY_MULT[emp.country]??1;
   return Math.round(base*countryMult*10)/10;
 }
-export function getBenefitsAmt(emp){if(!emp)return 0;return Math.round((emp.salary||0)*getBenefitsPct(emp)/100)}
-export function getTotalComp(emp){if(!emp)return 0;return (emp.salary||0)+getBonusAmt(emp)+getBenefitsAmt(emp)}
+export function getBenefitsAmt(emp){if(!emp)return 0;return Math.round((emp.salary||emp.baseSalary||0)*getBenefitsPct(emp)/100)}
+export function getTotalComp(emp){if(!emp)return 0;return (emp.salary||emp.baseSalary||0)+getBonusAmt(emp)+getBenefitsAmt(emp)}
 
 // Expose state and functions on window for existing inline onclick handlers
 window.state = state;

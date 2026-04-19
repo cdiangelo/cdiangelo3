@@ -30,11 +30,11 @@ export function getAnnualFactor(emp,year){
   for(let m=0;m<12;m++)total+=getMonthFactor(emp,m,year);
   return total/12;
 }
-export function getProratedBase(emp,year){if(!emp)return 0;return Math.round((emp.salary||0)*getAnnualFactor(emp,year))}
+export function getProratedBase(emp,year){if(!emp)return 0;return Math.round((emp.salary||emp.baseSalary||0)*getAnnualFactor(emp,year))}
 export function getProratedBonus(emp,year){if(!emp)return 0;return Math.round(getBonusAmt(emp)*getAnnualFactor(emp,year))}
 export function getProratedBenefits(emp,year){if(!emp)return 0;return Math.round(getBenefitsAmt(emp)*getAnnualFactor(emp,year))}
 export function getProratedComp(emp,year){if(!emp)return 0;return getProratedBase(emp,year)+getProratedBonus(emp,year)+getProratedBenefits(emp,year)}
-export function getMonthlyBase(emp,monthIdx,year){if(!emp)return 0;return Math.round((emp.salary||0)/12*getMonthFactor(emp,monthIdx,year))}
+export function getMonthlyBase(emp,monthIdx,year){if(!emp)return 0;return Math.round((emp.salary||emp.baseSalary||0)/12*getMonthFactor(emp,monthIdx,year))}
 export function getMonthlyBonus(emp,monthIdx,year){if(!emp)return 0;return Math.round(getBonusAmt(emp)/12*getMonthFactor(emp,monthIdx,year))}
 export function getMonthlyBenefits(emp,monthIdx,year){if(!emp)return 0;return Math.round(getBenefitsAmt(emp)/12*getMonthFactor(emp,monthIdx,year))}
 export function getMonthlyComp(emp,monthIdx,year){if(!emp)return 0;return getMonthlyBase(emp,monthIdx,year)+getMonthlyBonus(emp,monthIdx,year)+getMonthlyBenefits(emp,monthIdx,year)}

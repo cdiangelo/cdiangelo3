@@ -232,9 +232,9 @@ export function projectForecast(emps,groupKey){
   }
   const forwardHC=forwardEmps.length;
   const staticHC=staticForward.length;
-  const forwardBase=forwardEmps.reduce((a,e)=>a+e.salary,0);
+  const forwardBase=forwardEmps.reduce((a,e)=>a+(e.salary||e.baseSalary||0),0);
   const forwardBonus=forwardEmps.reduce((a,e)=>a+getBonusAmt(e),0);
-  const staticBase=staticForward.reduce((a,e)=>a+e.salary,0);
+  const staticBase=staticForward.reduce((a,e)=>a+(e.salary||e.baseSalary||0),0);
   const staticBonusRate=staticHC&&staticBase?staticForward.reduce((a,e)=>a+getBonusAmt(e),0)/staticBase:0;
   const staticBenRate=staticHC&&staticBase?staticForward.reduce((a,e)=>a+getBenefitsAmt(e),0)/staticBase:0;
   const staticCapRate=staticHC?staticForward.reduce((a,e)=>a+getProratedCapEx(e),0)/Math.max(staticForward.reduce((a,e)=>a+getProratedComp(e),0),1):0;
