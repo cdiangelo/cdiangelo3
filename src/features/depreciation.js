@@ -32,6 +32,11 @@ function buildDepRow(row,i){
   const isCatRow=row._isCategoryHeader;
   const rowClass=isCatRow?'dep-cat-row':'dep-entry-row'+(row._categoryId&&!depExpandedCategories.has(row._categoryId)?' hidden':'');
   let h='<tr class="'+rowClass+'" data-di="'+i+'">';
+  if(isCatRow){
+    h+='<td class="row-del-cell"><button class="btn btn-sm" style="color:var(--danger);font-size:.72rem" onclick="deleteDepCategory(\''+row._categoryId+'\')" title="Delete category">&times;</button></td>';
+  } else {
+    h+='<td class="row-del-cell"><button class="dep-del" data-di="'+i+'" title="Delete row">&times;</button></td>';
+  }
   h+='<td style="width:30px;cursor:grab">&#9776;</td>';
   h+='<td style="width:30px"><span class="color-dot" style="background:'+(row._colorTag||'transparent')+';width:12px;height:12px;display:inline-block;border-radius:50%;cursor:pointer;border:1px solid var(--border)" data-di="'+i+'"></span></td>';
   if(isCatRow){
@@ -43,14 +48,13 @@ function buildDepRow(row,i){
     });
     const catFy=(state.depreciationRows||[]).filter(r=>r._categoryId===row._categoryId&&!r._isCategoryHeader).reduce((s,r)=>s+mos.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
     h+='<td class="num" style="font-weight:700">'+fmtScaled(catFy,depScale)+'</td>';
-    h+='<td><button class="btn btn-sm" style="color:var(--danger);padding:2px 6px;font-size:.72rem" onclick="deleteDepCategory(\''+row._categoryId+'\')">&times;</button></td>';
   } else {
-    h+='<td><input class="dep-field" data-di="'+i+'" data-f="name" value="'+escHtml(row.name||'')+'" style="width:140px;'+(row._categoryId?'padding-left:20px;':'')+'" placeholder="Entry name"></td>';
-    h+='<td><input class="dep-field" data-di="'+i+'" data-f="assetSource" value="'+escHtml(row.assetSource||'')+'" style="width:120px" placeholder="Asset source"></td>';
-    h+='<td><select class="dep-field" data-di="'+i+'" data-f="depMethod" style="width:100px"><option value="SL"'+(row.depMethod==='SL'?' selected':'')+'>Straight-Line</option><option value="SW36"'+(row.depMethod==='SW36'?' selected':'')+'>SW Dev 36mo</option><option value="SW48"'+(row.depMethod==='SW48'?' selected':'')+'>SW Dev 48mo</option><option value="SW60"'+(row.depMethod==='SW60'?' selected':'')+'>SW Dev 60mo</option></select></td>';
-    h+='<td style="white-space:nowrap"><select class="dep-field" data-di="'+i+'" data-f="_startMonth" style="width:50px">'+buildMonthOptions(row._startMonth)+'</select> – <select class="dep-field" data-di="'+i+'" data-f="_endMonth" style="width:50px">'+buildMonthOptions(row._endMonth)+'</select></td>';
-    h+='<td><input class="dep-field" data-di="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" style="width:90px" placeholder="Notes"></td>';
-    h+='<td><input class="dep-amount" data-di="'+i+'" value="'+fmtScaled(parseFloat(row._amount)||0,depScale)+'" style="width:100px;text-align:right" placeholder="Total amount"></td>';
+    h+='<td><input class="ec dep-field" data-di="'+i+'" data-f="name" value="'+escHtml(row.name||'')+'" style="'+(row._categoryId?'padding-left:20px;':'')+'" placeholder="Entry name"></td>';
+    h+='<td><input class="ec dep-field" data-di="'+i+'" data-f="assetSource" value="'+escHtml(row.assetSource||'')+'" placeholder="Asset source"></td>';
+    h+='<td><select class="ec dep-field" data-di="'+i+'" data-f="depMethod"><option value="SL"'+(row.depMethod==='SL'?' selected':'')+'>Straight-Line</option><option value="SW36"'+(row.depMethod==='SW36'?' selected':'')+'>SW Dev 36mo</option><option value="SW48"'+(row.depMethod==='SW48'?' selected':'')+'>SW Dev 48mo</option><option value="SW60"'+(row.depMethod==='SW60'?' selected':'')+'>SW Dev 60mo</option></select></td>';
+    h+='<td style="white-space:nowrap"><select class="ec dep-field" data-di="'+i+'" data-f="_startMonth">'+buildMonthOptions(row._startMonth)+'</select> – <select class="ec dep-field" data-di="'+i+'" data-f="_endMonth">'+buildMonthOptions(row._endMonth)+'</select></td>';
+    h+='<td><input class="ec dep-field" data-di="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" placeholder="Notes"></td>';
+    h+='<td><input class="ec dep-amount" data-di="'+i+'" value="'+fmtScaled(parseFloat(row._amount)||0,depScale)+'" style="text-align:right" placeholder="Total amount"></td>';
     // Impairment inline
     const imp=row._impairments||[];
     const impSum=imp.reduce((s,im)=>s+(parseFloat(im.amount)||0),0);
@@ -60,10 +64,9 @@ function buildDepRow(row,i){
     h+=buildDimCells('dep-field',i,row);
     mos.forEach(m=>{
       const v=parseFloat(row[m])||0;
-      h+='<td class="num"><input class="dep-mo" data-di="'+i+'" data-m="'+m+'" value="'+fmtScaled(v,depScale)+'" style="width:80px;text-align:right"></td>';
+      h+='<td class="num"><input class="ec dep-mo" data-di="'+i+'" data-m="'+m+'" value="'+fmtScaled(v,depScale)+'" style="text-align:right"></td>';
     });
     h+='<td class="num" style="font-weight:700">'+fmtScaled(fy,depScale)+'</td>';
-    h+='<td><button class="dep-del" data-di="'+i+'" style="color:var(--danger);cursor:pointer;border:none;background:none;font-size:1rem">&times;</button></td>';
   }
   h+='</tr>';
   return h;
@@ -71,11 +74,11 @@ function buildDepRow(row,i){
 
 function buildDimCells(cls,i,row){
   let h='';
-  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="businessUnit" style="width:90px">'+buildBuOptions(row.businessUnit)+'</select></td>';
-  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="bizLine" style="width:100px">'+buildBizLineOptions(row.bizLine)+'</select></td>';
-  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="market" style="width:80px">'+buildMarketOptions(row.market)+'</select></td>';
-  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="project" style="width:80px">'+buildProjectOptions(row.project)+'</select></td>';
-  h+='<td class="cf-col"><select class="'+cls+'" data-di="'+i+'" data-f="acctDesc" style="width:120px">'+buildAcctOptions(row.acctDesc)+'</select></td>';
+  h+='<td class="cf-col"><select class="ec '+cls+'" data-di="'+i+'" data-f="businessUnit">'+buildBuOptions(row.businessUnit)+'</select></td>';
+  h+='<td class="cf-col"><select class="ec '+cls+'" data-di="'+i+'" data-f="bizLine">'+buildBizLineOptions(row.bizLine)+'</select></td>';
+  h+='<td class="cf-col"><select class="ec '+cls+'" data-di="'+i+'" data-f="market">'+buildMarketOptions(row.market)+'</select></td>';
+  h+='<td class="cf-col"><select class="ec '+cls+'" data-di="'+i+'" data-f="project">'+buildProjectOptions(row.project)+'</select></td>';
+  h+='<td class="cf-col"><select class="ec '+cls+'" data-di="'+i+'" data-f="acctDesc">'+buildAcctOptions(row.acctDesc)+'</select></td>';
   const ac=(state.accounts||[]).find(a=>a.description===row.acctDesc);
   h+='<td class="cf-col" style="font-size:.72rem;color:var(--text-dim)">'+(ac?ac.code:'')+'</td>';
   return h;

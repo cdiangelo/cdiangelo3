@@ -72,23 +72,23 @@ function initVendorModule(){
     const tagColor=row._colorTag||'';
     const tagDefault=document.documentElement.classList.contains('dark')?'#2a2a2e':'#eee';
     const tagDotStyle=`width:16px;height:16px;border-radius:3px;cursor:pointer;display:inline-block;border:1px solid var(--border);background:${tagColor||tagDefault}`;
-    let h=`<tr data-vi="${i}" draggable="false" style="${tagColor?'border-left:3px solid '+tagColor:''}"><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem;position:relative"><span class="row-color-tag" data-vi="${i}" data-prefix="${prefix}" style="${tagDotStyle}" title="Color tag"></span></td>`;
+    let h=`<tr data-vi="${i}" draggable="false" style="${tagColor?'border-left:3px solid '+tagColor:''}"><td class="row-del-cell"><button class="btn btn-sm btn-danger ${prefix}-del" data-vi="${i}" title="Delete row">&times;</button></td><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem;position:relative"><span class="row-color-tag" data-vi="${i}" data-prefix="${prefix}" style="${tagDotStyle}" title="Color tag"></span></td>`;
     // Custom first columns per type
     if(fields==='vendor'){
-      h+=`<td style="${blk(row.parentCo)}"><input class="${prefix}-field" data-f="parentCo" value="${esc(row.parentCo)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
-      h+=`<td style="${blk(row.vendorName)}"><input class="${prefix}-field" data-f="vendorName" value="${esc(row.vendorName)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
-      h+=`<td style="${blk(row.vendorType)}"><select class="${prefix}-field" data-f="vendorType" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${vtOpts}</select></td>`;
-      h+=`<td><input class="${prefix}-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
+      h+=`<td style="${blk(row.parentCo)}"><input class="ec ${prefix}-field" data-f="parentCo" value="${esc(row.parentCo)}"></td>`;
+      h+=`<td style="${blk(row.vendorName)}"><input class="ec ${prefix}-field" data-f="vendorName" value="${esc(row.vendorName)}"></td>`;
+      h+=`<td style="${blk(row.vendorType)}"><select class="ec ${prefix}-field" data-f="vendorType"><option value="">—</option>${vtOpts}</select></td>`;
+      h+=`<td><input class="ec ${prefix}-field" data-f="notes" value="${esc(row.notes||'')}"></td>`;
     } else {
-      h+=`<td style="${blk(row.expenseType)}"><select class="${prefix}-field" data-f="expenseType" style="width:100%;border:none;background:transparent;font-size:.78rem;padding:1px 2px"><option value="">—</option>${etOpts}</select></td>`;
-      h+=`<td style="${blk(row.description)}"><input class="${prefix}-field" data-f="description" value="${esc(row.description)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
-      h+=`<td><input class="${prefix}-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
+      h+=`<td style="${blk(row.expenseType)}"><select class="ec ${prefix}-field" data-f="expenseType"><option value="">—</option>${etOpts}</select></td>`;
+      h+=`<td style="${blk(row.description)}"><input class="ec ${prefix}-field" data-f="description" value="${esc(row.description)}"></td>`;
+      h+=`<td><input class="ec ${prefix}-field" data-f="notes" value="${esc(row.notes||'')}"></td>`;
     }
-    h+=`<td class="cf-col" style="${blk(row.businessUnit)}"><select class="${prefix}-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
-    h+=`<td class="cf-col" style="${blk(row.bizLine)}"><select class="${prefix}-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
-    h+=`<td class="cf-col" style="${blk(row.market)}"><select class="${prefix}-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
-    h+=`<td class="cf-col" style="${blk(row.project)}"><select class="${prefix}-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
-    h+=`<td class="cf-col" style="${blk(row.acctDesc)}"><select class="${prefix}-field ${prefix}-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.businessUnit)}"><select class="ec ${prefix}-field" data-f="businessUnit"><option value="">—</option>${buOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.bizLine)}"><select class="ec ${prefix}-field" data-f="bizLine"><option value="">—</option>${blOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.market)}"><select class="ec ${prefix}-field" data-f="market"><option value="">—</option>${mktOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.project)}"><select class="ec ${prefix}-field" data-f="project"><option value="">—</option>${projOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.acctDesc)}"><select class="ec ${prefix}-field ${prefix}-acctDesc" data-f="acctDesc"><option value="">—</option>${acctOpts}</select></td>`;
     h+=`<td class="${prefix}-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
     // Rate Increase column
     const MO_LABELS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -105,9 +105,9 @@ function initVendorModule(){
       const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
       const displayed=scaleVal(parseFloat(raw)||0);
       const formatted=vendorAmtScale===1&&displayed?'$'+Number(displayed).toLocaleString('en-US'):''+displayed;
-      h+=`<td><input class="${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:54px;border:none;background:transparent;font-size:.72rem;padding:2px 4px;text-align:right" step="any"></td>`;
+      h+=`<td><input class="ec ${prefix}-field ${prefix}-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}"></td>`;
     });
-    h+=`<td><button class="btn btn-sm btn-danger ${prefix}-del" data-vi="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
+    h+=`</tr>`;
     return h;
   }
 
@@ -752,11 +752,9 @@ function initVendorModule(){
     const computed=Math.round(hourly*hours);
     const capPct=parseFloat(row.capPct)||0;
 
-    let h=`<tr data-ci="${i}" draggable="false" style="${tagColor?'border-left:3px solid '+tagColor:''}"><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem;position:relative"><span class="row-color-tag" data-vi="${i}" data-prefix="cr" style="${tagDotStyle}" title="Color tag"></span></td>`;
-    // Name
-    h+=`<td style="${blk(row.name)}"><input class="cr-field" data-f="name" value="${esc(row.name)}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
-    // Vendor Name
-    h+=`<td style="${blk(row.vendorName)}"><input class="cr-field" data-f="vendorName" value="${esc(row.vendorName||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px"></td>`;
+    let h=`<tr data-ci="${i}" draggable="false" style="${tagColor?'border-left:3px solid '+tagColor:''}"><td class="row-del-cell"><button class="btn btn-sm btn-danger cr-del" data-ci="${i}" title="Delete row">&times;</button></td><td class="drag-handle" title="Drag to reorder">&#9776;</td><td style="color:var(--text-dim);font-size:.75rem;position:relative"><span class="row-color-tag" data-vi="${i}" data-prefix="cr" style="${tagDotStyle}" title="Color tag"></span></td>`;
+    h+=`<td style="${blk(row.name)}"><input class="ec cr-field" data-f="name" value="${esc(row.name)}"></td>`;
+    h+=`<td style="${blk(row.vendorName)}"><input class="ec cr-field" data-f="vendorName" value="${esc(row.vendorName||'')}"></td>`;
     // Rate / Hours — expandable cell
     h+=`<td style="vertical-align:top;min-width:100px">`;
     h+=`<div style="display:flex;align-items:center;gap:4px"><button class="cr-rate-toggle btn btn-sm" data-ci="${i}" style="padding:0 4px;font-size:.65rem;line-height:1.3;border:1px solid var(--border);background:transparent;color:var(--text-dim)" title="Toggle rate calculator">${expanded?'▼':'▶'}</button>`;
@@ -779,15 +777,13 @@ function initVendorModule(){
     h+=`<div style="display:flex;align-items:center;gap:3px"><label style="font-size:.65rem;color:var(--text-dim);width:28px">To</label><select class="cr-field cr-end-mo" data-f="_endMonth" style="font-size:.74rem;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">${moSelOpts}</select></div>`;
     h+=`</div></td>`;
     // CapEx %
-    h+=`<td><input class="cr-field" data-f="capPct" type="number" value="${capPct}" min="0" max="100" step="1" style="width:60px;border:none;background:transparent;font-size:.82rem;padding:2px 4px;text-align:right">%</td>`;
-    // Notes
-    h+=`<td><input class="cr-field" data-f="notes" value="${esc(row.notes||'')}" style="width:100%;border:none;background:transparent;font-size:.8rem;padding:2px 4px" placeholder=""></td>`;
-    // Shared dimension columns
-    h+=`<td class="cf-col" style="${blk(row.businessUnit)}"><select class="cr-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
-    h+=`<td class="cf-col" style="${blk(row.bizLine)}"><select class="cr-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
-    h+=`<td class="cf-col" style="${blk(row.market)}"><select class="cr-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
-    h+=`<td class="cf-col" style="${blk(row.project)}"><select class="cr-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
-    h+=`<td class="cf-col" style="${blk(row.acctDesc)}"><select class="cr-field cr-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
+    h+=`<td><input class="ec cr-field" data-f="capPct" type="number" value="${capPct}" min="0" max="100" step="1">%</td>`;
+    h+=`<td><input class="ec cr-field" data-f="notes" value="${esc(row.notes||'')}"></td>`;
+    h+=`<td class="cf-col" style="${blk(row.businessUnit)}"><select class="ec cr-field" data-f="businessUnit"><option value="">—</option>${buOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.bizLine)}"><select class="ec cr-field" data-f="bizLine"><option value="">—</option>${blOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.market)}"><select class="ec cr-field" data-f="market"><option value="">—</option>${mktOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.project)}"><select class="ec cr-field" data-f="project"><option value="">—</option>${projOpts}</select></td>`;
+    h+=`<td class="cf-col" style="${blk(row.acctDesc)}"><select class="ec cr-field cr-acctDesc" data-f="acctDesc"><option value="">—</option>${acctOpts}</select></td>`;
     h+=`<td class="cr-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${acctDescToCode(row.acctDesc)}</td>`;
     // Rate Increase column
     const riMo=typeof row._rateIncMonth==='number'?row._rateIncMonth:-1;
@@ -818,9 +814,9 @@ function initVendorModule(){
       else displayed=contractorAmtScale===1?raw:Math.round((raw/contractorAmtScale)*100)/100;
       const isReadonly=contractorView!=='expense';
       const fmtDisp=contractorAmtScale===1&&displayed?'$'+Number(displayed).toLocaleString('en-US'):''+displayed;
-      h+=`<td><input class="cr-field cr-mo" data-f="${m}" type="text" value="${isReadonly?fmtDisp:fmtDisp}" data-raw="${displayed}" style="width:100%;min-width:54px;border:none;background:transparent;font-size:.72rem;padding:2px 4px;text-align:right${isReadonly?';color:var(--text-dim)':''}" step="any" ${isReadonly?'readonly':''}></td>`;
+      h+=`<td><input class="ec cr-field cr-mo" data-f="${m}" type="text" value="${fmtDisp}" data-raw="${displayed}" ${isReadonly?'readonly style="color:var(--text-dim)"':''}></td>`;
     });
-    h+=`<td><button class="btn btn-sm btn-danger cr-del" data-ci="${i}" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
+    h+=`</tr>`;
     return h;
   }
 
@@ -2222,26 +2218,23 @@ function initOtherTab(){
       const {cat,idx,row}=entry;
       const fy=OTHER_MO.reduce((s,m)=>s+(parseFloat(row[m])||0),0);
       h+=`<tr data-ri="${ri}" data-cat="${cat}" data-idx="${idx}">`;
-      h+=`<td><select class="uo-type" style="width:100%;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);font-size:.74rem;padding:2px 4px">
-        <option value="cb"${cat==='cb'?' selected':''}>C&B</option>
-        <option value="oao"${cat==='oao'?' selected':''}>OAO</option>
-      </select></td>`;
-      h+=`<td><input class="uo-field" data-f="description" value="${esc(row.description||'')}" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:2px 4px"></td>`;
-      // Chartfield columns
-      h+=`<td class="cf-col"><select class="uo-field" data-f="businessUnit" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${buOpts}</select></td>`;
-      h+=`<td class="cf-col"><select class="uo-field" data-f="bizLine" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${blOpts}</select></td>`;
-      h+=`<td class="cf-col"><select class="uo-field" data-f="market" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${mktOpts}</select></td>`;
-      h+=`<td class="cf-col"><select class="uo-field" data-f="project" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${projOpts}</select></td>`;
-      h+=`<td class="cf-col"><select class="uo-field uo-acctDesc" data-f="acctDesc" style="width:100%;border:none;background:transparent;font-size:.74rem;padding:1px 2px"><option value="">—</option>${acctOpts}</select></td>`;
+      h+=`<td class="row-del-cell"><button class="btn btn-sm btn-danger uo-del" title="Delete row">&times;</button></td>`;
+      h+=`<td><select class="ec uo-type"><option value="cb"${cat==='cb'?' selected':''}>C&B</option><option value="oao"${cat==='oao'?' selected':''}>OAO</option></select></td>`;
+      h+=`<td><input class="ec uo-field" data-f="description" value="${esc(row.description||'')}"></td>`;
+      h+=`<td class="cf-col"><select class="ec uo-field" data-f="businessUnit"><option value="">—</option>${buOpts}</select></td>`;
+      h+=`<td class="cf-col"><select class="ec uo-field" data-f="bizLine"><option value="">—</option>${blOpts}</select></td>`;
+      h+=`<td class="cf-col"><select class="ec uo-field" data-f="market"><option value="">—</option>${mktOpts}</select></td>`;
+      h+=`<td class="cf-col"><select class="ec uo-field" data-f="project"><option value="">—</option>${projOpts}</select></td>`;
+      h+=`<td class="cf-col"><select class="ec uo-field uo-acctDesc" data-f="acctDesc"><option value="">—</option>${acctOpts}</select></td>`;
       h+=`<td class="uo-acctCode cf-col" style="font-size:.74rem;color:var(--text-dim);text-align:center">${otherAcctCode(row.acctDesc)}</td>`;
       h+=`<td class="uo-fy" style="font-weight:700;text-align:right;font-size:.72rem;white-space:nowrap">${otherFmt(fy)}</td>`;
       OTHER_MO.forEach(m=>{
         const raw=row[m]!==undefined&&row[m]!==''?row[m]:0;
         const displayed=parseFloat(raw)||0;
         const formatted=displayed?otherFmt(displayed):'0';
-        h+=`<td><input class="uo-field uo-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}" style="width:100%;min-width:54px;border:none;background:transparent;font-size:.72rem;padding:2px 4px;text-align:right"></td>`;
+        h+=`<td><input class="ec uo-field uo-mo" data-f="${m}" type="text" value="${formatted}" data-raw="${displayed}"></td>`;
       });
-      h+=`<td><button class="btn btn-sm btn-danger uo-del" style="padding:2px 6px;font-size:.7rem">X</button></td></tr>`;
+      h+=`</tr>`;
     });
     tbody.innerHTML=h;
 
@@ -2264,13 +2257,13 @@ function initOtherTab(){
     const oaoFy=oaoTotals.reduce((s,v)=>s+v,0);
     function footerRow(label,cat,fy,totals){
       let ft=`<tr style="font-weight:700;background:var(--panel)${cat==='cb'?';border-top:2px solid var(--border)':''}">`;
+      ft+=`<td></td>`;
       ft+=`<td style="font-size:.72rem;color:var(--accent)">${label}</td>`;
       ft+=`<td style="font-size:.78rem">Subtotal</td>`;
-      // 6 chartfield empty cells
       for(let i=0;i<6;i++)ft+=`<td class="cf-col"></td>`;
       ft+=`<td style="text-align:right;font-size:.72rem">${otherFmt(fy)}</td>`;
       totals.forEach(t=>ft+=`<td style="text-align:right;font-size:.72rem">${otherFmt(t)}</td>`);
-      ft+='<td></td></tr>';
+      ft+='</tr>';
       return ft;
     }
     let ft='';

@@ -28,19 +28,20 @@ function getAssetFullLifeTotal(row){
 
 function buildAssetRow(row,i){
   let h='<tr data-ai="'+i+'">';
+  h+='<td class="row-del-cell"><button class="asset-del" data-ai="'+i+'" title="Delete row">&times;</button></td>';
   h+='<td style="width:30px;cursor:grab">&#9776;</td>';
   h+='<td style="width:30px"><span class="color-dot" style="background:'+(row._colorTag||'transparent')+';width:12px;height:12px;display:inline-block;border-radius:50%;cursor:pointer;border:1px solid var(--border)" data-ai="'+i+'"></span></td>';
-  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="name" value="'+escHtml(row.name||'')+'" style="width:140px" placeholder="Asset name"></td>';
-  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="vendorSource" value="'+escHtml(row.vendorSource||'')+'" style="width:120px" placeholder="Vendor"></td>';
-  h+='<td><select class="asset-field" data-ai="'+i+'" data-f="assetType" style="width:100px"><option value="">—</option><option'+(row.assetType==='Hardware'?' selected':'')+'>Hardware</option><option'+(row.assetType==='Software'?' selected':'')+'>Software</option><option'+(row.assetType==='Leasehold'?' selected':'')+'>Leasehold</option><option'+(row.assetType==='Furniture'?' selected':'')+'>Furniture</option><option'+(row.assetType==='Vehicles'?' selected':'')+'>Vehicles</option><option'+(row.assetType==='Other'?' selected':'')+'>Other</option></select></td>';
-  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="acquireDate" type="date" value="'+(row.acquireDate||'')+'" style="width:90px"></td>';
-  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="usefulLifeYrs" type="number" value="'+(row.usefulLifeYrs||5)+'" min="1" max="50" style="width:60px;text-align:center"></td>';
-  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="totalCost" type="number" value="'+(row.totalCost||0)+'" style="width:90px;text-align:right"></td>';
+  h+='<td><input class="ec asset-field" data-ai="'+i+'" data-f="name" value="'+escHtml(row.name||'')+'" placeholder="Asset name"></td>';
+  h+='<td><input class="ec asset-field" data-ai="'+i+'" data-f="vendorSource" value="'+escHtml(row.vendorSource||'')+'" placeholder="Vendor"></td>';
+  h+='<td><select class="ec asset-field" data-ai="'+i+'" data-f="assetType"><option value="">—</option><option'+(row.assetType==='Hardware'?' selected':'')+'>Hardware</option><option'+(row.assetType==='Software'?' selected':'')+'>Software</option><option'+(row.assetType==='Leasehold'?' selected':'')+'>Leasehold</option><option'+(row.assetType==='Furniture'?' selected':'')+'>Furniture</option><option'+(row.assetType==='Vehicles'?' selected':'')+'>Vehicles</option><option'+(row.assetType==='Other'?' selected':'')+'>Other</option></select></td>';
+  h+='<td><input class="ec asset-field" data-ai="'+i+'" data-f="acquireDate" type="date" value="'+(row.acquireDate||'')+'"></td>';
+  h+='<td><input class="ec asset-field" data-ai="'+i+'" data-f="usefulLifeYrs" type="number" value="'+(row.usefulLifeYrs||5)+'" min="1" max="50"></td>';
+  h+='<td><input class="ec asset-field" data-ai="'+i+'" data-f="totalCost" type="number" value="'+(row.totalCost||0)+'"></td>';
   const accDepr=parseFloat(row.accDepr)||0;
   const nbv=(parseFloat(row.totalCost)||0)-accDepr;
-  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="accDepr" type="number" value="'+accDepr+'" style="width:100px;text-align:right" placeholder="0"></td>';
+  h+='<td><input class="ec asset-field" data-ai="'+i+'" data-f="accDepr" type="number" value="'+accDepr+'" placeholder="0"></td>';
   h+='<td class="num" style="text-align:right;font-weight:600;color:'+(nbv<0?'var(--danger)':'inherit')+'">'+fmtScaled(nbv,assetScale)+'</td>';
-  h+='<td><input class="asset-field" data-ai="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" style="width:90px" placeholder="Notes"></td>';
+  h+='<td><input class="ec asset-field" data-ai="'+i+'" data-f="notes" value="'+escHtml(row.notes||'')+'" placeholder="Notes"></td>';
   h+=buildDimCells('asset-field',i,row);
   // Year columns
   ASSET_YEARS.forEach(yr=>{
@@ -49,14 +50,13 @@ function buildAssetRow(row,i){
       ASSET_MO_KEYS.forEach(m=>{
         const md=row.monthlyDetail&&row.monthlyDetail[yr]?row.monthlyDetail[yr]:{};
         const v=parseFloat(md[m])||0;
-        h+='<td class="asset-mo-sub"><input class="asset-mo" data-ai="'+i+'" data-yr="'+yr+'" data-m="'+m+'" value="'+fmtScaled(v,assetScale)+'" style="width:70px;text-align:right;font-size:.72rem"></td>';
+        h+='<td class="asset-mo-sub"><input class="ec asset-mo" data-ai="'+i+'" data-yr="'+yr+'" data-m="'+m+'" value="'+fmtScaled(v,assetScale)+'" style="text-align:right"></td>';
       });
     } else {
       h+='<td class="num" style="text-align:center">'+fmtScaled(yt,assetScale)+'</td>';
     }
   });
   h+='<td class="num" style="font-weight:700">'+fmtScaled(getAssetFullLifeTotal(row),assetScale)+'</td>';
-  h+='<td><button class="asset-del" data-ai="'+i+'" style="color:var(--danger);cursor:pointer;border:none;background:none;font-size:1rem">&times;</button></td>';
   h+='</tr>';
   return h;
 }
@@ -67,7 +67,7 @@ function renderAssetGrid(){
   const thead=document.getElementById('assetThead');
   if(!tbody)return;
   // Rebuild thead for expanded years
-  let th='<tr><th style="width:30px"></th><th style="width:30px">&#9679;</th>';
+  let th='<tr><th class="del-col"></th><th style="width:30px"></th><th style="width:30px">&#9679;</th>';
   th+='<th style="min-width:150px">Asset Name</th><th style="min-width:130px">Vendor/Source</th>';
   th+='<th style="min-width:110px">Asset Type</th><th style="min-width:100px">Acquisition Date</th>';
   th+='<th style="min-width:80px">Life (Yrs)</th><th style="min-width:100px">Total Cost</th>';
@@ -83,11 +83,11 @@ function renderAssetGrid(){
       th+='<th class="v-hdr asset-yr-hdr" data-yr="'+yr+'" style="cursor:pointer;min-width:90px" title="Click to expand months">'+yr+' &#9654;</th>';
     }
   });
-  th+='<th style="font-weight:700;min-width:100px">Full Life Total</th><th style="width:40px"></th></tr>';
+  th+='<th style="font-weight:700;min-width:100px">Full Life Total</th></tr>';
   // Add month sub-header row if any year is expanded
   if(hasExpanded){
     th+='<tr>';
-    th+='<th colspan="17" style="border:none"></th>';
+    th+='<th colspan="18" style="border:none"></th>';
     ASSET_YEARS.forEach(yr=>{
       if(assetExpandedYears.has(yr)){
         const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -96,7 +96,7 @@ function renderAssetGrid(){
         th+='<th style="border:none"></th>';
       }
     });
-    th+='<th style="border:none" colspan="2"></th></tr>';
+    th+='<th style="border:none"></th></tr>';
   }
   thead.innerHTML=th;
   // Bind year header clicks
@@ -117,7 +117,7 @@ function renderAssetGrid(){
   const totalCostAll=(state.assetRows||[]).reduce((s,r)=>s+(parseFloat(r.totalCost)||0),0);
   const totalNbv=totalCostAll-totalAccDepr;
   // Footer: 2 (drag/color) + 1 TOTAL + 4 (vendor/type/date/life) + 3 (totalCost/accDepr/nbv) + 1 notes + 6 cf-col = 17 cells before year cols
-  let ft='<tr style="font-weight:700;background:var(--panel-inset)"><td colspan="2"></td><td>TOTAL</td><td colspan="4"></td><td class="num">'+fmtScaled(totalCostAll,assetScale)+'</td><td class="num">'+fmtScaled(totalAccDepr,assetScale)+'</td><td class="num" style="color:'+(totalNbv<0?'var(--danger)':'inherit')+'">'+fmtScaled(totalNbv,assetScale)+'</td><td></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td>';
+  let ft='<tr style="font-weight:700;background:var(--panel-inset)"><td colspan="3"></td><td>TOTAL</td><td colspan="4"></td><td class="num">'+fmtScaled(totalCostAll,assetScale)+'</td><td class="num">'+fmtScaled(totalAccDepr,assetScale)+'</td><td class="num" style="color:'+(totalNbv<0?'var(--danger)':'inherit')+'">'+fmtScaled(totalNbv,assetScale)+'</td><td></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td><td class="cf-col"></td>';
   ASSET_YEARS.forEach(yr=>{
     if(assetExpandedYears.has(yr)){
       ASSET_MO_KEYS.forEach(m=>{
