@@ -798,7 +798,6 @@ function renderFteSparkline(){
   const canvas=document.getElementById('empFteSparkline');
   const totalEl=document.getElementById('fteTrendTotal');
   if(!canvas||typeof Chart==='undefined')return;
-  // Constrain canvas parent height
   canvas.parentElement.style.height='40px';
   canvas.style.height='40px';
   const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -806,13 +805,17 @@ function renderFteSparkline(){
   const hcByMonth=MO.map((_,mi)=>emps.filter(e=>(e.startMonth||0)<=mi).length);
   if(totalEl)totalEl.textContent=hcByMonth[hcByMonth.length-1]+' FTEs';
   const colors=window.getChartColors?window.getChartColors():['#4a8cc8'];
+  // Y-axis range: pad min/max so small changes are visible
+  const minHC=Math.min(...hcByMonth);
+  const maxHC=Math.max(...hcByMonth);
+  const pad=Math.max(3,Math.ceil((maxHC-minHC)*0.3)||3);
   if(fteSparkChart)fteSparkChart.destroy();
   fteSparkChart=new Chart(canvas,{
-    type:'line',
-    data:{labels:MO,datasets:[{data:hcByMonth,borderColor:colors[0],backgroundColor:'transparent',borderWidth:2,pointRadius:2,pointBackgroundColor:colors[0],tension:0.3,datalabels:{display:false}}]},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:6,bottom:6,left:4,right:4}},
+    type:'bar',
+    data:{labels:MO,datasets:[{data:hcByMonth,backgroundColor:colors[0]+'88',borderColor:colors[0],borderWidth:1,borderRadius:2,datalabels:{display:false}}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:2,bottom:2,left:2,right:2}},
       plugins:{legend:{display:false},datalabels:{display:false},tooltip:{enabled:true,callbacks:{label:ctx=>ctx.parsed.y+' FTEs'}},yoyArrows:false,barTotal:false},
-      scales:{x:{display:false},y:{display:false,grace:'10%'}}
+      scales:{x:{display:false},y:{display:false,min:Math.max(0,minHC-pad),max:maxHC+pad}}
     }
   });
 }
