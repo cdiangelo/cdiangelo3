@@ -35,6 +35,9 @@
 .emp-action-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-light);border-radius:4px;background:var(--bg-elevated);color:var(--text-dim);cursor:pointer;font-size:.72rem;padding:0;line-height:1;transition:all .12s}
 .emp-action-icon:hover{color:var(--accent);border-color:var(--accent)}
 .emp-action-icon.del:hover{color:var(--danger);border-color:var(--danger)}
+/* Split lines: fixed 16px rows so values align horizontally across Market / BizLine / Project cells */
+#empTable .emp-split-line{padding:0 2px}
+#empTable td:has(.emp-split-line){padding-top:3px;padding-bottom:3px;vertical-align:top}
 
 /* Split rows — subtle, indented, no hover highlight on empty cells */
 #empTable tr.emp-split-row{background:var(--panel-inset)}

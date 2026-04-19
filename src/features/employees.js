@@ -569,17 +569,19 @@ function renderEmployees(){
     const typeStyle=(e.empType||'existing')==='hire'?'color:#059669;font-weight:600':'color:var(--text-dim)';
     const allocs=(e.allocations&&e.allocations.length)?e.allocations:[];
 
-    // Build stacked Market / BizLine / Project cells — all splits in same row
-    function stackedCell(getter){
-      return allocs.map((a,i)=>{
+    // Build aligned split lines — each split is one line at matching height across all three cells
+    // Drop long labels (biz line name) when there's >1 split so codes line up cleanly
+    const multi=allocs.length>1;
+    function splitLines(getter,opts){
+      const rows=allocs.map((a,i)=>{
         const v=getter(a);
-        if(allocs.length===1)return `<div style="font-size:.78rem">${v}</div>`;
-        return `<div style="font-size:.72rem;${i>0?'border-top:1px dashed var(--border-light);padding-top:2px;margin-top:2px':''}">${v} <span style="color:var(--tertiary);font-size:.66rem">${a.pct}%</span></div>`;
-      }).join('')||'<span style="color:var(--text-dim)">—</span>';
+        return `<div class="emp-split-line" style="font-size:${multi?'.7rem':'.78rem'};line-height:16px;height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v}</div>`;
+      });
+      return rows.join('')||'<span style="color:var(--text-dim)">—</span>';
     }
-    const mktHtml=stackedCell(a=>{const m=a.market||'';return m||'—'});
-    const blHtml=stackedCell(a=>{const bl=a.bizLine||e.businessLine||'';return bl?window.getBizLineName(bl):'—'});
-    const projHtmlFinal=stackedCell(a=>{const p=a.projId?getProjectById(a.projId):null;return p?`<strong style="color:var(--accent)">${p.code}</strong>`:'—'});
+    const mktHtml=splitLines(a=>a.market||'—');
+    const blHtml=splitLines(a=>{const bl=a.bizLine||e.businessLine||'';return bl||'—'});
+    const projHtmlFinal=splitLines(a=>{const p=a.projId?getProjectById(a.projId):null;return p?`<strong style="color:var(--accent)">${p.code}</strong> <span style="color:var(--tertiary);font-size:.64rem">${a.pct}%</span>`:'—'});
 
     let html=`<tr data-id="${e.id}">
       <td><div class="emp-actions"><button class="emp-action-icon" title="Quick edit" onclick="window.startInlineEdit('${e.id}')">&#9998;</button><button class="emp-action-icon" title="Open form" onclick="window.startEdit('${e.id}')">&#9881;</button><button class="emp-action-icon del" title="Delete" onclick="window.deleteEmp('${e.id}')">&times;</button></div></td>
@@ -863,15 +865,19 @@ function renderFteSparkline(){
   canvas.parentElement.style.height='56px';
   canvas.style.height='56px';
   if(fteSparkChart)fteSparkChart.destroy();
+  const DL=window.ChartDataLabels;
+  if(DL&&Chart.registry&&!Chart.registry.plugins.get('datalabels'))try{Chart.register(DL)}catch(e){}
   fteSparkChart=new Chart(canvas,{
     type:'bar',
-    data:{labels:MO,datasets:[{data:hcByMonth,backgroundColor:colors[0]+'88',borderColor:colors[0],borderWidth:1,borderRadius:2,
-      datalabels:{display:true,anchor:'end',align:'top',offset:2,clamp:true,color:isDark?'#c8d0dc':'#556070',font:{size:10,weight:'600'},formatter:v=>v}
-    }]},
+    data:{labels:MO,datasets:[{data:hcByMonth,backgroundColor:colors[0]+'88',borderColor:colors[0],borderWidth:1,borderRadius:2}]},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16,bottom:2,left:2,right:2}},
-      plugins:{legend:{display:false},datalabels:{},tooltip:{enabled:false},yoyArrows:false,barTotal:false},
+      plugins:{
+        legend:{display:false},tooltip:{enabled:false},yoyArrows:false,barTotal:false,
+        datalabels:{display:true,anchor:'end',align:'end',offset:-2,clamp:true,color:isDark?'#e4e8ee':'#3a4350',font:{size:10,weight:'700'},formatter:v=>v}
+      },
       scales:{x:{display:false},y:{display:false,min:Math.max(0,minHC-pad),max:maxHC+pad}}
-    }
+    },
+    plugins:DL?[DL]:[]
   });
 }
 
