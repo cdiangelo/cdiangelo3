@@ -584,7 +584,12 @@ async function openPlan(plan){
   const isRF=plan.name&&plan.name.includes('RF —');
   const isLTP=plan.name&&plan.name.includes('Long-Term Plan');
   const budgetLabel=document.querySelector('#chevBudget .chevron-label');
+  const budgetChev=document.getElementById('chevBudget');
   const forecastChev=document.getElementById('chevForecast');
+  // Reset visibility every load so state doesn't decay across plan switches
+  if(budgetChev)budgetChev.style.display='';
+  if(forecastChev)forecastChev.style.display='';
+  if(budgetLabel)budgetLabel.textContent='Budget';
   if(isRF){
     const MO_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
     const rfMonth=MO_NAMES.findIndex(m=>plan.name.includes(m));
@@ -600,12 +605,7 @@ async function openPlan(plan){
     }
   } else if(isLTP){
     // LTP: hide Budget, only show Forecast
-    const budgetChev=document.getElementById('chevBudget');
     if(budgetChev)budgetChev.style.display='none';
-  } else {
-    // AOP: standard labels
-    if(budgetLabel)budgetLabel.textContent='Budget';
-    if(forecastChev)forecastChev.style.display='';
   }
 
   // Apply admin controls from plan state
@@ -657,7 +657,7 @@ function connectPlanWebSocket(plan,user){
   try{
     _planWs=new WebSocket(url);
     _planWs.onopen=()=>{
-      _planWs.send(JSON.stringify({type:'auth',planFileId:plan.id,accountId:user.id,initials:user.initials,color:user.color||'#3a7d44'}));
+      _planWs.send(JSON.stringify({type:'auth',planFileId:plan.id,planName:plan.name||'',accountId:user.id,initials:user.initials,color:user.color||'#3a7d44'}));
     };
     _planWs.onmessage=(ev)=>{
       try{
@@ -673,11 +673,25 @@ function connectPlanWebSocket(plan,user){
         if(msg.type==='presence'){
           const dots=document.getElementById('planHdrUsers');
           if(dots&&msg.users){
+            // Short plan labels (e.g. "RF — Jan" → "Jan", "Long-Term Plan" → "LTP", "AOP" → "AOP")
+            const shortPlan=p=>{
+              if(!p)return '';
+              if(p.includes('Long-Term'))return 'LTP';
+              const rfMatch=p.match(/RF\s*—\s*(\w{3,})/);
+              if(rfMatch)return rfMatch[1].slice(0,3);
+              return p.slice(0,6);
+            };
             dots.innerHTML=msg.users.map(u=>{
               const tab=u.tab||'';
+              const plan=shortPlan(u.plan||'');
               const c=u.color||'#3a7d44';
-              const tabBadge=tab?`<span style="font-size:.58rem;font-weight:600;color:#fff;background:${c}40;padding:2px 8px;border-radius:10px;margin-left:2px;letter-spacing:.03em;white-space:nowrap">${tab}</span>`:'';
-              return `<span style="display:inline-flex;align-items:center;gap:0;margin-right:4px"><div class="user-dot" style="background:${c}" title="${u.initials}${tab?' — '+tab:''}">${u.initials}</div>${tabBadge}</span>`;
+              const parts=[];
+              if(plan)parts.push(plan);
+              if(tab)parts.push(tab);
+              const badgeText=parts.join(' · ');
+              const badge=badgeText?`<span style="font-size:.58rem;font-weight:600;color:#fff;background:${c}40;padding:2px 8px;border-radius:10px;margin-left:2px;letter-spacing:.03em;white-space:nowrap">${badgeText}</span>`:'';
+              const title=u.initials+(u.plan?' — '+u.plan:'')+(tab?' · '+tab:'');
+              return `<span style="display:inline-flex;align-items:center;gap:0;margin-right:4px"><div class="user-dot" style="background:${c}" title="${title}">${u.initials}</div>${badge}</span>`;
             }).join('');
           }
         }

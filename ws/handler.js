@@ -69,7 +69,7 @@ async function handleAuth(ws, msg, db) {
   const versionId = msg.versionId || (msg.planFileId ? 'main' : null);
   if (!sessionId || !userId || !versionId) return;
 
-  const clientInfo = { sessionId, userId, userName, userColor, versionId, isPlan:!!msg.planFileId };
+  const clientInfo = { sessionId, userId, userName, userColor, versionId, isPlan:!!msg.planFileId, planName: msg.planName || '' };
   clients.set(ws, clientInfo);
 
   // Join room
@@ -246,17 +246,24 @@ async function handleDisconnect(ws, db) {
 }
 
 async function broadcastPresence(sessionId, db) {
-  // For plan-file connections, build presence from in-memory clients
+  // Plan-file connections: presence is workspace-wide (every plan slot sees every other
+  // active user, labeled with which slot they're on — AOP, RF Jan, LTP, etc.)
   if (sessionId.startsWith('plan:')) {
     const users = [];
     clients.forEach((info) => {
-      if (info.sessionId === sessionId) {
-        users.push({ id: info.userId, initials: info.userName, color: info.userColor, tab: info.tab || '' });
+      if (info.isPlan) {
+        users.push({
+          id: info.userId,
+          initials: info.userName,
+          color: info.userColor,
+          tab: info.tab || '',
+          plan: info.planName || ''
+        });
       }
     });
     const outMsg = JSON.stringify({ type: 'presence', users });
     clients.forEach((info, ws) => {
-      if (info.sessionId === sessionId && ws.readyState === 1) {
+      if (info.isPlan && ws.readyState === 1) {
         ws.send(outMsg);
       }
     });
