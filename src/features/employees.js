@@ -240,7 +240,7 @@ function deleteEmp(id){
 }
 document.getElementById('btnClearFilter').addEventListener('click',()=>{
   document.getElementById('empFilterName').value='';
-  ['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterMarket','empFilterBizLine','empFilterProject'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  ['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterMarket','empFilterBizLine','empFilterProject'].forEach(id=>{const el=document.getElementById(id);if(el)[...el.options].forEach(o=>o.selected=false)});
   renderEmployees();
 });
 document.getElementById('btnClearAllEmps').addEventListener('click',()=>{if(!state.employees.length)return;if(confirm('⚠️ DELETE ALL HEADCOUNT?\n\nThis will permanently remove all '+state.employees.length+' employees. This cannot be undone.')){window.logAudit('Clear All','Removed all employees');state.employees=[];state.allocOverrides={};saveState();window.renderAll()}});
@@ -339,6 +339,8 @@ function removeInlineAlloc(idx){
   renderEmployees();
 }
 
+function getSelectedValues(sel){return [...sel.selectedOptions].map(o=>o.value).filter(v=>v)}
+
 function refreshEmpFilters(){
   const fCountry=document.getElementById('empFilterCountry');
   const fSeniority=document.getElementById('empFilterSeniority');
@@ -346,7 +348,8 @@ function refreshEmpFilters(){
   const fBizLine=document.getElementById('empFilterBizLine');
   const fProject=document.getElementById('empFilterProject');
   const fMarket=document.getElementById('empFilterMarket');
-  const cv=fCountry.value,sv=fSeniority.value,fv=fFunction.value,bv=fBizLine.value,pv=fProject.value,mv=fMarket.value;
+  const cv=new Set(getSelectedValues(fCountry)),sv=new Set(getSelectedValues(fSeniority)),fv=new Set(getSelectedValues(fFunction));
+  const bv=new Set(getSelectedValues(fBizLine)),pv=new Set(getSelectedValues(fProject)),mv=new Set(getSelectedValues(fMarket));
   const countries=[...new Set(state.employees.map(e=>e.country))].sort();
   const seniorities=[...new Set(state.employees.map(e=>e.seniority))].sort();
   const functions=[...new Set(state.employees.map(e=>e.function))].sort();
@@ -355,30 +358,30 @@ function refreshEmpFilters(){
   const projects=state.projects.filter(p=>projIds.has(p.id)).sort((a,b)=>a.code.localeCompare(b.code));
   const marketCodes=new Set();state.employees.forEach(e=>getEmpMarkets(e).forEach(m=>marketCodes.add(m.code)));
   const markets=[...marketCodes].sort();
-  fCountry.innerHTML='<option value="">Country</option>'+countries.map(c=>`<option value="${c}"${c===cv?' selected':''}>${c}</option>`).join('');
-  fSeniority.innerHTML='<option value="">Seniority</option>'+seniorities.map(s=>`<option value="${s}"${s===sv?' selected':''}>${s}</option>`).join('');
-  fFunction.innerHTML='<option value="">Function</option>'+functions.map(f=>`<option value="${esc(f)}"${f===fv?' selected':''}>${esc(f)}</option>`).join('');
-  fMarket.innerHTML='<option value="">Market</option>'+markets.map(m=>`<option value="${esc(m)}"${m===mv?' selected':''}>${esc(m)}</option>`).join('');
-  fBizLine.innerHTML='<option value="">Biz Line</option>'+bizLines.map(b=>{const bl=state.bizLines.find(x=>x.code===b);return `<option value="${esc(b)}"${b===bv?' selected':''}>${esc(b)}${bl?' — '+esc(bl.name):''}</option>`}).join('');
-  fProject.innerHTML='<option value="">Project</option>'+projects.map(p=>`<option value="${p.id}"${p.id===pv?' selected':''}>${esc(p.code)}</option>`).join('');
+  fCountry.innerHTML=countries.map(c=>`<option value="${c}"${cv.has(c)?' selected':''}>${c}</option>`).join('');
+  fSeniority.innerHTML=seniorities.map(s=>`<option value="${s}"${sv.has(s)?' selected':''}>${s}</option>`).join('');
+  fFunction.innerHTML=functions.map(f=>`<option value="${esc(f)}"${fv.has(f)?' selected':''}>${esc(f)}</option>`).join('');
+  fMarket.innerHTML=markets.map(m=>`<option value="${esc(m)}"${mv.has(m)?' selected':''}>${esc(m)}</option>`).join('');
+  fBizLine.innerHTML=bizLines.map(b=>{const bl=state.bizLines.find(x=>x.code===b);return `<option value="${esc(b)}"${bv.has(b)?' selected':''}>${esc(b)}${bl?' — '+esc(bl.name):''}</option>`}).join('');
+  fProject.innerHTML=projects.map(p=>`<option value="${p.id}"${pv.has(p.id)?' selected':''}>${esc(p.code)}</option>`).join('');
 }
 function renderEmployees(){
   refreshEmpFilters();
   const fName=(document.getElementById('empFilterName').value||'').toLowerCase();
-  const fCountry=document.getElementById('empFilterCountry').value;
-  const fSeniority=document.getElementById('empFilterSeniority').value;
-  const fFunction=document.getElementById('empFilterFunction').value;
-  const fMarket=document.getElementById('empFilterMarket').value;
-  const fBizLine=document.getElementById('empFilterBizLine').value;
-  const fProject=document.getElementById('empFilterProject').value;
+  const fCountry=getSelectedValues(document.getElementById('empFilterCountry'));
+  const fSeniority=getSelectedValues(document.getElementById('empFilterSeniority'));
+  const fFunction=getSelectedValues(document.getElementById('empFilterFunction'));
+  const fMarket=getSelectedValues(document.getElementById('empFilterMarket'));
+  const fBizLine=getSelectedValues(document.getElementById('empFilterBizLine'));
+  const fProject=getSelectedValues(document.getElementById('empFilterProject'));
   let emps=state.employees;
   if(fName)emps=emps.filter(e=>e.name.toLowerCase().includes(fName));
-  if(fCountry)emps=emps.filter(e=>e.country===fCountry);
-  if(fSeniority)emps=emps.filter(e=>e.seniority===fSeniority);
-  if(fFunction)emps=emps.filter(e=>e.function===fFunction);
-  if(fMarket)emps=emps.filter(e=>getEmpMarkets(e).some(m=>m.code===fMarket));
-  if(fBizLine)emps=emps.filter(e=>e.businessLine===fBizLine);
-  if(fProject)emps=emps.filter(e=>(e.allocations||[]).some(a=>a.projId===fProject));
+  if(fCountry.length)emps=emps.filter(e=>fCountry.includes(e.country));
+  if(fSeniority.length)emps=emps.filter(e=>fSeniority.includes(e.seniority));
+  if(fFunction.length)emps=emps.filter(e=>fFunction.includes(e.function));
+  if(fMarket.length)emps=emps.filter(e=>getEmpMarkets(e).some(m=>fMarket.includes(m.code)));
+  if(fBizLine.length)emps=emps.filter(e=>fBizLine.includes(e.businessLine));
+  if(fProject.length)emps=emps.filter(e=>(e.allocations||[]).some(a=>fProject.includes(a.projId)));
   // Sort
   if(empSortCol){
     const dir=empSortAsc?1:-1;
@@ -508,6 +511,14 @@ document.getElementById('empFilterName').addEventListener('input',renderEmployee
 ['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterMarket','empFilterBizLine','empFilterProject'].forEach(id=>{
   document.getElementById(id).addEventListener('change',renderEmployees);
 });
+const clearFiltersBtn=document.getElementById('empFilterClear');
+if(clearFiltersBtn)clearFiltersBtn.addEventListener('click',()=>{
+  document.getElementById('empFilterName').value='';
+  ['empFilterCountry','empFilterSeniority','empFilterFunction','empFilterMarket','empFilterBizLine','empFilterProject'].forEach(id=>{
+    const sel=document.getElementById(id);if(sel)[...sel.options].forEach(o=>o.selected=false);
+  });
+  renderEmployees();
+});
 document.querySelectorAll('#empTable th.sortable').forEach(th=>{
   th.addEventListener('click',()=>{
     const col=th.dataset.sort;
@@ -589,20 +600,20 @@ function populateMcDropdowns(){
 }
 function getFilteredEmployees(){
   const fName=(document.getElementById('empFilterName').value||'').toLowerCase();
-  const fCountry=document.getElementById('empFilterCountry').value;
-  const fSeniority=document.getElementById('empFilterSeniority').value;
-  const fFunction=document.getElementById('empFilterFunction').value;
-  const fMarket=document.getElementById('empFilterMarket').value;
-  const fBizLine=document.getElementById('empFilterBizLine').value;
-  const fProject=document.getElementById('empFilterProject').value;
+  const fCountry=getSelectedValues(document.getElementById('empFilterCountry'));
+  const fSeniority=getSelectedValues(document.getElementById('empFilterSeniority'));
+  const fFunction=getSelectedValues(document.getElementById('empFilterFunction'));
+  const fMarket=getSelectedValues(document.getElementById('empFilterMarket'));
+  const fBizLine=getSelectedValues(document.getElementById('empFilterBizLine'));
+  const fProject=getSelectedValues(document.getElementById('empFilterProject'));
   let emps=state.employees;
   if(fName)emps=emps.filter(e=>e.name.toLowerCase().includes(fName));
-  if(fCountry)emps=emps.filter(e=>e.country===fCountry);
-  if(fSeniority)emps=emps.filter(e=>e.seniority===fSeniority);
-  if(fFunction)emps=emps.filter(e=>e.function===fFunction);
-  if(fMarket)emps=emps.filter(e=>getEmpMarkets(e).some(m=>m.code===fMarket));
-  if(fBizLine)emps=emps.filter(e=>e.businessLine===fBizLine);
-  if(fProject)emps=emps.filter(e=>(e.allocations||[]).some(a=>a.projId===fProject));
+  if(fCountry.length)emps=emps.filter(e=>fCountry.includes(e.country));
+  if(fSeniority.length)emps=emps.filter(e=>fSeniority.includes(e.seniority));
+  if(fFunction.length)emps=emps.filter(e=>fFunction.includes(e.function));
+  if(fMarket.length)emps=emps.filter(e=>getEmpMarkets(e).some(m=>fMarket.includes(m.code)));
+  if(fBizLine.length)emps=emps.filter(e=>fBizLine.includes(e.businessLine));
+  if(fProject.length)emps=emps.filter(e=>(e.allocations||[]).some(a=>fProject.includes(a.projId)));
   return emps;
 }
 function getMcMatchingEmps(){
