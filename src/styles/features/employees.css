@@ -26,8 +26,8 @@
 #empTable th:nth-child(1),#empTable th:nth-child(2){border-bottom:2px solid var(--accent);height:auto;vertical-align:middle;font-size:.82rem}
 /* Frozen columns for employee roster -- Actions + Name (solid bg so rows don't bleed through) */
 #empTable td:nth-child(1),#empTable td:nth-child(2){background:var(--panel)!important}
-#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;min-width:80px;width:80px;max-width:80px;text-align:center;vertical-align:middle}
-#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:80px;z-index:2;min-width:140px;white-space:nowrap;vertical-align:middle}
+#empTable th:nth-child(1),#empTable td:nth-child(1){position:sticky;left:0;z-index:2;min-width:68px;width:68px;max-width:68px;text-align:center;vertical-align:middle}
+#empTable th:nth-child(2),#empTable td:nth-child(2){position:sticky;left:68px;z-index:2;min-width:110px;width:110px;white-space:nowrap;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
 #empTable th:nth-child(1),#empTable th:nth-child(2){z-index:7;background:var(--panel)!important}
 
 /* Horizontal icon action buttons in the first column */

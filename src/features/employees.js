@@ -278,29 +278,31 @@ function saveInlineEdit(id){
   if(ieHire)emp.hireDate=ieHire.value;
   const ieTerm=row.querySelector('.ie-term');
   if(ieTerm)emp.termDate=ieTerm.value;
-  // Save inline alloc edits (with per-split chartfields)
+  // Save inline alloc edits — query ALL rows with this data-id (primary + split sub-rows)
   if(inlineEditAllocs){
-    row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{
-      const idx=parseInt(sel.dataset.ai);
-      if(inlineEditAllocs[idx]){
-        inlineEditAllocs[idx].projId=sel.value;
-        // Auto-populate from project definition if bizLine/market not set
-        const proj=state.projects.find(p=>p.id===sel.value);
-        if(proj&&!inlineEditAllocs[idx].bizLine&&proj.bizLineCode)inlineEditAllocs[idx].bizLine=proj.bizLineCode;
-        if(proj&&!inlineEditAllocs[idx].market&&proj.marketCode)inlineEditAllocs[idx].market=proj.marketCode;
-      }
-    });
-    row.querySelectorAll('.ie-alloc-bl').forEach(sel=>{
-      const idx=parseInt(sel.dataset.ai);
-      if(inlineEditAllocs[idx])inlineEditAllocs[idx].bizLine=sel.value;
-    });
-    row.querySelectorAll('.ie-alloc-mkt').forEach(sel=>{
-      const idx=parseInt(sel.dataset.ai);
-      if(inlineEditAllocs[idx])inlineEditAllocs[idx].market=sel.value;
-    });
-    row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{
-      const idx=parseInt(inp.dataset.ai);
-      if(inlineEditAllocs[idx])inlineEditAllocs[idx].pct=parseFloat(inp.value)||0;
+    const allEditRows=document.querySelectorAll(`tr[data-id="${id}"].inline-edit`);
+    allEditRows.forEach(r=>{
+      r.querySelectorAll('.ie-alloc-proj').forEach(sel=>{
+        const idx=parseInt(sel.dataset.ai);
+        if(inlineEditAllocs[idx]){
+          inlineEditAllocs[idx].projId=sel.value;
+          const proj=state.projects.find(p=>p.id===sel.value);
+          if(proj&&!inlineEditAllocs[idx].bizLine&&proj.bizLineCode)inlineEditAllocs[idx].bizLine=proj.bizLineCode;
+          if(proj&&!inlineEditAllocs[idx].market&&proj.marketCode)inlineEditAllocs[idx].market=proj.marketCode;
+        }
+      });
+      r.querySelectorAll('.ie-alloc-bl').forEach(sel=>{
+        const idx=parseInt(sel.dataset.ai);
+        if(inlineEditAllocs[idx])inlineEditAllocs[idx].bizLine=sel.value;
+      });
+      r.querySelectorAll('.ie-alloc-mkt').forEach(sel=>{
+        const idx=parseInt(sel.dataset.ai);
+        if(inlineEditAllocs[idx])inlineEditAllocs[idx].market=sel.value;
+      });
+      r.querySelectorAll('.ie-alloc-pct').forEach(inp=>{
+        const idx=parseInt(inp.dataset.ai);
+        if(inlineEditAllocs[idx])inlineEditAllocs[idx].pct=parseFloat(inp.value)||0;
+      });
     });
     emp.allocations=inlineEditAllocs.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:!!a.primary,bizLine:a.bizLine||'',market:a.market||''}));
   }
@@ -566,49 +568,30 @@ function renderEmployees(){
     const typeLabel=(e.empType||'existing')==='hire'?'New Hire':'Existing';
     const typeStyle=(e.empType||'existing')==='hire'?'color:#059669;font-weight:600':'color:var(--text-dim)';
     const allocs=(e.allocations&&e.allocations.length)?e.allocations:[];
-    const primary=allocs[0]||{};
-    const primaryProj=primary.projId?getProjectById(primary.projId):null;
-    const pMarket=primary.market||(primaryProj&&primaryProj.marketCode)||'';
-    const pBizLine=primary.bizLine||e.businessLine||(primaryProj&&primaryProj.bizLineCode)||'';
-    const pPct=primary.pct||100;
-    const pProjDisplay=primaryProj?`<strong style="color:var(--accent)">${primaryProj.code}</strong> <span style="font-size:.72rem;color:var(--text-dim)">${pPct}%</span>`:'<span style="color:var(--text-dim)">—</span>';
-    const bizLineName=pBizLine?window.getBizLineName(pBizLine):'—';
 
-    // Primary row — employee info + first split's chartfields in their actual columns
+    // Build stacked Market / BizLine / Project cells — all splits in same row
+    function stackedCell(getter){
+      return allocs.map((a,i)=>{
+        const v=getter(a);
+        if(allocs.length===1)return `<div style="font-size:.78rem">${v}</div>`;
+        return `<div style="font-size:.72rem;${i>0?'border-top:1px dashed var(--border-light);padding-top:2px;margin-top:2px':''}">${v} <span style="color:var(--tertiary);font-size:.66rem">${a.pct}%</span></div>`;
+      }).join('')||'<span style="color:var(--text-dim)">—</span>';
+    }
+    const mktHtml=stackedCell(a=>{const m=a.market||'';return m||'—'});
+    const blHtml=stackedCell(a=>{const bl=a.bizLine||e.businessLine||'';return bl?window.getBizLineName(bl):'—'});
+    const projHtmlFinal=stackedCell(a=>{const p=a.projId?getProjectById(a.projId):null;return p?`<strong style="color:var(--accent)">${p.code}</strong>`:'—'});
+
     let html=`<tr data-id="${e.id}">
       <td><div class="emp-actions"><button class="emp-action-icon" title="Quick edit" onclick="window.startInlineEdit('${e.id}')">&#9998;</button><button class="emp-action-icon" title="Open form" onclick="window.startEdit('${e.id}')">&#9881;</button><button class="emp-action-icon del" title="Delete" onclick="window.deleteEmp('${e.id}')">&times;</button></div></td>
-      <td>${e.name}${allocs.length>1?`<span style="font-size:.62rem;color:var(--tertiary);margin-left:4px">(${allocs.length} splits)</span>`:''}</td><td style="${typeStyle};font-size:.78rem">${typeLabel}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
-      <td style="font-size:.78rem">${pMarket||'—'}</td><td style="font-size:.78rem">${bizLineName}</td>
+      <td>${e.name}</td><td style="${typeStyle};font-size:.78rem">${typeLabel}</td><td>${e.country}</td><td>${e.seniority}</td><td>${e.function}</td>
+      <td>${mktHtml}</td><td>${blHtml}</td>
       <td class="ops-hide" style="font-size:.78rem">${e.businessUnit||'—'}</td>
-      <td style="font-size:.78rem">${pProjDisplay}</td>
+      <td>${projHtmlFinal}</td>
       <td class="emp-comp-toggle-cell"></td>
-      <td class="${cs} emp-comp-col">${fmt(e.salary)}</td><td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
+      <td class="${cs} emp-comp-col">${fmt(e.salary||e.baseSalary)}</td><td class="emp-comp-col">${bp}%</td><td class="${cs} emp-comp-col">${fmt(ba)}</td><td class="${cs} emp-comp-col">${fmt(ben)}</td><td class="${cs} emp-comp-col" style="font-weight:600;color:var(--accent)">${fmt(proratedTc)}${af<1?`<span style="font-size:.7rem;color:var(--text-dim);margin-left:4px" title="Prorated from ${fmt(tc)} annual">(${Math.round(af*100)}%)</span>`:''}</td>
       <td>${getCapPct(e)}%</td><td class="${cs} emp-comp-col">${fmt(getProratedOpEx(e))}</td><td class="${cs} emp-comp-col">${fmt(getProratedCapEx(e))}</td>
       <td>${e.hireDate||'—'}</td><td>${e.termDate||'—'}</td>
     </tr>`;
-
-    // Secondary rows for additional splits — only Market / Biz Line / Project columns populated
-    for(let si=1;si<allocs.length;si++){
-      const a=allocs[si];
-      const p=a.projId?getProjectById(a.projId):null;
-      const aMkt=a.market||(p&&p.marketCode)||'';
-      const aBl=a.bizLine||(p&&p.bizLineCode)||'';
-      const aBlName=aBl?window.getBizLineName(aBl):'—';
-      const aProjDisplay=p?`<strong style="color:var(--accent)">${p.code}</strong> <span style="font-size:.72rem;color:var(--text-dim)">${a.pct}%</span>`:'<span style="color:var(--text-dim)">—</span>';
-      html+=`<tr class="emp-split-row" data-id="${e.id}" data-split="${si}">
-        <td></td>
-        <td style="font-size:.7rem;color:var(--tertiary);padding-left:20px">↳ split ${si+1}</td>
-        <td></td><td></td><td></td><td></td>
-        <td style="font-size:.74rem;color:var(--text)">${aMkt||'—'}</td>
-        <td style="font-size:.74rem;color:var(--text)">${aBlName}</td>
-        <td class="ops-hide"></td>
-        <td style="font-size:.74rem">${aProjDisplay}</td>
-        <td class="emp-comp-toggle-cell"></td>
-        <td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td>
-        <td></td><td class="emp-comp-col"></td><td class="emp-comp-col"></td>
-        <td></td><td></td>
-      </tr>`;
-    }
     return html;
   }).join('');
 }
@@ -886,7 +869,7 @@ function renderFteSparkline(){
       datalabels:{display:true,anchor:'end',align:'top',offset:2,clamp:true,color:isDark?'#c8d0dc':'#556070',font:{size:10,weight:'600'},formatter:v=>v}
     }]},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16,bottom:2,left:2,right:2}},
-      plugins:{legend:{display:false},tooltip:{enabled:false},yoyArrows:false,barTotal:false},
+      plugins:{legend:{display:false},datalabels:{},tooltip:{enabled:false},yoyArrows:false,barTotal:false},
       scales:{x:{display:false},y:{display:false,min:Math.max(0,minHC-pad),max:maxHC+pad}}
     }
   });
