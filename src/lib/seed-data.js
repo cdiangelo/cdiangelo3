@@ -81,10 +81,21 @@ export function generateSeedEmployees(projectIds){
   const employees=[];
   let empNum=1,nhNum=1;
 
+  // Project code → chartfields lookup
+  const PROJ_DIMS={
+    'PRJ-001':{bizLine:'100000',market:'US0001'},
+    'PRJ-002':{bizLine:'400000',market:'US0001'},
+    'PRJ-003':{bizLine:'200000',market:'UK0002'},
+    'PRJ-004':{bizLine:'500000',market:'US0001'},
+    'PRJ-005':{bizLine:'600000',market:'US0001'},
+    'GEN-000':{bizLine:'700000',market:'GL0000'}
+  };
+
   function assignProject(fn){
     const codes=FUNC_PROJECT_MAP[fn]||['PRJ-001'];
     const code=pickRandom(codes);
-    return projectIds[code]||projectIds['PRJ-001'];
+    const dims=PROJ_DIMS[code]||{bizLine:'',market:''};
+    return {projId:projectIds[code]||projectIds['PRJ-001'],bizLine:dims.bizLine,market:dims.market};
   }
 
   // Existing employees (EMP#1 – EMP#80)
@@ -97,13 +108,13 @@ export function generateSeedEmployees(projectIds){
       const actualFn=fn==='Other'?pickRandom(['Finance','HR','Legal','Marketing','Operations']):fn;
       const base=benchmark(sen,actualFn,country);
       const adjBase=Math.round(base*(0.9+Math.random()*0.2));
-      const projId=assignProject(actualFn);
+      const alloc=assignProject(actualFn);
       employees.push({
         id:uid(),name:'EMP#'+empNum,function:actualFn,seniority:sen,country,
-        businessUnit:bu,businessLine:bl.code,salary:adjBase,baseSalary:adjBase,
+        businessUnit:bu,businessLine:alloc.bizLine,salary:adjBase,baseSalary:adjBase,
         bonusPct:DEFAULT_BONUS[sen]||10,benefitsPct:DEFAULT_BENEFITS[sen]||20,
         startMonth:0,isNewHire:false,
-        allocations:[{projId,pct:100}],_colorTag:''
+        allocations:[{projId:alloc.projId,pct:100,bizLine:alloc.bizLine,market:alloc.market}],_colorTag:''
       });
       empNum++;
     }
@@ -116,18 +127,17 @@ export function generateSeedEmployees(projectIds){
       const sen=pickWeighted(nhSenWeights);
       const country=pickWeighted(COUNTRY_WEIGHTS);
       const bu=COUNTRY_BU[country]||'US001';
-      const bl=pickRandom(DEFAULT_BIZ_LINES);
       const actualFn=fn==='Other'?pickRandom(['Finance','HR','Legal','Marketing','Operations']):fn;
       const base=benchmark(sen,actualFn,country);
       const adjBase=Math.round(base*(0.9+Math.random()*0.2));
       const startMo=NH_START_MONTHS[nhNum-1]||Math.floor(Math.random()*12);
-      const projId=assignProject(actualFn);
+      const alloc=assignProject(actualFn);
       employees.push({
         id:uid(),name:'NH#'+nhNum,function:actualFn,seniority:sen,country,
-        businessUnit:bu,businessLine:bl.code,salary:adjBase,baseSalary:adjBase,
+        businessUnit:bu,businessLine:alloc.bizLine,salary:adjBase,baseSalary:adjBase,
         bonusPct:DEFAULT_BONUS[sen]||10,benefitsPct:DEFAULT_BENEFITS[sen]||20,
         startMonth:startMo,isNewHire:true,
-        allocations:[{projId,pct:100}],_colorTag:''
+        allocations:[{projId:alloc.projId,pct:100,bizLine:alloc.bizLine,market:alloc.market}],_colorTag:''
       });
       nhNum++;
     }

@@ -197,7 +197,7 @@ function updateFormAllocInfo(){
   }
 }
 function getFormAllocations(){
-  return formAllocations.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:!!a.primary}));
+  return formAllocations.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:!!a.primary,bizLine:a.bizLine||'',market:a.market||''}));
 }
 document.getElementById('btnAddEmpAlloc').addEventListener('click',()=>{
   const isPrimary=formAllocations.length===0;
@@ -278,17 +278,31 @@ function saveInlineEdit(id){
   if(ieHire)emp.hireDate=ieHire.value;
   const ieTerm=row.querySelector('.ie-term');
   if(ieTerm)emp.termDate=ieTerm.value;
-  // Save inline alloc edits
+  // Save inline alloc edits (with per-split chartfields)
   if(inlineEditAllocs){
     row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{
       const idx=parseInt(sel.dataset.ai);
-      if(inlineEditAllocs[idx])inlineEditAllocs[idx].projId=sel.value;
+      if(inlineEditAllocs[idx]){
+        inlineEditAllocs[idx].projId=sel.value;
+        // Auto-populate from project definition if bizLine/market not set
+        const proj=state.projects.find(p=>p.id===sel.value);
+        if(proj&&!inlineEditAllocs[idx].bizLine&&proj.bizLineCode)inlineEditAllocs[idx].bizLine=proj.bizLineCode;
+        if(proj&&!inlineEditAllocs[idx].market&&proj.marketCode)inlineEditAllocs[idx].market=proj.marketCode;
+      }
+    });
+    row.querySelectorAll('.ie-alloc-bl').forEach(sel=>{
+      const idx=parseInt(sel.dataset.ai);
+      if(inlineEditAllocs[idx])inlineEditAllocs[idx].bizLine=sel.value;
+    });
+    row.querySelectorAll('.ie-alloc-mkt').forEach(sel=>{
+      const idx=parseInt(sel.dataset.ai);
+      if(inlineEditAllocs[idx])inlineEditAllocs[idx].market=sel.value;
     });
     row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{
       const idx=parseInt(inp.dataset.ai);
       if(inlineEditAllocs[idx])inlineEditAllocs[idx].pct=parseFloat(inp.value)||0;
     });
-    emp.allocations=inlineEditAllocs.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:!!a.primary}));
+    emp.allocations=inlineEditAllocs.filter(a=>a.projId).map(a=>({projId:a.projId,pct:a.pct,primary:!!a.primary,bizLine:a.bizLine||'',market:a.market||''}));
   }
   // Ensure default coding string if allocations ended up empty
   if(!emp.allocations||!emp.allocations.length){
@@ -311,6 +325,8 @@ function setInlinePrimary(idx){
   const row=document.querySelector(`tr[data-id="${inlineEditId}"]`);
   if(row){
     row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{const i=parseInt(sel.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].projId=sel.value});
+    row.querySelectorAll('.ie-alloc-bl').forEach(sel=>{const i=parseInt(sel.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].bizLine=sel.value});
+    row.querySelectorAll('.ie-alloc-mkt').forEach(sel=>{const i=parseInt(sel.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].market=sel.value});
     row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{const i=parseInt(inp.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].pct=parseFloat(inp.value)||0});
   }
   inlineEditAllocs.forEach((a,i)=>a.primary=(i===idx));
@@ -322,10 +338,12 @@ function addInlineAlloc(){
   const row=document.querySelector(`tr[data-id="${inlineEditId}"]`);
   if(row){
     row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{const idx=parseInt(sel.dataset.ai);if(inlineEditAllocs[idx])inlineEditAllocs[idx].projId=sel.value});
+    row.querySelectorAll('.ie-alloc-bl').forEach(sel=>{const idx=parseInt(sel.dataset.ai);if(inlineEditAllocs[idx])inlineEditAllocs[idx].bizLine=sel.value});
+    row.querySelectorAll('.ie-alloc-mkt').forEach(sel=>{const idx=parseInt(sel.dataset.ai);if(inlineEditAllocs[idx])inlineEditAllocs[idx].market=sel.value});
     row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{const idx=parseInt(inp.dataset.ai);if(inlineEditAllocs[idx])inlineEditAllocs[idx].pct=parseFloat(inp.value)||0});
   }
   const isPrimary=inlineEditAllocs.length===0;
-  inlineEditAllocs.push({projId:'',pct:100,primary:isPrimary});
+  inlineEditAllocs.push({projId:'',pct:100,primary:isPrimary,bizLine:'',market:''});
   renderEmployees();
 }
 function removeInlineAlloc(idx){
@@ -333,6 +351,8 @@ function removeInlineAlloc(idx){
   const row=document.querySelector(`tr[data-id="${inlineEditId}"]`);
   if(row){
     row.querySelectorAll('.ie-alloc-proj').forEach(sel=>{const i=parseInt(sel.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].projId=sel.value});
+    row.querySelectorAll('.ie-alloc-bl').forEach(sel=>{const i=parseInt(sel.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].bizLine=sel.value});
+    row.querySelectorAll('.ie-alloc-mkt').forEach(sel=>{const i=parseInt(sel.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].market=sel.value});
     row.querySelectorAll('.ie-alloc-pct').forEach(inp=>{const i=parseInt(inp.dataset.ai);if(inlineEditAllocs[i])inlineEditAllocs[i].pct=parseFloat(inp.value)||0});
   }
   inlineEditAllocs.splice(idx,1);
@@ -434,7 +454,14 @@ function renderEmployees(){
         if(!p)return '';
         const isPrimary=a.primary;
         const star=isPrimary?'<span style="color:var(--accent)" title="Primary">&#9733;</span> ':'';
-        return `<div style="font-size:.82rem;margin-bottom:2px">${star}<strong style="color:var(--accent)">${p.code}</strong> <span style="color:var(--text-dim)">${p.product}</span> <span style="font-size:.75rem;color:var(--text-dim)">${a.pct}%</span></div>`;
+        const bl=a.bizLine||e.businessLine||'';
+        const blName=bl?((state.bizLines||[]).find(b=>b.code===bl)||{}).name||bl:'';
+        const mkt=a.market||'';
+        const dims=[];
+        if(blName)dims.push(blName);
+        if(mkt)dims.push(mkt);
+        const dimStr=dims.length?` <span style="font-size:.68rem;color:var(--tertiary)">${dims.join(' · ')}</span>`:'';
+        return `<div style="font-size:.78rem;margin-bottom:2px">${star}<strong style="color:var(--accent)">${p.code}</strong> <span style="font-size:.72rem;color:var(--text-dim)">${a.pct}%</span>${dimStr}</div>`;
       }).filter(Boolean).join('');
       const flag=getAllocFlag(e.id);
       if(flag&&!flag.ok){
@@ -445,16 +472,23 @@ function renderEmployees(){
     if(inlineEditId===e.id){
       const ieAllocs=inlineEditAllocs||(e.allocations?e.allocations.map(a=>({...a})):[]);
       if(!inlineEditAllocs)inlineEditAllocs=ieAllocs;
+      const blOpts=state.bizLines.map(b=>`<option value="${b.code}">${b.code} — ${b.name}</option>`).join('');
+      const mktOpts=state.markets.map(m=>`<option value="${m.code}">${m.code}</option>`).join('');
       let allocEditHtml=ieAllocs.map((a,i)=>{
-        const ap=getProjectById(a.projId);
         const starStyle=a.primary?'color:var(--accent);cursor:pointer':'color:var(--border);cursor:pointer';
-        return `<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px">
+        return `<div style="display:flex;gap:3px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
           <span style="${starStyle};font-size:.9rem" title="${a.primary?'Primary':'Set as primary'}" onclick="window.setInlinePrimary(${i})">&#9733;</span>
-          <select class="ie-alloc-proj" data-ai="${i}" style="width:100px;padding:3px;font-size:.78rem">
-            <option value="">—</option>${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code}</option>`).join('')}
+          <select class="ie-alloc-proj" data-ai="${i}" style="width:90px;padding:2px;font-size:.72rem">
+            <option value="">Proj</option>${state.projects.map(p=>`<option value="${p.id}"${p.id===a.projId?' selected':''}>${p.code}</option>`).join('')}
           </select>
-          <input type="number" class="ie-alloc-pct" data-ai="${i}" value="${a.pct}" min="0" max="100" style="width:55px;padding:3px;font-size:.78rem">%
-          <button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:.7rem" onclick="window.removeInlineAlloc(${i})">×</button>
+          <select class="ie-alloc-bl" data-ai="${i}" style="width:90px;padding:2px;font-size:.72rem">
+            <option value="">BizLine</option>${blOpts.replace(`value="${a.bizLine||''}"`,`value="${a.bizLine||''}" selected`)}
+          </select>
+          <select class="ie-alloc-mkt" data-ai="${i}" style="width:70px;padding:2px;font-size:.72rem">
+            <option value="">Mkt</option>${mktOpts.replace(`value="${a.market||''}"`,`value="${a.market||''}" selected`)}
+          </select>
+          <input type="number" class="ie-alloc-pct" data-ai="${i}" value="${a.pct}" min="0" max="100" style="width:45px;padding:2px;font-size:.72rem">%
+          <button class="btn btn-sm btn-danger" style="padding:1px 5px;font-size:.68rem" onclick="window.removeInlineAlloc(${i})">×</button>
         </div>`;
       }).join('');
       allocEditHtml+=`<button class="btn btn-sm" style="padding:2px 8px;font-size:.72rem;margin-top:2px" onclick="window.addInlineAlloc()">+ Add</button>`;
