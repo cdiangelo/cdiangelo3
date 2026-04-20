@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trestle Logo Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#111;color:#ccc;padding:40px}
+h1{font-size:1.4rem;font-weight:500;color:#4A9B8E;margin-bottom:32px;letter-spacing:-.02em}
+h2{font-size:1rem;font-weight:600;color:#eee;margin:32px 0 16px;border-bottom:1px solid #333;padding-bottom:8px}
+h3{font-size:.82rem;font-weight:400;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em}
+.row{display:flex;gap:40px;flex-wrap:wrap;margin-bottom:40px;align-items:flex-start}
+.card{border:1px solid #2a2a2e;border-radius:12px;padding:24px 32px;display:flex;flex-direction:column;align-items:center;gap:16px;min-width:200px}
+.card.dark{background:#1a1d23}
+.card.toolbar{background:#1e2530;border-color:#2d3544}
+.card.light{background:#f5f7fa;border-color:#ddd}
+.card.auth-dark{background:#1e2127;border-color:#2d3035}
+.card.auth-light{background:#fff;border-color:#e0e0e0}
+.label{font-size:.68rem;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+.wordmark{display:flex;align-items:center;gap:10px}
+.wordmark span{font-family:'Outfit';font-weight:500;letter-spacing:-.02em}
+.wordmark span.teal{color:#4A9B8E}
+.wordmark span.white{color:#e8ecf0}
+.wordmark span.dim{color:#8a9bae}
+.size-row{display:flex;gap:24px;align-items:center}
+</style>
+</head>
+<body>
+
+<h1>Trestle Logo Variants — Preview</h1>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>Option A — Current (square, 2-tier, teal)</h2>
+<h3>Login / Auth Card</h3>
+<div class="row">
+  <div class="card auth-dark">
+    <svg viewBox="0 0 100 100" width="48" height="48"><path d="M2 8h96v22H67v62H33V30H2z" fill="#2E6B61" opacity=".55"/><line x1="2" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#4A9B8E"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#4A9B8E"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.8" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="4"/></svg>
+    <div style="font-size:1.3rem;font-weight:400;color:#ddd">Welcome</div>
+    <div class="label">Dark auth — 48px</div>
+  </div>
+  <div class="card auth-light">
+    <svg viewBox="0 0 100 100" width="48" height="48"><path d="M2 8h96v22H67v62H33V30H2z" fill="#2E6B61" opacity=".55"/><line x1="2" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#4A9B8E"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#4A9B8E"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.8" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="4"/></svg>
+    <div style="font-size:1.3rem;font-weight:400;color:#333">Welcome</div>
+    <div class="label">Light auth — 48px</div>
+  </div>
+</div>
+
+<h3>Home page (with wordmark)</h3>
+<div class="row">
+  <div class="card dark">
+    <div class="wordmark">
+      <svg viewBox="0 0 100 100" width="34" height="34"><path d="M2 8h96v22H67v62H33V30H2z" fill="#2E6B61" opacity=".55"/><line x1="2" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#4A9B8E"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#4A9B8E"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.8" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="4"/></svg>
+      <span class="teal" style="font-size:1.05rem">Trestle</span>
+    </div>
+    <div class="label">Home dark — teal wordmark</div>
+  </div>
+  <div class="card light">
+    <div class="wordmark">
+      <svg viewBox="0 0 100 100" width="34" height="34"><path d="M2 8h96v22H67v62H33V30H2z" fill="#2E6B61" opacity=".55"/><line x1="2" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#4A9B8E"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#4A9B8E"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.8" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="4"/></svg>
+      <span class="teal" style="font-size:1.05rem">Trestle</span>
+    </div>
+    <div class="label">Home light — teal wordmark</div>
+  </div>
+</div>
+
+<h3>Toolbar (dark) — teal vs white/near-white</h3>
+<div class="row">
+  <div class="card toolbar" style="flex-direction:row;gap:12px">
+    <svg viewBox="0 0 100 100" width="24" height="24"><path d="M2 8h96v22H67v62H33V30H2z" fill="#2E6B61" opacity=".55"/><line x1="2" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3.5"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#4A9B8E"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#4A9B8E"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.8" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="4"/></svg>
+    <span style="color:#4A9B8E;font-size:.82rem">← Home</span>
+    <div class="label">Toolbar — teal (current)</div>
+  </div>
+  <div class="card toolbar" style="flex-direction:row;gap:12px">
+    <svg viewBox="0 0 100 100" width="24" height="24"><path d="M2 8h96v22H67v62H33V30H2z" fill="#8ab5ad" opacity=".35"/><line x1="2" y1="30" x2="33" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#d0e4e0" stroke-width="2.5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#d0e4e0" stroke-width="2.5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#d0e4e0" stroke-width="2.5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#d0e4e0" stroke-width="2.5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#d0e4e0" stroke-width="2.5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#d0e4e0" stroke-width="2.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#d0e4e0" stroke-width="3"/><line x1="2" y1="30" x2="2" y2="92" stroke="#d0e4e0" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#d0e4e0" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#d0e4e0" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#d0e4e0" stroke-width="3.5"/><line x1="2" y1="92" x2="98" y2="92" stroke="#d0e4e0" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#d0e4e0"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#d0e4e0"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#d0e4e0" stroke-width="2.8" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#d0e4e0" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#d0e4e0" stroke-width="4"/></svg>
+    <span style="color:#b0c8c2;font-size:.82rem">← Home</span>
+    <div class="label">Toolbar — near-white (#d0e4e0)</div>
+  </div>
+  <div class="card toolbar" style="flex-direction:row;gap:12px">
+    <svg viewBox="0 0 100 100" width="24" height="24"><path d="M2 8h96v22H67v62H33V30H2z" fill="#667" opacity=".3"/><line x1="2" y1="30" x2="33" y2="65" stroke="#e4e8ee" stroke-width="2.5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#e4e8ee" stroke-width="2.5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#e4e8ee" stroke-width="2.5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#e4e8ee" stroke-width="2.5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#e4e8ee" stroke-width="2.5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#e4e8ee" stroke-width="2.5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#e4e8ee" stroke-width="2.5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#e4e8ee" stroke-width="2.5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#e4e8ee" stroke-width="2.5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#e4e8ee" stroke-width="2.5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#e4e8ee" stroke-width="2.5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#e4e8ee" stroke-width="2.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#e4e8ee" stroke-width="3"/><line x1="2" y1="30" x2="2" y2="92" stroke="#e4e8ee" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#e4e8ee" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#e4e8ee" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#e4e8ee" stroke-width="3.5"/><line x1="2" y1="92" x2="98" y2="92" stroke="#e4e8ee" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#e4e8ee"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#e4e8ee"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#e4e8ee" stroke-width="2.8" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#e4e8ee" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#e4e8ee" stroke-width="4"/></svg>
+    <span style="color:#c0c8d0;font-size:.82rem">← Home</span>
+    <div class="label">Toolbar — white (#e4e8ee)</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>Option B — Full detail (login/home) + Minimal T (toolbar)</h2>
+<h3>Login — 3-tier with bigger valleys</h3>
+<div class="row">
+  <div class="card auth-dark">
+    <svg viewBox="0 0 100 120" width="48" height="58"><path d="M2 8h96v22H67v82H33V30H2z" fill="#2E6B61" opacity=".55"/><line x1="2" y1="30" x2="33" y2="55" stroke="#4A9B8E" stroke-width="2.2"/><line x1="33" y1="30" x2="2" y2="55" stroke="#4A9B8E" stroke-width="2.2"/><line x1="33" y1="30" x2="67" y2="55" stroke="#4A9B8E" stroke-width="2.2"/><line x1="67" y1="30" x2="33" y2="55" stroke="#4A9B8E" stroke-width="2.2"/><line x1="67" y1="30" x2="98" y2="55" stroke="#4A9B8E" stroke-width="2.2"/><line x1="98" y1="30" x2="67" y2="55" stroke="#4A9B8E" stroke-width="2.2"/><line x1="2" y1="55" x2="33" y2="80" stroke="#4A9B8E" stroke-width="2.2"/><line x1="33" y1="55" x2="2" y2="80" stroke="#4A9B8E" stroke-width="2.2"/><line x1="33" y1="55" x2="67" y2="80" stroke="#4A9B8E" stroke-width="2.2"/><line x1="67" y1="55" x2="33" y2="80" stroke="#4A9B8E" stroke-width="2.2"/><line x1="67" y1="55" x2="98" y2="80" stroke="#4A9B8E" stroke-width="2.2"/><line x1="98" y1="55" x2="67" y2="80" stroke="#4A9B8E" stroke-width="2.2"/><line x1="2" y1="80" x2="33" y2="112" stroke="#4A9B8E" stroke-width="2.2"/><line x1="33" y1="80" x2="2" y2="112" stroke="#4A9B8E" stroke-width="2.2"/><line x1="33" y1="80" x2="67" y2="112" stroke="#4A9B8E" stroke-width="2.2"/><line x1="67" y1="80" x2="33" y2="112" stroke="#4A9B8E" stroke-width="2.2"/><line x1="67" y1="80" x2="98" y2="112" stroke="#4A9B8E" stroke-width="2.2"/><line x1="98" y1="80" x2="67" y2="112" stroke="#4A9B8E" stroke-width="2.2"/><line x1="2" y1="55" x2="98" y2="55" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="80" x2="98" y2="80" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="112" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="112" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="112" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="112" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="112" x2="98" y2="112" stroke="#4A9B8E" stroke-width="4.5"/><path d="M0 80Q10 88 20 96Q28 104 33 112L2 112Z" fill="#4A9B8E"/><path d="M100 80Q90 88 80 96Q72 104 67 112L98 112Z" fill="#4A9B8E"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.8" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="4"/></svg>
+    <div style="font-size:1.3rem;font-weight:400;color:#ddd">Welcome</div>
+    <div class="label">3-tier, bigger valleys — 48×58</div>
+  </div>
+</div>
+
+<h3>Toolbar — minimal T-bridge glyph (no X-bracing)</h3>
+<div class="row">
+  <div class="card toolbar" style="flex-direction:row;gap:12px">
+    <svg viewBox="0 0 100 100" width="24" height="24"><path d="M2 8h96v22H67v62H33V30H2z" fill="#2E6B61" opacity=".55"/><line x1="2" y1="30" x2="2" y2="92" stroke="#d0e4e0" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#d0e4e0" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#d0e4e0" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#d0e4e0" stroke-width="3.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#d0e4e0" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#d0e4e0" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#d0e4e0"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#d0e4e0"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#d0e4e0" stroke-width="3" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#d0e4e0" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#d0e4e0" stroke-width="4"/></svg>
+    <span style="color:#b0c8c2;font-size:.82rem">← Home</span>
+    <div class="label">Minimal — posts only, no X-brace</div>
+  </div>
+  <div class="card toolbar" style="flex-direction:row;gap:12px">
+    <svg viewBox="0 0 100 100" width="24" height="24"><path d="M2 8h96v22H67v62H33V30H2z" fill="#667" opacity=".3"/><line x1="2" y1="30" x2="2" y2="92" stroke="#e4e8ee" stroke-width="3.5"/><line x1="33" y1="30" x2="33" y2="92" stroke="#e4e8ee" stroke-width="3.5"/><line x1="67" y1="30" x2="67" y2="92" stroke="#e4e8ee" stroke-width="3.5"/><line x1="98" y1="30" x2="98" y2="92" stroke="#e4e8ee" stroke-width="3.5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#e4e8ee" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#e4e8ee" stroke-width="4.5"/><path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#e4e8ee"/><path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#e4e8ee"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#e4e8ee" stroke-width="3" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#e4e8ee" stroke-width="5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#e4e8ee" stroke-width="4"/></svg>
+    <span style="color:#c0c8d0;font-size:.82rem">← Home</span>
+    <div class="label">Minimal — white</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>Option C — Wider aspect (login), square (elsewhere)</h2>
+<h3>Login — 160×100 wide bridge</h3>
+<div class="row">
+  <div class="card auth-dark" style="min-width:300px">
+    <svg viewBox="0 0 160 100" width="120" height="75"><path d="M3 8h154v22H107v62H53V30H3z" fill="#2E6B61" opacity=".55"/><line x1="3" y1="30" x2="53" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="53" y1="30" x2="3" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="53" y1="30" x2="107" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="107" y1="30" x2="53" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="107" y1="30" x2="157" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="157" y1="30" x2="107" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="3" y1="65" x2="53" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="53" y1="65" x2="3" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="53" y1="65" x2="107" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="107" y1="65" x2="53" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="107" y1="65" x2="157" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="157" y1="65" x2="107" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="3" y1="65" x2="157" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="3" y1="30" x2="3" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="53" y1="30" x2="53" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="107" y1="30" x2="107" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="157" y1="30" x2="157" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="3" y1="92" x2="157" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 72Q12 78 24 84Q38 90 53 92L3 92Z" fill="#4A9B8E"/><path d="M160 72Q148 78 136 84Q122 90 107 92L157 92Z" fill="#4A9B8E"/><polyline points="3,30 28,8 53,30 80,8 107,30 132,8 157,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="3" y1="8" x2="157" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="3" y1="30" x2="157" y2="30" stroke="#4A9B8E" stroke-width="3.5"/></svg>
+    <div style="font-size:1.3rem;font-weight:400;color:#ddd">Welcome</div>
+    <div class="label">Wide bridge — 120×75</div>
+  </div>
+  <div class="card auth-light" style="min-width:300px">
+    <svg viewBox="0 0 160 100" width="120" height="75"><path d="M3 8h154v22H107v62H53V30H3z" fill="#2E6B61" opacity=".55"/><line x1="3" y1="30" x2="53" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="53" y1="30" x2="3" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="53" y1="30" x2="107" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="107" y1="30" x2="53" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="107" y1="30" x2="157" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="157" y1="30" x2="107" y2="65" stroke="#4A9B8E" stroke-width="2"/><line x1="3" y1="65" x2="53" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="53" y1="65" x2="3" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="53" y1="65" x2="107" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="107" y1="65" x2="53" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="107" y1="65" x2="157" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="157" y1="65" x2="107" y2="92" stroke="#4A9B8E" stroke-width="2"/><line x1="3" y1="65" x2="157" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="3" y1="30" x2="3" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="53" y1="30" x2="53" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="107" y1="30" x2="107" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="157" y1="30" x2="157" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="3" y1="92" x2="157" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 72Q12 78 24 84Q38 90 53 92L3 92Z" fill="#4A9B8E"/><path d="M160 72Q148 78 136 84Q122 90 107 92L157 92Z" fill="#4A9B8E"/><polyline points="3,30 28,8 53,30 80,8 107,30 132,8 157,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="3" y1="8" x2="157" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="3" y1="30" x2="157" y2="30" stroke="#4A9B8E" stroke-width="3.5"/></svg>
+    <div style="font-size:1.3rem;font-weight:400;color:#333">Welcome</div>
+    <div class="label">Wide bridge — light</div>
+  </div>
+</div>
+
+<h2 style="margin-top:48px;color:#666;font-size:.82rem;font-weight:400">Open this page at your deploy URL + /logo-preview.html</h2>
+</body>
+</html>
