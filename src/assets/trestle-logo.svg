@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 265" role="img">
+<title>Trestle</title>
+<!-- T overlay -->
+<path d="M 4 15 L 176 15 Q 180 15 180 19 L 180 46 Q 180 50 176 50 L 120 50 L 120 246 Q 120 250 116 250 L 64 250 Q 60 250 60 246 L 60 50 L 4 50 Q 0 50 0 46 L 0 19 Q 0 15 4 15 Z" fill="#2E6B61" opacity="0.42"/>
+<!-- X-bracing tier 1 -->
+<line x1="0" y1="50" x2="60" y2="117" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="60" y1="50" x2="0" y2="117" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="60" y1="50" x2="120" y2="117" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="120" y1="50" x2="60" y2="117" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="120" y1="50" x2="180" y2="117" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="180" y1="50" x2="120" y2="117" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<!-- X-bracing tier 2 -->
+<line x1="0" y1="117" x2="60" y2="183" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="60" y1="117" x2="0" y2="183" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="60" y1="117" x2="120" y2="183" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="120" y1="117" x2="60" y2="183" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="120" y1="117" x2="180" y2="183" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="180" y1="117" x2="120" y2="183" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<!-- X-bracing tier 3 -->
+<line x1="0" y1="183" x2="60" y2="250" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="60" y1="183" x2="0" y2="250" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="60" y1="183" x2="120" y2="250" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="120" y1="183" x2="60" y2="250" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="120" y1="183" x2="180" y2="250" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<line x1="180" y1="183" x2="120" y2="250" stroke="#4A9B8E" stroke-width="2" stroke-linecap="round"/>
+<!-- Tier ties -->
+<line x1="0" y1="117" x2="180" y2="117" stroke="#4A9B8E" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="0" y1="183" x2="180" y2="183" stroke="#4A9B8E" stroke-width="2.5" stroke-linecap="round"/>
+<!-- Posts -->
+<line x1="0" y1="50" x2="0" y2="250" stroke="#4A9B8E" stroke-width="3" stroke-linecap="round"/>
+<line x1="60" y1="50" x2="60" y2="250" stroke="#4A9B8E" stroke-width="3" stroke-linecap="round"/>
+<line x1="120" y1="50" x2="120" y2="250" stroke="#4A9B8E" stroke-width="3" stroke-linecap="round"/>
+<line x1="180" y1="50" x2="180" y2="250" stroke="#4A9B8E" stroke-width="3" stroke-linecap="round"/>
+<!-- Bottom rail -->
+<line x1="0" y1="250" x2="180" y2="250" stroke="#4A9B8E" stroke-width="4.5" stroke-linecap="round"/>
+<!-- Left valley landmass -->
+<path d="M 0 140 Q 9 160 15 180 Q 23 200 31 210 Q 40 222 48 234 Q 55 244 60 250 L 0 250 Z" fill="#4A9B8E"/>
+<!-- Right valley landmass -->
+<path d="M 180 140 Q 171 160 165 180 Q 157 200 149 210 Q 140 222 132 234 Q 125 244 120 250 L 180 250 Z" fill="#4A9B8E"/>
+<!-- Truss deck Warren zigzag -->
+<polyline points="0,50 30,15 60,50 90,15 120,50 150,15 180,50" fill="none" stroke="#4A9B8E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- Truss deck upper chord -->
+<line x1="0" y1="15" x2="180" y2="15" stroke="#4A9B8E" stroke-width="4.5" stroke-linecap="round"/>
+<!-- Truss deck lower chord -->
+<line x1="0" y1="50" x2="180" y2="50" stroke="#4A9B8E" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

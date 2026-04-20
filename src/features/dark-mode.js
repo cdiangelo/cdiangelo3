@@ -111,11 +111,11 @@ function reRenderCharts(){
 // ── Admin Ops Mode Control ──
 // Store rules in plan state (shared across users) with localStorage fallback
 function getOpsRules(){
-  try{if(window.state&&window.state.opsRules)return window.state.opsRules;return JSON.parse(localStorage.getItem('webplan-ops-admin'))||[]}catch(e){return[]}
+  try{if(window.state&&window.state.opsRules)return window.state.opsRules;return JSON.parse(localStorage.getItem('trestle-ops-admin'))||[]}catch(e){return[]}
 }
 function saveOpsRules(rules){
   if(window.state){window.state.opsRules=rules;if(window.saveState)window.saveState()}
-  localStorage.setItem('webplan-ops-admin',JSON.stringify(rules));
+  localStorage.setItem('trestle-ops-admin',JSON.stringify(rules));
 }
 
 function checkOpsRestriction(){
@@ -146,7 +146,7 @@ function initAdminUserAccess(){
   if(!listEl)return;
 
   function getKnownUsers(){
-    try{return JSON.parse(localStorage.getItem('webplan-known-users')||'[]')}catch(e){return[]}
+    try{return JSON.parse(localStorage.getItem('trestle-known-users')||'[]')}catch(e){return[]}
   }
 
   async function render(){
@@ -250,11 +250,11 @@ const MODULES=[
 ];
 
 function getModuleAccess(){
-  try{if(window.state&&window.state.moduleAccess)return window.state.moduleAccess;return JSON.parse(localStorage.getItem('webplan-module-access')||'{}')}catch(e){return{}}
+  try{if(window.state&&window.state.moduleAccess)return window.state.moduleAccess;return JSON.parse(localStorage.getItem('trestle-module-access')||'{}')}catch(e){return{}}
 }
 function saveModuleAccess(rules){
   if(window.state){window.state.moduleAccess=rules;if(window.saveState)window.saveState()}
-  localStorage.setItem('webplan-module-access',JSON.stringify(rules));
+  localStorage.setItem('trestle-module-access',JSON.stringify(rules));
 }
 
 function checkModuleAccess(){

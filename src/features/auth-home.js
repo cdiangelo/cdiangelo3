@@ -22,11 +22,11 @@ function setUser(u){localStorage.setItem(USER_KEY,JSON.stringify(u))}
 function clearUser(){
   localStorage.removeItem(USER_KEY);
   // Clear user-specific data that could leak between accounts on shared devices
-  localStorage.removeItem('webplan-activity-log');
+  localStorage.removeItem('trestle-activity-log');
   localStorage.removeItem('compPlanSession');
   localStorage.removeItem('compPlanOps');
-  localStorage.removeItem('webplan-ops-admin');
-  localStorage.removeItem('webplan-module-access');
+  localStorage.removeItem('trestle-ops-admin');
+  localStorage.removeItem('trestle-module-access');
   // Invalidate in-memory plan cache
   try{_planCache=null;_planCacheTime=0}catch(e){}
   try{_cachedPlans=[]}catch(e){}
@@ -417,7 +417,7 @@ function renderHomeActivity(plans){
   // Collect recent plan opens/edits from localStorage
   const activities=[];
   try{
-    const log=JSON.parse(localStorage.getItem('webplan-activity-log')||'[]');
+    const log=JSON.parse(localStorage.getItem('trestle-activity-log')||'[]');
     activities.push(...log.slice(-30));
   }catch(e){}
   if(!activities.length){list.innerHTML='<div style="font-size:.76rem;color:var(--tertiary);text-align:center;padding:8px">No recent activity</div>';return}
@@ -436,10 +436,10 @@ function renderHomeActivity(plans){
 // Track activity
 function logActivity(action,detail){
   try{
-    const log=JSON.parse(localStorage.getItem('webplan-activity-log')||'[]');
+    const log=JSON.parse(localStorage.getItem('trestle-activity-log')||'[]');
     log.push({action,detail,time:Date.now()});
     if(log.length>50)log.splice(0,log.length-50);
-    localStorage.setItem('webplan-activity-log',JSON.stringify(log));
+    localStorage.setItem('trestle-activity-log',JSON.stringify(log));
   }catch(e){}
 }
 window.logActivity=logActivity;
@@ -894,7 +894,7 @@ async function loadSharedUsers(planId){
 }
 
 // ── Track known users for admin panel ──
-const KNOWN_USERS_KEY='webplan-known-users';
+const KNOWN_USERS_KEY='trestle-known-users';
 function trackKnownUser(user){
   if(!user||!user.email)return;
   try{
