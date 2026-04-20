@@ -21,6 +21,7 @@
 .home-header-left{display:flex;align-items:center;gap:16px}
 .home-header-right{display:flex;align-items:center;gap:12px}
 .home-logo{display:flex;align-items:center;gap:10px;margin:0}
+.home-logo .app-logo-text{font-family:var(--font-heading);font-size:1.05rem;font-weight:500;color:#4A9B8E;letter-spacing:-.02em}
 .app-logo-icon{flex-shrink:0}
 .app-logo-text{font-size:.92rem;font-weight:500;color:var(--text);letter-spacing:.02em}
 .home-user{font-size:.82rem;color:var(--text-dim);display:flex;align-items:center;gap:6px}
