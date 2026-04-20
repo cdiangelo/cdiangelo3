@@ -2,177 +2,154 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Trestle Logo Preview</title>
+<title>Trestle Logo Preview — Final Variants</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Outfit',sans-serif;background:#111;color:#ccc;padding:40px}
-h1{font-size:1.4rem;font-weight:500;color:#4A9B8E;margin-bottom:32px;letter-spacing:-.02em}
-h2{font-size:1rem;font-weight:600;color:#eee;margin:32px 0 16px;border-bottom:1px solid #333;padding-bottom:8px}
-h3{font-size:.82rem;font-weight:400;color:#888;margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em}
-.row{display:flex;gap:40px;flex-wrap:wrap;margin-bottom:40px;align-items:flex-start}
-.card{border:1px solid #2a2a2e;border-radius:12px;padding:24px 32px;display:flex;flex-direction:column;align-items:center;gap:16px;min-width:200px}
-.card.dark{background:#1a1d23}
-.card.toolbar{background:#1e2530;border-color:#2d3544}
-.card.light{background:#f5f7fa;border-color:#ddd}
-.card.auth-dark{background:#1e2127;border-color:#2d3035}
-.card.auth-light{background:#fff;border-color:#e0e0e0}
-.label{font-size:.68rem;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
-.wordmark{display:flex;align-items:center;gap:10px}
+h1{font-size:1.4rem;font-weight:500;color:#4A9B8E;margin-bottom:8px;letter-spacing:-.02em}
+p.sub{color:#777;font-size:.82rem;margin-bottom:32px}
+h2{font-size:1rem;font-weight:600;color:#eee;margin:40px 0 6px;border-bottom:1px solid #333;padding-bottom:8px}
+h2 span{font-weight:400;color:#888;font-size:.82rem;margin-left:8px}
+.row{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0 32px;align-items:flex-start}
+.card{border:1px solid #2a2a2e;border-radius:12px;padding:20px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;min-width:160px}
+.card.dark{background:#1e2127}
+.card.light{background:#fff;border-color:#ddd}
+.card.toolbar{background:#1e2530;border-color:#2d3544;flex-direction:row;gap:10px;padding:12px 20px}
+.label{font-size:.62rem;color:#555;text-transform:uppercase;letter-spacing:.06em;text-align:center}
+.wm{display:flex;align-items:center;gap:10px}
+.wm span{font-size:1.05rem;font-weight:500;letter-spacing:-.02em}
 </style>
 </head>
 <body>
 
-<h1>Trestle Logo — Color Contrast Variants</h1>
-<p style="color:#888;margin-bottom:32px;font-size:.85rem">Three approaches to making the T visible against the lattice. Each uses distinct colors for: <strong style="color:#5bbdad">T background</strong>, <strong style="color:#7ec8bc">lattice/bars</strong>, and <strong style="color:#3d7a6f">valley rocks</strong>.</p>
+<h1>Trestle Logo — Final 3 Variants</h1>
+<p class="sub">Each shown at auth (52px), home+wordmark (34px), and toolbar (24px, T-in-front) on dark + light.</p>
 
-<!-- ═══ V1: Bold T, subtle lattice ═══ -->
-<h2>V1 — Bold T, subtle lattice</h2>
-<p style="color:#777;font-size:.78rem;margin-bottom:16px">T fill at 0.7 opacity in saturated teal. Lattice strokes thinner + lighter to recede. Valleys darker.</p>
-<h3>Auth cards</h3>
+<!-- ═══════════════════════════════════════ -->
+<h2>Variant A <span>Subtle T, airy lattice — T at 45%, hatching light + wispy</span></h2>
 <div class="row">
-  <div class="card auth-dark">
-    <svg viewBox="0 0 100 100" width="56" height="56">
-      <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".7"/>
-      <line x1="2" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/>
-      <line x1="2" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/>
-      <line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-      <line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/>
-      <line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/>
-      <path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
-      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/>
-      <line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/>
+  <!-- Auth dark -->
+  <div class="card dark">
+    <svg viewBox="0 0 100 100" width="52" height="52">
+      <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".45"/>
+      <line x1="2" y1="30" x2="33" y2="65" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="33" y1="30" x2="2" y2="65" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="33" y1="30" x2="67" y2="65" stroke="#3d8070" stroke-width="1.5" opacity=".5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#3d8070" stroke-width="1.5" opacity=".5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="98" y1="30" x2="67" y2="65" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/>
+      <line x1="2" y1="65" x2="33" y2="92" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="33" y1="65" x2="2" y2="92" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="33" y1="65" x2="67" y2="92" stroke="#3d8070" stroke-width="1.5" opacity=".5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#3d8070" stroke-width="1.5" opacity=".5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="98" y1="65" x2="67" y2="92" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/>
+      <line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/>
+      <line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
+      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/>
     </svg>
-    <div style="font-size:1.3rem;font-weight:400;color:#ddd">Welcome</div>
-    <div class="label">Dark — 56px</div>
+    <div class="label">Auth dark 52px</div>
   </div>
-  <div class="card auth-light">
-    <svg viewBox="0 0 100 100" width="56" height="56">
-      <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".65"/>
-      <line x1="2" y1="30" x2="33" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="33" y1="30" x2="2" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="33" y1="30" x2="67" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="67" y1="30" x2="33" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="67" y1="30" x2="98" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="98" y1="30" x2="67" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/>
-      <line x1="2" y1="65" x2="33" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="33" y1="65" x2="2" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="33" y1="65" x2="67" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="67" y1="65" x2="33" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="67" y1="65" x2="98" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/><line x1="98" y1="65" x2="67" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".45"/>
-      <line x1="2" y1="65" x2="98" y2="65" stroke="#3d8a7d" stroke-width="2.5"/>
-      <line x1="2" y1="30" x2="2" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#3d8a7d" stroke-width="3"/>
-      <line x1="2" y1="92" x2="98" y2="92" stroke="#3d8a7d" stroke-width="4"/>
-      <path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
-      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#3d8a7d" stroke-width="2.5" stroke-linejoin="round"/>
-      <line x1="2" y1="8" x2="98" y2="8" stroke="#3d8a7d" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#3d8a7d" stroke-width="3.5"/>
+  <!-- Auth light -->
+  <div class="card light">
+    <svg viewBox="0 0 100 100" width="52" height="52">
+      <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".4"/>
+      <line x1="2" y1="30" x2="33" y2="65" stroke="#90d8cc" stroke-width="1.5" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#90d8cc" stroke-width="1.5" opacity=".5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#5a9a8c" stroke-width="1.5" opacity=".45"/><line x1="67" y1="30" x2="33" y2="65" stroke="#5a9a8c" stroke-width="1.5" opacity=".45"/><line x1="67" y1="30" x2="98" y2="65" stroke="#90d8cc" stroke-width="1.5" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#90d8cc" stroke-width="1.5" opacity=".5"/>
+      <line x1="2" y1="65" x2="33" y2="92" stroke="#90d8cc" stroke-width="1.5" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#90d8cc" stroke-width="1.5" opacity=".5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#5a9a8c" stroke-width="1.5" opacity=".45"/><line x1="67" y1="65" x2="33" y2="92" stroke="#5a9a8c" stroke-width="1.5" opacity=".45"/><line x1="67" y1="65" x2="98" y2="92" stroke="#90d8cc" stroke-width="1.5" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#90d8cc" stroke-width="1.5" opacity=".5"/>
+      <line x1="2" y1="65" x2="98" y2="65" stroke="#3d8a7d" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#3d8a7d" stroke-width="3"/>
+      <line x1="2" y1="92" x2="98" y2="92" stroke="#3d8a7d" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
+      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#3d8a7d" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#3d8a7d" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#3d8a7d" stroke-width="3.5"/>
     </svg>
-    <div style="font-size:1.3rem;font-weight:400;color:#333">Welcome</div>
-    <div class="label">Light — 56px</div>
+    <div class="label">Auth light 52px</div>
+  </div>
+  <!-- Home dark -->
+  <div class="card dark">
+    <div class="wm">
+      <svg viewBox="0 0 100 100" width="34" height="34"><path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".45"/><line x1="2" y1="30" x2="33" y2="65" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="33" y1="30" x2="2" y2="65" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="33" y1="30" x2="67" y2="65" stroke="#3d8070" stroke-width="1.5" opacity=".5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#3d8070" stroke-width="1.5" opacity=".5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="98" y1="30" x2="67" y2="65" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="2" y1="65" x2="33" y2="92" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="33" y1="65" x2="2" y2="92" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="33" y1="65" x2="67" y2="92" stroke="#3d8070" stroke-width="1.5" opacity=".5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#3d8070" stroke-width="1.5" opacity=".5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="98" y1="65" x2="67" y2="92" stroke="#78d4c6" stroke-width="1.5" opacity=".4"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/></svg>
+      <span style="color:#4A9B8E">Trestle</span>
+    </div>
+    <div class="label">Home 34px</div>
+  </div>
+  <!-- Toolbar -->
+  <div class="card toolbar">
+    <svg viewBox="0 0 100 100" width="24" height="24"><line x1="2" y1="30" x2="33" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="33" y1="30" x2="2" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="33" y1="30" x2="67" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="67" y1="30" x2="33" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="67" y1="30" x2="98" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="98" y1="30" x2="67" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="2" y1="65" x2="33" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="33" y1="65" x2="2" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="33" y1="65" x2="67" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="67" y1="65" x2="33" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="67" y1="65" x2="98" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="98" y1="65" x2="67" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><path d="M2 8h96v22H67v62H33V30H2z" fill="#5ec4b4" opacity=".35"/><line x1="2" y1="65" x2="98" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#d0e4e0" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#8ab5ad"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#8ab5ad"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#d0e4e0" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#d0e4e0" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#d0e4e0" stroke-width="3.5"/></svg>
+    <span style="color:#b0c8c2;font-size:.82rem">← Home</span>
+    <div class="label">Toolbar 24px</div>
   </div>
 </div>
-<h3>Home + Toolbar</h3>
+
+<!-- ═══════════════════════════════════════ -->
+<h2>Variant B <span>Stronger T, medium lattice — T at 60%, hatching thicker with more contrast</span></h2>
 <div class="row">
   <div class="card dark">
-    <div class="wordmark">
-      <svg viewBox="0 0 100 100" width="34" height="34"><path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".7"/><line x1="2" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/></svg>
-      <span style="font-size:1.05rem;color:#4A9B8E;font-weight:500;letter-spacing:-.02em">Trestle</span>
-    </div>
-    <div class="label">Home dark</div>
-  </div>
-  <div class="card toolbar" style="flex-direction:row;gap:12px">
-    <svg viewBox="0 0 100 100" width="24" height="24"><path d="M2 8h96v22H67v62H33V30H2z" fill="#5ec4b4" opacity=".5"/><line x1="2" y1="30" x2="33" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="33" y1="30" x2="2" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="33" y1="30" x2="67" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="67" y1="30" x2="33" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="67" y1="30" x2="98" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="98" y1="30" x2="67" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="2" y1="65" x2="33" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="33" y1="65" x2="2" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="33" y1="65" x2="67" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="67" y1="65" x2="33" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="67" y1="65" x2="98" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="98" y1="65" x2="67" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="2" y1="65" x2="98" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#d0e4e0" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#8ab5ad"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#8ab5ad"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#d0e4e0" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#d0e4e0" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#d0e4e0" stroke-width="3.5"/></svg>
-    <span style="color:#b0c8c2;font-size:.82rem">← Home</span>
-    <div class="label">Toolbar — near-white bars</div>
-  </div>
-</div>
-
-<!-- ═══ V2: Solid T, no lattice in T area ═══ -->
-<h2>V2 — Solid T, lattice only in outer bays</h2>
-<p style="color:#777;font-size:.78rem;margin-bottom:16px">T is a solid filled shape. X-bracing only in the two outer bays (not the middle T-stem area) so the T reads clearly.</p>
-<h3>Auth cards</h3>
-<div class="row">
-  <div class="card auth-dark">
-    <svg viewBox="0 0 100 100" width="56" height="56">
-      <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".75"/>
-      <!-- Only outer bay bracing -->
-      <line x1="2" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".45"/><line x1="33" y1="30" x2="2" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".45"/>
-      <line x1="67" y1="30" x2="98" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".45"/><line x1="98" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".45"/>
-      <line x1="2" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".45"/><line x1="33" y1="65" x2="2" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".45"/>
-      <line x1="67" y1="65" x2="98" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".45"/><line x1="98" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".45"/>
-      <line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-      <line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/>
-      <line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/>
-      <path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
-      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/>
-      <line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/>
-    </svg>
-    <div style="font-size:1.3rem;font-weight:400;color:#ddd">Welcome</div>
-    <div class="label">Dark — outer bracing only</div>
-  </div>
-  <div class="card auth-light">
-    <svg viewBox="0 0 100 100" width="56" height="56">
+    <svg viewBox="0 0 100 100" width="52" height="52">
       <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".6"/>
-      <line x1="2" y1="30" x2="33" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".4"/><line x1="33" y1="30" x2="2" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".4"/>
-      <line x1="67" y1="30" x2="98" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".4"/><line x1="98" y1="30" x2="67" y2="65" stroke="#80cfc2" stroke-width="1.8" opacity=".4"/>
-      <line x1="2" y1="65" x2="33" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".4"/><line x1="33" y1="65" x2="2" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".4"/>
-      <line x1="67" y1="65" x2="98" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".4"/><line x1="98" y1="65" x2="67" y2="92" stroke="#80cfc2" stroke-width="1.8" opacity=".4"/>
-      <line x1="2" y1="65" x2="98" y2="65" stroke="#3d8a7d" stroke-width="2.5"/>
-      <line x1="2" y1="30" x2="2" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#3d8a7d" stroke-width="3"/>
-      <line x1="2" y1="92" x2="98" y2="92" stroke="#3d8a7d" stroke-width="4"/>
-      <path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
-      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#3d8a7d" stroke-width="2.5" stroke-linejoin="round"/>
-      <line x1="2" y1="8" x2="98" y2="8" stroke="#3d8a7d" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#3d8a7d" stroke-width="3.5"/>
+      <line x1="2" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#448a7e" stroke-width="1.8" opacity=".55"/><line x1="67" y1="30" x2="33" y2="65" stroke="#448a7e" stroke-width="1.8" opacity=".55"/><line x1="67" y1="30" x2="98" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/>
+      <line x1="2" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#448a7e" stroke-width="1.8" opacity=".55"/><line x1="67" y1="65" x2="33" y2="92" stroke="#448a7e" stroke-width="1.8" opacity=".55"/><line x1="67" y1="65" x2="98" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/>
+      <line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/>
+      <line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
+      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/>
     </svg>
-    <div style="font-size:1.3rem;font-weight:400;color:#333">Welcome</div>
-    <div class="label">Light — outer bracing only</div>
+    <div class="label">Auth dark 52px</div>
   </div>
-</div>
-<h3>Toolbar</h3>
-<div class="row">
-  <div class="card toolbar" style="flex-direction:row;gap:12px">
-    <svg viewBox="0 0 100 100" width="24" height="24"><path d="M2 8h96v22H67v62H33V30H2z" fill="#5ec4b4" opacity=".55"/><line x1="2" y1="30" x2="33" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="33" y1="30" x2="2" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="67" y1="30" x2="98" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="98" y1="30" x2="67" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="2" y1="65" x2="33" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="33" y1="65" x2="2" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="67" y1="65" x2="98" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="98" y1="65" x2="67" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="2" y1="65" x2="98" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#d0e4e0" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#8ab5ad"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#8ab5ad"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#d0e4e0" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#d0e4e0" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#d0e4e0" stroke-width="3.5"/></svg>
+  <div class="card light">
+    <svg viewBox="0 0 100 100" width="52" height="52">
+      <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".5"/>
+      <line x1="2" y1="30" x2="33" y2="65" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#558e82" stroke-width="1.8" opacity=".5"/><line x1="67" y1="30" x2="33" y2="65" stroke="#558e82" stroke-width="1.8" opacity=".5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/>
+      <line x1="2" y1="65" x2="33" y2="92" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#558e82" stroke-width="1.8" opacity=".5"/><line x1="67" y1="65" x2="33" y2="92" stroke="#558e82" stroke-width="1.8" opacity=".5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/>
+      <line x1="2" y1="65" x2="98" y2="65" stroke="#3d8a7d" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#3d8a7d" stroke-width="3"/>
+      <line x1="2" y1="92" x2="98" y2="92" stroke="#3d8a7d" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
+      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#3d8a7d" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#3d8a7d" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#3d8a7d" stroke-width="3.5"/>
+    </svg>
+    <div class="label">Auth light 52px</div>
+  </div>
+  <div class="card dark">
+    <div class="wm">
+      <svg viewBox="0 0 100 100" width="34" height="34"><path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".6"/><line x1="2" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="67" y2="65" stroke="#448a7e" stroke-width="1.8" opacity=".55"/><line x1="67" y1="30" x2="33" y2="65" stroke="#448a7e" stroke-width="1.8" opacity=".55"/><line x1="67" y1="30" x2="98" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="67" y2="92" stroke="#448a7e" stroke-width="1.8" opacity=".55"/><line x1="67" y1="65" x2="33" y2="92" stroke="#448a7e" stroke-width="1.8" opacity=".55"/><line x1="67" y1="65" x2="98" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/></svg>
+      <span style="color:#4A9B8E">Trestle</span>
+    </div>
+    <div class="label">Home 34px</div>
+  </div>
+  <div class="card toolbar">
+    <svg viewBox="0 0 100 100" width="24" height="24"><line x1="2" y1="30" x2="33" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="33" y1="30" x2="2" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="33" y1="30" x2="67" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="67" y1="30" x2="33" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="67" y1="30" x2="98" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="98" y1="30" x2="67" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="2" y1="65" x2="33" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="33" y1="65" x2="2" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="33" y1="65" x2="67" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="67" y1="65" x2="33" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="67" y1="65" x2="98" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><line x1="98" y1="65" x2="67" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".4"/><path d="M2 8h96v22H67v62H33V30H2z" fill="#5ec4b4" opacity=".4"/><line x1="2" y1="65" x2="98" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#d0e4e0" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#8ab5ad"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#8ab5ad"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#d0e4e0" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#d0e4e0" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#d0e4e0" stroke-width="3.5"/></svg>
     <span style="color:#b0c8c2;font-size:.82rem">← Home</span>
-    <div class="label">V2 toolbar — clean T reads</div>
+    <div class="label">Toolbar 24px</div>
   </div>
 </div>
 
-<!-- ═══ V3: Gradient T, warm valleys ═══ -->
-<h2>V3 — Warm valleys, cool lattice, gradient T</h2>
-<p style="color:#777;font-size:.78rem;margin-bottom:16px">Valleys use a warmer earth tone (#5a7e6a). T fill is brighter (#45b5a4). Creates three distinct visual layers.</p>
-<h3>Auth cards</h3>
+<!-- ═══════════════════════════════════════ -->
+<h2>Variant C <span>Bold T, no middle-bay hatching — T at 65%, hatching only outer bays</span></h2>
 <div class="row">
-  <div class="card auth-dark">
-    <svg viewBox="0 0 100 100" width="56" height="56">
-      <path d="M2 8h96v22H67v62H33V30H2z" fill="#45B5A4" opacity=".6"/>
-      <line x1="2" y1="30" x2="33" y2="65" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="33" y1="30" x2="2" y2="65" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="33" y1="30" x2="67" y2="65" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="67" y1="30" x2="33" y2="65" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="67" y1="30" x2="98" y2="65" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="98" y1="30" x2="67" y2="65" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/>
-      <line x1="2" y1="65" x2="33" y2="92" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="33" y1="65" x2="2" y2="92" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="33" y1="65" x2="67" y2="92" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="67" y1="65" x2="33" y2="92" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="67" y1="65" x2="98" y2="92" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/><line x1="98" y1="65" x2="67" y2="92" stroke="#70c8ba" stroke-width="1.8" opacity=".45"/>
-      <line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-      <line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/>
-      <line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/>
-      <path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#4a7e6a"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#4a7e6a"/>
-      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/>
-      <line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/>
+  <div class="card dark">
+    <svg viewBox="0 0 100 100" width="52" height="52">
+      <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".65"/>
+      <line x1="2" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/>
+      <line x1="67" y1="30" x2="98" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/>
+      <line x1="2" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/>
+      <line x1="67" y1="65" x2="98" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/>
+      <line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/>
+      <line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
+      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/>
     </svg>
-    <div style="font-size:1.3rem;font-weight:400;color:#ddd">Welcome</div>
-    <div class="label">Dark — warm valleys</div>
+    <div class="label">Auth dark 52px</div>
   </div>
-  <div class="card auth-light">
-    <svg viewBox="0 0 100 100" width="56" height="56">
-      <path d="M2 8h96v22H67v62H33V30H2z" fill="#45B5A4" opacity=".5"/>
-      <line x1="2" y1="30" x2="33" y2="65" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="33" y1="30" x2="2" y2="65" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="33" y1="30" x2="67" y2="65" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="67" y1="30" x2="33" y2="65" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="67" y1="30" x2="98" y2="65" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="98" y1="30" x2="67" y2="65" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/>
-      <line x1="2" y1="65" x2="33" y2="92" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="33" y1="65" x2="2" y2="92" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="33" y1="65" x2="67" y2="92" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="67" y1="65" x2="33" y2="92" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="67" y1="65" x2="98" y2="92" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/><line x1="98" y1="65" x2="67" y2="92" stroke="#90d4c8" stroke-width="1.8" opacity=".4"/>
-      <line x1="2" y1="65" x2="98" y2="65" stroke="#3d8a7d" stroke-width="2.5"/>
-      <line x1="2" y1="30" x2="2" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#3d8a7d" stroke-width="3"/>
-      <line x1="2" y1="92" x2="98" y2="92" stroke="#3d8a7d" stroke-width="4"/>
-      <path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#5a8a6e"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#5a8a6e"/>
-      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#3d8a7d" stroke-width="2.5" stroke-linejoin="round"/>
-      <line x1="2" y1="8" x2="98" y2="8" stroke="#3d8a7d" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#3d8a7d" stroke-width="3.5"/>
+  <div class="card light">
+    <svg viewBox="0 0 100 100" width="52" height="52">
+      <path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".55"/>
+      <line x1="2" y1="30" x2="33" y2="65" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/>
+      <line x1="67" y1="30" x2="98" y2="65" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/>
+      <line x1="2" y1="65" x2="33" y2="92" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/>
+      <line x1="67" y1="65" x2="98" y2="92" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#85d0c4" stroke-width="1.8" opacity=".5"/>
+      <line x1="2" y1="65" x2="98" y2="65" stroke="#3d8a7d" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#3d8a7d" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#3d8a7d" stroke-width="3"/>
+      <line x1="2" y1="92" x2="98" y2="92" stroke="#3d8a7d" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/>
+      <polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#3d8a7d" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#3d8a7d" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#3d8a7d" stroke-width="3.5"/>
     </svg>
-    <div style="font-size:1.3rem;font-weight:400;color:#333">Welcome</div>
-    <div class="label">Light — warm valleys</div>
+    <div class="label">Auth light 52px</div>
   </div>
-</div>
-<h3>Toolbar</h3>
-<div class="row">
-  <div class="card toolbar" style="flex-direction:row;gap:12px">
-    <svg viewBox="0 0 100 100" width="24" height="24"><path d="M2 8h96v22H67v62H33V30H2z" fill="#5ec4b4" opacity=".5"/><line x1="2" y1="30" x2="33" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="33" y1="30" x2="2" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="33" y1="30" x2="67" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="67" y1="30" x2="33" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="67" y1="30" x2="98" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="98" y1="30" x2="67" y2="65" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="2" y1="65" x2="33" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="33" y1="65" x2="2" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="33" y1="65" x2="67" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="67" y1="65" x2="33" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="67" y1="65" x2="98" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="98" y1="65" x2="67" y2="92" stroke="#a0ddd3" stroke-width="1.8" opacity=".35"/><line x1="2" y1="65" x2="98" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#d0e4e0" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#7aaa96"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#7aaa96"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#d0e4e0" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#d0e4e0" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#d0e4e0" stroke-width="3.5"/></svg>
+  <div class="card dark">
+    <div class="wm">
+      <svg viewBox="0 0 100 100" width="34" height="34"><path d="M2 8h96v22H67v62H33V30H2z" fill="#3BA89A" opacity=".65"/><line x1="2" y1="30" x2="33" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="30" x2="2" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="30" x2="98" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="30" x2="67" y2="65" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="2" y1="65" x2="33" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="33" y1="65" x2="2" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="67" y1="65" x2="98" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="98" y1="65" x2="67" y2="92" stroke="#6dcfbf" stroke-width="1.8" opacity=".5"/><line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#2E6B61"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#2E6B61"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="3.5"/></svg>
+      <span style="color:#4A9B8E">Trestle</span>
+    </div>
+    <div class="label">Home 34px</div>
+  </div>
+  <div class="card toolbar">
+    <svg viewBox="0 0 100 100" width="24" height="24"><line x1="2" y1="30" x2="33" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="33" y1="30" x2="2" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="67" y1="30" x2="98" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="98" y1="30" x2="67" y2="65" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="2" y1="65" x2="33" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="33" y1="65" x2="2" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="67" y1="65" x2="98" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><line x1="98" y1="65" x2="67" y2="92" stroke="#b0ddd5" stroke-width="1.8" opacity=".35"/><path d="M2 8h96v22H67v62H33V30H2z" fill="#5ec4b4" opacity=".45"/><line x1="2" y1="65" x2="98" y2="65" stroke="#d0e4e0" stroke-width="2.5"/><line x1="2" y1="30" x2="2" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="33" y1="30" x2="33" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="67" y1="30" x2="67" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="98" y1="30" x2="98" y2="92" stroke="#d0e4e0" stroke-width="3"/><line x1="2" y1="92" x2="98" y2="92" stroke="#d0e4e0" stroke-width="4"/><path d="M0 74Q10 80 20 86Q28 90 33 92L2 92Z" fill="#8ab5ad"/><path d="M100 74Q90 80 80 86Q72 90 67 92L98 92Z" fill="#8ab5ad"/><polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#d0e4e0" stroke-width="2.5" stroke-linejoin="round"/><line x1="2" y1="8" x2="98" y2="8" stroke="#d0e4e0" stroke-width="4.5"/><line x1="2" y1="30" x2="98" y2="30" stroke="#d0e4e0" stroke-width="3.5"/></svg>
     <span style="color:#b0c8c2;font-size:.82rem">← Home</span>
-    <div class="label">V3 toolbar — warm valleys</div>
+    <div class="label">Toolbar 24px</div>
   </div>
 </div>
 
-<h2 style="margin-top:48px;border:none;color:#555;font-size:.78rem;font-weight:400">Open logo-preview.html in your browser (double-click from file explorer)</h2>
 </body>
 </html>
