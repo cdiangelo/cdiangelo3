@@ -148,13 +148,8 @@ document.getElementById('modRevenue').addEventListener('click',showRevenue);
 // Back buttons removed — global toolbar handles navigation
 
 // Revenue pane toggle
-document.getElementById('toggleRevenuePane').addEventListener('click',function(){
-  const content=document.getElementById('landingRevenueContent');
-  const isHidden=content.style.display==='none';
-  content.style.display=isHidden?'':'none';
-  this.textContent=isHidden?'Hide':'Show';
-  state.showRevenuePane=isHidden;saveState();
-});
+const _toggleRevPane=document.getElementById('toggleRevenuePane');
+if(_toggleRevPane)_toggleRevPane.style.display='none';
 
 // Revenue module toggle (overview only)
 const landingToggleRevenue=document.getElementById('landingToggleRevenue');
@@ -1802,7 +1797,7 @@ function runInitSequence(){
   safeRun('initSessionModal',()=>initSessionModal());
   safeRun('renderPnlWalk',()=>renderPnlWalk());
   safeRun('renderLandingCharts',()=>renderLandingCharts());
-  safeRun('renderLandingRevenue',()=>renderLandingRevenue());
+  // Revenue is now a Budget sub-tab — skip old standalone revenue rendering
 }
 
 // Check for session auto-reconnect

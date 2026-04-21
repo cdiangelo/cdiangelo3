@@ -1,6 +1,6 @@
-// ── Fun Mode — Scenic Video PiP ──
+// ── Video Overlay — Scenic Video PiP ──
 
-export function initFunMode(){try{
+export function initVidOverlay(){try{
   const DEFAULT_VIDEOS=[
     {id:'29XymHesxa0',label:'Scene 1'},
     {id:'cAbJtTxU56E',label:'Scene 2'},
@@ -8,17 +8,17 @@ export function initFunMode(){try{
     {id:'0xhzwDXfLds',label:'Scene 4'},
     {id:'vGMJZSfVW1M',label:'Scene 5'}
   ];
-  let FUN_VIDEOS=JSON.parse(localStorage.getItem('funVideos')||'null')||JSON.parse(JSON.stringify(DEFAULT_VIDEOS));
-  function saveFunVideos(){localStorage.setItem('funVideos',JSON.stringify(FUN_VIDEOS))}
+  let FUN_VIDEOS=JSON.parse(localStorage.getItem('vidoverlayVideos')||'null')||JSON.parse(JSON.stringify(DEFAULT_VIDEOS));
+  function saveFunVideos(){localStorage.setItem('vidoverlayVideos',JSON.stringify(FUN_VIDEOS))}
 
   const AD_WAIT_MS=5000; // ms to show thumbnail overlay before allowing skip
   let funState=-1; // -1=off, 0..N-1=video index
   let funWrap=null;
   let isFullscreen=false;
-  let savedOpacity=parseFloat(localStorage.getItem('funOpacity'))||1;
-  let savedMuted=localStorage.getItem('funMuted')!=='false';
-  let savedVolume=parseInt(localStorage.getItem('funVolume'),10);if(isNaN(savedVolume))savedVolume=50;
-  let showControls=localStorage.getItem('funControls')==='true';
+  let savedOpacity=parseFloat(localStorage.getItem('vidoverlayOpacity'))||1;
+  let savedMuted=localStorage.getItem('vidoverlayMuted')!=='false';
+  let savedVolume=parseInt(localStorage.getItem('vidoverlayVolume'),10);if(isNaN(savedVolume))savedVolume=50;
+  let showControls=localStorage.getItem('vidoverlayControls')==='true';
   let adTimer=null;
   let funPlayer=null;
 
@@ -188,7 +188,7 @@ export function initFunMode(){try{
     updateMuteIcon();
     muteBtn.style.cssText=`background:none;border:none;font-size:1rem;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1`;
     muteBtn.addEventListener('click',()=>{
-      savedMuted=!savedMuted;localStorage.setItem('funMuted',savedMuted);
+      savedMuted=!savedMuted;localStorage.setItem('vidoverlayMuted',savedMuted);
       updateMuteIcon();applyVolumeToPlayer();
       volSlider.style.opacity=savedMuted?'.35':'1';
     });
@@ -199,8 +199,8 @@ export function initFunMode(){try{
     volSlider.type='range';volSlider.min='0';volSlider.max='100';volSlider.step='1';volSlider.value=savedVolume;
     volSlider.style.cssText=`flex:1;height:3px;cursor:pointer;accent-color:${isDark()?'#89b4fa':'#3b82f6'};opacity:${savedMuted?'.35':'1'}`;
     volSlider.addEventListener('input',()=>{
-      savedVolume=parseInt(volSlider.value,10);localStorage.setItem('funVolume',savedVolume);
-      if(savedMuted){savedMuted=false;localStorage.setItem('funMuted',false);updateMuteIcon();volSlider.style.opacity='1'}
+      savedVolume=parseInt(volSlider.value,10);localStorage.setItem('vidoverlayVolume',savedVolume);
+      if(savedMuted){savedMuted=false;localStorage.setItem('vidoverlayMuted',false);updateMuteIcon();volSlider.style.opacity='1'}
       applyVolumeToPlayer();
     });
     const volVal=document.createElement('span');
@@ -224,7 +224,7 @@ export function initFunMode(){try{
     opVal.style.cssText=`font-size:.6rem;color:${isDark()?'rgba(255,255,255,.35)':'rgba(0,0,0,.3)'};min-width:24px;text-align:right;flex-shrink:0`;
     opSlider.addEventListener('input',()=>{
       savedOpacity=parseInt(opSlider.value,10)/100;
-      localStorage.setItem('funOpacity',savedOpacity);
+      localStorage.setItem('vidoverlayOpacity',savedOpacity);
       opVal.textContent=opSlider.value+'%';
       const iframe=document.getElementById('funVideoFrame');
       if(iframe)iframe.style.opacity=savedOpacity;
@@ -243,7 +243,7 @@ export function initFunMode(){try{
     ctrlLabel.style.cssText=`font-size:.68rem;color:${isDark()?'rgba(255,255,255,.5)':'rgba(0,0,0,.45)'};cursor:pointer`;
     ctrlCheck.addEventListener('change',()=>{
       showControls=ctrlCheck.checked;
-      localStorage.setItem('funControls',showControls);
+      localStorage.setItem('vidoverlayControls',showControls);
       // Reload current video with new controls setting
       if(funState>=0&&funWrap){
         const iframe=document.getElementById('funVideoFrame');
@@ -319,7 +319,7 @@ export function initFunMode(){try{
     slider.addEventListener('input',()=>{
       savedOpacity=parseFloat(slider.value);
       iframe.style.opacity=savedOpacity;
-      localStorage.setItem('funOpacity',savedOpacity);
+      localStorage.setItem('vidoverlayOpacity',savedOpacity);
     });
     controls.appendChild(slider);
 
@@ -419,5 +419,5 @@ export function initFunMode(){try{
     e.preventDefault();
     if(funState>=0) funOff();
   });
-}catch(e){console.warn('Fun mode error:',e)}}
-initFunMode();
+}catch(e){console.warn('VidOverlay error:',e)}}
+initVidOverlay();

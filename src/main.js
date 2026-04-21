@@ -50,5 +50,5 @@ import './features/mapping-rules.js';
 import './features/calendar.js';
 import './features/landing.js';
 import './features/chevron-nav.js';
-import './features/fun-mode.js';
+import './features/vidoverlay.js';
 import './features/milestones.js';

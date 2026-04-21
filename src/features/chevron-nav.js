@@ -18,7 +18,16 @@ window.applyPlanChevronContext = function(plan){
     if(forecastChev)forecastChev.style.display='none';
   } else if(isLTP){
     if(budgetChev)budgetChev.style.display='none';
+  } else {
+    // AOP: no forecast module needed
+    if(forecastChev)forecastChev.style.display='none';
   }
+  // Hide LTF sections in exec summary for AOP and RF (only show for LTP)
+  const hideLtf=!isLTP;
+  const ltfViewBtn=document.querySelector('[data-view="forecast"]');
+  if(ltfViewBtn)ltfViewBtn.style.display=hideLtf?'none':'';
+  const execFcPane=document.getElementById('execFcPane');
+  if(execFcPane)execFcPane.style.display=hideLtf?'none':'';
 };
 
 (function(){
@@ -351,7 +360,7 @@ window.applyPlanChevronContext = function(plan){
     const verEl=document.getElementById('btbPlanVersion');
     const emailEl=document.getElementById('btbEmail');
     if(nameEl)nameEl.textContent=plan?plan.name:'';
-    if(verEl)verEl.textContent=plan?(plan.year+' '+(plan.scenarioType||'budget').toUpperCase()):'';
+    if(verEl)verEl.style.display='none';
     if(emailEl){try{const raw=localStorage.getItem('compPlanUser');if(raw){const u=JSON.parse(raw);emailEl.textContent=u.email||''}}catch(e){}}
   };
 
