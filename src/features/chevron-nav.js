@@ -34,7 +34,7 @@ window.applyPlanChevronContext = function(plan){
     // Scrollable month list
     const rfScroll=document.createElement('div');
     rfScroll.className='rf-scroll';
-    rfScroll.style.cssText='max-height:calc(100vh - 300px);overflow-y:auto;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth';
+    rfScroll.style.cssText='max-height:252px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth';
 
     // Flyout panel — sits to the right of the scroll area, position:absolute
     const flyout=document.createElement('div');
