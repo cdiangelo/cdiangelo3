@@ -236,3 +236,77 @@ function resolveColor(c){if(!c||COLOR_MAP[c])return COLOR_MAP[c||''];return c.st
     if(toggleBtn)toggleBtn.style.display='none';
   };
 })();
+
+// ── Targets — live metric vs target comparison ──
+(function(){
+  const METRICS=[
+    {key:'totinv',label:'Total Inv',fn:()=>window.getVendorOaoTotal?(window.getVendorOaoTotal()+(state.employees||[]).reduce((s,e)=>s+12*((e.salary||e.baseSalary||0)/12),0)):0},
+    {key:'hc',label:'Headcount',fn:()=>(state.employees||[]).length},
+    {key:'cb',label:'C&B',fn:()=>(state.employees||[]).reduce((s,e)=>s+((e.salary||e.baseSalary||0)),0)},
+    {key:'oao',label:'OAO',fn:()=>window.getVendorOaoTotal?window.getVendorOaoTotal():0},
+    {key:'revenue',label:'Revenue',fn:()=>window.getRevenueTotal?window.getRevenueTotal():0},
+    {key:'ctr',label:'Contractors',fn:()=>(state.contractorRows||[]).reduce((s,r)=>{const mos=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];return s+mos.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0)},0)},
+    {key:'te',label:'T&E',fn:()=>(state.teRows||[]).reduce((s,r)=>{const mos=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];return s+mos.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0)},0)},
+  ];
+  function getTargets(){return state.targets||[]}
+  function setTargets(t){state.targets=t;saveState()}
+  const list=document.getElementById('targetList');
+  const addBtn=document.getElementById('targetAddBtn');
+  if(!list||!addBtn)return;
+
+  function fmt(v){if(Math.abs(v)>=1e6)return '$'+(v/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return '$'+(v/1e3).toFixed(0)+'K';return typeof v==='number'&&v%1===0?v.toString():'$'+v.toFixed(0)}
+
+  function render(){
+    const targets=getTargets();
+    if(!targets.length){list.innerHTML='<div style="font-size:.7rem;color:var(--text-dim);padding:4px 0;text-align:center">No targets set</div>';return}
+    list.innerHTML=targets.map((t,i)=>{
+      const m=METRICS.find(x=>x.key===t.metric);
+      const actual=m?m.fn():0;
+      const target=parseFloat(t.value)||0;
+      const pct=target?Math.round((actual/target)*100):0;
+      const over=actual>target;
+      const isHC=t.metric==='hc';
+      const barW=Math.min(pct,100);
+      const barColor=pct>=90&&pct<=110?'var(--accent)':over?'var(--danger)':'var(--warning)';
+      const label=t.name||(m?m.label:t.metric);
+      return `<div style="padding:4px 0;border-bottom:1px solid var(--border-light)">
+        <div style="display:flex;justify-content:space-between;font-size:.68rem;margin-bottom:2px">
+          <span style="font-weight:600;color:var(--text)">${label}</span>
+          <span style="color:var(--text-dim)">${isHC?actual:fmt(actual)} / ${isHC?target:fmt(target)}</span>
+        </div>
+        <div style="height:4px;background:var(--border-light);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${barW}%;background:${barColor};border-radius:2px;transition:width .3s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:1px">
+          <span style="font-size:.6rem;color:${barColor};font-weight:600">${pct}%</span>
+          <button class="target-del" data-ti="${i}" style="font-size:.58rem;color:var(--text-dim);background:none;border:none;cursor:pointer;opacity:.4">&times;</button>
+        </div>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.target-del').forEach(btn=>{
+      btn.addEventListener('click',()=>{const ts=getTargets();ts.splice(+btn.dataset.ti,1);setTargets(ts);render()});
+    });
+  }
+
+  addBtn.addEventListener('click',()=>{
+    const metricOpts=METRICS.map(m=>`<option value="${m.key}">${m.label}</option>`).join('');
+    const d=document.createElement('div');
+    d.style.cssText='display:flex;flex-direction:column;gap:4px;padding:6px 0';
+    d.innerHTML=`<input class="t-name" placeholder="Label (optional)" style="padding:3px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
+      <select class="t-metric" style="padding:3px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">${metricOpts}</select>
+      <input class="t-value" type="number" placeholder="Target value" style="padding:3px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
+      <div style="display:flex;gap:4px"><button class="btn btn-sm t-save" style="flex:1;padding:2px 8px;font-size:.66rem">Save</button><button class="btn btn-sm t-cancel" style="padding:2px 8px;font-size:.66rem">Cancel</button></div>`;
+    list.prepend(d);
+    d.querySelector('.t-save').addEventListener('click',()=>{
+      const metric=d.querySelector('.t-metric').value;
+      const value=d.querySelector('.t-value').value;
+      const name=d.querySelector('.t-name').value.trim();
+      if(!value){d.remove();return}
+      const ts=getTargets();ts.push({metric,value:parseFloat(value),name});setTargets(ts);render();
+    });
+    d.querySelector('.t-cancel').addEventListener('click',()=>{d.remove()});
+  });
+
+  render();
+  window._renderTargets=render;
+})();

@@ -618,7 +618,7 @@ function renderLandingCharts(){
   landingBudgetChartInst=new Chart(document.getElementById('landingBudgetChart'),{
     type:'bar',data:{labels:MO_SHORT,datasets:budgetDS},
     plugins:[barTotalPlugin],
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:10}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:10,font:{size:10},padding:12,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:9.5}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
@@ -674,7 +674,7 @@ function renderLandingCharts(){
   landingForecastChartInst=new Chart(document.getElementById('landingForecastChart'),{
     type:'bar',data:{labels:yearLabels,datasets:fcDS},
     plugins:[window.yoyArrowsPlugin,barTotalPlugin],
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:11},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:11},yoyArrows:{}},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:10,font:{size:10},padding:12,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:9.5},yoyArrows:{}},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}}
   });
 
@@ -1536,7 +1536,7 @@ function renderLtfChart(){
     type:'bar',data:{labels:chartLabels,datasets},
     plugins:[ltfYoyPlugin,barTotalPlugin],
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:32}},
-      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:12},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:11},ltfYoy:{accountData:acctData,byAccount},yoyArrows:false},
+      plugins:{legend:{display:true,position:'bottom',labels:{color:tickColor,boxWidth:12,font:{size:10},padding:14,filter:item=>!item.text.includes('CapEx')}},datalabels:{display:false},barTotal:{color:tickColor,fontSize:9.5},ltfYoy:{accountData:acctData,byAccount},yoyArrows:false},
       scales:{x:{stacked:true,ticks:{color:tickColor,font:{size:11,weight:'bold'}},grid:{display:false}},y:{stacked:true,ticks:{color:tickColor,font:{size:10,weight:'bold'},callback:fmtTick},grid:{color:gridColor}}}
     }
   });
