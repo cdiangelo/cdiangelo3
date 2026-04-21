@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trestle — Feature Architecture & Scaling Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#141B22;color:#F5F6F7;padding:40px;max-width:1400px;margin:0 auto}
+h1{font-family:'Outfit';font-size:1.6rem;font-weight:700;color:#F5F6F7;margin-bottom:4px}
+.subtitle{font-size:.82rem;color:#8A939C;margin-bottom:32px}
+h2{font-family:'Outfit';font-size:1rem;font-weight:600;color:#3B6EA5;margin:28px 0 12px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid rgba(197,205,212,0.12);padding-bottom:6px}
+h3{font-size:.82rem;font-weight:600;color:#C89B5E;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+h4{font-size:.76rem;font-weight:600;color:#C5CDD4;margin:10px 0 4px}
+
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:1fr 1fr 1fr}
+.grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
+
+.card{background:#1B2530;border:1px solid rgba(197,205,212,0.10);border-radius:10px;padding:16px 18px}
+.card-accent{border-left:3px solid #3B6EA5}
+.card-warm{border-left:3px solid #C89B5E}
+.card-success{border-left:3px solid #3A7D5E}
+.card-danger{border-left:3px solid #C53030}
+
+.tag{display:inline-block;font-size:.62rem;font-weight:600;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.04em;margin-right:4px;margin-bottom:2px}
+.tag-blue{background:rgba(59,110,165,0.15);color:#5A8BC4}
+.tag-amber{background:rgba(200,155,94,0.15);color:#C89B5E}
+.tag-green{background:rgba(58,125,94,0.15);color:#3A7D5E}
+.tag-red{background:rgba(197,48,48,0.15);color:#D46060}
+.tag-slate{background:rgba(138,147,156,0.15);color:#8A939C}
+
+.label{font-size:.68rem;color:#8A939C;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.value{font-size:.78rem;color:#C5CDD4;line-height:1.6}
+.mono{font-family:'JetBrains Mono',monospace;font-size:.70rem;color:#5A8BC4;background:rgba(59,110,165,0.08);padding:1px 6px;border-radius:3px}
+
+table{width:100%;border-collapse:collapse;font-size:.74rem;margin:8px 0}
+th{text-align:left;padding:5px 8px;border-bottom:1px solid rgba(197,205,212,0.12);color:#8A939C;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:.64rem}
+td{padding:5px 8px;border-bottom:1px solid rgba(197,205,212,0.06);color:#C5CDD4}
+tr:hover td{background:rgba(59,110,165,0.04)}
+
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;padding:3px 10px;border-radius:12px;margin:2px}
+.pill-now{background:rgba(58,125,94,0.15);color:#3A7D5E;border:1px solid rgba(58,125,94,0.3)}
+.pill-next{background:rgba(200,155,94,0.12);color:#C89B5E;border:1px solid rgba(200,155,94,0.25)}
+.pill-future{background:rgba(138,147,156,0.10);color:#8A939C;border:1px solid rgba(138,147,156,0.2)}
+
+.phase{display:flex;gap:0;margin:12px 0}
+.phase-item{flex:1;padding:10px 14px;position:relative}
+.phase-item:not(:last-child){border-right:1px solid rgba(197,205,212,0.08)}
+.phase-num{font-size:.6rem;font-weight:700;color:#3B6EA5;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<h1>Trestle — Feature Architecture & Scaling Roadmap</h1>
+<p class="subtitle">Planning model structure, admin capabilities, and path to enterprise scale (100-1000 users)</p>
+
+<!-- ═══ PLANNING MODEL ═══ -->
+<h2>1. Planning Model Structure</h2>
+<div class="card" style="margin-bottom:16px">
+  <h3>Workspace Architecture</h3>
+  <div class="value">
+    One shared workspace per year containing <strong>14 plan files</strong>:<br>
+    <span class="pill pill-now">1 × AOP</span>
+    <span class="pill pill-now">12 × RF (monthly)</span>
+    <span class="pill pill-now">1 × LTP</span>
+  </div>
+  <div class="value" style="margin-top:8px">
+    Each plan file holds a complete <span class="mono">state_data</span> JSON with all input modules. Scenario types: <span class="tag tag-blue">budget</span> <span class="tag tag-amber">forecast</span> <span class="tag tag-green">actual</span> <span class="tag tag-slate">ltp</span>
+  </div>
+</div>
+
+<div class="grid grid-3">
+  <div class="card card-accent">
+    <h3>AOP — Annual Operating Plan</h3>
+    <div class="value">
+      Full-year budget across all accounts<br>
+      <span class="tag tag-blue">Exec Summary</span>
+      <span class="tag tag-blue">Budget</span><br>
+      Modules: Revenue, HC, Vendor, CTR, T&E, Other, D&A
+    </div>
+  </div>
+  <div class="card card-warm">
+    <h3>RF — Rolling Forecast</h3>
+    <div class="value">
+      Monthly re-forecast with actuals split<br>
+      <span class="tag tag-amber">Exec Summary</span>
+      <span class="tag tag-amber">N+M per month</span><br>
+      Labels: 1+11, 2+10, 3+9... (actuals+forecast)
+    </div>
+  </div>
+  <div class="card card-success">
+    <h3>LTP — Long-Term Plan</h3>
+    <div class="value">
+      Multi-year forecast (5 years)<br>
+      <span class="tag tag-green">Exec Summary</span>
+      <span class="tag tag-green">Forecast</span><br>
+      Growth assumptions, Y/Y comparisons
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INPUT MODULES ═══ -->
+<h2>2. Input Module Architecture</h2>
+<table>
+  <tr><th>Module</th><th>Data Array</th><th>Key Fields</th><th>Calc Outputs</th><th>Shared With</th></tr>
+  <tr><td><strong>Revenue</strong></td><td><span class="mono">revenueRows[]</span></td><td>Stream, desc, chartfields, jan-dec</td><td>Total Rev, MRR, ARR</td><td>P&L, Pivot, LTF</td></tr>
+  <tr><td><strong>HC & Compensation</strong></td><td><span class="mono">employees[]</span></td><td>Name, salary, seniority, function, country, capPct, allocations</td><td>HC, C&B, CapEx, OpEx</td><td>P&L, FTE chart, Pivot</td></tr>
+  <tr><td><strong>Vendor/OAO</strong></td><td><span class="mono">vendorRows[]</span></td><td>Parent co, vendor, type, chartfields, jan-dec</td><td>OAO total</td><td>P&L, Pivot</td></tr>
+  <tr><td><strong>Contractors</strong></td><td><span class="mono">contractorRows[]</span></td><td>Name, rate, hours, capPct, start/end mo</td><td>CTR, CapEx split</td><td>P&L, Pivot</td></tr>
+  <tr><td><strong>T&E</strong></td><td><span class="mono">teRows[]</span></td><td>Expense type, desc, chartfields, jan-dec</td><td>T&E total</td><td>P&L, Pivot</td></tr>
+  <tr><td><strong>Other</strong></td><td><span class="mono">cbOtherRows[] + oaoOtherRows[]</span></td><td>Type (C&B/OAO), desc, chartfields, jan-dec</td><td>Other C&B, Other OAO</td><td>P&L</td></tr>
+  <tr><td><strong>D&A / Assets</strong></td><td><span class="mono">depreciationRows[] + assetRows[]</span></td><td>Asset name, method, cost, useful life</td><td>D&A schedule</td><td>P&L, LTF</td></tr>
+</table>
+
+<!-- ═══ SHARED FEATURES ═══ -->
+<h2>3. Cross-Module Features</h2>
+<div class="grid grid-3">
+  <div class="card">
+    <h3>Chartfield Coding</h3>
+    <div class="value">
+      Every row across all modules maps to:<br>
+      <span class="tag tag-blue">Business Unit</span>
+      <span class="tag tag-blue">Biz Line</span>
+      <span class="tag tag-blue">Market</span>
+      <span class="tag tag-blue">Project</span>
+      <span class="tag tag-blue">Account</span><br>
+      Enables pivot by any dimension
+    </div>
+  </div>
+  <div class="card">
+    <h3>Spreadsheet-Style Input</h3>
+    <div class="value">
+      <span class="mono">.ec</span> class cells across all grids<br>
+      Tab/Enter/Arrow navigation<br>
+      Shift+Click range selection<br>
+      Multi-cell copy/paste with flash feedback<br>
+      Delete to clear selected cells
+    </div>
+  </div>
+  <div class="card">
+    <h3>Pivot & Analytics</h3>
+    <div class="value">
+      Row dims: Product, Function, BizLine, Market, Pillar, Month, Quarter<br>
+      Chart types: Bar, Line, Bubble, Scatter<br>
+      Calc metrics (numerator/denominator)<br>
+      Scenario comparison with variance overlay
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN CONTROLS ═══ -->
+<h2>4. Current Admin & Access Controls</h2>
+<div class="grid grid-2">
+  <div class="card card-accent">
+    <h3>What Exists Today</h3>
+    <div class="value">
+      <span class="pill pill-now">Admin code login (hardcoded)</span><br>
+      <span class="pill pill-now">Module access toggles per user email</span><br>
+      <span class="pill pill-now">Ops view restriction per user</span><br>
+      <span class="pill pill-now">Plan sharing (owner/editor roles)</span><br>
+      <span class="pill pill-now">WebSocket presence + live cursors</span><br>
+      <span class="pill pill-now">Functional pillar assignments</span>
+    </div>
+  </div>
+  <div class="card card-danger">
+    <h3>Current Limitations</h3>
+    <div class="value">
+      <span class="pill pill-future">No row-level permissions</span><br>
+      <span class="pill pill-future">Single JSON blob per plan (no partial saves)</span><br>
+      <span class="pill pill-future">No audit trail in DB (only in state)</span><br>
+      <span class="pill pill-future">No SSO / OAuth (email-only auth)</span><br>
+      <span class="pill pill-future">No rate limiting or session tokens</span><br>
+      <span class="pill pill-future">No multi-region / read replicas</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCALING ROADMAP ═══ -->
+<h2>5. Scaling Roadmap: 10 → 100 → 1000 Users</h2>
+
+<div class="card" style="margin-bottom:16px">
+  <div class="phase">
+    <div class="phase-item" style="background:rgba(58,125,94,0.06)">
+      <div class="phase-num">Phase 1 — Foundation (10-50 users)</div>
+      <h4>Authentication & Sessions</h4>
+      <div class="value">
+        OAuth (Google/Azure AD) replacing email-only login<br>
+        JWT tokens with refresh rotation<br>
+        Server-side sessions (express-session + Redis)
+      </div>
+      <h4>Data Model</h4>
+      <div class="value">
+        Normalize state_data into relational tables<br>
+        <span class="mono">employees</span>, <span class="mono">vendor_rows</span>, <span class="mono">plan_config</span> as separate tables<br>
+        Row-level saves (PATCH instead of full PUT)
+      </div>
+    </div>
+    <div class="phase-item" style="background:rgba(200,155,94,0.06)">
+      <div class="phase-num">Phase 2 — Enterprise (50-200 users)</div>
+      <h4>Access Control</h4>
+      <div class="value">
+        Row-Level Security (PostgreSQL RLS policies)<br>
+        Dimension-based access: user → market/bizline/project<br>
+        Module-level read/write/hidden per role<br>
+        Admin panel with user management UI
+      </div>
+      <h4>Collaboration</h4>
+      <div class="value">
+        Conflict resolution (OT or CRDT for cell-level edits)<br>
+        Edit locking at row/section level<br>
+        Audit log persisted to DB with user + timestamp
+      </div>
+    </div>
+    <div class="phase-item" style="background:rgba(59,110,165,0.06)">
+      <div class="phase-num">Phase 3 — Scale (200-1000 users)</div>
+      <h4>Infrastructure</h4>
+      <div class="value">
+        Redis for caching + session store<br>
+        Read replicas for reporting queries<br>
+        WebSocket clustering (Redis pub/sub adapter)<br>
+        Rate limiting + request queuing
+      </div>
+      <h4>Integrations</h4>
+      <div class="value">
+        REST API for EPM push/pull<br>
+        Actuals ingestion pipeline<br>
+        Export to EPM (Oracle, Anaplan, Workday Adaptive)<br>
+        SSO + SCIM user provisioning
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EPM INTEGRATION ═══ -->
+<h2>6. EPM Integration Architecture</h2>
+<div class="grid grid-2">
+  <div class="card card-accent">
+    <h3>Inbound (Data Ingestion)</h3>
+    <table>
+      <tr><th>Source</th><th>Method</th><th>Target</th></tr>
+      <tr><td>ERP Actuals (SAP, Oracle)</td><td>REST API / File Upload</td><td><span class="mono">state.actuals</span></td></tr>
+      <tr><td>HR System (Workday)</td><td>API Pull / CSV</td><td><span class="mono">employees[]</span></td></tr>
+      <tr><td>GL Chart of Accounts</td><td>API / Import</td><td><span class="mono">accounts[]</span></td></tr>
+      <tr><td>Cost Center Hierarchy</td><td>API / Import</td><td><span class="mono">bizLines[], markets[]</span></td></tr>
+    </table>
+  </div>
+  <div class="card card-warm">
+    <h3>Outbound (Data Push)</h3>
+    <table>
+      <tr><th>Target</th><th>Method</th><th>Data</th></tr>
+      <tr><td>Oracle EPM / Anaplan</td><td>REST / EPM Automate</td><td>P&L by chartfield × month</td></tr>
+      <tr><td>Excel / PDF Export</td><td>XLSX.js / Browser</td><td>Any grid or pivot view</td></tr>
+      <tr><td>BI Dashboard</td><td>WebSocket / REST</td><td>Real-time P&L aggregations</td></tr>
+      <tr><td>Data Lake</td><td>Batch API</td><td>Full state snapshots</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ FEATURE MAPPING ═══ -->
+<h2>7. Feature Mapping: Standard vs Custom</h2>
+<div class="grid grid-2">
+  <div class="card card-success">
+    <h3>Standard Features (all tenants)</h3>
+    <div class="value">
+      <span class="tag tag-green">Input</span> 7 cost modules + revenue<br>
+      <span class="tag tag-green">Calc</span> Monthly proration, bonus/benefits, CapEx split<br>
+      <span class="tag tag-green">Output</span> P&L walk, pivot analytics, scenario comparison<br>
+      <span class="tag tag-green">Collab</span> Multi-user presence, live cursors, state sync<br>
+      <span class="tag tag-green">Export</span> XLSX, PNG charts, clipboard paste<br>
+      <span class="tag tag-green">Config</span> Dimensions (markets, BU, projects, accounts, pillars)<br>
+      <span class="tag tag-green">Admin</span> Module access, ops view, share with roles
+    </div>
+  </div>
+  <div class="card card-warm">
+    <h3>Custom / Enterprise Features</h3>
+    <div class="value">
+      <span class="tag tag-amber">Auth</span> SSO / SAML / SCIM integration<br>
+      <span class="tag tag-amber">Security</span> Row-level dimension-based access<br>
+      <span class="tag tag-amber">Workflow</span> Approval chains, lock periods, sign-off<br>
+      <span class="tag tag-amber">Integration</span> EPM connectors (Oracle, Anaplan, Workday)<br>
+      <span class="tag tag-amber">Reporting</span> Custom report builder, scheduled exports<br>
+      <span class="tag tag-amber">Multi-org</span> Consolidation across business units<br>
+      <span class="tag tag-amber">Audit</span> Full change history with user attribution
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

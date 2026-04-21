@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trestle — Data Flow & System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#141B22;color:#F5F6F7;padding:40px;max-width:1400px;margin:0 auto}
+h1{font-family:'Outfit';font-size:1.6rem;font-weight:700;color:#F5F6F7;margin-bottom:4px}
+.subtitle{font-size:.82rem;color:#8A939C;margin-bottom:32px}
+h2{font-family:'Outfit';font-size:1rem;font-weight:600;color:#3B6EA5;margin:28px 0 12px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid rgba(197,205,212,0.12);padding-bottom:6px}
+h3{font-size:.82rem;font-weight:600;color:#C89B5E;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:1fr 1fr 1fr}
+.grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
+
+.card{background:#1B2530;border:1px solid rgba(197,205,212,0.10);border-radius:10px;padding:16px 18px}
+.card-accent{border-left:3px solid #3B6EA5}
+.card-warm{border-left:3px solid #C89B5E}
+.card-success{border-left:3px solid #3A7D5E}
+.card-danger{border-left:3px solid #C53030}
+
+.tag{display:inline-block;font-size:.62rem;font-weight:600;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.04em;margin-right:4px}
+.tag-blue{background:rgba(59,110,165,0.15);color:#5A8BC4}
+.tag-amber{background:rgba(200,155,94,0.15);color:#C89B5E}
+.tag-green{background:rgba(58,125,94,0.15);color:#3A7D5E}
+.tag-red{background:rgba(197,48,48,0.15);color:#D46060}
+.tag-slate{background:rgba(138,147,156,0.15);color:#8A939C}
+
+.label{font-size:.68rem;color:#8A939C;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.value{font-size:.82rem;color:#C5CDD4;line-height:1.5}
+.mono{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#5A8BC4;background:rgba(59,110,165,0.08);padding:1px 6px;border-radius:3px}
+
+.flow-arrow{text-align:center;color:#5E6B76;font-size:1.2rem;padding:4px 0}
+.flow-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.flow-box{background:#223040;border:1px solid rgba(197,205,212,0.08);border-radius:6px;padding:6px 12px;font-size:.74rem;color:#C5CDD4;white-space:nowrap}
+.flow-box.active{border-color:#3B6EA5;color:#5A8BC4}
+
+table{width:100%;border-collapse:collapse;font-size:.74rem;margin:8px 0}
+th{text-align:left;padding:5px 8px;border-bottom:1px solid rgba(197,205,212,0.12);color:#8A939C;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:.64rem}
+td{padding:5px 8px;border-bottom:1px solid rgba(197,205,212,0.06);color:#C5CDD4}
+tr:hover td{background:rgba(59,110,165,0.04)}
+</style>
+</head>
+<body>
+
+<h1>Trestle — Data Flow & System Architecture</h1>
+<p class="subtitle">How data persists, flows, and synchronizes across the planning platform</p>
+
+<!-- ═══ PERSISTENCE LAYER ═══ -->
+<h2>1. Three-Tier Persistence Model</h2>
+<div class="grid grid-3">
+  <div class="card card-accent">
+    <h3>Client: localStorage</h3>
+    <div class="label">Template/offline mode</div>
+    <div class="value">
+      <span class="mono">compPlanState_v2</span> — full state JSON (~2-5MB)<br>
+      <span class="mono">compPlanUser</span> — email, initials, color<br>
+      <span class="mono">compPlanSession</span> — reconnect context<br>
+      <span class="mono">pivotChartCfg</span> — chart settings<br>
+      <span class="mono">trestle-*</span> — admin rules, module access
+    </div>
+  </div>
+  <div class="card card-accent">
+    <h3>Server: PostgreSQL</h3>
+    <div class="label">Plan file collaboration</div>
+    <table>
+      <tr><th>Table</th><th>Purpose</th></tr>
+      <tr><td><span class="mono">accounts</span></td><td>Users (email, initials, color)</td></tr>
+      <tr><td><span class="mono">plan_files</span></td><td>Plans (name, year, state_data JSON)</td></tr>
+      <tr><td><span class="mono">plan_access</span></td><td>ACL: plan → user → role</td></tr>
+      <tr><td><span class="mono">plan_presence</span></td><td>Active user tracking</td></tr>
+      <tr><td><span class="mono">sessions</span></td><td>Legacy code-based collab</td></tr>
+      <tr><td><span class="mono">versions</span></td><td>Session state snapshots</td></tr>
+    </table>
+  </div>
+  <div class="card card-accent">
+    <h3>WebSocket: Real-time Sync</h3>
+    <div class="label">ws/handler.js — Room-based broadcasting</div>
+    <table>
+      <tr><th>Message</th><th>Direction</th></tr>
+      <tr><td><span class="mono">auth</span></td><td>Client → Server (join room)</td></tr>
+      <tr><td><span class="mono">state_update</span></td><td>Client → Server → Peers</td></tr>
+      <tr><td><span class="mono">state_sync</span></td><td>Server → All peers in room</td></tr>
+      <tr><td><span class="mono">presence</span></td><td>Server → All plan users</td></tr>
+      <tr><td><span class="mono">cursor</span></td><td>Client → Peers (cell selection)</td></tr>
+      <tr><td><span class="mono">tab</span></td><td>Client → Server (active tab)</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ STATE FLOW ═══ -->
+<h2>2. State Flow: User Action → Persistence</h2>
+<div class="card">
+  <div class="flow-row">
+    <div class="flow-box active">User edits cell</div>
+    <span style="color:#5E6B76">→</span>
+    <div class="flow-box">state.vendorRows[i].jan = value</div>
+    <span style="color:#5E6B76">→</span>
+    <div class="flow-box active">saveState()</div>
+    <span style="color:#5E6B76">→</span>
+    <div class="flow-box">localStorage.setItem('compPlanState_v2')</div>
+  </div>
+  <div class="flow-row" style="padding-left:40px">
+    <span style="color:#C89B5E">↳</span>
+    <div class="flow-box" style="border-color:#C89B5E">WS: state_update {stateData, timestamp}</div>
+    <span style="color:#5E6B76">→</span>
+    <div class="flow-box">Server broadcasts state_sync to room</div>
+    <span style="color:#5E6B76">→</span>
+    <div class="flow-box" style="border-color:#3A7D5E">Debounce 300ms → DB: plan_files.state_data</div>
+  </div>
+  <div class="flow-row" style="padding-left:40px">
+    <span style="color:#C89B5E">↳</span>
+    <div class="flow-box">Peer receives state_sync</div>
+    <span style="color:#5E6B76">→</span>
+    <div class="flow-box">Object.assign(state, parsed)</div>
+    <span style="color:#5E6B76">→</span>
+    <div class="flow-box active">renderAll() — UI refreshes</div>
+  </div>
+</div>
+
+<!-- ═══ STATE OBJECT ═══ -->
+<h2>3. State Object: What Lives Where</h2>
+<div class="grid grid-4">
+  <div class="card card-warm">
+    <h3>C&B / Employees</h3>
+    <div class="value">
+      <span class="mono">employees[]</span><br>
+      <span class="mono">bonusMatrix{}</span><br>
+      <span class="mono">benefitsMatrix{}</span><br>
+      <span class="mono">forecastAssumptions{}</span><br>
+      <span class="mono">customRates[]</span>
+    </div>
+  </div>
+  <div class="card card-warm">
+    <h3>OAO / Vendor</h3>
+    <div class="value">
+      <span class="mono">vendorRows[]</span><br>
+      <span class="mono">teRows[]</span><br>
+      <span class="mono">contractorRows[]</span><br>
+      <span class="mono">cbOtherRows[]</span><br>
+      <span class="mono">oaoOtherRows[]</span>
+    </div>
+  </div>
+  <div class="card card-warm">
+    <h3>Revenue & Assets</h3>
+    <div class="value">
+      <span class="mono">revenueRows[]</span><br>
+      <span class="mono">assetRows[]</span><br>
+      <span class="mono">depreciationRows[]</span><br>
+      <span class="mono">revenueClients[]</span><br>
+      <span class="mono">revenueForecast[]</span>
+    </div>
+  </div>
+  <div class="card card-warm">
+    <h3>Config / Dimensions</h3>
+    <div class="value">
+      <span class="mono">projects[]</span><br>
+      <span class="mono">markets[]</span><br>
+      <span class="mono">bizLines[]</span><br>
+      <span class="mono">accounts[]</span><br>
+      <span class="mono">functionalPillars{}</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DEPLOYMENT ═══ -->
+<h2>4. Deployment & Hosting</h2>
+<div class="grid grid-2">
+  <div class="card card-success">
+    <h3>Render.com</h3>
+    <div class="value">
+      <strong>Web Service:</strong> Node 20 + Express<br>
+      <strong>Build:</strong> Vite bundles src/ → dist/<br>
+      <strong>Start:</strong> node server.js (serves dist/ + API + WS)<br>
+      <strong>Database:</strong> PostgreSQL (Render managed)<br>
+      <strong>Env:</strong> DATABASE_URL auto-injected
+    </div>
+  </div>
+  <div class="card card-success">
+    <h3>Request Flow</h3>
+    <div class="flow-row">
+      <div class="flow-box">Browser</div>
+      <span style="color:#5E6B76">→</span>
+      <div class="flow-box">Render CDN</div>
+      <span style="color:#5E6B76">→</span>
+      <div class="flow-box active">Express</div>
+    </div>
+    <div class="value" style="margin-top:8px">
+      <span class="mono">GET /</span> → Vite dist/index.html<br>
+      <span class="mono">GET /api/*</span> → REST routes<br>
+      <span class="mono">WS /ws</span> → WebSocket handler<br>
+      <span class="mono">POST /api/plan-files/:id/state</span> → save state
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CALCULATION ENGINE ═══ -->
+<h2>5. Calculation Engine</h2>
+<div class="grid grid-2">
+  <div class="card">
+    <h3>Monthly Proration (proration.js)</h3>
+    <div class="value">
+      For each employee × each month:<br>
+      <span class="mono">factor = hireTermOverlap(hireDate, termDate, month)</span><br>
+      <span class="mono">base = (salary / 12) × factor</span><br>
+      <span class="mono">bonus = base × bonusMatrix[seniority][function]</span><br>
+      <span class="mono">benefits = base × benefitsMatrix × countryMult</span><br>
+      <span class="mono">capex = (base + bonus + benefits) × capPct</span><br>
+      <span class="mono">opex = total - capex</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>P&L Walk Aggregation (landing.js)</h3>
+    <div class="value">
+      <span class="tag tag-blue">HC</span> Active headcount per period<br>
+      <span class="tag tag-blue">C&B</span> = Σ(base + bonus + benefits) all employees<br>
+      <span class="tag tag-amber">OAO</span> = Σ vendorRows + teRows monthly<br>
+      <span class="tag tag-slate">CTR</span> = Σ contractorRows monthly<br>
+      <span class="tag tag-slate">D&A</span> = depreciation schedule total<br>
+      <span class="tag tag-green">EBITDA</span> = C&B + OAO + CTR + T&E<br>
+      <span class="tag tag-green">Tot Inv</span> = EBITDA (total investment)
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
