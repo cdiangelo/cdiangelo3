@@ -22,11 +22,11 @@
 .chevron-sub-item{padding:12px 18px;background:var(--panel);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:.82rem;color:var(--text-dim);font-weight:500;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .chevron-sub-item:hover{background:var(--accent-glow);border-color:var(--border-accent);color:var(--text)}
 /* RF scroll: subtle thin scrollbar */
-.rf-scroll::-webkit-scrollbar{width:4px}
+.rf-scroll::-webkit-scrollbar{width:3px}
 .rf-scroll::-webkit-scrollbar-track{background:transparent}
-.rf-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.rf-scroll::-webkit-scrollbar-thumb:hover{background:var(--text-dim)}
-.rf-scroll{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.rf-scroll::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:2px}
+.rf-scroll::-webkit-scrollbar-thumb:hover{background:var(--border)}
+.rf-scroll{scrollbar-width:thin;scrollbar-color:var(--border-light) transparent}
 .chevron-sub-item::after{content:'→';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:.72rem;color:var(--tertiary);opacity:0;transition:opacity .15s,transform .15s}
 .chevron-sub-item:hover::after{opacity:1;transform:translateY(-50%) translateX(2px)}
 

@@ -16,7 +16,7 @@
 .auth-card.typing{box-shadow:0 8px 40px rgba(0,0,0,.3),0 0 80px var(--accent-glow-lg)}
 
 /* ═══ TIER 2: HOME PAGE ═══ */
-#homePage{min-height:100vh;background:radial-gradient(ellipse at 60% 20%,var(--accent-glow) 0%,transparent 50%),radial-gradient(ellipse at 10% 80%,var(--secondary-soft) 0%,transparent 45%),var(--panel-inset)}
+#homePage{min-height:100vh;background:radial-gradient(ellipse at 60% 20%,var(--accent-glow) 0%,transparent 40%),radial-gradient(ellipse at 10% 80%,var(--accent-glow) 0%,transparent 35%),var(--panel-inset)}
 .home-header{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:56px;background:var(--bg);border-bottom:1px solid var(--border-light)}
 .home-header-left{display:flex;align-items:center;gap:16px}
 .home-header-right{display:flex;align-items:center;gap:12px}

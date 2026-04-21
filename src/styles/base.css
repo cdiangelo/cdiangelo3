@@ -7,8 +7,8 @@
   --border-strong:rgba(197,205,212,0.22);--border-accent:rgba(59,110,165,0.35);
   --text:#F5F6F7;--text-dim:#C5CDD4;--text-dark:#F5F6F7;--tertiary:#8A939C;
   --accent:#3B6EA5;--accent-light:#5A8BC4;--accent-mid:rgba(59,110,165,0.50);
-  --accent-soft:rgba(59,110,165,0.12);--accent-glow:rgba(59,110,165,0.08);
-  --accent-glow-lg:rgba(59,110,165,0.18);
+  --accent-soft:rgba(59,110,165,0.10);--accent-glow:rgba(59,110,165,0.04);
+  --accent-glow-lg:rgba(59,110,165,0.10);
   --secondary:#C89B5E;--secondary-soft:rgba(200,155,94,0.14);
   --chart-1:#3B6EA5;--chart-1-fill:rgba(59,110,165,0.22);
   --chart-2:#C89B5E;--chart-2-fill:rgba(200,155,94,0.22);
@@ -59,8 +59,8 @@
   --bg:#141B22;--panel:#1B2530;--panel-inset:#17202A;--bg-elevated:#223040;--bg-overlay:#2A3848;--bg-input:#1A232E;
   --border:rgba(197,205,212,0.14);--border-light:rgba(197,205,212,0.08);--border-strong:rgba(197,205,212,0.22);--border-accent:rgba(59,110,165,0.35);
   --text:#F5F6F7;--text-dim:#C5CDD4;--text-dark:#F5F6F7;--tertiary:#8A939C;
-  --accent:#3B6EA5;--accent-light:#5A8BC4;--accent-mid:rgba(59,110,165,0.50);--accent-soft:rgba(59,110,165,0.12);--accent-glow:rgba(59,110,165,0.08);--accent-glow-lg:rgba(59,110,165,0.18);
-  --secondary:#C89B5E;--secondary-soft:rgba(200,155,94,0.14);
+  --accent:#3B6EA5;--accent-light:#5A8BC4;--accent-mid:rgba(59,110,165,0.50);--accent-soft:rgba(59,110,165,0.10);--accent-glow:rgba(59,110,165,0.04);--accent-glow-lg:rgba(59,110,165,0.10);
+  --secondary:#C89B5E;--secondary-soft:rgba(200,155,94,0.10);
   --chart-1:#3B6EA5;--chart-1-fill:rgba(59,110,165,0.22);--chart-2:#C89B5E;--chart-2-fill:rgba(200,155,94,0.22);--chart-3:#8A939C;--chart-3-fill:rgba(138,147,156,0.22);--chart-4:#5E6B76;--chart-4-fill:rgba(94,107,118,0.22);--chart-5:#8E3A32;--chart-5-fill:rgba(142,58,50,0.22);--chart-6:#3A7D5E;--chart-6-fill:rgba(58,125,94,0.22);--chart-7:#C5CDD4;--chart-7-fill:rgba(197,205,212,0.18);--chart-8:#2C3842;--chart-8-fill:rgba(44,56,66,0.30);
   --chart-grid:rgba(197,205,212,0.06);--chart-axis:rgba(197,205,212,0.14);--chart-tooltip-bg:rgba(20,27,34,0.97);
   --success:#3A7D5E;--success-soft:rgba(58,125,94,0.14);--warning:#C89B5E;--warning-soft:rgba(200,155,94,0.14);--danger:#C53030;--danger-soft:rgba(197,48,48,0.14);
