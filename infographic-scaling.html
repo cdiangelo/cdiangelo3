@@ -54,7 +54,7 @@ tr:hover td{background:rgba(59,110,165,0.04)}
 <body>
 
 <h1>Trestle — Feature Architecture & Scaling Roadmap</h1>
-<p class="subtitle">Planning model structure, admin capabilities, and path to enterprise scale (100-1000 users)</p>
+<p class="subtitle">Accelerated path: harden on a 5-10 person pilot team, then jump to 500-1000 users with milestone gates at 100 and 300</p>
 
 <!-- ═══ PLANNING MODEL ═══ -->
 <h2>1. Planning Model Structure</h2>
@@ -178,56 +178,52 @@ tr:hover td{background:rgba(59,110,165,0.04)}
 </div>
 
 <!-- ═══ SCALING ROADMAP ═══ -->
-<h2>5. Scaling Roadmap: 10 → 100 → 1000 Users</h2>
+<h2>5. Accelerated Scaling Roadmap: Pilot → 1000 Users</h2>
+<p class="subtitle" style="margin-bottom:12px">Compressed to two phases: harden the full stack on a 5-10 person pilot team, then ramp to 500-1000 with milestone testing gates at 100 and 300 users.</p>
 
 <div class="card" style="margin-bottom:16px">
   <div class="phase">
     <div class="phase-item" style="background:rgba(58,125,94,0.06)">
-      <div class="phase-num">Phase 1 — Foundation (10-50 users)</div>
-      <h4>Authentication & Sessions</h4>
+      <div class="phase-num">Phase 1 — Pilot Hardening (5-10 users, one team)</div>
+      <h4>Scope: standardize the full northstar on a single team</h4>
       <div class="value">
-        OAuth (Google/Azure AD) replacing email-only login<br>
-        JWT tokens with refresh rotation<br>
-        Server-side sessions (express-session + Redis)
+        Merged foundation + enterprise work executed end-to-end on one controlled team so every later user lands on a stable base. No feature gaps carried forward.
+      </div>
+      <h4>Auth & Sessions</h4>
+      <div class="value">
+        OAuth (Google / Azure AD) replaces email login · JWT w/ refresh rotation · server-side sessions (express-session + Redis)
       </div>
       <h4>Data Model</h4>
       <div class="value">
-        Normalize state_data into relational tables<br>
-        <span class="mono">employees</span>, <span class="mono">vendor_rows</span>, <span class="mono">plan_config</span> as separate tables<br>
-        Row-level saves (PATCH instead of full PUT)
+        Normalize <span class="mono">state_data</span> JSON into relational tables (<span class="mono">employees</span>, <span class="mono">vendor_rows</span>, <span class="mono">plan_config</span>, <span class="mono">field_defs</span>) · row-level PATCH saves · optimistic locking with version column
       </div>
-    </div>
-    <div class="phase-item" style="background:rgba(200,155,94,0.06)">
-      <div class="phase-num">Phase 2 — Enterprise (50-200 users)</div>
-      <h4>Access Control</h4>
+      <h4>Access Control & Collab</h4>
       <div class="value">
-        Row-Level Security (PostgreSQL RLS policies)<br>
-        Dimension-based access: user → market/bizline/project<br>
-        Module-level read/write/hidden per role<br>
-        Admin panel with user management UI
+        PostgreSQL RLS policies · dimension-based access (market / bizline / project) · module-level read/write/hidden per role · cell-level CRDT or OT for conflict resolution · DB-persisted audit log · admin user-management UI
       </div>
-      <h4>Collaboration</h4>
+      <h4>Exit criteria to leave pilot</h4>
       <div class="value">
-        Conflict resolution (OT or CRDT for cell-level edits)<br>
-        Edit locking at row/section level<br>
-        Audit log persisted to DB with user + timestamp
+        <span class="pill pill-now">Zero-data-loss under concurrent edit</span>
+        <span class="pill pill-now">Full close cycle run on Trestle</span>
+        <span class="pill pill-now">EPM round-trip validated</span>
+        <span class="pill pill-now">Automated regression suite green</span>
       </div>
     </div>
     <div class="phase-item" style="background:rgba(59,110,165,0.06)">
-      <div class="phase-num">Phase 3 — Scale (200-1000 users)</div>
+      <div class="phase-num">Phase 2 — Scale Ramp (10 → 1000 users)</div>
       <h4>Infrastructure</h4>
       <div class="value">
-        Redis for caching + session store<br>
-        Read replicas for reporting queries<br>
-        WebSocket clustering (Redis pub/sub adapter)<br>
-        Rate limiting + request queuing
+        Redis cache + session store · read replicas for reporting · WebSocket clustering via Redis pub/sub · rate limiting & request queuing · horizontal app tier behind LB
       </div>
       <h4>Integrations</h4>
       <div class="value">
-        REST API for EPM push/pull<br>
-        Actuals ingestion pipeline<br>
-        Export to EPM (Oracle, Anaplan, Workday Adaptive)<br>
-        SSO + SCIM user provisioning
+        REST API for EPM push/pull · actuals ingestion pipeline · export to Oracle EPM, Anaplan, Workday Adaptive · SSO + SCIM provisioning
+      </div>
+      <h4>Milestone gates (don't open next cohort until green)</h4>
+      <div class="value">
+        <span class="pill pill-next">~100 users</span> load test at 3× headroom, p95 save &lt; 400ms, RLS audit, disaster-recovery drill<br>
+        <span class="pill pill-next">~300 users</span> multi-tenant isolation review, WebSocket fan-out stress, EPM connector reliability SLO, pen test<br>
+        <span class="pill pill-future">500-1000 users</span> multi-region read replicas, capacity plan to 2× peak, on-call rotation + runbooks
       </div>
     </div>
   </div>
@@ -258,31 +254,174 @@ tr:hover td{background:rgba(59,110,165,0.04)}
   </div>
 </div>
 
-<!-- ═══ FEATURE MAPPING ═══ -->
-<h2>7. Feature Mapping: Standard vs Custom</h2>
-<div class="grid grid-2">
+<!-- ═══ NORTHSTAR STRUCTURE ═══ -->
+<h2>7. Northstar Structure — Standard vs Custom vs Admin-Managed</h2>
+<p class="subtitle" style="margin-bottom:12px">Three clearly separated layers so a firm-specific rollout doesn't fork the core product: fixed standard surface, tenant-owned custom fields, and admin-managed field types shared across accounts.</p>
+
+<div class="grid grid-3">
   <div class="card card-success">
-    <h3>Standard Features (all tenants)</h3>
+    <h3>Standard Feature Surface</h3>
+    <h4>Core planning modules (fixed)</h4>
     <div class="value">
-      <span class="tag tag-green">Input</span> 7 cost modules + revenue<br>
-      <span class="tag tag-green">Calc</span> Monthly proration, bonus/benefits, CapEx split<br>
-      <span class="tag tag-green">Output</span> P&L walk, pivot analytics, scenario comparison<br>
-      <span class="tag tag-green">Collab</span> Multi-user presence, live cursors, state sync<br>
-      <span class="tag tag-green">Export</span> XLSX, PNG charts, clipboard paste<br>
-      <span class="tag tag-green">Config</span> Dimensions (markets, BU, projects, accounts, pillars)<br>
-      <span class="tag tag-green">Admin</span> Module access, ops view, share with roles
+      Revenue, HC &amp; Comp, Vendor/OAO, Contractors, T&amp;E, Other, D&amp;A · monthly proration, bonus/benefits, CapEx split · P&amp;L walk, pivot, scenario compare · multi-user presence, live cursors · XLSX / PNG / clipboard export
+    </div>
+    <h4>Firm-specific EPM integration (standard connectors)</h4>
+    <div class="value">
+      <span class="tag tag-green">Oracle EPM</span>
+      <span class="tag tag-green">Anaplan</span>
+      <span class="tag tag-green">Workday Adaptive</span>
+      <span class="tag tag-green">SAP / NetSuite GL</span><br>
+      Each connector ships as a versioned module with: schema mapping, chartfield crosswalk, incremental + full-load modes, retry/backoff, reconciliation report. New firm = configure, not fork.
+    </div>
+    <h4>Standard dimensions</h4>
+    <div class="value">
+      Business Unit · Biz Line · Market · Project · Account · Pillar · Scenario · Period
     </div>
   </div>
+
   <div class="card card-warm">
-    <h3>Custom / Enterprise Features</h3>
+    <h3>Custom Fields (tenant / template)</h3>
+    <h4>Template-driven extension points</h4>
     <div class="value">
-      <span class="tag tag-amber">Auth</span> SSO / SAML / SCIM integration<br>
+      Each module exposes a <span class="mono">custom_fields[]</span> slot defined per tenant template. Fields declared in <span class="mono">field_defs</span> with <span class="mono">scope</span> (module, row, employee), <span class="mono">type</span>, <span class="mono">validation</span>, <span class="mono">visibility</span>, and <span class="mono">default</span>.
+    </div>
+    <h4>Common template needs</h4>
+    <div class="value">
+      <span class="tag tag-amber">HC</span> job family, grade band, equity %, visa status<br>
+      <span class="tag tag-amber">Vendor</span> contract end, renewal flag, PO #<br>
+      <span class="tag tag-amber">Revenue</span> deal stage, close probability, product SKU<br>
+      <span class="tag tag-amber">Contractor</span> agency, SoW id, cost center override
+    </div>
+    <h4>Governance</h4>
+    <div class="value">
+      Custom fields never affect core calc unless opted in · schema migrations per tenant are additive only · exported in pivot/report builder like standard fields
+    </div>
+  </div>
+
+  <div class="card card-accent">
+    <h3>Admin-Managed Field Types (cross-account)</h3>
+    <h4>Shared reference data</h4>
+    <div class="value">
+      Firm-admin maintains reusable typed sets surfaced across every plan:<br>
+      <span class="tag tag-blue">Contractor rates</span> rate cards by role × geo × seniority<br>
+      <span class="tag tag-blue">Benefits / loaded cost</span> by country / entity<br>
+      <span class="tag tag-blue">FX rates</span> monthly table, budget vs actual<br>
+      <span class="tag tag-blue">Salary bands</span> by grade and location<br>
+      <span class="tag tag-blue">Vendor catalog</span> parent co, tax id, default GL<br>
+      <span class="tag tag-blue">GL / chart of accounts</span> mirrored from ERP
+    </div>
+    <h4>Propagation</h4>
+    <div class="value">
+      Versioned in <span class="mono">reference_sets</span>; plans bind to a version so a rate change doesn't retro-edit a locked close. Admin publishes → tenants pull → users see new defaults on next row create.
+    </div>
+    <h4>Permissioning</h4>
+    <div class="value">
+      Firm-admin write · tenant-admin read + override for their scope · end-user read-only via lookup
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:16px">
+  <div class="card card-accent">
+    <h3>Data Structures for Scale & Reliability</h3>
+    <table>
+      <tr><th>Concern</th><th>Structure</th></tr>
+      <tr><td>Atomic saves</td><td>Row-level tables with <span class="mono">version</span> + <span class="mono">updated_at</span>; PATCH endpoints per module</td></tr>
+      <tr><td>Concurrent edits</td><td>CRDT doc per plan for cell grids; server-authoritative merges via Redis pub/sub</td></tr>
+      <tr><td>Tenant isolation</td><td><span class="mono">tenant_id</span> on every row + PostgreSQL RLS policies enforced server-side</td></tr>
+      <tr><td>Reference data</td><td>Versioned <span class="mono">reference_sets</span> table; plans pin to version id</td></tr>
+      <tr><td>Audit</td><td>Append-only <span class="mono">change_log</span> (user, field, before, after, ts) partitioned by month</td></tr>
+      <tr><td>Read scale</td><td>Materialized views for P&amp;L rollups; read replicas for reporting &amp; pivot</td></tr>
+      <tr><td>Write throughput</td><td>Debounced batched PATCH + idempotency keys; queue for EPM outbound</td></tr>
+      <tr><td>Backup / DR</td><td>PITR on primary; cross-region snapshot; restore drill each milestone gate</td></tr>
+    </table>
+  </div>
+  <div class="card card-warm">
+    <h3>Enterprise Capabilities (layered on northstar)</h3>
+    <div class="value">
+      <span class="tag tag-amber">Auth</span> SSO / SAML / SCIM<br>
       <span class="tag tag-amber">Security</span> Row-level dimension-based access<br>
       <span class="tag tag-amber">Workflow</span> Approval chains, lock periods, sign-off<br>
-      <span class="tag tag-amber">Integration</span> EPM connectors (Oracle, Anaplan, Workday)<br>
       <span class="tag tag-amber">Reporting</span> Custom report builder, scheduled exports<br>
       <span class="tag tag-amber">Multi-org</span> Consolidation across business units<br>
-      <span class="tag tag-amber">Audit</span> Full change history with user attribution
+      <span class="tag tag-amber">Audit</span> Full change history with user attribution<br>
+      <span class="tag tag-amber">Observability</span> Per-tenant SLO dashboards, anomaly alerts
+    </div>
+  </div>
+</div>
+
+<!-- ═══ AUTOMATED TESTING ═══ -->
+<h2>8. Scaled &amp; Automated Testing — Feature, Quality, Efficacy</h2>
+<p class="subtitle" style="margin-bottom:12px">Pilot phase builds the test harness; every milestone gate (100, 300, 500-1000) reruns the full stack against production-shaped synthetic tenants before opening the next cohort.</p>
+
+<div class="grid grid-3">
+  <div class="card card-accent">
+    <h3>Feature Testing (does it work)</h3>
+    <h4>Layers</h4>
+    <div class="value">
+      <span class="tag tag-blue">Unit</span> calc engine (proration, CapEx, D&amp;A, FX) — ≥90% coverage<br>
+      <span class="tag tag-blue">Integration</span> module PATCH → DB → WebSocket broadcast<br>
+      <span class="tag tag-blue">E2E</span> Playwright flows per persona (admin, planner, viewer)<br>
+      <span class="tag tag-blue">Contract</span> EPM connector schema tests against vendor sandboxes
+    </div>
+    <h4>Automation</h4>
+    <div class="value">
+      Runs on every PR · nightly full-regression on synthetic tenant seed · PR blocked if calc snapshot diffs unexpectedly
+    </div>
+  </div>
+
+  <div class="card card-warm">
+    <h3>Quality Testing (does it hold up)</h3>
+    <h4>Load &amp; scale</h4>
+    <div class="value">
+      k6 / Locust scenarios: 100 / 300 / 1000 concurrent editors, month-end save storm, pivot fan-out<br>
+      SLOs: p95 save &lt; 400ms, p99 WS broadcast &lt; 250ms, error rate &lt; 0.1%
+    </div>
+    <h4>Resilience</h4>
+    <div class="value">
+      Chaos drills (kill primary, drop Redis, partition WS) · DR restore timed at each milestone · cross-tenant isolation fuzz tests
+    </div>
+    <h4>Security</h4>
+    <div class="value">
+      RLS policy test suite · authz matrix tests · dependency &amp; secret scans in CI · external pen test before 300-user gate
+    </div>
+  </div>
+
+  <div class="card card-success">
+    <h3>Efficacy Testing (does it help)</h3>
+    <h4>Calc accuracy</h4>
+    <div class="value">
+      Golden-plan fixtures (AOP, RF, LTP) reconciled to Excel baseline to the cent · EPM round-trip diff must be zero on chartfield × month
+    </div>
+    <h4>User efficacy</h4>
+    <div class="value">
+      Time-to-close telemetry · cells-edited-per-session · error-correction rate · pilot-team NPS baseline and tracked through each milestone
+    </div>
+    <h4>Analytics-driven gates</h4>
+    <div class="value">
+      Feature flags + cohort analytics · A/B on major UX changes · auto-rollback if p95 latency or error rate regresses &gt; 2σ
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h3>Test Harness &amp; CI Pipeline</h3>
+  <div class="grid grid-2" style="gap:12px;margin-top:8px">
+    <div class="value">
+      <h4 style="margin-top:0">Synthetic tenant generator</h4>
+      Seeds N tenants × M users × realistic plan shapes (14 files, populated modules, reference sets, audit history) for deterministic load and efficacy runs.
+    </div>
+    <div class="value">
+      <h4 style="margin-top:0">Calc snapshot testing</h4>
+      Every PR computes a canonical P&amp;L hash across fixture plans; any unintended drift fails the build with a diff of impacted chartfields.
+    </div>
+    <div class="value">
+      <h4 style="margin-top:0">Environment tiers</h4>
+      <span class="pill pill-now">dev</span> per-branch ephemeral · <span class="pill pill-next">staging</span> mirrors prod schema &amp; data volumes · <span class="pill pill-future">perf</span> dedicated cluster for k6 / chaos runs
+    </div>
+    <div class="value">
+      <h4 style="margin-top:0">Release gates</h4>
+      Unit + integration on PR · E2E + contract on merge · load + chaos + security nightly · full milestone suite before opening each scale cohort (100 → 300 → 1000)
     </div>
   </div>
 </div>
