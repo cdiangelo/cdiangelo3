@@ -249,6 +249,7 @@ function resolveColor(c){if(!c||COLOR_MAP[c])return COLOR_MAP[c||''];return c.st
     {key:'te',label:'T&E'},
   ];
   function getActual(key){
+    if(!state)return 0;
     const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
     const sumMo=(rows)=>(rows||[]).reduce((s,r)=>s+MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
     if(key==='hc')return (state.employees||[]).length;
@@ -260,8 +261,8 @@ function resolveColor(c){if(!c||COLOR_MAP[c])return COLOR_MAP[c||''];return c.st
     if(key==='totinv'){const cb=getActual('cb');const oao=getActual('oao');const te=getActual('te');const ctr=getActual('ctr');return cb+oao+te+ctr}
     return 0;
   }
-  function getTargets(){return state.targets||[]}
-  function setTargets(t){state.targets=t;saveState()}
+  function getTargets(){return state?.targets||[]}
+  function setTargets(t){if(!state)return;state.targets=t;saveState()}
   const list=document.getElementById('targetList');
   const addBtn=document.getElementById('targetAddBtn');
   if(!list||!addBtn)return;
@@ -322,6 +323,7 @@ function resolveColor(c){if(!c||COLOR_MAP[c])return COLOR_MAP[c||''];return c.st
     });
   });
 
-  render();
+  // Don't render at load time — state isn't populated yet.
+  // Render is called via window._renderTargets after plan loads.
   window._renderTargets=render;
 })();

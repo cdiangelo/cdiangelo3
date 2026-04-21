@@ -99,6 +99,7 @@ function showLanding(){
   if(chevNav)chevNav.style.display='';
   if(sumContent)sumContent.style.display='none';
   renderPnlWalk();renderLandingCharts();
+  if(window._renderTargets)try{window._renderTargets()}catch(e){}
   if(window._updateGlobalToolbar)window._updateGlobalToolbar();
   if(window._updateBottomToolbar)window._updateBottomToolbar();
 }
