@@ -28,8 +28,8 @@ window.applyPlanChevronContext = function(plan){
     const subItemsHtml=budgetMenu?budgetMenu.innerHTML:'';
     // Scrollable container
     const scroll=document.createElement('div');
-    scroll.className='rf-month-chev';
-    scroll.style.cssText='max-height:240px;overflow-y:auto;overflow-x:visible;display:flex;flex-direction:column;gap:8px;padding-right:4px;scroll-behavior:smooth';
+    scroll.className='rf-month-chev rf-scroll';
+    scroll.style.cssText='max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;scroll-behavior:smooth';
     for(let m=0;m<12;m++){
       const actuals=m+1;const forecast=12-actuals;
       const label=actuals+'+'+(forecast);
@@ -45,7 +45,11 @@ window.applyPlanChevronContext = function(plan){
         if(m!==currentMonth&&window._loadRFMonth){window._loadRFMonth(m);return}
         const wasExpanded=chev.classList.contains('expanded');
         scroll.querySelectorAll('.chevron-item.expanded').forEach(c=>c.classList.remove('expanded'));
-        if(!wasExpanded)chev.classList.add('expanded');
+        if(!wasExpanded){
+          chev.classList.add('expanded');
+          const sub=chev.querySelector('.chevron-submenu');
+          if(sub){const r=chev.getBoundingClientRect();sub.style.left=(r.right+16)+'px';sub.style.top=r.top+'px'}
+        }
       });
       scroll.appendChild(chev);
     }
