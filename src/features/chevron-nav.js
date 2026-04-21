@@ -16,8 +16,7 @@ window.applyPlanChevronContext = function(plan){
   chevNav?.querySelectorAll('.rf-month-chev').forEach(el=>el.remove());
 
   if(isRF){
-    // RF: hide Budget + Forecast, inject N+M month chevrons
-    // Months scroll vertically; clicking one expands sub-items inline below it
+    // RF: scrollable month list on left, sub-items flyout on right
     if(budgetChev)budgetChev.style.display='none';
     if(forecastChev)forecastChev.style.display='none';
     const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -27,63 +26,77 @@ window.applyPlanChevronContext = function(plan){
     const budgetMenu=document.getElementById('chevBudgetMenu');
     const subItemsHtml=budgetMenu?budgetMenu.innerHTML:'';
 
-    // Container for all RF months — scrolls, but no overflow clip on X
-    const rfWrap=document.createElement('div');
-    rfWrap.className='rf-month-chev rf-scroll';
-    rfWrap.style.cssText='max-height:calc(100vh - 280px);overflow-y:auto;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth';
+    // Outer wrapper: position:relative so the flyout can anchor to its right edge
+    const rfOuter=document.createElement('div');
+    rfOuter.className='rf-month-chev';
+    rfOuter.style.cssText='position:relative';
+
+    // Scrollable month list
+    const rfScroll=document.createElement('div');
+    rfScroll.className='rf-scroll';
+    rfScroll.style.cssText='max-height:calc(100vh - 300px);overflow-y:auto;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth';
+
+    // Flyout panel — sits to the right of the scroll area, position:absolute
+    const flyout=document.createElement('div');
+    flyout.className='rf-flyout';
+    flyout.style.cssText='display:none;position:absolute;left:calc(100% + 16px);top:0;width:240px;flex-direction:column;gap:6px;z-index:100';
+    flyout.innerHTML=subItemsHtml;
+
+    // Wire flyout sub-item clicks
+    flyout.querySelectorAll('.chevron-sub-item').forEach(sub=>{
+      sub.addEventListener('click',()=>{
+        window.planContext='budget';
+        if(window.navigateToModule)window.navigateToModule(sub.dataset.module);
+      });
+    });
+
+    let activeRfRow=null;
 
     for(let m=0;m<12;m++){
       const actuals=m+1;const forecast=12-actuals;
       const label=actuals+'+'+(forecast);
       const isActive=m===currentMonth;
       const isPast=m<currentMonth;
-
-      // Month row — compact
       const row=document.createElement('div');
-      row.className='rf-month-row'+(isActive?' rf-active':'');
+      row.className='chevron-item rf-month-row';
       row.dataset.rfMonth=m;
-      row.style.cssText='cursor:pointer';
-      row.innerHTML=`<div class="chevron-shape" style="padding:10px 18px;min-height:40px;${isActive?'border-left-color:var(--accent);background:var(--accent-soft);':''}${isPast?'opacity:.5;':''}"><span class="chevron-label" style="font-size:.85rem">${label}<span style="font-size:.68rem;font-weight:400;color:var(--text-dim);margin-left:6px">${MO_SHORT[m]}</span></span><span class="chevron-hover-arrow">&#9655;</span></div>`;
-
-      // Sub-items container — hidden by default, shown inline when selected
-      const subs=document.createElement('div');
-      subs.className='rf-subs';
-      subs.style.cssText='display:none;flex-direction:column;gap:4px;padding:6px 0 6px 20px';
-      subs.innerHTML=subItemsHtml;
+      row.innerHTML=`<div class="chevron-shape" style="${isActive?'border-left-color:var(--accent);background:var(--accent-soft);':''}${isPast?'opacity:.5;':''}"><span class="chevron-label">${label}<span style="font-size:.7rem;font-weight:400;color:var(--text-dim);margin-left:6px">${MO_SHORT[m]}</span></span><span class="chevron-hover-arrow">&#9655;</span></div>`;
 
       row.querySelector('.chevron-shape').addEventListener('click',()=>{
         if(m!==currentMonth&&window._loadRFMonth){window._loadRFMonth(m);return}
-        // Toggle: collapse all, expand this one
-        const wasOpen=subs.style.display==='flex';
-        rfWrap.querySelectorAll('.rf-subs').forEach(s=>s.style.display='none');
-        rfWrap.querySelectorAll('.chevron-shape').forEach(s=>s.querySelector('.chevron-hover-arrow').innerHTML='&#9655;');
-        if(!wasOpen){
-          subs.style.display='flex';
-          row.querySelector('.chevron-hover-arrow').innerHTML='&#9661;';
-          setTimeout(()=>row.scrollIntoView({block:'nearest',behavior:'smooth'}),50);
-        }
+        const wasOpen=activeRfRow===row;
+        // Deselect previous
+        if(activeRfRow){activeRfRow.querySelector('.chevron-hover-arrow').innerHTML='&#9655;';activeRfRow.classList.remove('expanded')}
+        if(wasOpen){flyout.style.display='none';activeRfRow=null;return}
+        // Select this one — position flyout aligned to this row
+        row.querySelector('.chevron-hover-arrow').innerHTML='&#9661;';
+        row.classList.add('expanded');
+        activeRfRow=row;
+        const rowRect=row.getBoundingClientRect();
+        const outerRect=rfOuter.getBoundingClientRect();
+        flyout.style.top=(rowRect.top-outerRect.top)+'px';
+        flyout.style.display='flex';
       });
-
-      // Sub-item clicks — use direct handlers since these are dynamic
-      subs.querySelectorAll('.chevron-sub-item').forEach(sub=>{
-        sub.addEventListener('click',()=>{
-          const module=sub.dataset.module;
-          window.planContext='budget';
-          if(window.navigateToModule)window.navigateToModule(module);
-        });
-      });
-
-      rfWrap.appendChild(row);
-      rfWrap.appendChild(subs);
+      rfScroll.appendChild(row);
     }
-    chevNav.appendChild(rfWrap);
 
-    // Auto-expand current month
-    const activeRow=rfWrap.querySelector('.rf-active');
-    if(activeRow){
-      const activeSubs=activeRow.nextElementSibling;
-      if(activeSubs){activeSubs.style.display='flex';activeRow.querySelector('.chevron-hover-arrow').innerHTML='&#9661;'}
-      setTimeout(()=>activeRow.scrollIntoView({block:'center',behavior:'smooth'}),100);
+    rfOuter.appendChild(rfScroll);
+    rfOuter.appendChild(flyout);
+    chevNav.appendChild(rfOuter);
+
+    // Auto-select current month
+    const activeEl=rfScroll.querySelector(`[data-rf-month="${currentMonth}"]`);
+    if(activeEl){
+      activeEl.querySelector('.chevron-hover-arrow').innerHTML='&#9661;';
+      activeEl.classList.add('expanded');
+      activeRfRow=activeEl;
+      flyout.style.display='flex';
+      setTimeout(()=>{
+        const rowRect=activeEl.getBoundingClientRect();
+        const outerRect=rfOuter.getBoundingClientRect();
+        flyout.style.top=(rowRect.top-outerRect.top)+'px';
+        activeEl.scrollIntoView({block:'center',behavior:'smooth'});
+      },100);
     }
   } else if(isLTP){
     if(budgetChev)budgetChev.style.display='none';
