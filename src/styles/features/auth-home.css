@@ -60,13 +60,13 @@
 .home-recent{background:var(--panel);border:1px solid var(--border-light);border-radius:12px;padding:16px;max-height:300px;overflow-y:auto;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 
 /* ═══ PLAN HEADER BAR ═══ */
-#planHeaderBar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:44px;background:var(--toolbar-bg);border-bottom:1px solid var(--toolbar-border);font-size:.8rem;position:fixed;top:0;left:0;right:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.08);color:#4a9e8e}
-#planHeaderBar .btn{background:transparent;border-color:var(--toolbar-border);color:#4a9e8e}
+#planHeaderBar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:44px;background:var(--toolbar-bg);border-bottom:1px solid var(--toolbar-border);font-size:.8rem;position:fixed;top:0;left:0;right:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.08);color:#b0a090}
+#planHeaderBar .btn{background:transparent;border-color:var(--toolbar-border);color:#b0a090}
 #planHeaderBar .btn:hover{color:var(--accent-light);border-color:var(--accent)}
 .plan-hdr-left{display:flex;align-items:center;gap:10px}
 .plan-hdr-name{font-weight:500;color:var(--accent)}
 .plan-hdr-badge{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:20px;font-weight:500;border:1px solid var(--border)}
 .plan-hdr-right{display:flex;align-items:center;gap:12px}
-.plan-hdr-saved{font-size:.7rem;color:#4a9e8e}
+.plan-hdr-saved{font-size:.7rem;color:#b0a090}
 .plan-hdr-users{display:flex;gap:4px;align-items:center}
 .plan-hdr-users .user-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;color:#fff;border:2px solid var(--panel)}

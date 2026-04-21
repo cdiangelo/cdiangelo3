@@ -39,16 +39,16 @@ export function getChartFills(){
 }
 
 // Static fallback arrays for code that imports these at module load time
-const _fallback=['#3B7DD8','#8B2020','#D4A870','#60A0D8','#B04040','#8898B8','#E8C890','#1A4A8C'];
+const _fallback=['#c4853a','#8b3a3a','#7a9ab0','#b89870','#9a7ab0','#6a8a70','#d4a870','#5c4a3a'];
 export const CHART_COLORS=_fallback;
 export const CHART_COLORS_MUTED_DARK=_fallback;
 export const CHART_COLORS_NEON=_fallback;
 export const CHART_COLORS_CRISP=_fallback;
 export const CHART_COLORS_CRISP_DARK=_fallback;
 
-// Tag colors — light and dark derived from chart palette
-export const TAG_COLORS_LIGHT=['#0f172a','#0f766e','#0284c7','#059669','#4338ca','#d97706','#2563eb','#dc2626','#0891b2','#7c3aed','#475569','#065f46'];
-export const TAG_COLORS_DARK=['#e2e8f0','#2dd4bf','#38bdf8','#10b981','#818cf8','#f59e0b','#6366f1','#ef4444','#67e8f9','#a78bfa','#94a3b8','#86efac'];
+// Tag colors — warm palette
+export const TAG_COLORS_LIGHT=['#5c4a3a','#8a5a2a','#7a3a3a','#4a6a5a','#6a5a8a','#b07838','#3a5a6a','#a04040','#5a7a5a','#8a6a9a','#6a5a48','#4a7a40'];
+export const TAG_COLORS_DARK=['#d4c8b8','#d8a060','#c07070','#8ab898','#b0a0c8','#e0b878','#7ab0c0','#d08080','#90b890','#c0a8d0','#b0a898','#80b070'];
 
 export function getCrispDatalabelColor(){return null}
 
