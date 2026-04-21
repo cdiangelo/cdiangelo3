@@ -1,51 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 270" role="img">
 <title>Trestle</title>
 <!-- Border frame -->
-<rect x="5" y="5" width="200" height="260" rx="8" fill="#1B1E38" stroke="#1B1E38" stroke-width="5"/>
+<rect x="5" y="5" width="200" height="260" rx="8" fill="#141B22" stroke="#141B22" stroke-width="5"/>
 <!-- Interior matte -->
-<rect x="15" y="18" width="180" height="235" fill="#EEE7DA"/>
+<rect x="15" y="18" width="180" height="235" fill="#E8EAED"/>
 <!-- Trestle structure group -->
 <g transform="translate(15, 3)">
 <!-- T overlay (behind trestle) -->
-<path d="M 4 15 L 176 15 Q 180 15 180 19 L 180 46 Q 180 50 176 50 L 120 50 L 120 246 Q 120 250 116 250 L 64 250 Q 60 250 60 246 L 60 50 L 4 50 Q 0 50 0 46 L 0 19 Q 0 15 4 15 Z" fill="#3A7A7D" opacity="0.22"/>
+<path d="M 4 15 L 176 15 Q 180 15 180 19 L 180 46 Q 180 50 176 50 L 120 50 L 120 246 Q 120 250 116 250 L 64 250 Q 60 250 60 246 L 60 50 L 4 50 Q 0 50 0 46 L 0 19 Q 0 15 4 15 Z" fill="#3B6EA5" opacity="0.22"/>
 <!-- X-bracing tier 1 (y=50→117) -->
-<line x1="0" y1="50" x2="60" y2="117" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="60" y1="50" x2="0" y2="117" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="60" y1="50" x2="120" y2="117" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="120" y1="50" x2="60" y2="117" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="120" y1="50" x2="180" y2="117" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="180" y1="50" x2="120" y2="117" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="0" y1="50" x2="60" y2="117" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="60" y1="50" x2="0" y2="117" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="60" y1="50" x2="120" y2="117" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="120" y1="50" x2="60" y2="117" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="120" y1="50" x2="180" y2="117" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="180" y1="50" x2="120" y2="117" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
 <!-- X-bracing tier 2 (y=117→183) -->
-<line x1="0" y1="117" x2="60" y2="183" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="60" y1="117" x2="0" y2="183" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="60" y1="117" x2="120" y2="183" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="120" y1="117" x2="60" y2="183" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="120" y1="117" x2="180" y2="183" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="180" y1="117" x2="120" y2="183" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="0" y1="117" x2="60" y2="183" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="60" y1="117" x2="0" y2="183" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="60" y1="117" x2="120" y2="183" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="120" y1="117" x2="60" y2="183" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="120" y1="117" x2="180" y2="183" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="180" y1="117" x2="120" y2="183" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
 <!-- X-bracing tier 3 (y=183→250) -->
-<line x1="0" y1="183" x2="60" y2="250" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="60" y1="183" x2="0" y2="250" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="60" y1="183" x2="120" y2="250" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="120" y1="183" x2="60" y2="250" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="120" y1="183" x2="180" y2="250" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
-<line x1="180" y1="183" x2="120" y2="250" stroke="#1B1E38" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="0" y1="183" x2="60" y2="250" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="60" y1="183" x2="0" y2="250" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="60" y1="183" x2="120" y2="250" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="120" y1="183" x2="60" y2="250" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="120" y1="183" x2="180" y2="250" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
+<line x1="180" y1="183" x2="120" y2="250" stroke="#141B22" stroke-width="1.8" stroke-linecap="round"/>
 <!-- Tier ties -->
-<line x1="0" y1="117" x2="180" y2="117" stroke="#1B1E38" stroke-width="2.3" stroke-linecap="round"/>
-<line x1="0" y1="183" x2="180" y2="183" stroke="#1B1E38" stroke-width="2.3" stroke-linecap="round"/>
+<line x1="0" y1="117" x2="180" y2="117" stroke="#141B22" stroke-width="2.3" stroke-linecap="round"/>
+<line x1="0" y1="183" x2="180" y2="183" stroke="#141B22" stroke-width="2.3" stroke-linecap="round"/>
 <!-- Posts -->
-<line x1="0" y1="50" x2="0" y2="250" stroke="#1B1E38" stroke-width="2.8" stroke-linecap="round"/>
-<line x1="60" y1="50" x2="60" y2="250" stroke="#1B1E38" stroke-width="2.8" stroke-linecap="round"/>
-<line x1="120" y1="50" x2="120" y2="250" stroke="#1B1E38" stroke-width="2.8" stroke-linecap="round"/>
-<line x1="180" y1="50" x2="180" y2="250" stroke="#1B1E38" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="0" y1="50" x2="0" y2="250" stroke="#141B22" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="60" y1="50" x2="60" y2="250" stroke="#141B22" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="120" y1="50" x2="120" y2="250" stroke="#141B22" stroke-width="2.8" stroke-linecap="round"/>
+<line x1="180" y1="50" x2="180" y2="250" stroke="#141B22" stroke-width="2.8" stroke-linecap="round"/>
 <!-- Bottom rail -->
-<line x1="0" y1="250" x2="180" y2="250" stroke="#1B1E38" stroke-width="4" stroke-linecap="round"/>
+<line x1="0" y1="250" x2="180" y2="250" stroke="#141B22" stroke-width="4" stroke-linecap="round"/>
 <!-- Left landmass -->
-<path d="M 0 140 L 8 152 L 14 162 L 22 172 L 32 181 L 44 196 L 50 208 L 55 222 L 60 250 L 0 250 Z" fill="#2E3356"/>
+<path d="M 0 140 L 8 152 L 14 162 L 22 172 L 32 181 L 44 196 L 50 208 L 55 222 L 60 250 L 0 250 Z" fill="#2C3842"/>
 <!-- Right landmass -->
-<path d="M 180 140 L 172 152 L 166 162 L 158 172 L 148 181 L 136 196 L 130 208 L 125 222 L 120 250 L 180 250 Z" fill="#2E3356"/>
+<path d="M 180 140 L 172 152 L 166 162 L 158 172 L 148 181 L 136 196 L 130 208 L 125 222 L 120 250 L 180 250 Z" fill="#2C3842"/>
 <!-- Warren truss deck -->
-<polyline points="0,50 30,15 60,50 90,15 120,50 150,15 180,50" fill="none" stroke="#1B1E38" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<line x1="0" y1="15" x2="180" y2="15" stroke="#1B1E38" stroke-width="4" stroke-linecap="round"/>
-<line x1="0" y1="50" x2="180" y2="50" stroke="#1B1E38" stroke-width="3.2" stroke-linecap="round"/>
+<polyline points="0,50 30,15 60,50 90,15 120,50 150,15 180,50" fill="none" stroke="#141B22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="0" y1="15" x2="180" y2="15" stroke="#141B22" stroke-width="4" stroke-linecap="round"/>
+<line x1="0" y1="50" x2="180" y2="50" stroke="#141B22" stroke-width="3.2" stroke-linecap="round"/>
 </g>
 </svg>
