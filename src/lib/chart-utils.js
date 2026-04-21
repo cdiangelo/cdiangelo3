@@ -39,16 +39,16 @@ export function getChartFills(){
 }
 
 // Static fallback arrays for code that imports these at module load time
-const _fallback=['#1B1E38','#A17849','#3A7A7D','#6B6660','#A83C3C','#7A9478','#C4A574','#8E8680'];
+const _fallback=['#3B6EA5','#C89B5E','#8A939C','#5E6B76','#8E3A32','#3A7D5E','#C5CDD4','#2C3842'];
 export const CHART_COLORS=_fallback;
 export const CHART_COLORS_MUTED_DARK=_fallback;
 export const CHART_COLORS_NEON=_fallback;
 export const CHART_COLORS_CRISP=_fallback;
 export const CHART_COLORS_CRISP_DARK=_fallback;
 
-// Tag colors — Indigo Slate
-export const TAG_COLORS_LIGHT=['#1B1E38','#A17849','#3A7A7D','#6B6660','#A83C3C','#7A9478','#2E3356','#C08552','#3F3A33','#8B5A2E','#4A3A20','#938D85'];
-export const TAG_COLORS_DARK=['#C4BFB3','#C4A574','#5A9A9D','#938D85','#C87878','#9AB898','#7A80A8','#E0B878','#B0A898','#D4A870','#A08060','#C4BFB3'];
+// Tag colors — Graphite Steel
+export const TAG_COLORS_LIGHT=['#141B22','#3B6EA5','#C89B5E','#5E6B76','#8E3A32','#3A7D5E','#2C3842','#8A939C','#253F60','#7A1C1C','#4A3620','#6B2626'];
+export const TAG_COLORS_DARK=['#F5F6F7','#5A8BC4','#E0B87E','#C5CDD4','#C05850','#5A9878','#DDE2E8','#8A939C','#8DA3B8','#D46060','#C08552','#E87878'];
 
 export function getCrispDatalabelColor(){return null}
 
