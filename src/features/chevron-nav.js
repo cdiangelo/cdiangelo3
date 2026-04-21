@@ -3,6 +3,7 @@
 // Reusable: applies plan-type chevron visibility AFTER checkModuleAccess resets.
 // AOP → Budget+Forecast+Exec; RF → N+M label + hide Forecast; LTP → hide Budget.
 window.applyPlanChevronContext = function(plan){
+  console.log('applyPlanChevronContext called with:',plan?.name);
   const budgetChev=document.getElementById('chevBudget');
   const forecastChev=document.getElementById('chevForecast');
   const budgetLabel=document.querySelector('#chevBudget .chevron-label');

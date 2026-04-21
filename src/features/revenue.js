@@ -447,8 +447,10 @@ function renderRevFcChart(years){
 
 function initRevenueModule(){
   if(revenueModuleInited)return;
-  // Tab switching
-  document.getElementById('revNav').querySelectorAll('[data-rtab]').forEach(btn=>{
+  // Tab switching (old standalone module — may not exist if HTML was removed)
+  const _revNav=document.getElementById('revNav');
+  if(!_revNav){revenueModuleInited=true;return}
+  _revNav.querySelectorAll('[data-rtab]').forEach(btn=>{
     btn.addEventListener('click',function(){
       document.querySelectorAll('#revNav .btn').forEach(b=>b.classList.remove('active'));
       this.classList.add('active');
