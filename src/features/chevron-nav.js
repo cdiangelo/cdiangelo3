@@ -6,23 +6,43 @@ window.applyPlanChevronContext = function(plan){
   const budgetChev=document.getElementById('chevBudget');
   const forecastChev=document.getElementById('chevForecast');
   const budgetLabel=document.querySelector('#chevBudget .chevron-label');
+  const chevNav=document.getElementById('chevronNav');
   if(budgetLabel)budgetLabel.textContent='Budget';
   if(!plan||!plan.name)return;
   const isRF=plan.name.includes('RF —');
   const isLTP=plan.name.includes('Long-Term Plan');
+
+  // Remove any previously injected RF month chevrons
+  chevNav?.querySelectorAll('.rf-month-chev').forEach(el=>el.remove());
+
   if(isRF){
-    const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const mi=MO.findIndex(m=>plan.name.includes(m));
-    const actuals=mi>=0?mi+1:0;
-    if(budgetLabel)budgetLabel.textContent=actuals+'+'+(12-actuals);
+    // RF: hide Budget + Forecast, inject N+M chevrons for each month
+    if(budgetChev)budgetChev.style.display='none';
     if(forecastChev)forecastChev.style.display='none';
+    const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const mi=MO.findIndex(m=>plan.name.includes(m));
+    const currentMonth=mi>=0?mi:0;
+    for(let m=0;m<12;m++){
+      const actuals=m+1;const forecast=12-actuals;
+      const label=actuals+'+'+(forecast);
+      const isActive=m===currentMonth;
+      const isPast=m<currentMonth;
+      const chev=document.createElement('div');
+      chev.className='chevron-item rf-month-chev';
+      chev.innerHTML=`<div class="chevron-shape" style="${isActive?'border-left-color:var(--accent);background:var(--accent-soft);':''}${isPast?'opacity:.5;':''}"><span class="chevron-label">${label}<span style="font-size:.7rem;font-weight:400;color:var(--text-dim);margin-left:6px">${MO_SHORT[m]}</span></span><span class="chevron-hover-arrow">&#9655;</span></div>`;
+      chev.querySelector('.chevron-shape').addEventListener('click',()=>{
+        window._loadRFMonth&&window._loadRFMonth(m);
+      });
+      chevNav.appendChild(chev);
+    }
   } else if(isLTP){
     if(budgetChev)budgetChev.style.display='none';
   } else {
-    // AOP: no forecast module needed
+    // AOP: hide Forecast, show Budget only
     if(forecastChev)forecastChev.style.display='none';
   }
-  // Hide LTF sections in exec summary for AOP and RF (only show for LTP)
+  // Hide LTF sections in exec summary for AOP and RF
   const hideLtf=!isLTP;
   const ltfViewBtn=document.querySelector('[data-view="forecast"]');
   if(ltfViewBtn)ltfViewBtn.style.display=hideLtf?'none':'';

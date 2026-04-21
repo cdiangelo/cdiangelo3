@@ -237,52 +237,67 @@ function resolveColor(c){if(!c||COLOR_MAP[c])return COLOR_MAP[c||''];return c.st
   };
 })();
 
-// ── Targets — live metric vs target comparison ──
+// ── Targets — compact inline metric vs target table with sparkline markers ──
 (function(){
   const METRICS=[
-    {key:'totinv',label:'Total Inv',fn:()=>window.getVendorOaoTotal?(window.getVendorOaoTotal()+(state.employees||[]).reduce((s,e)=>s+12*((e.salary||e.baseSalary||0)/12),0)):0},
-    {key:'hc',label:'Headcount',fn:()=>(state.employees||[]).length},
-    {key:'cb',label:'C&B',fn:()=>(state.employees||[]).reduce((s,e)=>s+((e.salary||e.baseSalary||0)),0)},
-    {key:'oao',label:'OAO',fn:()=>window.getVendorOaoTotal?window.getVendorOaoTotal():0},
-    {key:'revenue',label:'Revenue',fn:()=>window.getRevenueTotal?window.getRevenueTotal():0},
-    {key:'ctr',label:'Contractors',fn:()=>(state.contractorRows||[]).reduce((s,r)=>{const mos=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];return s+mos.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0)},0)},
-    {key:'te',label:'T&E',fn:()=>(state.teRows||[]).reduce((s,r)=>{const mos=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];return s+mos.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0)},0)},
+    {key:'totinv',label:'Tot Inv'},
+    {key:'hc',label:'HC'},
+    {key:'cb',label:'C&B'},
+    {key:'oao',label:'OAO'},
+    {key:'revenue',label:'Revenue'},
+    {key:'ctr',label:'CTR'},
+    {key:'te',label:'T&E'},
   ];
+  function getActual(key){
+    const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    const sumMo=(rows)=>(rows||[]).reduce((s,r)=>s+MO.reduce((ms,m)=>ms+(parseFloat(r[m])||0),0),0);
+    if(key==='hc')return (state.employees||[]).length;
+    if(key==='cb')return (state.employees||[]).reduce((s,e)=>s+((e.salary||e.baseSalary||0)),0);
+    if(key==='oao')return window.getVendorOaoTotal?window.getVendorOaoTotal():0;
+    if(key==='revenue')return window.getRevenueTotal?window.getRevenueTotal():0;
+    if(key==='ctr')return sumMo(state.contractorRows);
+    if(key==='te')return sumMo(state.teRows);
+    if(key==='totinv'){const cb=getActual('cb');const oao=getActual('oao');const te=getActual('te');const ctr=getActual('ctr');return cb+oao+te+ctr}
+    return 0;
+  }
   function getTargets(){return state.targets||[]}
   function setTargets(t){state.targets=t;saveState()}
   const list=document.getElementById('targetList');
   const addBtn=document.getElementById('targetAddBtn');
   if(!list||!addBtn)return;
 
-  function fmt(v){if(Math.abs(v)>=1e6)return '$'+(v/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return '$'+(v/1e3).toFixed(0)+'K';return typeof v==='number'&&v%1===0?v.toString():'$'+v.toFixed(0)}
+  function fmtM(v){if(Math.abs(v)>=1e6)return (v/1e6).toFixed(1)+'M';if(Math.abs(v)>=1e3)return (v/1e3).toFixed(0)+'K';return v.toLocaleString()}
+
+  function sparkSvg(actual,target){
+    const max=Math.max(actual,target,1);
+    const aPct=Math.min(actual/max,1)*100;
+    const tPct=Math.min(target/max,1)*100;
+    return `<svg viewBox="0 0 60 12" width="60" height="12" style="flex-shrink:0"><line x1="2" y1="6" x2="58" y2="6" stroke="var(--border)" stroke-width="1.5" stroke-linecap="round"/><circle cx="${2+tPct*.56}" cy="6" r="3" fill="none" stroke="var(--text-dim)" stroke-width="1" opacity=".6"/><circle cx="${2+aPct*.56}" cy="6" r="2.5" fill="var(--accent)"/></svg>`;
+  }
 
   function render(){
     const targets=getTargets();
-    if(!targets.length){list.innerHTML='<div style="font-size:.7rem;color:var(--text-dim);padding:4px 0;text-align:center">No targets set</div>';return}
-    list.innerHTML=targets.map((t,i)=>{
-      const m=METRICS.find(x=>x.key===t.metric);
-      const actual=m?m.fn():0;
+    if(!targets.length){list.innerHTML='<div style="font-size:.68rem;color:var(--text-dim);padding:2px 0;text-align:center">No targets</div>';return}
+    let h='<table style="width:100%;font-size:.64rem;border-collapse:collapse">';
+    h+='<tr style="color:var(--text-dim)"><td></td><td style="text-align:right;padding:1px 3px">Actual</td><td style="text-align:right;padding:1px 3px">Target</td><td style="text-align:right;padding:1px 3px">%</td><td></td><td></td></tr>';
+    targets.forEach((t,i)=>{
+      const actual=getActual(t.metric);
       const target=parseFloat(t.value)||0;
       const pct=target?Math.round((actual/target)*100):0;
-      const over=actual>target;
+      const color=pct>=90&&pct<=110?'var(--accent)':pct>110?'var(--danger)':'var(--warning)';
+      const label=t.name||METRICS.find(m=>m.key===t.metric)?.label||t.metric;
       const isHC=t.metric==='hc';
-      const barW=Math.min(pct,100);
-      const barColor=pct>=90&&pct<=110?'var(--accent)':over?'var(--danger)':'var(--warning)';
-      const label=t.name||(m?m.label:t.metric);
-      return `<div style="padding:4px 0;border-bottom:1px solid var(--border-light)">
-        <div style="display:flex;justify-content:space-between;font-size:.68rem;margin-bottom:2px">
-          <span style="font-weight:600;color:var(--text)">${label}</span>
-          <span style="color:var(--text-dim)">${isHC?actual:fmt(actual)} / ${isHC?target:fmt(target)}</span>
-        </div>
-        <div style="height:4px;background:var(--border-light);border-radius:2px;overflow:hidden">
-          <div style="height:100%;width:${barW}%;background:${barColor};border-radius:2px;transition:width .3s"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:1px">
-          <span style="font-size:.6rem;color:${barColor};font-weight:600">${pct}%</span>
-          <button class="target-del" data-ti="${i}" style="font-size:.58rem;color:var(--text-dim);background:none;border:none;cursor:pointer;opacity:.4">&times;</button>
-        </div>
-      </div>`;
-    }).join('');
+      h+=`<tr style="border-bottom:1px solid var(--border-light)">
+        <td style="font-weight:600;padding:2px 3px;white-space:nowrap">${label}</td>
+        <td style="text-align:right;padding:2px 3px">${isHC?actual:'$'+fmtM(actual)}</td>
+        <td style="text-align:right;padding:2px 3px;color:var(--text-dim)">${isHC?target:'$'+fmtM(target)}</td>
+        <td style="text-align:right;padding:2px 3px;font-weight:600;color:${color}">${pct}%</td>
+        <td style="padding:2px 2px">${sparkSvg(actual,target)}</td>
+        <td style="padding:2px 0"><button class="target-del" data-ti="${i}" style="font-size:.56rem;color:var(--text-dim);background:none;border:none;cursor:pointer;opacity:.3">&times;</button></td>
+      </tr>`;
+    });
+    h+='</table>';
+    list.innerHTML=h;
     list.querySelectorAll('.target-del').forEach(btn=>{
       btn.addEventListener('click',()=>{const ts=getTargets();ts.splice(+btn.dataset.ti,1);setTargets(ts);render()});
     });
@@ -291,20 +306,20 @@ function resolveColor(c){if(!c||COLOR_MAP[c])return COLOR_MAP[c||''];return c.st
   addBtn.addEventListener('click',()=>{
     const metricOpts=METRICS.map(m=>`<option value="${m.key}">${m.label}</option>`).join('');
     const d=document.createElement('div');
-    d.style.cssText='display:flex;flex-direction:column;gap:4px;padding:6px 0';
-    d.innerHTML=`<input class="t-name" placeholder="Label (optional)" style="padding:3px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
-      <select class="t-metric" style="padding:3px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">${metricOpts}</select>
-      <input class="t-value" type="number" placeholder="Target value" style="padding:3px 6px;font-size:.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text)">
-      <div style="display:flex;gap:4px"><button class="btn btn-sm t-save" style="flex:1;padding:2px 8px;font-size:.66rem">Save</button><button class="btn btn-sm t-cancel" style="padding:2px 8px;font-size:.66rem">Cancel</button></div>`;
+    d.style.cssText='display:flex;gap:4px;align-items:center;padding:4px 0';
+    d.innerHTML=`<select class="t-metric" style="padding:2px 4px;font-size:.66rem;border:1px solid var(--border);border-radius:3px;background:var(--bg-input);color:var(--text)">${metricOpts}</select>
+      <input class="t-value" type="number" placeholder="$M" style="width:55px;padding:2px 4px;font-size:.66rem;border:1px solid var(--border);border-radius:3px;background:var(--bg-input);color:var(--text)">
+      <input class="t-name" placeholder="Label" style="width:50px;padding:2px 4px;font-size:.66rem;border:1px solid var(--border);border-radius:3px;background:var(--bg-input);color:var(--text)">
+      <button class="btn btn-sm t-save" style="padding:1px 6px;font-size:.62rem">&#10003;</button>`;
     list.prepend(d);
     d.querySelector('.t-save').addEventListener('click',()=>{
       const metric=d.querySelector('.t-metric').value;
-      const value=d.querySelector('.t-value').value;
+      const raw=parseFloat(d.querySelector('.t-value').value)||0;
+      const value=raw*1e6;
       const name=d.querySelector('.t-name').value.trim();
-      if(!value){d.remove();return}
-      const ts=getTargets();ts.push({metric,value:parseFloat(value),name});setTargets(ts);render();
+      if(!raw){d.remove();return}
+      const ts=getTargets();ts.push({metric,value,name});setTargets(ts);render();
     });
-    d.querySelector('.t-cancel').addEventListener('click',()=>{d.remove()});
   });
 
   render();

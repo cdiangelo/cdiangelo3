@@ -444,6 +444,22 @@ function logActivity(action,detail){
 }
 window.logActivity=logActivity;
 
+// RF month navigation — load the specific RF month plan from the chevron
+window._loadRFMonth=async function(monthIndex){
+  const MO_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const user=JSON.parse(localStorage.getItem('compPlanUser')||'null');
+  if(!user)return;
+  const plans=window._allPlans||await fetchPlans(user.id);
+  const expectedName='2026 RF — '+MO_NAMES[monthIndex];
+  const plan=plans.find(p=>p.name===expectedName);
+  if(plan){
+    logActivity('Opened RF',plan.name);
+    openPlan(plan);
+  } else {
+    alert('RF plan for '+MO_NAMES[monthIndex]+' not found');
+  }
+};
+
 let _planSaveTimer=null;
 async function openPlan(plan){
   if(!plan){console.error('openPlan called with null plan');return}
@@ -560,7 +576,7 @@ async function openPlan(plan){
   const _btbEmail=document.getElementById('btbEmail');
   const _btb=document.getElementById('bottomToolbar');
   if(_btbName)_btbName.textContent=plan.name||'';
-  if(_btbVer)_btbVer.textContent=(plan.year||'')+' '+(plan.scenarioType||'budget').toUpperCase();
+  if(_btbVer)_btbVer.style.display='none';
   if(_btbEmail)_btbEmail.textContent=user.email||'';
   if(_btb)_btb.style.display='flex';
   if(window._updateBottomToolbar)window._updateBottomToolbar();
