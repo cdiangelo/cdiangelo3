@@ -79,31 +79,17 @@ window.applyPlanChevronContext = function(plan){
 
   // ═══ CHEVRON CLICK HANDLERS ═══
 
-  document.querySelectorAll('.chevron-item').forEach(item => {
-    const shape = item.querySelector('.chevron-shape');
-    if (!shape) return;
-    shape.addEventListener('click', () => {
-      const target = item.dataset.target;
-      // Direct navigation (no submenu)
-      if (target === 'forecast') { navigateToModule('ltf'); return; }
-      // Others — toggle submenu
-      if (item.classList.contains('has-submenu')) {
-        const wasExpanded = item.classList.contains('expanded');
-        document.querySelectorAll('.chevron-item.expanded').forEach(c => c.classList.remove('expanded'));
-        if (!wasExpanded) item.classList.add('expanded');
-      }
-    });
-  });
-
-  // ═══ SUB-ITEM CLICKS ═══
-
-  document.querySelectorAll('.chevron-sub-item').forEach(sub => {
-    sub.addEventListener('click', () => {
+  // Use event delegation on chevronNav for all chevron interactions
+  chevronNav.addEventListener('click', (e) => {
+    // Sub-item click (highest priority — check first)
+    const sub = e.target.closest('.chevron-sub-item');
+    if (sub) {
+      e.stopPropagation();
       const module = sub.dataset.module;
-      const parentTarget = sub.closest('.chevron-item').dataset.target;
+      const parentTarget = sub.closest('.chevron-item')?.dataset.target;
       window.planContext = parentTarget;
 
-      // Collapse all chevrons when navigating to a sub-tab
+      // Collapse all chevrons
       document.querySelectorAll('.chevron-item.expanded').forEach(c => c.classList.remove('expanded'));
 
       if (parentTarget === 'exec') {
@@ -113,16 +99,23 @@ window.applyPlanChevronContext = function(plan){
         return;
       }
 
-      if (module === 'comp') navigateToModule('comp');
-      else if (module === 'vendor') navigateToModule('vendor');
-      else if (module === 'contractors') navigateToModule('contractors');
-      else if (module === 'te') navigateToModule('te');
-      else if (module === 'other') navigateToModule('other');
-      else if (module === 'actuals') navigateToModule('actuals');
-      else if (module === 'revenue') navigateToModule('revenue');
-      else if (module === 'depreciation') navigateToModule('depreciation');
-      else if (module === 'forecast' || module === 'ltf') navigateToModule('ltf');
-    });
+      navigateToModule(module);
+      return;
+    }
+
+    // Chevron shape click (expand/collapse submenu)
+    const shape = e.target.closest('.chevron-shape');
+    if (shape) {
+      const item = shape.closest('.chevron-item');
+      if (!item) return;
+      const target = item.dataset.target;
+      if (target === 'forecast') { navigateToModule('ltf'); return; }
+      if (item.classList.contains('has-submenu')) {
+        const wasExpanded = item.classList.contains('expanded');
+        document.querySelectorAll('.chevron-item.expanded').forEach(c => c.classList.remove('expanded'));
+        if (!wasExpanded) item.classList.add('expanded');
+      }
+    }
   });
 
   // ═══ BACK BUTTON ═══
@@ -198,8 +191,7 @@ window.applyPlanChevronContext = function(plan){
   // ═══ MODULE NAVIGATION ═══
 
   function navigateToModule(module){
-    // Step 1: Hide everything including appShell
-    // Check module access restrictions
+    try{
     const modKeyMap={comp:'comp',vendor:'vendor',contractors:'contractors',te:'te',revenue:'revenue',depreciation:'depreciation',ltf:'forecast'};
     const modKey=modKeyMap[module];
     if(modKey&&window.isModuleAllowed&&!window.isModuleAllowed(modKey)){
@@ -207,7 +199,9 @@ window.applyPlanChevronContext = function(plan){
       return;
     }
 
+    // Hide EVERYTHING — landing page, all modules, all headers
     if(window.hideAllModules)window.hideAllModules();
+    const lp=document.getElementById('landingPage');if(lp)lp.style.display='none';
     hideAppShell();
     showBackToPlan();
     hideCalendar();
@@ -320,6 +314,7 @@ window.applyPlanChevronContext = function(plan){
       if(window.renderActuals)try{window.renderActuals()}catch(e){console.warn('renderActuals:',e)}
       if(window._broadcastTab)window._broadcastTab('ACTUALS');
     }
+    }catch(err){console.error('navigateToModule error:',module,err)}
   }
   // Expose for use by other navigation flows
   window.navigateToModule = navigateToModule;
