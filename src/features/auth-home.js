@@ -232,7 +232,7 @@ function showHomePage(){
       const month=card.dataset.planMonth;
       if(!type)return;
       // Block future RF months
-      if(type==='forecast'&&month!==''){
+      if(type==='forecast'&&month!==''&&month!=='auto'){
         const curMonth=window._rfCurrentMonth!=null?window._rfCurrentMonth:new Date().getMonth();
         if(parseInt(month)>curMonth)return;
       }
@@ -242,6 +242,10 @@ function showHomePage(){
       let expectedName;
       if(type==='budget')expectedName='2026 Annual Operating Plan';
       else if(type==='ltp')expectedName='2026 Long-Term Plan';
+      else if(type==='forecast'&&month==='auto'){
+        const curMonth=window._rfCurrentMonth!=null?window._rfCurrentMonth:new Date().getMonth();
+        expectedName='2026 RF — '+MO_NAMES[curMonth];
+      }
       else expectedName='2026 RF — '+MO_NAMES[parseInt(month)];
       const plan=plans.find(p=>p.name===expectedName);
       if(plan){

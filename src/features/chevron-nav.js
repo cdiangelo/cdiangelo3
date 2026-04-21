@@ -16,26 +16,34 @@ window.applyPlanChevronContext = function(plan){
   chevNav?.querySelectorAll('.rf-month-chev').forEach(el=>el.remove());
 
   if(isRF){
-    // RF: hide Budget + Forecast, inject N+M chevrons for each month
+    // RF: hide Budget + Forecast, inject scrollable N+M month chevrons
     if(budgetChev)budgetChev.style.display='none';
     if(forecastChev)forecastChev.style.display='none';
     const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
     const MO_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const mi=MO.findIndex(m=>plan.name.includes(m));
     const currentMonth=mi>=0?mi:0;
+    // Scrollable container — ~3 visible rows
+    const scroll=document.createElement('div');
+    scroll.className='rf-month-chev';
+    scroll.style.cssText='max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;scroll-behavior:smooth';
     for(let m=0;m<12;m++){
       const actuals=m+1;const forecast=12-actuals;
       const label=actuals+'+'+(forecast);
       const isActive=m===currentMonth;
       const isPast=m<currentMonth;
       const chev=document.createElement('div');
-      chev.className='chevron-item rf-month-chev';
-      chev.innerHTML=`<div class="chevron-shape" style="${isActive?'border-left-color:var(--accent);background:var(--accent-soft);':''}${isPast?'opacity:.5;':''}"><span class="chevron-label">${label}<span style="font-size:.7rem;font-weight:400;color:var(--text-dim);margin-left:6px">${MO_SHORT[m]}</span></span><span class="chevron-hover-arrow">&#9655;</span></div>`;
+      chev.className='chevron-item';
+      chev.dataset.rfMonth=m;
+      chev.innerHTML=`<div class="chevron-shape" style="padding:14px 20px;min-height:48px;${isActive?'border-left-color:var(--accent);background:var(--accent-soft);':''}${isPast?'opacity:.5;':''}"><span class="chevron-label" style="font-size:.88rem">${label}<span style="font-size:.7rem;font-weight:400;color:var(--text-dim);margin-left:6px">${MO_SHORT[m]}</span></span><span class="chevron-hover-arrow">&#9655;</span></div>`;
       chev.querySelector('.chevron-shape').addEventListener('click',()=>{
         window._loadRFMonth&&window._loadRFMonth(m);
       });
-      chevNav.appendChild(chev);
+      scroll.appendChild(chev);
     }
+    chevNav.appendChild(scroll);
+    // Auto-scroll to current month
+    setTimeout(()=>{const active=scroll.querySelector(`[data-rf-month="${currentMonth}"]`);if(active)active.scrollIntoView({block:'center',behavior:'smooth'})},100);
   } else if(isLTP){
     if(budgetChev)budgetChev.style.display='none';
   } else {
