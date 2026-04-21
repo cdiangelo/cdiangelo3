@@ -21,7 +21,7 @@
 .home-header-left{display:flex;align-items:center;gap:16px}
 .home-header-right{display:flex;align-items:center;gap:12px}
 .home-logo{display:flex;align-items:center;gap:10px;margin:0}
-.home-logo .app-logo-text{font-family:var(--font-heading);font-size:1.05rem;font-weight:500;color:#8b7355;letter-spacing:-.02em}
+.home-logo .app-logo-text{font-family:var(--font-heading);font-size:1.05rem;font-weight:500;color:#5E1616;letter-spacing:-.02em}
 .app-logo-icon{flex-shrink:0}
 .app-logo-text{font-size:.92rem;font-weight:500;color:var(--text);letter-spacing:.02em}
 .home-user{font-size:.82rem;color:var(--text-dim);display:flex;align-items:center;gap:6px}
@@ -60,13 +60,13 @@
 .home-recent{background:var(--panel);border:1px solid var(--border-light);border-radius:12px;padding:16px;max-height:300px;overflow-y:auto;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 
 /* ═══ PLAN HEADER BAR ═══ */
-#planHeaderBar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:44px;background:var(--toolbar-bg);border-bottom:1px solid var(--toolbar-border);font-size:.8rem;position:fixed;top:0;left:0;right:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.08);color:#b0a090}
-#planHeaderBar .btn{background:transparent;border-color:var(--toolbar-border);color:#b0a090}
+#planHeaderBar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:44px;background:var(--toolbar-bg);border-bottom:1px solid var(--toolbar-border);font-size:.8rem;position:fixed;top:0;left:0;right:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.08);color:#B0A098}
+#planHeaderBar .btn{background:transparent;border-color:var(--toolbar-border);color:#B0A098}
 #planHeaderBar .btn:hover{color:var(--accent-light);border-color:var(--accent)}
 .plan-hdr-left{display:flex;align-items:center;gap:10px}
 .plan-hdr-name{font-weight:500;color:var(--accent)}
 .plan-hdr-badge{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:20px;font-weight:500;border:1px solid var(--border)}
 .plan-hdr-right{display:flex;align-items:center;gap:12px}
-.plan-hdr-saved{font-size:.7rem;color:#b0a090}
+.plan-hdr-saved{font-size:.7rem;color:#B0A098}
 .plan-hdr-users{display:flex;gap:4px;align-items:center}
 .plan-hdr-users .user-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;color:#fff;border:2px solid var(--panel)}
