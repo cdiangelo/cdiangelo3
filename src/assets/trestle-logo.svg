@@ -1,35 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" role="img">
 <title>Trestle</title>
-<!-- T overlay -->
-<path d="M2 8h96v22H67v62H33V30H2z" fill="#2E6B61" opacity=".55"/>
-<!-- X-bracing tier 1 (y=30→65) -->
-<line x1="2" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="33" y1="30" x2="2" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="33" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="67" y1="30" x2="33" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="67" y1="30" x2="98" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="98" y1="30" x2="67" y2="65" stroke="#4A9B8E" stroke-width="2.5"/>
-<!-- X-bracing tier 2 (y=65→92) -->
-<line x1="2" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="33" y1="65" x2="2" y2="92" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="33" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="67" y1="65" x2="33" y2="92" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="67" y1="65" x2="98" y2="92" stroke="#4A9B8E" stroke-width="2.5"/>
-<line x1="98" y1="65" x2="67" y2="92" stroke="#4A9B8E" stroke-width="2.5"/>
-<!-- Tier tie -->
-<line x1="2" y1="65" x2="98" y2="65" stroke="#4A9B8E" stroke-width="3"/>
-<!-- Posts -->
-<line x1="2" y1="30" x2="2" y2="92" stroke="#4A9B8E" stroke-width="3.5"/>
-<line x1="33" y1="30" x2="33" y2="92" stroke="#4A9B8E" stroke-width="3.5"/>
-<line x1="67" y1="30" x2="67" y2="92" stroke="#4A9B8E" stroke-width="3.5"/>
-<line x1="98" y1="30" x2="98" y2="92" stroke="#4A9B8E" stroke-width="3.5"/>
-<!-- Bottom rail -->
-<line x1="2" y1="92" x2="98" y2="92" stroke="#4A9B8E" stroke-width="4.5"/>
+<!-- Frame -->
+<rect x="3" y="3" width="94" height="114" rx="8" fill="#3d3229" stroke="#2a2118" stroke-width="2.5"/>
+<!-- Beige body -->
+<rect x="8" y="8" width="84" height="80" rx="4" fill="#d4c8b8"/>
+<!-- Valley trapezoid -->
+<path d="M8 88h84L72 108H28Z" fill="#c4b5a0"/>
 <!-- Valley landmasses -->
-<path d="M0 72Q8 78 14 84Q22 88 33 92L2 92Z" fill="#4A9B8E"/>
-<path d="M100 72Q92 78 86 84Q78 88 67 92L98 92Z" fill="#4A9B8E"/>
-<!-- Truss deck -->
-<polyline points="2,30 17,8 33,30 50,8 67,30 83,8 98,30" fill="none" stroke="#4A9B8E" stroke-width="2.8" stroke-linejoin="round"/>
-<line x1="2" y1="8" x2="98" y2="8" stroke="#4A9B8E" stroke-width="5"/>
-<line x1="2" y1="30" x2="98" y2="30" stroke="#4A9B8E" stroke-width="4"/>
+<path d="M28 108L8 88H28Z" fill="#8b7355"/>
+<path d="M72 108L92 88H72Z" fill="#8b7355"/>
+<!-- Lattice diagonals -->
+<line x1="8" y1="8" x2="50" y2="48" stroke="#5c4a3a" stroke-width="1.2" opacity=".6"/>
+<line x1="92" y1="8" x2="50" y2="48" stroke="#5c4a3a" stroke-width="1.2" opacity=".6"/>
+<line x1="8" y1="48" x2="50" y2="8" stroke="#5c4a3a" stroke-width="1.2" opacity=".6"/>
+<line x1="92" y1="48" x2="50" y2="8" stroke="#5c4a3a" stroke-width="1.2" opacity=".6"/>
+<line x1="8" y1="48" x2="50" y2="88" stroke="#5c4a3a" stroke-width="1.2" opacity=".6"/>
+<line x1="92" y1="48" x2="50" y2="88" stroke="#5c4a3a" stroke-width="1.2" opacity=".6"/>
+<line x1="8" y1="88" x2="50" y2="48" stroke="#5c4a3a" stroke-width="1.2" opacity=".6"/>
+<line x1="92" y1="88" x2="50" y2="48" stroke="#5c4a3a" stroke-width="1.2" opacity=".6"/>
+<!-- Horizontals -->
+<line x1="8" y1="8" x2="92" y2="8" stroke="#5c4a3a" stroke-width="1.8"/>
+<line x1="8" y1="48" x2="92" y2="48" stroke="#5c4a3a" stroke-width="1.5"/>
+<line x1="8" y1="88" x2="92" y2="88" stroke="#5c4a3a" stroke-width="1.8"/>
+<!-- Verticals -->
+<line x1="8" y1="8" x2="8" y2="88" stroke="#5c4a3a" stroke-width="1.8"/>
+<line x1="50" y1="8" x2="50" y2="88" stroke="#5c4a3a" stroke-width="1.5"/>
+<line x1="92" y1="8" x2="92" y2="88" stroke="#5c4a3a" stroke-width="1.8"/>
+<!-- Valley struts -->
+<line x1="28" y1="88" x2="50" y2="108" stroke="#5c4a3a" stroke-width="1.2"/>
+<line x1="72" y1="88" x2="50" y2="108" stroke="#5c4a3a" stroke-width="1.2"/>
+<line x1="50" y1="88" x2="50" y2="108" stroke="#5c4a3a" stroke-width="1.2"/>
+<circle cx="50" cy="108" r="2" fill="#5c4a3a"/>
 </svg>
