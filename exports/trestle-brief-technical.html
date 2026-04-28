@@ -50,6 +50,7 @@ li { margin: 2pt 0; }
 <div class="card card-accent">
   <p>Multi-user FP&amp;A planning platform. One shared workspace per fiscal year holds 14 plan files: 1 AOP + 12 monthly RFs + 1 LTP. Each plan file is a <span class="mono">state_data</span> JSON containing every input module (revenue, HC, vendor, contractor, T&amp;E, other, D&amp;A) coded against a five-dimension chartfield grid (BU / Biz Line / Market / Project / Account).</p>
   <p style="margin-top:6pt">Calc outputs feed a P&amp;L walk and a pivot/analytics layer. Real-time collaboration runs over a WebSocket connection with presence and live cursors; persistence today is full-state PUT per plan, with row-level PATCH and per-cell merge as rebuild targets.</p>
+  <p style="margin-top:6pt"><strong>Current scope:</strong> one midsize organization, ~40 analyst users targeted by EOY. Pilot runs on a single team. Architecture choices below are sized to support a few-hundred-user expansion later without rework, but that broader rollout is not in current scope.</p>
 </div>
 
 <h2>2. System Spine</h2>

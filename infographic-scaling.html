@@ -54,7 +54,7 @@ tr:hover td{background:rgba(59,110,165,0.04)}
 <body>
 
 <h1>Trestle — Feature Architecture & Scaling Roadmap</h1>
-<p class="subtitle">Accelerated path: harden on a 5-10 person pilot team, then jump to 500-1000 users with milestone gates at 100 and 300</p>
+<p class="subtitle">Current scope: one midsize org. Pilot on a single team, then ramp to ~40 analyst users by EOY. Few-hundred-user expansion is sized in but not in current scope.</p>
 
 <!-- ═══ PLANNING MODEL ═══ -->
 <h2>1. Planning Model Structure</h2>
@@ -178,13 +178,13 @@ tr:hover td{background:rgba(59,110,165,0.04)}
 </div>
 
 <!-- ═══ SCALING ROADMAP ═══ -->
-<h2>5. Accelerated Scaling Roadmap: Pilot → 1000 Users</h2>
-<p class="subtitle" style="margin-bottom:12px">Compressed to two phases: harden the full stack on a 5-10 person pilot team, then ramp to 500-1000 with milestone testing gates at 100 and 300 users.</p>
+<h2>5. Scaling Roadmap: Pilot → ~40 Analysts by EOY</h2>
+<p class="subtitle" style="margin-bottom:12px">Two phases. Pilot hardens the full target stack on one team; org rollout opens the platform to the rest of the midsize organization in measured cohorts up to ~40 analyst users by year-end. Broader expansion (few-hundred-user firm-wide) is sized into the design but not in current scope.</p>
 
 <div class="card" style="margin-bottom:16px">
   <div class="phase">
     <div class="phase-item" style="background:rgba(58,125,94,0.06)">
-      <div class="phase-num">Phase 1 — Pilot Hardening (5-10 users, one team)</div>
+      <div class="phase-num">Phase 1 — Pilot (1 team, in-org)</div>
       <h4>Scope: standardize the full northstar on a single team</h4>
       <div class="value">
         Merged foundation + enterprise work executed end-to-end on one controlled team so every later user lands on a stable base. No feature gaps carried forward.
@@ -210,22 +210,37 @@ tr:hover td{background:rgba(59,110,165,0.04)}
       </div>
     </div>
     <div class="phase-item" style="background:rgba(59,110,165,0.06)">
-      <div class="phase-num">Phase 2 — Scale Ramp (10 → 1000 users)</div>
-      <h4>Infrastructure</h4>
+      <div class="phase-num">Phase 2 — Org Rollout (pilot → ~40 users by EOY)</div>
+      <h4>Infrastructure (sized for current scope, headroom for future)</h4>
       <div class="value">
-        Redis cache + session store · read replicas for reporting · WebSocket clustering via Redis pub/sub · rate limiting & request queuing · horizontal app tier behind LB
+        Redis cache + session store · read replica for reporting · WebSocket clustering via Redis pub/sub · rate limiting · horizontal app tier behind LB. Multi-region replicas and 2×-peak capacity are <em>future-scope</em> for the broader expansion, not Phase 2.
       </div>
       <h4>Integrations</h4>
       <div class="value">
         REST API for EPM push/pull · actuals ingestion pipeline · export to Oracle EPM, Anaplan, Workday Adaptive · SSO + SCIM provisioning
       </div>
-      <h4>Milestone gates (don't open next cohort until green)</h4>
+      <h4>Cohort gates (don't open next cohort until green)</h4>
       <div class="value">
-        <span class="pill pill-next">~100 users</span> load test at 3× headroom, p95 save &lt; 400ms, RLS audit, disaster-recovery drill<br>
-        <span class="pill pill-next">~300 users</span> multi-tenant isolation review, WebSocket fan-out stress, EPM connector reliability SLO, pen test<br>
-        <span class="pill pill-future">500-1000 users</span> multi-region read replicas, capacity plan to 2× peak, on-call rotation + runbooks
+        <span class="pill pill-next">Pilot → first additional team</span> reference data published org-wide · access scoping verified · save / merge stable under 2× pilot load<br>
+        <span class="pill pill-next">~20 users</span> concurrent-edit stress · integration freshness checks · audit log completeness · p95 save SLO<br>
+        <span class="pill pill-next">~40 users (EOY target)</span> capacity headroom plan · documented runbooks · close-cycle dry run with the full org cohort<br>
+        <span class="pill pill-future">Future: few-hundred-user expansion</span> multi-region replicas, 2×-peak capacity, 24/7 on-call — sized into the design, not built in current scope
       </div>
     </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;border-left:3px solid #3A7D5E">
+  <h3>Expected time savings</h3>
+  <div class="value">
+    <strong>~100 hours recovered per analyst, annually.</strong> At ~40 analysts EOY, roughly <strong>4,000 hours / year</strong> across the org.
+  </div>
+  <div class="value" style="margin-top:8px">
+    <span class="tag tag-green">~60% in AOP cycle</span> entry, reconciliation, scenario compare, review — vs ~40% across RF and LTP work<br>
+    <span class="tag tag-green">~70% from load &amp; integration tools</span> spreadsheet grid + standard ERP / HR / EPM connectors removing manual import / export and reconciliation
+  </div>
+  <div class="value" style="margin-top:8px;color:#8A939C;font-size:.74rem">
+    Two cuts of the same 100h (by planning phase vs by feature category), so they overlap rather than add. Biggest single block: AOP work that gets faster because integration tools eliminate manual reconciliation against ERP and HR data.
   </div>
 </div>
 
@@ -352,7 +367,7 @@ tr:hover td{background:rgba(59,110,165,0.04)}
 
 <!-- ═══ AUTOMATED TESTING ═══ -->
 <h2>8. Scaled &amp; Automated Testing — Feature, Quality, Efficacy</h2>
-<p class="subtitle" style="margin-bottom:12px">Pilot phase builds the test harness; every milestone gate (100, 300, 500-1000) reruns the full stack against production-shaped synthetic tenants before opening the next cohort.</p>
+<p class="subtitle" style="margin-bottom:12px">Pilot phase builds the test harness. Every cohort gate (first additional team, ~20 users, ~40 users) reruns the full stack against production-shaped synthetic tenants before opening up. Headroom load tests run forward-sized for the future few-hundred-user expansion.</p>
 
 <div class="grid grid-3">
   <div class="card card-accent">
@@ -374,7 +389,7 @@ tr:hover td{background:rgba(59,110,165,0.04)}
     <h3>Quality Testing (does it hold up)</h3>
     <h4>Load &amp; scale</h4>
     <div class="value">
-      k6 / Locust scenarios: 100 / 300 / 1000 concurrent editors, month-end save storm, pivot fan-out<br>
+      k6 / Locust scenarios: 10 (pilot) / 40 (EOY) / 200 (forward headroom) concurrent editors · month-end save storm · pivot fan-out<br>
       SLOs: p95 save &lt; 400ms, p99 WS broadcast &lt; 250ms, error rate &lt; 0.1%
     </div>
     <h4>Resilience</h4>
@@ -383,7 +398,7 @@ tr:hover td{background:rgba(59,110,165,0.04)}
     </div>
     <h4>Security</h4>
     <div class="value">
-      RLS policy test suite · authz matrix tests · dependency &amp; secret scans in CI · external pen test before 300-user gate
+      RLS policy test suite · authz matrix tests · dependency &amp; secret scans in CI · external pen test before EOY org-rollout gate
     </div>
   </div>
 
@@ -421,7 +436,7 @@ tr:hover td{background:rgba(59,110,165,0.04)}
     </div>
     <div class="value">
       <h4 style="margin-top:0">Release gates</h4>
-      Unit + integration on PR · E2E + contract on merge · load + chaos + security nightly · full milestone suite before opening each scale cohort (100 → 300 → 1000)
+      Unit + integration on PR · E2E + contract on merge · load + chaos + security nightly · full milestone suite before opening each cohort (pilot → first team → ~20 → ~40 EOY)
     </div>
   </div>
 </div>

@@ -84,16 +84,16 @@ h4 { font-size: 8pt; font-weight: 600; color: #C5CDD4; text-transform: uppercase
 <div class="hero">
   <div class="hero-title">
     <h1>Trestle <span class="accent">— at a glance</span></h1>
-    <p class="subtitle">FP&amp;A planning platform: 14 plans per fiscal year, line-level granularity, real-time multi-user, integrated to the firm's systems of record.</p>
+    <p class="subtitle">FP&amp;A planning platform: 14 plans per fiscal year, line-level granularity, real-time multi-user, integrated to the firm's systems of record. Current scope: one midsize org, pilot on one team, ~40 analyst users by EOY.</p>
     <p class="tech">Technical aspects flagged inline with this marker · see glossary below</p>
   </div>
   <div class="metric">
-    <div class="metric-num">14</div>
-    <div class="metric-label">Plans per year<br>(1 AOP · 12 RFs · 1 LTP)</div>
+    <div class="metric-num">~40</div>
+    <div class="metric-label">Analyst users<br>by EOY (one org)</div>
   </div>
   <div class="metric">
-    <div class="metric-num">7</div>
-    <div class="metric-label">Input modules<br>across one chartfield grid</div>
+    <div class="metric-num">~100h</div>
+    <div class="metric-label">Recovered per analyst<br>annually</div>
   </div>
 </div>
 
@@ -157,29 +157,46 @@ h4 { font-size: 8pt; font-weight: 600; color: #C5CDD4; text-transform: uppercase
   </div>
 </div>
 
-<!-- Roadmap -->
+<!-- Roadmap + Savings -->
 <div class="timeline">
-  <h2>Roadmap — Pilot to 1,000 Users</h2>
+  <h2>Roadmap &amp; Expected Savings</h2>
   <div class="timeline-rail">
     <div class="tl-step">
-      <h4>Phase 1 · 5-10 users</h4>
-      <div class="value"><strong>Pilot hardening.</strong> Lock in every ideal-state capability on one team end-to-end.</div>
-      <div class="gates">Exit: full close cycle on Trestle, zero data loss, green regression suite</div>
+      <h4>Phase 1 · Pilot (1 team)</h4>
+      <div class="value"><strong>Lock in the full target stack on a single team.</strong> Reference data, integrations, real-time merge, audit, access controls all live.</div>
+      <div class="gates">Exit: full close cycle, zero data loss, green regression suite</div>
     </div>
     <div class="tl-step target">
-      <h4>~100 users</h4>
-      <div class="value">Open after gate: load test 3× headroom, DR drill, access-control audit</div>
-      <div class="gates"><span class="tech">p95 save &lt; 400ms · WS broadcast &lt; 250ms</span></div>
+      <h4>+ first additional team</h4>
+      <div class="value">Reference data published org-wide · access scoping verified · save / merge stable under 2× pilot load</div>
+      <div class="gates"><span class="tech">RLS scoping check · audit completeness</span></div>
     </div>
     <div class="tl-step target">
-      <h4>~300 users</h4>
-      <div class="value">Open after gate: tenant isolation review, concurrent-edit stress, external security review</div>
-      <div class="gates"><span class="tech">RLS policy fuzz · pen test · SLO check</span></div>
+      <h4>~20 users</h4>
+      <div class="value">Concurrent-edit stress · integration freshness checks · audit log completeness</div>
+      <div class="gates"><span class="tech">p95 save SLO · WS fan-out check</span></div>
     </div>
     <div class="tl-step target">
-      <h4>500-1,000 users</h4>
-      <div class="value">Multi-region read replicas, capacity to 2× peak, 24/7 on-call with runbooks</div>
-      <div class="gates"><span class="tech">multi-AZ failover · queue-backed integrations</span></div>
+      <h4>~40 users · EOY target</h4>
+      <div class="value">Capacity headroom plan · documented runbooks · close-cycle dry run with the full org cohort</div>
+      <div class="gates"><span class="tech">future: few-hundred-user expansion sized in but not in current scope</span></div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:8pt">
+    <div class="col">
+      <div class="card target" style="margin:0">
+        <h3>~100 hours saved per analyst, annually</h3>
+        <div class="value">At ~40 analysts EOY, roughly <strong>4,000 hours / year</strong> recovered across the org.</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card accent" style="margin:0">
+        <h3>Where the savings come from</h3>
+        <div class="value">
+          <strong>~60%</strong> sit in the <strong>AOP cycle</strong> (entry, reconciliation, scenario compare).<br>
+          <strong>~70%</strong> are driven by <strong>streamlined load &amp; integration tools</strong> <span class="tech">spreadsheet grid + standard ERP/HR/EPM connectors</span> — overlapping cuts of the same 100 hours.
+        </div>
+      </div>
     </div>
   </div>
 </div>

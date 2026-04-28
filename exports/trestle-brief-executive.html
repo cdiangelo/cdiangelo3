@@ -212,12 +212,12 @@ hr.sep { border: none; border-top: 1px dashed #c4ccd2; margin: 14pt 0; }
 
 </div>
 
-<h2>7. Roadmap — From Pilot to Firm-Wide</h2>
-<p class="muted">Two phases. The first locks in every ideal-state capability on a small team so nothing is left to chase later. The second scales out, with explicit testing gates between cohorts so quality holds.</p>
+<h2>7. Roadmap — Pilot to ~40 Analyst Users by EOY</h2>
+<p class="muted">Current scope is one midsize organization. The pilot runs on a single team within that org; full rollout reaches roughly 40 analyst users by year-end. A broader opportunity (a few hundred or more users across adjacent teams or the wider firm) sits beyond the current engagement — design and infrastructure choices are sized to make that expansion possible without rework.</p>
 
 <div class="card">
-  <h3>Phase 1 — Pilot hardening (5-10 users, one team)</h3>
-  <p><strong>Goal:</strong> get the full target stack working end-to-end on a single controlled team. Everything below is in place before opening up further.</p>
+  <h3>Phase 1 — Pilot (1 team, in-org)</h3>
+  <p><strong>Goal:</strong> get the full target stack working end-to-end on one team, with everything below in place before opening up to the rest of the org.</p>
   <ul>
     <li>SSO login with corporate identity</li>
     <li>Module-level and dimension-level access controls</li>
@@ -227,21 +227,37 @@ hr.sep { border: none; border-top: 1px dashed #c4ccd2; margin: 14pt 0; }
     <li>At least one inbound and one outbound integration validated end-to-end</li>
     <li>Automated test suite covering calc accuracy, save reliability, and integration round-trips</li>
   </ul>
-  <p><strong>Exit criteria:</strong> a full close cycle run on Trestle with zero data loss and a green automated regression suite.</p>
+  <p><strong>Exit criteria:</strong> a full close cycle run on Trestle with zero data loss, validated integration round-trips, and a green automated regression suite.</p>
 </div>
 
 <div class="card">
-  <h3>Phase 2 — Scale ramp (10 → 1,000 users)</h3>
-  <p>Cohorts open after each gate is green.</p>
+  <h3>Phase 2 — Org rollout to ~40 analyst users by EOY</h3>
+  <p>Open the platform to the rest of the organization in measured cohorts after the pilot exit criteria are met. Each cohort has explicit checks before the next opens.</p>
   <table>
-    <tr><th>Milestone</th><th>What gets validated before opening the next cohort</th></tr>
-    <tr><td><strong>~100 users</strong></td><td>Load test at 3× headroom · disaster recovery drill · access-control audit</td></tr>
-    <tr><td><strong>~300 users</strong></td><td>Multi-tenant isolation review · concurrent-edit stress test · external security review · reliability SLOs<sup>4</sup> on integrations</td></tr>
-    <tr><td><strong>500-1,000 users</strong></td><td>Multi-region read replicas<sup>5</sup> · capacity plan to 2× peak · 24/7 on-call rotation with documented runbooks</td></tr>
+    <tr><th>Checkpoint</th><th>What gets validated before adding more users</th></tr>
+    <tr><td><strong>Pilot → first additional team</strong></td><td>Reference data published org-wide · access scoping verified · save / merge stability under double the pilot load</td></tr>
+    <tr><td><strong>~20 users</strong></td><td>Concurrent-edit stress · integration freshness checks · audit log completeness</td></tr>
+    <tr><td><strong>~40 users (EOY target)</strong></td><td>Capacity headroom plan · documented runbooks · close-cycle dry run with the full org cohort</td></tr>
   </table>
 </div>
 
-<h2>8. What This Buys the Business</h2>
+<div class="card card-accent">
+  <h3>Beyond current scope</h3>
+  <p>A few hundred or more users in adjacent teams or across the broader firm is a real opportunity but is <em>not</em> in current scope. Design and infrastructure decisions taken in Phase 1 (normalized data, dimension-scoped access, versioned connectors) are deliberately sized to support that expansion — so the path is shortened, not pre-built.</p>
+</div>
+
+<h2>8. Expected Time Savings</h2>
+<div class="card card-target">
+  <p><strong>Roughly 100 hours recovered per analyst, annually</strong>, once Phase 1 capabilities are live across the org. Estimate based on observed pilot workflows.</p>
+  <ul>
+    <li><strong>~60% of the savings sit in the AOP cycle</strong> — planning entry, reconciliation, scenario compare, and review cycles compress meaningfully. The remaining ~40% is spread across monthly Rolling Forecast and Long-Term Plan work.</li>
+    <li><strong>~70% of the savings are driven by streamlined load and system integration tools</strong> — the spreadsheet-style grid plus standard connectors to ERP, HR, and EPM systems remove most of the manual import / export and reconciliation work that dominates the current cycle. The remaining ~30% comes from real-time collaboration, scenario tooling, and reduced rework from concurrent-edit issues.</li>
+  </ul>
+  <p class="muted">The two cuts are different views of the same 100 hours — by planning phase (AOP vs RF vs LTP) and by feature category (load &amp; integration vs other) — so they overlap rather than add. The single biggest block is AOP work that gets faster because integration tools eliminate manual reconciliation against ERP and HR data.</p>
+  <p class="muted">At the EOY scope (~40 analysts), this scales to roughly <strong>4,000 hours per year</strong> recovered across the organization.</p>
+</div>
+
+<h2>9. What This Buys the Business</h2>
 <div class="grid2">
   <div class="card card-target">
     <h3>For finance teams</h3>
@@ -268,8 +284,6 @@ hr.sep { border: none; border-top: 1px dashed #c4ccd2; margin: 14pt 0; }
 <p class="fn"><sup>1</sup> <strong>Last edit wins.</strong> When two users save changes to the same plan at the same time, only the most recent save is kept; the other user's changes are silently dropped. The rebuild replaces this with cell-level merging.</p>
 <p class="fn"><sup>2</sup> <strong>ERP / HR / EPM.</strong> ERP = the firm's general ledger system (e.g., SAP, Oracle, NetSuite). HR = the workforce system of record (e.g., Workday). EPM = enterprise performance management — consolidation and reporting tools (e.g., Oracle EPM, Anaplan, Workday Adaptive).</p>
 <p class="fn"><sup>3</sup> <strong>Single sign-on (SSO).</strong> Users log in once with their corporate credentials (e.g., Google Workspace, Azure AD) and access Trestle without a separate password.</p>
-<p class="fn"><sup>4</sup> <strong>SLO — Service Level Objective.</strong> A measurable target for system performance (e.g., "99.9% of saves complete within 400 milliseconds"). SLOs make reliability quantifiable rather than anecdotal.</p>
-<p class="fn"><sup>5</sup> <strong>Read replicas.</strong> Copies of the database that handle reporting and pivot queries, leaving the primary database free for plan edits. Reduces contention as users grow.</p>
 
 </body>
 </html>
