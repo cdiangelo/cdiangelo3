@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trestle — At a Glance</title>
+<style>
+@page { size: 14in 8.5in; margin: 0.35in; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica', 'Arial', sans-serif; background: #141B22; color: #F5F6F7; padding: 0; }
+h1 { font-size: 22pt; font-weight: 700; color: #F5F6F7; letter-spacing: -.01em; }
+h1 .accent { color: #5A8BC4; font-weight: 400; }
+h2 { font-size: 9pt; font-weight: 700; color: #5A8BC4; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4pt; }
+h3 { font-size: 10pt; font-weight: 600; color: #C89B5E; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3pt; }
+h4 { font-size: 8pt; font-weight: 600; color: #C5CDD4; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2pt; }
+.subtitle { font-size: 9pt; color: #8A939C; margin-top: 2pt; }
+.tech { font-size: 7pt; color: #5A8BC4; font-style: italic; opacity: .75; }
+.tech::before { content: "⚙ "; opacity: .6; }
+.muted { color: #8A939C; font-size: 8pt; }
+
+.row { display: flex; gap: 8pt; margin-bottom: 8pt; }
+.col { flex: 1; }
+
+.card { background: #1B2530; border: 1px solid rgba(197,205,212,0.10); border-radius: 5pt; padding: 7pt 9pt; }
+.card.now { border-left: 3pt solid #C89B5E; }
+.card.target { border-left: 3pt solid #3A7D5E; }
+.card.accent { border-left: 3pt solid #3B6EA5; }
+
+.tag { display: inline-block; font-size: 7pt; font-weight: 600; padding: 1pt 5pt; border-radius: 6pt; margin-right: 2pt; }
+.tag-blue { background: rgba(59,110,165,0.18); color: #5A8BC4; }
+.tag-amber { background: rgba(200,155,94,0.18); color: #C89B5E; }
+.tag-green { background: rgba(58,125,94,0.18); color: #3A7D5E; }
+.tag-slate { background: rgba(138,147,156,0.15); color: #8A939C; }
+
+.value { font-size: 8.5pt; color: #C5CDD4; line-height: 1.4; }
+.value strong { color: #F5F6F7; }
+
+/* Hero strip */
+.hero { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8pt; margin-bottom: 10pt; padding-bottom: 8pt; border-bottom: 1px solid rgba(197,205,212,0.10); }
+.hero-title { padding-right: 8pt; }
+.metric { background: #1B2530; border-radius: 4pt; padding: 5pt 8pt; text-align: center; border: 1px solid rgba(197,205,212,0.08); }
+.metric-num { font-size: 18pt; font-weight: 700; color: #5A8BC4; line-height: 1; }
+.metric-label { font-size: 7pt; color: #8A939C; text-transform: uppercase; letter-spacing: .06em; margin-top: 3pt; }
+
+/* Plan flow visual */
+.plan-spine { background: #1B2530; border-radius: 5pt; padding: 8pt 10pt; border: 1px solid rgba(197,205,212,0.10); margin-bottom: 8pt; }
+.spine-flow { display: flex; align-items: center; gap: 4pt; margin-top: 5pt; }
+.spine-node { background: #223040; border-radius: 4pt; padding: 4pt 7pt; font-size: 8pt; color: #C5CDD4; flex: 0 0 auto; border: 1px solid rgba(59,110,165,0.25); }
+.spine-node.input { border-color: rgba(200,155,94,0.35); color: #C89B5E; }
+.spine-node.output { border-color: rgba(58,125,94,0.35); color: #3A7D5E; }
+.spine-arrow { color: #5E6B76; font-size: 12pt; flex: 0 0 auto; }
+
+/* Module strip */
+.module-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4pt; margin-top: 5pt; }
+.module-tile { background: #1F2A35; border-radius: 4pt; padding: 5pt 6pt; border: 1px solid rgba(197,205,212,0.06); }
+.module-tile h4 { color: #5A8BC4; font-size: 7.5pt; margin-bottom: 2pt; }
+.module-tile .value { font-size: 7pt; color: #8A939C; }
+
+/* Current vs ideal */
+.cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; }
+.cmp ul { list-style: none; margin: 0; padding: 0; }
+.cmp li { font-size: 8pt; color: #C5CDD4; padding: 1.5pt 0; line-height: 1.35; }
+.cmp li::before { content: "• "; color: #5E6B76; }
+.cmp .tech { display: block; padding-left: 8pt; margin-top: 0; }
+
+/* Roadmap timeline */
+.timeline { background: #1B2530; border-radius: 5pt; padding: 8pt 10pt; border: 1px solid rgba(197,205,212,0.10); margin-top: 6pt; }
+.timeline-rail { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 3pt; margin-top: 6pt; }
+.tl-step { background: #223040; border-radius: 4pt; padding: 6pt 8pt; border-left: 3pt solid #5A8BC4; }
+.tl-step.target { border-left-color: #3A7D5E; }
+.tl-step h4 { color: #5A8BC4; font-size: 8pt; margin-bottom: 2pt; }
+.tl-step.target h4 { color: #3A7D5E; }
+.tl-step .value { font-size: 7.5pt; line-height: 1.3; }
+.tl-step .gates { font-size: 7pt; color: #8A939C; margin-top: 2pt; font-style: italic; }
+
+/* Footer glossary */
+.glossary { margin-top: 8pt; padding-top: 6pt; border-top: 1px solid rgba(197,205,212,0.10); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6pt; }
+.gloss-item { font-size: 7pt; color: #8A939C; line-height: 1.4; }
+.gloss-item strong { color: #5A8BC4; }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-title">
+    <h1>Trestle <span class="accent">— at a glance</span></h1>
+    <p class="subtitle">FP&amp;A planning platform: 14 plans per fiscal year, line-level granularity, real-time multi-user, integrated to the firm's systems of record.</p>
+    <p class="tech">Technical aspects flagged inline with this marker · see glossary below</p>
+  </div>
+  <div class="metric">
+    <div class="metric-num">14</div>
+    <div class="metric-label">Plans per year<br>(1 AOP · 12 RFs · 1 LTP)</div>
+  </div>
+  <div class="metric">
+    <div class="metric-num">7</div>
+    <div class="metric-label">Input modules<br>across one chartfield grid</div>
+  </div>
+</div>
+
+<!-- Plan spine + module strip -->
+<div class="plan-spine">
+  <h2>Plan Spine — How Data Flows</h2>
+  <div class="spine-flow">
+    <div class="spine-node">Workspace (year)</div>
+    <div class="spine-arrow">→</div>
+    <div class="spine-node">14 plans (AOP / RF / LTP)</div>
+    <div class="spine-arrow">→</div>
+    <div class="spine-node input">7 input modules</div>
+    <div class="spine-arrow">→</div>
+    <div class="spine-node">5-dim chartfield grid</div>
+    <div class="spine-arrow">→</div>
+    <div class="spine-node output">P&amp;L walk · Pivot · Scenarios</div>
+  </div>
+  <div class="module-strip">
+    <div class="module-tile"><h4>Revenue</h4><div class="value">streams × month</div></div>
+    <div class="module-tile"><h4>HC &amp; Comp</h4><div class="value">per-employee · CapEx split <span class="tech">capPct</span></div></div>
+    <div class="module-tile"><h4>Vendor / OAO</h4><div class="value">parent co · catalog</div></div>
+    <div class="module-tile"><h4>Contractors</h4><div class="value">rate × hours · CapEx</div></div>
+    <div class="module-tile"><h4>T&amp;E</h4><div class="value">expense type list</div></div>
+    <div class="module-tile"><h4>Other</h4><div class="value">C&amp;B + OAO catch-all</div></div>
+    <div class="module-tile"><h4>D&amp;A</h4><div class="value">asset register · schedule</div></div>
+  </div>
+  <p class="muted" style="margin-top:5pt">Chartfield dimensions: <span class="tag tag-blue">Business Unit</span> <span class="tag tag-blue">Business Line</span> <span class="tag tag-blue">Market</span> <span class="tag tag-blue">Project</span> <span class="tag tag-blue">Account</span> — every line in every module codes against all five.</p>
+</div>
+
+<!-- Current vs Ideal -->
+<div class="row">
+  <div class="col">
+    <div class="card now">
+      <h3>Current state</h3>
+      <div class="cmp" style="grid-template-columns:1fr">
+        <ul>
+          <li>14 plans, full module coverage, presence + live cursors <span class="tech">WebSocket full-state broadcast</span></li>
+          <li>Single admin login, email-based access toggles <span class="tech">no SSO / SCIM, no row-level security</span></li>
+          <li>Last edit wins on concurrent saves <span class="tech">single-blob state JSON, no cell merge</span></li>
+          <li>Reference data (rate cards, benefits) maintained informally <span class="tech">embedded constants, no versioning</span></li>
+          <li>Manual import/export to ERP / HR / EPM <span class="tech">ad-hoc per integration, not versioned</span></li>
+          <li>In-session change history only <span class="tech">no persisted audit log</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card target">
+      <h3>Ideal state</h3>
+      <div class="cmp" style="grid-template-columns:1fr">
+        <ul>
+          <li>Same 14-plan model — discrete records per module <span class="tech">normalized tables, row-level PATCH, version columns</span></li>
+          <li>SSO with corporate identity, dimension-scoped access <span class="tech">OAuth + SCIM + PostgreSQL RLS policies</span></li>
+          <li>True cell-level merge — no lost edits <span class="tech">per-cell CRDT, Redis pub/sub, optimistic locking</span></li>
+          <li>Centrally maintained, versioned reference data <span class="tech">reference_sets table; plans pin to a version</span></li>
+          <li>Standard, versioned connectors to ERP / HR / EPM / BI <span class="tech">schema map · crosswalk · retry · reconciliation</span></li>
+          <li>Full persisted change history <span class="tech">append-only change_log, monthly partition</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Roadmap -->
+<div class="timeline">
+  <h2>Roadmap — Pilot to 1,000 Users</h2>
+  <div class="timeline-rail">
+    <div class="tl-step">
+      <h4>Phase 1 · 5-10 users</h4>
+      <div class="value"><strong>Pilot hardening.</strong> Lock in every ideal-state capability on one team end-to-end.</div>
+      <div class="gates">Exit: full close cycle on Trestle, zero data loss, green regression suite</div>
+    </div>
+    <div class="tl-step target">
+      <h4>~100 users</h4>
+      <div class="value">Open after gate: load test 3× headroom, DR drill, access-control audit</div>
+      <div class="gates"><span class="tech">p95 save &lt; 400ms · WS broadcast &lt; 250ms</span></div>
+    </div>
+    <div class="tl-step target">
+      <h4>~300 users</h4>
+      <div class="value">Open after gate: tenant isolation review, concurrent-edit stress, external security review</div>
+      <div class="gates"><span class="tech">RLS policy fuzz · pen test · SLO check</span></div>
+    </div>
+    <div class="tl-step target">
+      <h4>500-1,000 users</h4>
+      <div class="value">Multi-region read replicas, capacity to 2× peak, 24/7 on-call with runbooks</div>
+      <div class="gates"><span class="tech">multi-AZ failover · queue-backed integrations</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Glossary -->
+<div class="glossary">
+  <div class="gloss-item"><strong>SSO / SCIM</strong> · single sign-on with corporate identity (Google / Azure AD); SCIM auto-provisions user accounts.</div>
+  <div class="gloss-item"><strong>RLS</strong> · row-level security in PostgreSQL — restricts which rows a user can read/write based on their dimension scope.</div>
+  <div class="gloss-item"><strong>CRDT</strong> · conflict-free replicated data type — math-backed structure that lets two users edit the same cell and merge cleanly without conflict.</div>
+  <div class="gloss-item"><strong>EPM</strong> · enterprise performance management (Oracle EPM, Anaplan, Workday Adaptive) — consolidation and external reporting tools.</div>
+</div>
+
+</body>
+</html>

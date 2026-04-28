@@ -2,25 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Trestle — System Brief & Submodule Inventory</title>
+<title>Trestle — Technical Brief</title>
 <style>
 @page { size: Letter; margin: 0.6in 0.7in; }
 * { box-sizing: border-box; }
 body { font-family: 'Calibri', 'Helvetica', sans-serif; color: #1a1f25; font-size: 11pt; line-height: 1.45; max-width: 7.2in; margin: 0 auto; }
-h1 { font-size: 22pt; margin: 0 0 4pt; color: #1a1f25; }
+h1 { font-size: 22pt; margin: 0 0 4pt; }
 h2 { font-size: 14pt; color: #2c5a8a; margin: 18pt 0 6pt; padding-bottom: 3pt; border-bottom: 1px solid #c4ccd2; text-transform: uppercase; letter-spacing: .04em; }
 h3 { font-size: 12pt; color: #b07b3a; margin: 12pt 0 4pt; }
 h4 { font-size: 10.5pt; color: #2a3038; margin: 8pt 0 2pt; text-transform: uppercase; letter-spacing: .03em; }
 .subtitle { font-size: 10pt; color: #6a737c; margin-bottom: 14pt; }
+.muted { color: #6a737c; font-size: 9.5pt; }
 .card { border: 1px solid #d8dde2; border-radius: 6pt; padding: 9pt 11pt; margin: 6pt 0 9pt; background: #fafbfc; page-break-inside: avoid; }
+.card-now { border-left: 3pt solid #b07b3a; }
+.card-target { border-left: 3pt solid #2f6b50; }
 .card-accent { border-left: 3pt solid #2c5a8a; }
-.card-warm { border-left: 3pt solid #b07b3a; }
-.card-success { border-left: 3pt solid #2f6b50; }
 .tag { display: inline-block; font-size: 8.5pt; font-weight: 600; padding: 1pt 6pt; border-radius: 8pt; margin-right: 3pt; }
 .tag-blue { background: #e6eef7; color: #2c5a8a; }
 .tag-amber { background: #f5ead7; color: #8a5e2a; }
 .tag-green { background: #dcebe2; color: #2f6b50; }
-.tag-slate { background: #e9ecef; color: #5a6470; }
 .mono { font-family: 'Consolas', 'Menlo', monospace; font-size: 9.5pt; color: #2c5a8a; background: #eef3f8; padding: 0 4pt; border-radius: 2pt; }
 .kv { display: grid; grid-template-columns: 90pt 1fr; gap: 3pt 8pt; font-size: 10pt; margin-top: 3pt; }
 .kv .k { color: #6a737c; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .03em; padding-top: 2pt; }
@@ -31,53 +31,50 @@ h4 { font-size: 10.5pt; color: #2a3038; margin: 8pt 0 2pt; text-transform: upper
 .dot-on { color: #2c5a8a; }
 .dot-off { color: #c4ccd2; }
 .gauge-val { font-family: 'Consolas', monospace; font-size: 9pt; color: #2a3038; margin-left: 3pt; }
-.similar { color: #2a3038; font-size: 10pt; }
 .similar-none { color: #6a737c; font-style: italic; font-size: 10pt; }
 table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 4pt 0; }
 th { text-align: left; padding: 3pt 6pt; border-bottom: 1px solid #c4ccd2; color: #6a737c; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .03em; }
 td { padding: 3pt 6pt; border-bottom: 1px solid #ebeef1; vertical-align: top; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; }
 .page-break { page-break-before: always; }
-.muted { color: #6a737c; font-size: 9.5pt; }
 ul { margin: 4pt 0 4pt 16pt; padding: 0; }
 li { margin: 2pt 0; }
 </style>
 </head>
 <body>
 
-<h1>Trestle — System Brief &amp; Submodule Inventory</h1>
-<p class="subtitle">Shared reference for technical and finance / finance-tech leads supporting the rebuild. Each submodule carries a complexity gauge and a "similar to" tag list so reviewers can scan where depth matters.</p>
+<h1>Trestle — Technical Brief</h1>
+<p class="subtitle">Companion to the executive brief. Adds data shapes, calc rules, architecture details, and a submodule inventory under the new gauge framework (complexity 1-5 + "similar to" tags). Ends with deep dives on the five priority submodules.</p>
 
-<h2>1. Exec Summary</h2>
-<div class="card">
-  <p>Trestle is a multi-user FP&amp;A planning platform: one shared workspace per fiscal year holding <strong>14 plan files</strong> (1 AOP + 12 monthly Rolling Forecasts + 1 Long-Term Plan). Each plan file is a <span class="mono">state_data</span> JSON containing every input module (revenue, headcount, vendor, contractor, T&amp;E, other, D&amp;A) coded to a shared chartfield grid (Business Unit / Biz Line / Market / Project / Account). Calc outputs feed a P&amp;L walk and a pivot/analytics layer; collaboration runs over WebSocket presence with live cursors and shared state.</p>
-  <p style="margin-top:6pt">The rebuild target preserves the conceptual model but replaces the single-blob state with a normalized data spine, layered access control, and standard EPM connectors. This brief is the shared map: an inventory plus deep dives on the highest-leverage submodules.</p>
+<h2>1. System Overview</h2>
+<div class="card card-accent">
+  <p>Multi-user FP&amp;A planning platform. One shared workspace per fiscal year holds 14 plan files: 1 AOP + 12 monthly RFs + 1 LTP. Each plan file is a <span class="mono">state_data</span> JSON containing every input module (revenue, HC, vendor, contractor, T&amp;E, other, D&amp;A) coded against a five-dimension chartfield grid (BU / Biz Line / Market / Project / Account).</p>
+  <p style="margin-top:6pt">Calc outputs feed a P&amp;L walk and a pivot/analytics layer. Real-time collaboration runs over a WebSocket connection with presence and live cursors; persistence today is full-state PUT per plan, with row-level PATCH and per-cell merge as rebuild targets.</p>
 </div>
 
 <h2>2. System Spine</h2>
 <div class="grid2">
   <div class="card card-accent">
-    <h3>Plan Container</h3>
-    <p>Workspace (year) holds 14 plan files: <strong>1 AOP</strong> · <strong>12 monthly RFs</strong> · <strong>1 LTP</strong>. Each plan = one <span class="mono">state_data</span> JSON. Scenario types: <span class="tag tag-blue">budget</span> <span class="tag tag-amber">forecast</span> <span class="tag tag-green">actual</span> <span class="tag tag-slate">ltp</span>.</p>
+    <h3>Plan container</h3>
+    <p>Workspace (year) holds 14 plans. Each plan is one <span class="mono">state_data</span> blob. Scenario types: <span class="tag tag-blue">budget</span> <span class="tag tag-amber">forecast</span> <span class="tag tag-green">actual</span> <span class="tag tag-blue">ltp</span>. RF labels follow N+M convention (e.g., 3+9 = 3 actuals + 9 forecast months).</p>
   </div>
-  <div class="card card-warm">
-    <h3>Input Modules</h3>
-    <p>Revenue · HC &amp; Comp · Vendor / OAO · Contractors · T&amp;E · Other · D&amp;A. Each row coded to chartfields (BU, Biz Line, Market, Project, Account) plus month columns Jan-Dec.</p>
+  <div class="card card-accent">
+    <h3>Input modules</h3>
+    <p>Revenue · HC &amp; Comp · Vendor / OAO · Contractors · T&amp;E · Other · D&amp;A. Each row coded to chartfields plus jan-dec month columns.</p>
   </div>
-  <div class="card card-success">
-    <h3>Outputs &amp; Collab</h3>
-    <p>P&amp;L walk · pivot / analytics · scenario compare. Real-time collab via WebSocket presence, live cursors, shared state. Admin and access controls layered on top.</p>
+  <div class="card card-accent">
+    <h3>Outputs &amp; collab</h3>
+    <p>P&amp;L walk · pivot &amp; analytics · scenario compare. Multi-user via WebSocket presence + live cursors; full-state broadcast today, per-cell CRDT target.</p>
   </div>
 </div>
 
-<h2>3. Submodule Inventory</h2>
+<h2>3. Submodule Inventory — Gauge Framework</h2>
 <div class="card">
   <p>Each submodule below carries:</p>
   <ul>
     <li><strong>Complexity</strong> — calc / edge-case depth on a 1-5 scale (filled dots).</li>
-    <li><strong>Similar to</strong> — a tag list of related submodules that share shape or mechanics. "Stands alone" means no peer module mirrors it.</li>
+    <li><strong>Similar to</strong> — tag list of related submodules that share shape or mechanics. "Stands alone" means no peer module mirrors it. Use the tags to spot reuse opportunities — a high-similarity cluster means one rebuild covers several modules.</li>
   </ul>
-  <p class="muted">Use the tags to spot reuse opportunities — a high-similarity cluster means one rebuild covers several modules.</p>
 </div>
 
 <h3 style="color:#2c5a8a">Input Modules</h3>
@@ -90,7 +87,6 @@ li { margin: 2pt 0; }
     <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="similar-none">stands alone</span></div>
   </div>
   <div class="kv">
-    <div class="k">Purpose</div><div>Plan top-line by stream; the only revenue-side input.</div>
     <div class="k">In</div><div><span class="mono">revenueRows[]</span> — stream, desc, chartfields, jan-dec</div>
     <div class="k">Out</div><div>Total Rev, MRR, ARR → P&amp;L, Pivot, LTP</div>
     <div class="k">Logic</div><div>Direct monthly entry · aggregate to total · derived MRR / ARR</div>
@@ -103,10 +99,9 @@ li { margin: 2pt 0; }
   <p>Per-employee comp engine — most complex module; drives C&amp;B, CapEx / OpEx split, and FTE rollups.</p>
   <div class="gauges">
     <div class="gauge-row"><span class="gauge-label">Complexity</span><span class="dots"><span class="dot-on">●●●●●</span></span><span class="gauge-val">5 / 5</span></div>
-    <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="similar"><span class="tag tag-amber">Contractors</span> <span class="muted">(shared rate × time + CapEx mechanics)</span></span></div>
+    <div class="gauge-row"><span class="gauge-label">Similar to</span><span><span class="tag tag-amber">Contractors</span> <span class="muted">(shared rate × time + CapEx mechanics)</span></span></div>
   </div>
   <div class="kv">
-    <div class="k">Purpose</div><div>Plan headcount, salary, bonus, benefits, CapEx allocation per employee.</div>
     <div class="k">In</div><div><span class="mono">employees[]</span> — name, salary, seniority, function, country, capPct, allocations</div>
     <div class="k">Out</div><div>HC, C&amp;B, CapEx, OpEx → P&amp;L, FTE chart, Pivot</div>
     <div class="k">Logic</div><div>Monthly proration on start / end · bonus &amp; benefit loading · CapEx % split · functional pillar allocation</div>
@@ -119,10 +114,9 @@ li { margin: 2pt 0; }
   <p>External spend by parent co / vendor; row shape mirrors T&amp;E and Other.</p>
   <div class="gauges">
     <div class="gauge-row"><span class="gauge-label">Complexity</span><span class="dots"><span class="dot-on">●●</span><span class="dot-off">●●●</span></span><span class="gauge-val">2 / 5</span></div>
-    <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="similar"><span class="tag tag-amber">T&amp;E</span> <span class="tag tag-amber">Other</span></span></div>
+    <div class="gauge-row"><span class="gauge-label">Similar to</span><span><span class="tag tag-amber">T&amp;E</span> <span class="tag tag-amber">Other</span></span></div>
   </div>
   <div class="kv">
-    <div class="k">Purpose</div><div>Plan vendor / outside-services spend.</div>
     <div class="k">In</div><div><span class="mono">vendorRows[]</span> — parent co, vendor, type, chartfields, jan-dec</div>
     <div class="k">Out</div><div>OAO total → P&amp;L, Pivot</div>
     <div class="k">Logic</div><div>Direct monthly entry · type tagging · vendor catalog lookup (admin reference)</div>
@@ -135,10 +129,9 @@ li { margin: 2pt 0; }
   <p>Rate × hours model with CapEx split; partially shares HC mechanics.</p>
   <div class="gauges">
     <div class="gauge-row"><span class="gauge-label">Complexity</span><span class="dots"><span class="dot-on">●●●</span><span class="dot-off">●●</span></span><span class="gauge-val">3 / 5</span></div>
-    <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="similar"><span class="tag tag-amber">HC &amp; Comp</span> <span class="tag tag-amber">Vendor</span> <span class="muted">(partial)</span></span></div>
+    <div class="gauge-row"><span class="gauge-label">Similar to</span><span><span class="tag tag-amber">HC &amp; Comp</span> <span class="tag tag-amber">Vendor</span> <span class="muted">(partial)</span></span></div>
   </div>
   <div class="kv">
-    <div class="k">Purpose</div><div>Plan non-employee labor with rate cards and CapEx allocation.</div>
     <div class="k">In</div><div><span class="mono">contractorRows[]</span> — name, rate, hours, capPct, start / end mo</div>
     <div class="k">Out</div><div>CTR, CapEx split → P&amp;L, Pivot</div>
     <div class="k">Logic</div><div>Rate × hours per month · CapEx % · proration on start / end</div>
@@ -151,10 +144,9 @@ li { margin: 2pt 0; }
   <p>Travel and expense rows; near-identical shape to Vendor and Other.</p>
   <div class="gauges">
     <div class="gauge-row"><span class="gauge-label">Complexity</span><span class="dots"><span class="dot-on">●●</span><span class="dot-off">●●●</span></span><span class="gauge-val">2 / 5</span></div>
-    <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="similar"><span class="tag tag-amber">Vendor</span> <span class="tag tag-amber">Other</span></span></div>
+    <div class="gauge-row"><span class="gauge-label">Similar to</span><span><span class="tag tag-amber">Vendor</span> <span class="tag tag-amber">Other</span></span></div>
   </div>
   <div class="kv">
-    <div class="k">Purpose</div><div>Plan travel and expense lines.</div>
     <div class="k">In</div><div><span class="mono">teRows[]</span> — expense type, desc, chartfields, jan-dec</div>
     <div class="k">Out</div><div>T&amp;E total → P&amp;L, Pivot</div>
     <div class="k">Logic</div><div>Direct monthly entry · type tagging</div>
@@ -167,10 +159,9 @@ li { margin: 2pt 0; }
   <p>Catch-all rows split by C&amp;B vs OAO; shape clones Vendor / T&amp;E with a type discriminator.</p>
   <div class="gauges">
     <div class="gauge-row"><span class="gauge-label">Complexity</span><span class="dots"><span class="dot-on">●●</span><span class="dot-off">●●●</span></span><span class="gauge-val">2 / 5</span></div>
-    <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="similar"><span class="tag tag-amber">Vendor</span> <span class="tag tag-amber">T&amp;E</span></span></div>
+    <div class="gauge-row"><span class="gauge-label">Similar to</span><span><span class="tag tag-amber">Vendor</span> <span class="tag tag-amber">T&amp;E</span></span></div>
   </div>
   <div class="kv">
-    <div class="k">Purpose</div><div>Misc C&amp;B and OAO not captured in core modules.</div>
     <div class="k">In</div><div><span class="mono">cbOtherRows[]</span> + <span class="mono">oaoOtherRows[]</span></div>
     <div class="k">Out</div><div>Other C&amp;B, Other OAO → P&amp;L</div>
     <div class="k">Logic</div><div>Direct monthly entry · routes by type</div>
@@ -186,7 +177,6 @@ li { margin: 2pt 0; }
     <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="similar-none">stands alone</span></div>
   </div>
   <div class="kv">
-    <div class="k">Purpose</div><div>Track assets and depreciation schedule into P&amp;L and LTP.</div>
     <div class="k">In</div><div><span class="mono">depreciationRows[]</span> + <span class="mono">assetRows[]</span></div>
     <div class="k">Out</div><div>D&amp;A schedule → P&amp;L, LTP</div>
     <div class="k">Logic</div><div>Method-based schedule (straight-line etc.) over useful life · in-service date</div>
@@ -196,7 +186,7 @@ li { margin: 2pt 0; }
 
 <h3 style="color:#2c5a8a;margin-top:14pt">Output &amp; Cross-Cutting Submodules</h3>
 
-<div class="card card-warm">
+<div class="card">
   <h3>P&amp;L Walk</h3>
   <p>Aggregates every input module to a chartfield × month grid with subtotals.</p>
   <div class="gauges">
@@ -210,7 +200,7 @@ li { margin: 2pt 0; }
   </div>
 </div>
 
-<div class="card card-warm">
+<div class="card">
   <h3>Pivot &amp; Analytics</h3>
   <p>Reshape any module data by row dimension and chart it; also handles scenario overlays.</p>
   <div class="gauges">
@@ -224,12 +214,12 @@ li { margin: 2pt 0; }
   </div>
 </div>
 
-<div class="card card-warm">
+<div class="card">
   <h3>Spreadsheet-Style Grid</h3>
   <p>Cross-cutting UX layer used by every input module — single shared cell-grid behavior.</p>
   <div class="gauges">
     <div class="gauge-row"><span class="gauge-label">Complexity</span><span class="dots"><span class="dot-on">●●●</span><span class="dot-off">●●</span></span><span class="gauge-val">3 / 5</span></div>
-    <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="similar"><span class="muted">cross-cuts every input module (shared component, not a peer)</span></span></div>
+    <div class="gauge-row"><span class="gauge-label">Similar to</span><span class="muted">cross-cuts every input module (shared component, not a peer)</span></div>
   </div>
   <div class="kv">
     <div class="k">Behavior</div><div>Tab / Enter / Arrow nav · Shift+Click range · multi-cell copy / paste · delete to clear</div>
@@ -238,7 +228,7 @@ li { margin: 2pt 0; }
   </div>
 </div>
 
-<div class="card card-warm">
+<div class="card">
   <h3>Collaboration &amp; Presence</h3>
   <p>Real-time multi-user editing — currently single-blob state sync; rebuild target is cell-level CRDT.</p>
   <div class="gauges">
@@ -252,7 +242,7 @@ li { margin: 2pt 0; }
   </div>
 </div>
 
-<div class="card card-warm">
+<div class="card">
   <h3>Admin &amp; Access Control</h3>
   <p>User / role management plus admin-managed reference data (rate cards, benefits, FX).</p>
   <div class="gauges">
@@ -265,7 +255,7 @@ li { margin: 2pt 0; }
   </div>
 </div>
 
-<div class="card card-warm">
+<div class="card">
   <h3>EPM &amp; Integrations</h3>
   <p>Inbound (actuals, HR, GL) and outbound (Oracle EPM, Anaplan, Workday Adaptive). Rebuild target is standard versioned connectors.</p>
   <div class="gauges">
@@ -279,7 +269,37 @@ li { margin: 2pt 0; }
   </div>
 </div>
 
-<h2>4. Where Depth Will Matter</h2>
+<div class="page-break"></div>
+<h2>4. Current vs Target Architecture</h2>
+<div class="grid2">
+  <div class="card card-now">
+    <h3>Today</h3>
+    <ul>
+      <li><strong>Persistence:</strong> single <span class="mono">state_data</span> JSON blob per plan, full PUT on save</li>
+      <li><strong>Auth:</strong> hardcoded admin login + email-based module toggles</li>
+      <li><strong>Sync:</strong> WebSocket full-state broadcast; last-write-wins under concurrent saves</li>
+      <li><strong>Audit:</strong> in-memory only, not persisted to DB</li>
+      <li><strong>Reference data:</strong> embedded constants and informal lookups</li>
+      <li><strong>Integrations:</strong> ad-hoc per integration; not versioned</li>
+      <li><strong>Reporting:</strong> client-memory aggregation from <span class="mono">state_data</span></li>
+    </ul>
+  </div>
+  <div class="card card-target">
+    <h3>Target</h3>
+    <ul>
+      <li><strong>Persistence:</strong> normalized tables (<span class="mono">employees</span>, <span class="mono">vendor_rows</span>, <span class="mono">plan_config</span>, <span class="mono">field_defs</span>) with row-level PATCH and version columns</li>
+      <li><strong>Auth:</strong> OAuth (Google / Azure AD), SSO + SCIM, JWT with refresh rotation, server-side sessions in Redis</li>
+      <li><strong>Sync:</strong> per-cell CRDT doc per plan, Redis pub/sub fan-out, optimistic locking</li>
+      <li><strong>Audit:</strong> append-only <span class="mono">change_log</span> partitioned by month (user, field, before, after, ts)</li>
+      <li><strong>Reference data:</strong> versioned <span class="mono">reference_sets</span>; plans pin to a version</li>
+      <li><strong>Integrations:</strong> versioned connector modules with schema map, chartfield crosswalk, retry / idempotency, reconciliation report</li>
+      <li><strong>Reporting:</strong> server-side aggregation, materialized views per scenario, read replicas for reporting</li>
+      <li><strong>Access:</strong> PostgreSQL Row-Level Security (RLS) policies enforce dimension scoping</li>
+    </ul>
+  </div>
+</div>
+
+<h2>5. Where Depth Will Matter</h2>
 <div class="card">
   <p>Based on the gauges and tags, deeper second-pass docs should land first on:</p>
   <table>
@@ -293,95 +313,75 @@ li { margin: 2pt 0; }
 </div>
 
 <div class="page-break"></div>
-<h2>5. Deep Dives</h2>
+<h2>6. Deep Dives</h2>
 <p class="muted">First-pass depth on the five priority submodules. Intentionally shallow — we iterate from here.</p>
 
-<h3>5.1 HC &amp; Compensation</h3>
-<div class="card card-success">
-  <h4>Business framing</h4>
-  <p>The most-edited and most-material module. Drives compensation, benefits load, CapEx capitalization, and FTE rollups. Used by HR-aligned planners alongside finance.</p>
-
+<h3>6.1 HC &amp; Compensation</h3>
+<div class="card">
   <h4>Data shape</h4>
   <p><span class="mono">employees[]</span> — name, salary, seniority, function, country, capPct, allocations[], start mo, end mo, bonus %, equity %.</p>
-
   <h4>Calc rules</h4>
   <ul>
-    <li>Monthly proration based on start / end month (mid-month handled as full month today; flag for revisit).</li>
-    <li>Bonus % applied as annual amount and posted to a target bonus month (configurable).</li>
+    <li>Monthly proration based on start / end month (mid-month treated as full month today; flag for revisit).</li>
+    <li>Bonus % posted as annual amount to a configurable target month.</li>
     <li>Benefits load applied as country-specific % on top of base salary.</li>
-    <li>CapEx % (<span class="mono">capPct</span>) splits cost between CapEx and OpEx; flows to D&amp;A pipeline.</li>
-    <li>Allocation % across functional pillars routes cost lines into pivot dimensions.</li>
+    <li>CapEx % (<span class="mono">capPct</span>) splits cost into CapEx and OpEx; flows into D&amp;A pipeline.</li>
+    <li>Allocation % across functional pillars routes cost into pivot dimensions.</li>
   </ul>
-
   <h4>Dependencies</h4>
-  <p>Salary bands (admin reference) · benefits load by country (admin reference) · FX rates (future, not in v1) · pillar map · GL accounts.</p>
-
+  <p>Salary bands · benefits load by country · FX rates (target) · pillar map · GL accounts.</p>
   <h4>Today vs target</h4>
   <ul>
-    <li><strong>Today:</strong> nested in <span class="mono">state_data</span> JSON; full-plan blob save on every edit.</li>
-    <li><strong>Target:</strong> dedicated <span class="mono">employees</span> table with row-level versioning · reference_sets for bands / benefits / FX · per-employee audit trail.</li>
+    <li><strong>Today:</strong> nested in <span class="mono">state_data</span>; full-plan blob save on every edit.</li>
+    <li><strong>Target:</strong> dedicated <span class="mono">employees</span> table with row-level versioning; <span class="mono">reference_sets</span> for bands / benefits / FX; per-employee audit trail.</li>
   </ul>
-
-  <h4>Edge cases &amp; open questions</h4>
+  <h4>Edge cases &amp; opens</h4>
   <ul>
     <li>Mid-month start / end and partial-month proration policy.</li>
-    <li>BU / market transfers mid-year (does the row split, or one row with allocation change?).</li>
+    <li>BU / market transfers mid-year (split row vs allocation change).</li>
     <li>Equity refresh accounting and overlay vs base.</li>
     <li>Contractor → employee conversion and continuity.</li>
     <li>Multi-currency comp and FX restatement.</li>
   </ul>
 </div>
-
-<h3>5.2 Collaboration &amp; Presence</h3>
-<div class="card card-success">
-  <h4>Business framing</h4>
-  <p>Real-time multi-user editing during close and forecast cycles. Several finance users editing the same plan concurrently; loss of edits or stale views breaks trust in the data.</p>
-
+<h3>6.2 Collaboration &amp; Presence</h3>
+<div class="card">
   <h4>Today's shape</h4>
   <ul>
     <li>WebSocket presence + live cursors.</li>
     <li>Full <span class="mono">state_data</span> JSON saved on change; last-write-wins.</li>
     <li>No cell-level merge; no row-level locking.</li>
+    <li>Audit trail in client state only.</li>
   </ul>
-
-  <h4>Problems with today</h4>
+  <h4>Problems</h4>
   <ul>
     <li>Lost edits under concurrent saves.</li>
-    <li>Large WS payloads at scale.</li>
-    <li>Audit trail only in client state, not in DB.</li>
+    <li>Large WS payloads as plans grow.</li>
+    <li>No persistent audit.</li>
   </ul>
-
   <h4>Target architecture</h4>
   <ul>
-    <li>Per-cell CRDT (or OT) doc per plan.</li>
-    <li>Redis pub / sub for fan-out across app instances.</li>
-    <li>Optimistic locking with version column; server-authoritative merge.</li>
-    <li>Append-only audit log partitioned by month (user, field, before, after, ts).</li>
+    <li>Per-cell CRDT (or OT) doc per plan; server-authoritative merge.</li>
+    <li>Redis pub / sub fan-out across app instances.</li>
+    <li>Optimistic locking with <span class="mono">version</span> column.</li>
+    <li>Append-only <span class="mono">change_log</span> partitioned by month.</li>
   </ul>
-
   <h4>Flow</h4>
   <p>Client emits ops → server validates against tenant + RLS → applies to CRDT doc → broadcasts via Redis → other clients merge → batched persist.</p>
-
   <h4>Risks &amp; opens</h4>
   <ul>
     <li>Replay correctness across schema evolution mid-edit.</li>
     <li>Presence performance at hundreds of users.</li>
     <li>Audit log growth and partitioning policy.</li>
-    <li>Open: which CRDT lib · cell vs row granularity · how to surface "X is editing Y" cleanly.</li>
+    <li>Open: which CRDT lib · cell vs row granularity · "X is editing Y" UX detail.</li>
   </ul>
 </div>
-
-<h3>5.3 P&amp;L Walk</h3>
-<div class="card card-success">
-  <h4>Business framing</h4>
-  <p>The canonical financial output. Every input module flows through here. Correctness here is the headline measure of system trust.</p>
-
+<h3>6.3 P&amp;L Walk</h3>
+<div class="card">
   <h4>Inputs</h4>
   <p>Every module's calc output: Revenue, C&amp;B (from HC), OAO (from Vendor + Other), CTR (from Contractors), T&amp;E, Other C&amp;B, D&amp;A.</p>
-
   <h4>Output</h4>
-  <p>Chartfield × month grid with subtotal hierarchy (gross margin, opex, EBITDA, etc.) and scenario variance overlay.</p>
-
+  <p>Chartfield × month grid with subtotal hierarchy (gross margin, opex, EBITDA) and scenario variance overlay.</p>
   <h4>Logic</h4>
   <ul>
     <li>Sum by chartfield × month per line.</li>
@@ -389,57 +389,47 @@ li { margin: 2pt 0; }
     <li>Loaded-cost rollups (e.g., bonus + benefits into C&amp;B).</li>
     <li>Scenario compare (budget vs forecast vs actual) with variance overlay.</li>
   </ul>
-
   <h4>Today vs target</h4>
   <ul>
     <li><strong>Today:</strong> computed in client memory from <span class="mono">state_data</span>.</li>
     <li><strong>Target:</strong> server-side aggregation against normalized tables · materialized views per scenario · cached at chartfield rollup level.</li>
   </ul>
-
   <h4>Risks &amp; opens</h4>
   <ul>
     <li>Any module shape change ripples here — needs contract tests against golden P&amp;L fixtures.</li>
     <li>Open: report builder vs hard-coded P&amp;L lines · tenant-specific subtotal hierarchies · drill-through UX.</li>
   </ul>
 </div>
-
-<h3>5.4 EPM &amp; Integrations</h3>
-<div class="card card-success">
-  <h4>Business framing</h4>
-  <p>Keep Trestle in sync with the firm's systems of record (ERP, HR, EPM, BI). New firms should onboard by configuring connector instances, not writing new code.</p>
-
+<h3>6.4 EPM &amp; Integrations</h3>
+<div class="card">
   <h4>Inbound</h4>
   <ul>
-    <li>ERP actuals (SAP / Oracle / NetSuite) → posted to <span class="mono">state.actuals</span>.</li>
-    <li>HR (Workday) → updates <span class="mono">employees[]</span>.</li>
-    <li>GL chart of accounts → <span class="mono">accounts[]</span>.</li>
-    <li>Cost-center hierarchy → <span class="mono">bizLines[]</span>, <span class="mono">markets[]</span>.</li>
+    <li>ERP actuals (SAP / Oracle / NetSuite) → <span class="mono">state.actuals</span></li>
+    <li>HR (Workday) → <span class="mono">employees[]</span></li>
+    <li>GL chart of accounts → <span class="mono">accounts[]</span></li>
+    <li>Cost-center hierarchy → <span class="mono">bizLines[]</span>, <span class="mono">markets[]</span></li>
   </ul>
-
   <h4>Outbound</h4>
   <ul>
-    <li>Oracle EPM, Anaplan, Workday Adaptive (P&amp;L by chartfield × month).</li>
-    <li>BI dashboards (real-time aggregations).</li>
-    <li>Data lake (full state snapshots).</li>
-    <li>XLSX / PDF export.</li>
+    <li>Oracle EPM, Anaplan, Workday Adaptive (P&amp;L by chartfield × month)</li>
+    <li>BI dashboards (real-time aggregations)</li>
+    <li>Data lake (full state snapshots)</li>
+    <li>XLSX / PDF export</li>
   </ul>
-
   <h4>Connector pattern (target)</h4>
   <p>Every integration is a versioned connector module shipping with:</p>
   <ul>
-    <li>Schema map (Trestle field → target field).</li>
-    <li>Chartfield crosswalk.</li>
-    <li>Sync mode: incremental + full-load.</li>
-    <li>Retry / backoff with idempotency keys.</li>
-    <li>Reconciliation report (counts, sums, deltas).</li>
+    <li>Schema map (Trestle field → target field)</li>
+    <li>Chartfield crosswalk</li>
+    <li>Sync mode: incremental + full-load</li>
+    <li>Retry / backoff with idempotency keys</li>
+    <li>Reconciliation report (counts, sums, deltas)</li>
   </ul>
-
   <h4>Today vs target</h4>
   <ul>
     <li><strong>Today:</strong> ad-hoc per integration; not versioned.</li>
     <li><strong>Target:</strong> connector registry; new firm = configure instance, not fork.</li>
   </ul>
-
   <h4>Opens</h4>
   <ul>
     <li>Vendor schema-change handling and version pinning.</li>
@@ -447,34 +437,25 @@ li { margin: 2pt 0; }
     <li>Vendor sandbox testing in CI.</li>
   </ul>
 </div>
-
-<h3>5.5 Vendor / T&amp;E / Other (consolidated)</h3>
-<div class="card card-success">
-  <h4>Business framing</h4>
-  <p>Three modules sharing one row shape — line item + chartfields + monthly amounts. Documented once because the rebuild produces one shared component used three ways.</p>
-
+<h3>6.5 Vendor / T&amp;E / Other (consolidated)</h3>
+<div class="card">
   <h4>Shared shape</h4>
   <p><span class="mono">rows[]</span> with type discriminator (vendor type · expense type · C&amp;B vs OAO), description, chartfields, jan-dec.</p>
-
   <h4>Per-module differences</h4>
   <ul>
     <li><strong>Vendor / OAO:</strong> parent co + vendor lookup against admin catalog.</li>
     <li><strong>T&amp;E:</strong> expense-type list (admin reference).</li>
     <li><strong>Other:</strong> split by C&amp;B vs OAO at the type level.</li>
   </ul>
-
   <h4>Calc</h4>
   <p>Direct monthly entry · aggregate to module total → P&amp;L line.</p>
-
   <h4>Reference data</h4>
   <p>Vendor catalog · expense-type list · GL accounts · type taxonomy.</p>
-
   <h4>Today vs target</h4>
   <ul>
     <li><strong>Today:</strong> three separate row arrays in <span class="mono">state_data</span>; logic copy-pasted.</li>
     <li><strong>Target:</strong> one shared <span class="mono">expense_rows</span> table with <span class="mono">type</span> + <span class="mono">sub_type</span> columns · one shared grid component · each module is a configured view.</li>
   </ul>
-
   <h4>Edge cases &amp; opens</h4>
   <ul>
     <li>PO splits across chartfields.</li>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trestle — Executive Brief</title>
+<style>
+@page { size: Letter; margin: 0.6in 0.7in; }
+* { box-sizing: border-box; }
+body { font-family: 'Calibri', 'Helvetica', sans-serif; color: #1a1f25; font-size: 11pt; line-height: 1.5; max-width: 7.2in; margin: 0 auto; }
+h1 { font-size: 22pt; margin: 0 0 4pt; }
+h2 { font-size: 14pt; color: #2c5a8a; margin: 18pt 0 6pt; padding-bottom: 3pt; border-bottom: 1px solid #c4ccd2; text-transform: uppercase; letter-spacing: .04em; }
+h3 { font-size: 12pt; color: #b07b3a; margin: 12pt 0 4pt; }
+h4 { font-size: 10.5pt; color: #2a3038; margin: 8pt 0 2pt; text-transform: uppercase; letter-spacing: .03em; }
+.subtitle { font-size: 10pt; color: #6a737c; margin-bottom: 14pt; }
+.muted { color: #6a737c; font-size: 9.5pt; }
+.card { border: 1px solid #d8dde2; border-radius: 6pt; padding: 9pt 11pt; margin: 6pt 0 9pt; background: #fafbfc; page-break-inside: avoid; }
+.card-now { border-left: 3pt solid #b07b3a; }
+.card-target { border-left: 3pt solid #2f6b50; }
+.card-accent { border-left: 3pt solid #2c5a8a; }
+.tag { display: inline-block; font-size: 8.5pt; font-weight: 600; padding: 1pt 6pt; border-radius: 8pt; margin-right: 3pt; }
+.tag-now { background: #f5ead7; color: #8a5e2a; }
+.tag-target { background: #dcebe2; color: #2f6b50; }
+.tag-blue { background: #e6eef7; color: #2c5a8a; }
+table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 4pt 0; }
+th { text-align: left; padding: 4pt 6pt; border-bottom: 1px solid #c4ccd2; color: #6a737c; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .03em; }
+td { padding: 4pt 6pt; border-bottom: 1px solid #ebeef1; vertical-align: top; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; }
+.page-break { page-break-before: always; }
+ul { margin: 4pt 0 4pt 16pt; padding: 0; }
+li { margin: 2pt 0; }
+.fn { font-size: 9pt; color: #6a737c; }
+.fn sup { color: #2c5a8a; font-weight: 600; }
+hr.sep { border: none; border-top: 1px dashed #c4ccd2; margin: 14pt 0; }
+</style>
+</head>
+<body>
+
+<h1>Trestle — Executive Brief</h1>
+<p class="subtitle">For finance and finance-tech leads. Frames what the platform does today, where it's going, and the financial structure underpinning both. Plain language; technical terms defined in footnotes where unavoidable.</p>
+
+<h2>1. What Trestle Is</h2>
+<div class="card card-accent">
+  <p>Trestle is a planning platform for finance teams. Each fiscal year lives in one shared workspace that holds <strong>14 plans</strong>: one Annual Operating Plan (AOP), twelve monthly Rolling Forecasts (RF), and one Long-Term Plan (LTP). Every plan is built from the same set of input modules — revenue, headcount and compensation, vendor spend, contractors, travel and expense, other costs, and depreciation — coded against a common chartfield grid so any view rolls up consistently.</p>
+  <p>Output is the same for every plan: a P&amp;L walk, a pivot/analytics layer for slicing the numbers, and scenario comparisons between budget, forecast, and actuals. Multiple users edit the same plan at the same time with live presence indicators.</p>
+</div>
+
+<h2>2. Who Uses It</h2>
+<div class="grid2">
+  <div class="card card-accent">
+    <h3>FP&amp;A planners</h3>
+    <p>Build the AOP, refresh the monthly Rolling Forecast, run scenario compares, and produce P&amp;L variance views for leadership.</p>
+  </div>
+  <div class="card card-accent">
+    <h3>Finance partners (BU / function)</h3>
+    <p>Maintain the parts of the plan they own — headcount for their team, vendor spend for their cost centers — with chartfield coding handled in-line.</p>
+  </div>
+  <div class="card card-accent">
+    <h3>Finance leadership</h3>
+    <p>Reviews scenario comparisons, P&amp;L walks, and FTE / cost rollups across business units, markets, projects, and accounts.</p>
+  </div>
+  <div class="card card-accent">
+    <h3>Finance-tech / admin</h3>
+    <p>Maintains shared reference data (rate cards, benefits load, salary bands, vendor catalog), publishes new plan templates, and manages user access.</p>
+  </div>
+</div>
+
+<h2>3. Financial Structure</h2>
+
+<div class="card">
+  <h3>Plan types</h3>
+  <table>
+    <tr><th>Plan</th><th>Cadence</th><th>Use</th></tr>
+    <tr><td><strong>AOP</strong> — Annual Operating Plan</td><td>Once a year</td><td>Full-year budget across all accounts; baseline for the fiscal year.</td></tr>
+    <tr><td><strong>RF</strong> — Rolling Forecast</td><td>Monthly (12 per year)</td><td>Re-forecast remaining year using actuals to date plus updated forward view. Labeled by actual + forecast split (e.g., 3+9 = three months actual, nine forecast).</td></tr>
+    <tr><td><strong>LTP</strong> — Long-Term Plan</td><td>Annual</td><td>Multi-year forward view (typically five years) for strategic planning.</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Input modules (the building blocks of every plan)</h3>
+  <table>
+    <tr><th>Module</th><th>What it captures</th><th>Output line</th></tr>
+    <tr><td><strong>Revenue</strong></td><td>Top-line streams by chartfield, month by month</td><td>Total revenue, MRR, ARR</td></tr>
+    <tr><td><strong>Headcount &amp; Compensation</strong></td><td>Per-employee plan: salary, bonus, benefits, capitalization split, allocation</td><td>HC, C&amp;B, CapEx vs OpEx</td></tr>
+    <tr><td><strong>Vendor / OAO</strong></td><td>External spend by parent company and vendor</td><td>OAO total</td></tr>
+    <tr><td><strong>Contractors</strong></td><td>Non-employee labor: rate × hours, capitalization split</td><td>Contractor cost, CapEx split</td></tr>
+    <tr><td><strong>Travel &amp; Expense</strong></td><td>Travel and other discretionary expense lines</td><td>T&amp;E total</td></tr>
+    <tr><td><strong>Other</strong></td><td>Catch-all for C&amp;B and OAO items not captured elsewhere</td><td>Other C&amp;B, Other OAO</td></tr>
+    <tr><td><strong>Depreciation &amp; Assets</strong></td><td>Asset register and depreciation schedule</td><td>D&amp;A schedule</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Chartfield grid (the coding spine)</h3>
+  <p>Every line in every module is coded against the same five dimensions. This is what allows any number to roll up cleanly into the P&amp;L and any pivot view.</p>
+  <p style="margin-top:6pt"><span class="tag tag-blue">Business Unit</span> <span class="tag tag-blue">Business Line</span> <span class="tag tag-blue">Market</span> <span class="tag tag-blue">Project</span> <span class="tag tag-blue">Account</span></p>
+  <p class="muted" style="margin-top:4pt">A single rate card change, salary band update, or vendor consolidation flows through every plan that uses those dimensions — no parallel updates required.</p>
+</div>
+
+<h2>4. Granularity — What Sits Behind Each Line</h2>
+<div class="card">
+  <p>Trestle plans at the line level, not the rollup level. That means each cost line in the P&amp;L is built from real underlying records — the planner can drill from any total back to the contributing rows without leaving the platform.</p>
+  <table>
+    <tr><th>Module</th><th>What "one row" represents</th></tr>
+    <tr><td>Revenue</td><td>One revenue stream per chartfield combination, with monthly amounts</td></tr>
+    <tr><td>Headcount</td><td>One employee — name, salary, function, country, capitalization %, allocation across pillars</td></tr>
+    <tr><td>Vendor</td><td>One vendor relationship per parent company per chartfield</td></tr>
+    <tr><td>Contractor</td><td>One contractor with rate, hours, start / end month, capitalization split</td></tr>
+    <tr><td>T&amp;E / Other</td><td>One expense line with type, description, chartfields</td></tr>
+    <tr><td>D&amp;A / Assets</td><td>One asset with depreciation method, cost, useful life, in-service date</td></tr>
+  </table>
+  <p class="muted" style="margin-top:6pt">This is the difference between Trestle and a top-down spreadsheet: every line is auditable to its underlying drivers, and changes in one driver (e.g., a salary band update) propagate consistently.</p>
+</div>
+
+<h2>5. Features (User-Facing Capabilities)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Spreadsheet-style entry</h3>
+    <p>Every grid behaves like a spreadsheet — keyboard navigation, range selection, copy/paste, bulk delete — so finance users move through the plan at the speed they expect.</p>
+  </div>
+  <div class="card">
+    <h3>Real-time multi-user editing</h3>
+    <p>Multiple users edit the same plan simultaneously. Live cursors show who is in which section. State stays in sync without manual refresh.</p>
+  </div>
+  <div class="card">
+    <h3>Scenario comparison</h3>
+    <p>Compare any two plans (Budget vs Forecast, Forecast vs Actual, Forecast vs Forecast) with variance overlay on every view.</p>
+  </div>
+  <div class="card">
+    <h3>Pivot and analytics</h3>
+    <p>Reshape any module's data by Product, Function, Business Line, Market, Pillar, Month, or Quarter. Charts include bar, line, bubble, and scatter; calculated metrics support custom ratios.</p>
+  </div>
+  <div class="card">
+    <h3>P&amp;L walk</h3>
+    <p>Every input module rolls into the P&amp;L automatically — no separate consolidation step. Subtotals (gross margin, opex, EBITDA) are produced from a single source of truth.</p>
+  </div>
+  <div class="card">
+    <h3>Export</h3>
+    <p>Any view exports cleanly to Excel or PDF; charts copy to clipboard for quick reuse in board materials.</p>
+  </div>
+</div>
+
+<div class="page-break"></div>
+<h2>6. Current State vs Ideal State</h2>
+<p class="muted">A side-by-side of what exists today and what the rebuild is targeting. Same conceptual model — the change is in robustness, scale, and integration, not in how a planner thinks about a plan.</p>
+
+<div class="grid2">
+
+  <div class="card card-now">
+    <h3>Today</h3>
+    <h4>Plan structure</h4>
+    <ul>
+      <li>14 plans per year (AOP, 12 RFs, LTP) in one shared workspace</li>
+      <li>All input modules and chartfields wired in</li>
+    </ul>
+    <h4>Collaboration</h4>
+    <ul>
+      <li>Live presence and cursors</li>
+      <li>Last edit wins under simultaneous saves<sup>1</sup></li>
+    </ul>
+    <h4>Access control</h4>
+    <ul>
+      <li>Single admin login + email-based access toggles</li>
+      <li>Plans shared with viewer / editor roles</li>
+    </ul>
+    <h4>Reference data</h4>
+    <ul>
+      <li>Salary bands, rate cards, benefits exist informally — not centrally maintained</li>
+    </ul>
+    <h4>Integration with other systems</h4>
+    <ul>
+      <li>Manual import / export to ERP, HR, and EPM systems<sup>2</sup></li>
+    </ul>
+    <h4>Audit</h4>
+    <ul>
+      <li>Limited — change history is in-session, not persisted</li>
+    </ul>
+  </div>
+
+  <div class="card card-target">
+    <h3>Ideal state</h3>
+    <h4>Plan structure</h4>
+    <ul>
+      <li>Same 14-plan model — no change in the planner's mental model</li>
+      <li>Each module saved as discrete records, not as one big plan blob — enables row-level undo, partial saves, and faster loads</li>
+    </ul>
+    <h4>Collaboration</h4>
+    <ul>
+      <li>True cell-by-cell merge — no lost edits when two users save at once</li>
+      <li>Optional row / section locking during close periods</li>
+    </ul>
+    <h4>Access control</h4>
+    <ul>
+      <li>Single sign-on (SSO)<sup>3</sup> with corporate identity</li>
+      <li>Access scoped by chartfield dimension (e.g., a planner sees only their market or business line)</li>
+    </ul>
+    <h4>Reference data</h4>
+    <ul>
+      <li>Centrally maintained, versioned reference sets — rate cards, benefits load, salary bands, FX rates, vendor catalog, GL chart of accounts</li>
+      <li>Plans pin to a version so a published rate change does not retroactively alter a closed plan</li>
+    </ul>
+    <h4>Integration with other systems</h4>
+    <ul>
+      <li>Standard, versioned connectors to ERP, HR, EPM, BI, and data lake</li>
+      <li>New firm onboarding = configure connector, not custom build</li>
+    </ul>
+    <h4>Audit</h4>
+    <ul>
+      <li>Full change history persisted — who changed what, when, and from what value</li>
+    </ul>
+  </div>
+
+</div>
+
+<h2>7. Roadmap — From Pilot to Firm-Wide</h2>
+<p class="muted">Two phases. The first locks in every ideal-state capability on a small team so nothing is left to chase later. The second scales out, with explicit testing gates between cohorts so quality holds.</p>
+
+<div class="card">
+  <h3>Phase 1 — Pilot hardening (5-10 users, one team)</h3>
+  <p><strong>Goal:</strong> get the full target stack working end-to-end on a single controlled team. Everything below is in place before opening up further.</p>
+  <ul>
+    <li>SSO login with corporate identity</li>
+    <li>Module-level and dimension-level access controls</li>
+    <li>Cell-level real-time merge — no lost edits under concurrent editing</li>
+    <li>Persisted change history</li>
+    <li>Centralized reference data (rate cards, benefits, salary bands, FX, vendor catalog)</li>
+    <li>At least one inbound and one outbound integration validated end-to-end</li>
+    <li>Automated test suite covering calc accuracy, save reliability, and integration round-trips</li>
+  </ul>
+  <p><strong>Exit criteria:</strong> a full close cycle run on Trestle with zero data loss and a green automated regression suite.</p>
+</div>
+
+<div class="card">
+  <h3>Phase 2 — Scale ramp (10 → 1,000 users)</h3>
+  <p>Cohorts open after each gate is green.</p>
+  <table>
+    <tr><th>Milestone</th><th>What gets validated before opening the next cohort</th></tr>
+    <tr><td><strong>~100 users</strong></td><td>Load test at 3× headroom · disaster recovery drill · access-control audit</td></tr>
+    <tr><td><strong>~300 users</strong></td><td>Multi-tenant isolation review · concurrent-edit stress test · external security review · reliability SLOs<sup>4</sup> on integrations</td></tr>
+    <tr><td><strong>500-1,000 users</strong></td><td>Multi-region read replicas<sup>5</sup> · capacity plan to 2× peak · 24/7 on-call rotation with documented runbooks</td></tr>
+  </table>
+</div>
+
+<h2>8. What This Buys the Business</h2>
+<div class="grid2">
+  <div class="card card-target">
+    <h3>For finance teams</h3>
+    <ul>
+      <li>Faster close — fewer manual reconciliations, fewer parallel spreadsheets</li>
+      <li>One source of truth for plan, forecast, and actuals</li>
+      <li>Drill-through from any P&amp;L line to the underlying drivers in seconds</li>
+      <li>No more lost edits during concurrent close work</li>
+    </ul>
+  </div>
+  <div class="card card-target">
+    <h3>For the firm</h3>
+    <ul>
+      <li>Consistent chartfield discipline across business units</li>
+      <li>Audit trail that satisfies internal review and external audit requests</li>
+      <li>Standardized integration with the firm's systems of record — no bespoke pipelines per team</li>
+      <li>Rate cards, benefits, and FX maintained once and used everywhere</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="sep">
+<h2>Footnotes</h2>
+<p class="fn"><sup>1</sup> <strong>Last edit wins.</strong> When two users save changes to the same plan at the same time, only the most recent save is kept; the other user's changes are silently dropped. The rebuild replaces this with cell-level merging.</p>
+<p class="fn"><sup>2</sup> <strong>ERP / HR / EPM.</strong> ERP = the firm's general ledger system (e.g., SAP, Oracle, NetSuite). HR = the workforce system of record (e.g., Workday). EPM = enterprise performance management — consolidation and reporting tools (e.g., Oracle EPM, Anaplan, Workday Adaptive).</p>
+<p class="fn"><sup>3</sup> <strong>Single sign-on (SSO).</strong> Users log in once with their corporate credentials (e.g., Google Workspace, Azure AD) and access Trestle without a separate password.</p>
+<p class="fn"><sup>4</sup> <strong>SLO — Service Level Objective.</strong> A measurable target for system performance (e.g., "99.9% of saves complete within 400 milliseconds"). SLOs make reliability quantifiable rather than anecdotal.</p>
+<p class="fn"><sup>5</sup> <strong>Read replicas.</strong> Copies of the database that handle reporting and pivot queries, leaving the primary database free for plan edits. Reduces contention as users grow.</p>
+
+</body>
+</html>
