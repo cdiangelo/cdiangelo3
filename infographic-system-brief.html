@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trestle — System Brief & Submodule Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#141B22;color:#F5F6F7;padding:40px;max-width:1400px;margin:0 auto}
+h1{font-family:'Outfit';font-size:1.6rem;font-weight:700;color:#F5F6F7;margin-bottom:4px}
+.subtitle{font-size:.82rem;color:#8A939C;margin-bottom:32px}
+h2{font-family:'Outfit';font-size:1rem;font-weight:600;color:#3B6EA5;margin:28px 0 12px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid rgba(197,205,212,0.12);padding-bottom:6px}
+h3{font-size:.82rem;font-weight:600;color:#C89B5E;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+h4{font-size:.7rem;font-weight:600;color:#C5CDD4;margin:8px 0 3px;text-transform:uppercase;letter-spacing:.04em}
+
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:1fr 1fr 1fr}
+
+.card{background:#1B2530;border:1px solid rgba(197,205,212,0.10);border-radius:10px;padding:16px 18px}
+.card-accent{border-left:3px solid #3B6EA5}
+.card-warm{border-left:3px solid #C89B5E}
+.card-success{border-left:3px solid #3A7D5E}
+
+.tag{display:inline-block;font-size:.62rem;font-weight:600;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.04em;margin-right:4px;margin-bottom:2px}
+.tag-blue{background:rgba(59,110,165,0.15);color:#5A8BC4}
+.tag-amber{background:rgba(200,155,94,0.15);color:#C89B5E}
+.tag-green{background:rgba(58,125,94,0.15);color:#3A7D5E}
+.tag-slate{background:rgba(138,147,156,0.15);color:#8A939C}
+
+.label{font-size:.66rem;color:#8A939C;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.value{font-size:.78rem;color:#C5CDD4;line-height:1.55}
+.mono{font-family:'JetBrains Mono',monospace;font-size:.70rem;color:#5A8BC4;background:rgba(59,110,165,0.08);padding:1px 6px;border-radius:3px}
+
+/* gauges */
+.gauges{display:flex;flex-direction:column;gap:6px;margin:10px 0 12px;padding:10px 12px;background:rgba(20,27,34,0.5);border-radius:8px;border:1px solid rgba(197,205,212,0.06)}
+.gauge{display:grid;grid-template-columns:130px 1fr 36px;align-items:center;gap:10px}
+.gauge-label{font-size:.64rem;color:#8A939C;text-transform:uppercase;letter-spacing:.04em}
+.gauge-track{display:flex;gap:3px}
+.gauge-dot{width:14px;height:6px;border-radius:2px;background:rgba(138,147,156,0.18)}
+.gauge-dot.on-blue{background:#3B6EA5}
+.gauge-dot.on-amber{background:#C89B5E}
+.gauge-dot.on-green{background:#3A7D5E}
+.gauge-val{font-size:.66rem;color:#C5CDD4;text-align:right;font-family:'JetBrains Mono',monospace}
+
+.kv{display:grid;grid-template-columns:80px 1fr;gap:6px 10px;font-size:.74rem;color:#C5CDD4;line-height:1.5;margin-top:4px}
+.kv .k{color:#8A939C;font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.66rem;color:#8A939C;margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:10px;height:6px;border-radius:2px}
+
+table{width:100%;border-collapse:collapse;font-size:.74rem;margin:8px 0}
+th{text-align:left;padding:5px 8px;border-bottom:1px solid rgba(197,205,212,0.12);color:#8A939C;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:.64rem}
+td{padding:5px 8px;border-bottom:1px solid rgba(197,205,212,0.06);color:#C5CDD4;vertical-align:top}
+</style>
+</head>
+<body>
+
+<h1>Trestle — System Brief & Submodule Inventory</h1>
+<p class="subtitle">First-pass shared reference for technical and finance/finance-tech leads supporting the rebuild. Gauges flag where depth matters; details intentionally shallow — we iterate from here.</p>
+
+<!-- ═══ EXEC SUMMARY ═══ -->
+<h2>1. Exec Summary</h2>
+<div class="card">
+  <div class="value">
+    Trestle is a multi-user FP&amp;A planning platform: one shared workspace per fiscal year holding <strong>14 plan files</strong> (1 AOP + 12 monthly Rolling Forecasts + 1 Long-Term Plan). Each plan file is a <span class="mono">state_data</span> JSON containing every input module (revenue, headcount, vendor, contractor, T&amp;E, other, D&amp;A) coded to a shared chartfield grid (BU / Biz Line / Market / Project / Account). Calc outputs feed a P&amp;L walk and a pivot/analytics layer; collaboration runs over WebSocket presence with live cursors and shared state.
+  </div>
+  <div class="value" style="margin-top:8px">
+    The rebuild target preserves this conceptual model but replaces single-blob state with a normalized data spine, layered access control, and standard EPM connectors — see scaling and dataflow briefs for the migration shape.
+  </div>
+</div>
+
+<!-- ═══ SYSTEM SPINE ═══ -->
+<h2>2. System Spine (at a glance)</h2>
+<div class="grid grid-3">
+  <div class="card card-accent">
+    <h3>Plan Container</h3>
+    <div class="value">
+      Workspace (year) → 14 plan files (AOP, 12× RF, LTP)<br>
+      Each plan = one <span class="mono">state_data</span> JSON<br>
+      Scenario types: <span class="tag tag-blue">budget</span><span class="tag tag-amber">forecast</span><span class="tag tag-green">actual</span><span class="tag tag-slate">ltp</span>
+    </div>
+  </div>
+  <div class="card card-warm">
+    <h3>Input Modules</h3>
+    <div class="value">
+      Revenue · HC &amp; Comp · Vendor/OAO · Contractors · T&amp;E · Other · D&amp;A<br>
+      Each row coded to chartfields + month columns
+    </div>
+  </div>
+  <div class="card card-success">
+    <h3>Outputs &amp; Collab</h3>
+    <div class="value">
+      P&amp;L walk · Pivot/analytics · Scenario compare<br>
+      WebSocket presence · live cursors · shared state · admin/access controls
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GAUGE LEGEND ═══ -->
+<h2>3. Submodule Inventory</h2>
+<div class="card" style="margin-bottom:14px">
+  <div class="value" style="font-size:.74rem">
+    Each submodule below carries three gauges (1-5 dots) so you can scan where depth is needed before we iterate:
+  </div>
+  <div class="legend">
+    <span><i style="background:#3B6EA5"></i><strong>Complexity</strong> — calc/edge-case depth</span>
+    <span><i style="background:#C89B5E"></i><strong>Similarity to siblings</strong> — high = mostly mirrors another module's shape</span>
+    <span><i style="background:#3A7D5E"></i><strong>Integration depth</strong> — entanglement with calc engine, pivot, EPM, collab</span>
+  </div>
+</div>
+
+<!-- ═══ INPUT MODULES ═══ -->
+<h3 style="color:#3B6EA5;font-size:.78rem;margin-top:18px">Input Modules</h3>
+<div class="grid grid-2">
+
+  <!-- Revenue -->
+  <div class="card card-accent">
+    <h3>Revenue</h3>
+    <div class="value">Top-line streams by chartfield × month; feeds P&amp;L, MRR/ARR derivations, and pivot.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">3/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">2/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Purpose</div><div>Plan top-line by stream; the only revenue-side input.</div>
+      <div class="k">In</div><div><span class="mono">revenueRows[]</span> — stream, desc, chartfields, jan-dec</div>
+      <div class="k">Out</div><div>Total Rev, MRR, ARR → P&amp;L, Pivot, LTP</div>
+      <div class="k">Logic</div><div>Direct monthly entry; aggregate to total; derived MRR/ARR</div>
+      <div class="k">Depends</div><div>Chartfield dimensions, scenario type</div>
+    </div>
+  </div>
+
+  <!-- HC & Comp -->
+  <div class="card card-accent">
+    <h3>HC &amp; Compensation</h3>
+    <div class="value">Per-employee comp engine — most complex module; drives C&amp;B, CapEx/OpEx split, and FTE rollups.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span></span><span class="gauge-val">5/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">1/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span></span><span class="gauge-val">5/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Purpose</div><div>Plan headcount, salary, bonus, benefits, CapEx allocation per employee.</div>
+      <div class="k">In</div><div><span class="mono">employees[]</span> — name, salary, seniority, function, country, capPct, allocations</div>
+      <div class="k">Out</div><div>HC, C&amp;B, CapEx, OpEx → P&amp;L, FTE chart, Pivot</div>
+      <div class="k">Logic</div><div>Monthly proration on start/end · bonus &amp; benefit loading · CapEx % split · functional pillar allocation</div>
+      <div class="k">Depends</div><div>Reference data: salary bands, benefits load, FX (future), pillar map</div>
+    </div>
+  </div>
+
+  <!-- Vendor / OAO -->
+  <div class="card card-accent">
+    <h3>Vendor / OAO</h3>
+    <div class="value">External spend by parent co/vendor; shape mirrors T&amp;E and Other (high sibling similarity).</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">2/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span></span><span class="gauge-val">5/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">3/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Purpose</div><div>Plan vendor/outside-services spend.</div>
+      <div class="k">In</div><div><span class="mono">vendorRows[]</span> — parent co, vendor, type, chartfields, jan-dec</div>
+      <div class="k">Out</div><div>OAO total → P&amp;L, Pivot</div>
+      <div class="k">Logic</div><div>Direct monthly entry · type tagging · vendor catalog lookup (admin reference set)</div>
+      <div class="k">Depends</div><div>Vendor catalog, GL accounts</div>
+    </div>
+  </div>
+
+  <!-- Contractors -->
+  <div class="card card-accent">
+    <h3>Contractors</h3>
+    <div class="value">Rate × hours model with CapEx split; partially shares HC mechanics.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">3/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">3/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">3/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Purpose</div><div>Plan non-employee labor with rate cards and CapEx allocation.</div>
+      <div class="k">In</div><div><span class="mono">contractorRows[]</span> — name, rate, hours, capPct, start/end mo</div>
+      <div class="k">Out</div><div>CTR, CapEx split → P&amp;L, Pivot</div>
+      <div class="k">Logic</div><div>Rate × hours per month · CapEx % · proration on start/end</div>
+      <div class="k">Depends</div><div>Admin-managed rate cards (role × geo × seniority)</div>
+    </div>
+  </div>
+
+  <!-- T&E -->
+  <div class="card card-accent">
+    <h3>T&amp;E</h3>
+    <div class="value">Travel/expense rows; near-identical shape to Vendor and Other.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">2/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span></span><span class="gauge-val">5/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">2/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Purpose</div><div>Plan travel and expense lines.</div>
+      <div class="k">In</div><div><span class="mono">teRows[]</span> — expense type, desc, chartfields, jan-dec</div>
+      <div class="k">Out</div><div>T&amp;E total → P&amp;L, Pivot</div>
+      <div class="k">Logic</div><div>Direct monthly entry; type tagging</div>
+      <div class="k">Depends</div><div>Expense-type list (admin reference)</div>
+    </div>
+  </div>
+
+  <!-- Other -->
+  <div class="card card-accent">
+    <h3>Other (C&amp;B + OAO)</h3>
+    <div class="value">Catch-all rows split by C&amp;B vs OAO; shape clones Vendor/T&amp;E with a type discriminator.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">2/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span></span><span class="gauge-val">5/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">2/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Purpose</div><div>Misc C&amp;B and OAO not captured in core modules.</div>
+      <div class="k">In</div><div><span class="mono">cbOtherRows[]</span> + <span class="mono">oaoOtherRows[]</span></div>
+      <div class="k">Out</div><div>Other C&amp;B, Other OAO → P&amp;L</div>
+      <div class="k">Logic</div><div>Direct monthly entry; routes by type</div>
+      <div class="k">Depends</div><div>GL accounts</div>
+    </div>
+  </div>
+
+  <!-- D&A -->
+  <div class="card card-accent">
+    <h3>D&amp;A / Assets</h3>
+    <div class="value">Asset register + depreciation schedule; unique calc shape (multi-year).</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">1/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">3/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Purpose</div><div>Track assets and depreciation schedule into P&amp;L and LTP.</div>
+      <div class="k">In</div><div><span class="mono">depreciationRows[]</span> + <span class="mono">assetRows[]</span></div>
+      <div class="k">Out</div><div>D&amp;A schedule → P&amp;L, LTP</div>
+      <div class="k">Logic</div><div>Method-based schedule (straight-line etc.) over useful life; in-service date</div>
+      <div class="k">Depends</div><div>Asset register, GL accounts</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ OUTPUT / CROSS-CUT ═══ -->
+<h3 style="color:#3B6EA5;font-size:.78rem;margin-top:24px">Output &amp; Cross-Cutting Submodules</h3>
+<div class="grid grid-2">
+
+  <!-- P&L Walk -->
+  <div class="card card-warm">
+    <h3>P&amp;L Walk</h3>
+    <div class="value">Aggregates every input module to a chartfield × month grid with subtotals.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">1/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span></span><span class="gauge-val">5/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">In</div><div>All module outputs</div>
+      <div class="k">Out</div><div>P&amp;L grid, subtotals, scenario compare</div>
+      <div class="k">Logic</div><div>Sum by chartfield × month · variance vs scenario · loaded cost rollups</div>
+    </div>
+  </div>
+
+  <!-- Pivot / Analytics -->
+  <div class="card card-warm">
+    <h3>Pivot &amp; Analytics</h3>
+    <div class="value">Reshape any module data by row dimension and chart it; also handles scenario overlays.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">1/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Row dims</div><div>Product, Function, BizLine, Market, Pillar, Month, Quarter</div>
+      <div class="k">Charts</div><div>Bar, Line, Bubble, Scatter</div>
+      <div class="k">Logic</div><div>Calc metrics (numerator/denominator) · scenario compare with variance overlay</div>
+    </div>
+  </div>
+
+  <!-- Spreadsheet input -->
+  <div class="card card-warm">
+    <h3>Spreadsheet-Style Grid</h3>
+    <div class="value">Cross-cutting UX layer used by every input module — single shared cell-grid behavior.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">3/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span></span><span class="gauge-val">5/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Behavior</div><div>Tab/Enter/Arrow nav · Shift+Click range · multi-cell copy/paste · delete to clear</div>
+      <div class="k">Class</div><div><span class="mono">.ec</span> cells across all module grids</div>
+      <div class="k">Logic</div><div>Single shared handler; rebuild it once and every module benefits</div>
+    </div>
+  </div>
+
+  <!-- Collab / Presence -->
+  <div class="card card-warm">
+    <h3>Collaboration &amp; Presence</h3>
+    <div class="value">Real-time multi-user editing — currently single-blob state sync; rebuild target = cell-level CRDT.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span></span><span class="gauge-val">5/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">1/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span></span><span class="gauge-val">5/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Today</div><div>WebSocket presence · live cursors · full-state broadcast</div>
+      <div class="k">Target</div><div>Per-cell CRDT, Redis pub/sub, optimistic locking, audit log</div>
+      <div class="k">Risk</div><div>Highest — touches every module + persistence layer</div>
+    </div>
+  </div>
+
+  <!-- Admin / Access -->
+  <div class="card card-warm">
+    <h3>Admin &amp; Access Control</h3>
+    <div class="value">User/role management plus admin-managed reference data (rate cards, benefits, FX).</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">2/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Today</div><div>Hardcoded admin login · email-based module/ops toggles · plan share roles</div>
+      <div class="k">Target</div><div>SSO + SCIM · RLS dimension scoping · firm/tenant-admin reference data publishing</div>
+    </div>
+  </div>
+
+  <!-- Integrations -->
+  <div class="card card-warm">
+    <h3>EPM &amp; Integrations</h3>
+    <div class="value">Inbound (actuals, HR, GL) and outbound (Oracle EPM, Anaplan, Workday Adaptive); rebuild = standard versioned connectors.</div>
+    <div class="gauges">
+      <div class="gauge"><span class="gauge-label">Complexity</span><span class="gauge-track"><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot on-blue"></span><span class="gauge-dot"></span></span><span class="gauge-val">4/5</span></div>
+      <div class="gauge"><span class="gauge-label">Similarity</span><span class="gauge-track"><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot on-amber"></span><span class="gauge-dot"></span><span class="gauge-dot"></span></span><span class="gauge-val">3/5</span></div>
+      <div class="gauge"><span class="gauge-label">Integration</span><span class="gauge-track"><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span><span class="gauge-dot on-green"></span></span><span class="gauge-val">5/5</span></div>
+    </div>
+    <div class="kv">
+      <div class="k">Inbound</div><div>ERP actuals, HR (Workday), GL chart, cost-center hierarchy</div>
+      <div class="k">Outbound</div><div>Oracle EPM, Anaplan, Workday Adaptive, BI, data lake, XLSX/PDF</div>
+      <div class="k">Pattern</div><div>Versioned connector module: schema map · chartfield crosswalk · incremental + full · retry · reconciliation report</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ PRIORITY READ ═══ -->
+<h2>4. Where Depth Will Matter (priority read)</h2>
+<div class="card">
+  <div class="value">
+    Based on the gauges, deeper second-pass docs should land first on:
+  </div>
+  <table style="margin-top:8px">
+    <tr><th>Submodule</th><th>Why it needs depth</th></tr>
+    <tr><td><strong>HC &amp; Compensation</strong></td><td>Highest complexity + integration; uniquely shaped; biggest rebuild risk</td></tr>
+    <tr><td><strong>Collaboration &amp; Presence</strong></td><td>Touches every module + persistence; CRDT migration is the critical path</td></tr>
+    <tr><td><strong>P&amp;L Walk</strong></td><td>Aggregator — correctness is downstream of every module's calc shape</td></tr>
+    <tr><td><strong>EPM &amp; Integrations</strong></td><td>Rebuild target reframes this as standard connectors; needs schema spec per system</td></tr>
+    <tr><td><strong>Vendor / T&amp;E / Other</strong></td><td>Document <em>once</em> — sibling similarity 5/5 means one shared shape covers all three</td></tr>
+  </table>
+</div>
+
+</body>
+</html>
