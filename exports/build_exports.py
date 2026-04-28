@@ -159,6 +159,13 @@ def build_docx(soup: BeautifulSoup, out: Path):
     style.font.name = "Calibri"
     style.font.size = Pt(11)
 
+    # Word "Narrow" margin preset
+    for section in doc.sections:
+        section.top_margin = Inches(0.5)
+        section.bottom_margin = Inches(0.5)
+        section.left_margin = Inches(0.5)
+        section.right_margin = Inches(0.5)
+
     body = soup.body
     for el in body.children:
         if isinstance(el, NavigableString):
