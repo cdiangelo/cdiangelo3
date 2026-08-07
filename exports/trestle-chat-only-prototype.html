@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trestle — Chat-Only Prototype (v0.1)</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #141B22; --panel: #1B2530; --sub: #223040; --hover: #2A3648;
+  --text: #F5F6F7; --body: #C5CDD4; --muted: #8A939C;
+  --blue: #5A8BC4; --amber: #C89B5E; --green: #3A7D5E; --red: #D46060;
+  --border: rgba(197,205,212,0.10); --border-strong: rgba(197,205,212,0.25);
+  --mono: 'Consolas', 'Menlo', 'Monaco', monospace;
+  --sans: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+}
+html, body { height: 100%; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 13px; overflow: hidden; }
+
+header { display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--border); }
+header .brand { font-weight: 700; font-size: 14px; color: var(--text); }
+header .brand .tag { font-size: 10px; color: var(--muted); margin-left: 6px; font-weight: 400; }
+header .spacer { flex: 1; }
+header button { background: var(--sub); color: var(--body); border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px; font-size: 12px; cursor: pointer; font-family: var(--sans); }
+header button:hover { background: var(--hover); color: var(--text); }
+header .status { font-size: 11px; color: var(--muted); display: flex; gap: 12px; align-items: center; }
+header .status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+header .status .dot.ok { background: var(--green); }
+header .status .dot.warn { background: var(--amber); }
+header .status .dot.off { background: var(--muted); }
+header .status .dot.err { background: var(--red); }
+header .presence { display: flex; gap: 3px; }
+header .presence .who { width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: white; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--panel); }
+header .presence .who.stale { opacity: 0.4; }
+
+.planbar { display: flex; gap: 4px; padding: 6px 14px; background: var(--panel); border-bottom: 1px solid var(--border); align-items: center; }
+.planbar .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 8px; }
+.planbar button { background: transparent; color: var(--body); border: 1px solid var(--border); border-radius: 4px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-family: var(--sans); }
+.planbar button:hover { background: var(--sub); }
+.planbar button.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+.tabbar { display: flex; gap: 2px; padding: 0 14px; background: var(--bg); border-bottom: 1px solid var(--border); }
+.tabbar button { background: transparent; color: var(--muted); border: none; border-bottom: 2px solid transparent; padding: 10px 14px; font-size: 12px; cursor: pointer; font-family: var(--sans); font-weight: 500; }
+.tabbar button:hover { color: var(--body); }
+.tabbar button.active { color: var(--text); border-bottom-color: var(--amber); }
+.tabbar .badge { font-size: 9px; padding: 1px 5px; border-radius: 6px; background: var(--sub); color: var(--muted); margin-left: 6px; }
+.tabbar .badge.stub { background: rgba(200,155,94,0.15); color: var(--amber); }
+
+main { display: flex; height: calc(100vh - 92px); overflow: hidden; }
+#grid-container { flex: 1; overflow: auto; padding: 0; }
+#grid-container h2 { padding: 12px 16px 4px; font-size: 13px; font-weight: 600; color: var(--body); text-transform: uppercase; letter-spacing: 0.05em; }
+#grid-container .sub { padding: 0 16px 10px; font-size: 11px; color: var(--muted); }
+
+.grid { width: 100%; border-collapse: collapse; font-size: 12px; }
+.grid th, .grid td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; vertical-align: middle; }
+.grid th { background: var(--panel); color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 0.04em; position: sticky; top: 0; z-index: 2; }
+.grid th.month { text-align: right; }
+.grid td { color: var(--body); background: var(--bg); }
+.grid td.num { text-align: right; font-family: var(--mono); }
+.grid td.editable { cursor: cell; }
+.grid td.editable:hover { background: var(--sub); }
+.grid td.editable.selected { background: rgba(90,139,196,0.15); outline: 1px solid var(--blue); outline-offset: -1px; }
+.grid td.editable.range-selected { background: rgba(90,139,196,0.10); }
+.grid td.editable.editing { padding: 0; }
+.grid td.editable.editing input { width: 100%; border: none; background: rgba(90,139,196,0.20); color: var(--text); padding: 4px 8px; font: inherit; outline: 1px solid var(--blue); font-family: var(--mono); text-align: right; }
+.grid td.total { background: var(--panel); font-family: var(--mono); text-align: right; color: var(--text); font-weight: 600; }
+.grid td select { background: var(--sub); color: var(--body); border: 1px solid var(--border); border-radius: 3px; padding: 2px 4px; font: inherit; font-size: 11px; width: 100%; }
+.grid td .flash { animation: flash 400ms ease-out; }
+@keyframes flash { 0% { background: rgba(200,155,94,0.5); } 100% { background: transparent; } }
+
+.gridtoolbar { display: flex; gap: 8px; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid var(--border); align-items: center; }
+.gridtoolbar button { background: var(--sub); color: var(--body); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: var(--sans); }
+.gridtoolbar button:hover { background: var(--hover); color: var(--text); }
+.gridtoolbar .info { font-size: 11px; color: var(--muted); margin-left: auto; font-family: var(--mono); }
+
+aside { width: 380px; background: var(--panel); border-left: 1px solid var(--border); padding: 14px; overflow-y: auto; }
+aside h3 { font-size: 12px; font-weight: 600; color: var(--body); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+aside h4 { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 12px 0 4px; }
+aside label { display: block; font-size: 11px; color: var(--muted); margin: 8px 0 3px; }
+aside input[type="text"], aside input[type="number"], aside textarea, aside select { width: 100%; background: var(--sub); color: var(--body); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; font: inherit; font-size: 12px; font-family: var(--mono); }
+aside input:focus, aside textarea:focus, aside select:focus { outline: 1px solid var(--blue); border-color: var(--blue); }
+aside textarea { min-height: 90px; resize: vertical; }
+aside .hint { font-size: 10px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+aside .btnrow { display: flex; gap: 6px; margin-top: 10px; }
+aside button { flex: 1; background: var(--blue); color: white; border: none; border-radius: 4px; padding: 7px 10px; font-size: 12px; cursor: pointer; font-family: var(--sans); font-weight: 500; }
+aside button.secondary { background: var(--sub); color: var(--body); border: 1px solid var(--border); }
+aside button:hover { filter: brightness(1.1); }
+aside .note { background: rgba(200,155,94,0.08); border-left: 2px solid var(--amber); padding: 8px 10px; font-size: 11px; color: var(--body); line-height: 1.5; margin: 10px 0; border-radius: 0 4px 4px 0; }
+aside .note .title { display: block; font-weight: 600; color: var(--amber); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+
+footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); border-top: 1px solid var(--border); padding: 4px 14px; font-size: 10px; color: var(--muted); display: flex; gap: 16px; font-family: var(--mono); }
+footer .item { display: flex; gap: 6px; align-items: center; }
+
+.emptystate { padding: 40px; text-align: center; color: var(--muted); }
+.emptystate h3 { font-size: 14px; color: var(--body); margin-bottom: 8px; }
+.emptystate p { font-size: 12px; line-height: 1.5; max-width: 500px; margin: 0 auto; }
+.emptystate .todo { text-align: left; background: var(--panel); padding: 14px 18px; margin-top: 16px; border-radius: 6px; border-left: 3px solid var(--amber); font-size: 11px; color: var(--body); }
+.emptystate .todo strong { color: var(--amber); }
+.emptystate .todo ul { margin: 8px 0 0 18px; }
+.emptystate .todo li { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Trestle <span class="tag">chat-only prototype · v0.1</span></div>
+  <div class="spacer"></div>
+  <div class="status">
+    <span class="item"><span class="dot off" id="sync-dot"></span><span id="sync-label">offline</span></span>
+    <span class="item"><span id="dirty-label">saved</span></span>
+  </div>
+  <div class="presence" id="presence"></div>
+  <button id="btn-refdata">Reference data</button>
+  <button id="btn-settings">⚙ Settings</button>
+</header>
+
+<div class="planbar">
+  <span class="label">Plan</span>
+  <button class="active" data-plan="AOP">AOP</button>
+  <button data-plan="LTP">LTP</button>
+  <span class="spacer" style="flex:1"></span>
+  <button id="btn-export" style="border-color: var(--blue); color: var(--blue);">Export JSON</button>
+  <button id="btn-import">Import JSON</button>
+  <button id="btn-pnl">P&amp;L Walk</button>
+</div>
+
+<div class="tabbar" id="tabbar"></div>
+
+<main>
+  <section id="grid-container"></section>
+  <aside id="settings-panel" hidden></aside>
+  <aside id="ref-data-panel" hidden></aside>
+</main>
+
+<footer>
+  <span class="item">plan: <span id="foot-plan">AOP</span></span>
+  <span class="item">module: <span id="foot-module">HC</span></span>
+  <span class="item">rows: <span id="foot-rows">0</span></span>
+  <span class="item">last sync: <span id="foot-lastsync">never</span></span>
+  <span class="item">user: <span id="foot-user">—</span></span>
+  <span class="item" style="margin-left:auto">v0.1 · chat-only prototype</span>
+</footer>
+
+<input type="file" id="import-file" accept="application/json" style="display:none">
+
+<script>
+"use strict";
+
+/* ============================================================
+   TRESTLE — CHAT-ONLY PROTOTYPE (VARIANT B)
+
+   First-pass framework meant to be forked and extended in an
+   enterprise Claude instance. Priorities:
+
+   1. Storage & schema versioning (localStorage + JSON export/import)
+   2. Sync framework (polling read + configurable write endpoint)
+   3. Spreadsheet-style grid (keyboard nav, edit, copy/paste, delete)
+   4. Two worked-example modules (HC & Comp, Vendor) — the pattern
+      others follow
+   5. Reference data with versioning
+   6. Presence approximation via heartbeats
+
+   Not yet in v0.1 (flagged with TODOs where they matter):
+   - Y.js CRDT (LWW timestamps used instead — good enough for pilot)
+   - Full range-select + multi-cell paste (single-cell paste works)
+   - P&L walk aggregation (stubbed with a rollup preview)
+   - Full LTP annual columns view (uses same monthly grid for now)
+   - D&A schedule generator (stubbed)
+
+   Read the section markers below to extend.
+   ============================================================ */
+
+/* ---------- INIT: schema, defaults, module registry ---------- */
+
+const SCHEMA_VERSION = 1;
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const PLANS = ['AOP','LTP'];
+
+// Extend by adding an entry here; the tabbar + grid render automatically.
+// stub:true = shows an empty state with extension notes rather than a grid.
+const MODULES = [
+  { key: 'HC',       label: 'HC & Comp',   stub: false, primary: true },
+  { key: 'VENDOR',   label: 'Vendor / OAO',stub: false, primary: true },
+  { key: 'CTR',      label: 'Contractors', stub: true  },
+  { key: 'TE',       label: 'T&E',         stub: true  },
+  { key: 'OTHER',    label: 'Other',       stub: true  },
+  { key: 'DA',       label: 'D&A',         stub: true  }
+  // Revenue intentionally omitted — this org models cost/investment only.
+];
+
+// Chartfield dimensions. Values are seeded but editable via Reference Data panel.
+const DEFAULT_DIMS = {
+  bu:       ['Corporate','Investments','Operations','Technology'],
+  bizLine:  ['Direct','Advisory','Platform'],
+  market:   ['US','UK','EU','APAC'],
+  project:  ['Run the Firm','Growth 2027','Regulatory'],
+  account:  ['Salary','Bonus','Benefits','ProfServices','Software','Travel','Depreciation','Other']
+};
+
+// Default reference data seeds. Users edit in the Reference Data panel.
+const DEFAULT_REFS = {
+  benefitsLoadPct: { US: 0.28, UK: 0.22, EU: 0.32, APAC: 0.20 },
+  rateCards:       { 'Junior/US': 150, 'Senior/US': 275, 'Junior/UK': 120, 'Senior/UK': 220 },
+  fxRates:         { USD: 1.00, GBP: 1.27, EUR: 1.08 },
+  vendorCatalog:   ['Bloomberg','Refinitiv','AWS','Snowflake','Deloitte','KPMG'],
+  version:         1
+};
+
+// Helper — new blank plan file (one per plan type).
+function blankPlan(planKey) {
+  const rows = {};
+  MODULES.forEach(m => { rows[m.key] = []; });
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    plan: planKey,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    rows,
+    changeLog: []      // { user, module, rowId, field, before, after, ts }
+  };
+}
+
+// Full workspace state (one instance in-memory, mirrored to localStorage).
+const STATE = {
+  workspace: {
+    dims: JSON.parse(JSON.stringify(DEFAULT_DIMS)),
+    refs: JSON.parse(JSON.stringify(DEFAULT_REFS)),
+    plans: { AOP: blankPlan('AOP'), LTP: blankPlan('LTP') }
+  },
+  ui: {
+    activePlan: 'AOP',
+    activeModule: 'HC',
+    dirty: false,
+    selection: null,      // { rowId, field }
+    presence: {}          // { userId: { name, cellRef, lastSeen } }
+  },
+  sync: {
+    userId: null,         // set at boot
+    userName: null,
+    readUrl: '',
+    writeUrl: '',
+    pollSec: 10,
+    lastSync: null,
+    status: 'offline'     // offline | polling | pushing | error
+  }
+};
+
+// Utility: unique ID (short, sortable, no external deps).
+function newId(prefix) {
+  return (prefix || 'id') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+}
+
+// Utility: stable per-user color from a name.
+function colorFor(name) {
+  const palette = ['#5A8BC4','#C89B5E','#3A7D5E','#D46060','#9B7BCF','#4EA1B8','#D48A3C'];
+  let h = 0; for (const c of (name || '?')) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+  return palette[h % palette.length];
+}
+
+// Utility: initials for presence avatar.
+function initials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+
+/* ---------- STORAGE: localStorage + JSON export/import ---------- */
+
+const LS_KEY = 'trestle.prototype.workspace.v1';
+const LS_BACKUPS_KEY = 'trestle.prototype.backups.v1';
+const LS_SYNC_KEY = 'trestle.prototype.sync.v1';
+const BACKUP_SLOTS = 3;
+
+function saveLocal() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(STATE.workspace));
+    localStorage.setItem(LS_SYNC_KEY, JSON.stringify({
+      userId: STATE.sync.userId, userName: STATE.sync.userName,
+      readUrl: STATE.sync.readUrl, writeUrl: STATE.sync.writeUrl,
+      pollSec: STATE.sync.pollSec
+    }));
+    STATE.ui.dirty = false;
+    updateStatusBar();
+  } catch (e) {
+    console.warn('localStorage save failed', e);
+  }
+}
+
+function loadLocal() {
+  try {
+    const w = localStorage.getItem(LS_KEY);
+    if (w) {
+      const parsed = JSON.parse(w);
+      if (parsed.schemaVersion !== undefined || parsed.plans) {
+        STATE.workspace = migrateWorkspace(parsed);
+      }
+    }
+    const s = localStorage.getItem(LS_SYNC_KEY);
+    if (s) Object.assign(STATE.sync, JSON.parse(s));
+  } catch (e) {
+    console.warn('localStorage load failed', e);
+  }
+}
+
+// Rolling backup (3 slots). Called every 30s if dirty.
+function backupLocal() {
+  try {
+    const raw = localStorage.getItem(LS_BACKUPS_KEY);
+    const backups = raw ? JSON.parse(raw) : [];
+    backups.unshift({ ts: Date.now(), workspace: STATE.workspace });
+    while (backups.length > BACKUP_SLOTS) backups.pop();
+    localStorage.setItem(LS_BACKUPS_KEY, JSON.stringify(backups));
+  } catch (e) { console.warn('backup failed', e); }
+}
+
+// Migration hook. Extend when SCHEMA_VERSION bumps.
+function migrateWorkspace(w) {
+  // v1 → v1 = passthrough. Add branches on version bump.
+  if (!w.dims) w.dims = JSON.parse(JSON.stringify(DEFAULT_DIMS));
+  if (!w.refs) w.refs = JSON.parse(JSON.stringify(DEFAULT_REFS));
+  if (!w.plans) w.plans = { AOP: blankPlan('AOP'), LTP: blankPlan('LTP') };
+  PLANS.forEach(p => {
+    if (!w.plans[p]) w.plans[p] = blankPlan(p);
+    MODULES.forEach(m => { if (!w.plans[p].rows[m.key]) w.plans[p].rows[m.key] = []; });
+  });
+  return w;
+}
+
+function exportJSON() {
+  const payload = {
+    _meta: {
+      exportedAt: new Date().toISOString(),
+      exportedBy: STATE.sync.userName || 'anonymous',
+      schemaVersion: SCHEMA_VERSION,
+      app: 'trestle-chat-only-prototype',
+      appVersion: '0.1'
+    },
+    workspace: STATE.workspace
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trestle-${STATE.ui.activePlan}-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const w = parsed.workspace || parsed;
+      if (parsed._meta && parsed._meta.schemaVersion > SCHEMA_VERSION) {
+        if (!confirm(`This file was exported with schema v${parsed._meta.schemaVersion}, prototype is v${SCHEMA_VERSION}. Import anyway (may lose fields)?`)) return;
+      }
+      STATE.workspace = migrateWorkspace(w);
+      STATE.ui.dirty = true;
+      saveLocal();
+      render();
+      alert('Import complete.');
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- SYNC: polling read + configurable write endpoint ----------
+   Conflict model: last-writer-wins per (module, rowId, field) using a
+   millisecond timestamp on every mutation. Presence via a per-user
+   heartbeat entry in the shared JSON.
+
+   To upgrade to true CRDT semantics later: swap the merge functions
+   below for Y.js document updates (rows keyed the same way).
+   ------------------------------------------------------------------ */
+
+let pollTimer = null;
+
+function startSync() {
+  stopSync();
+  if (!STATE.sync.readUrl) { STATE.sync.status = 'offline'; updateStatusBar(); return; }
+  STATE.sync.status = 'polling'; updateStatusBar();
+  pollOnce().finally(() => scheduleNextPoll());
+}
+
+function stopSync() {
+  if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+}
+
+function scheduleNextPoll() {
+  const ms = Math.max(3, STATE.sync.pollSec) * 1000;
+  pollTimer = setTimeout(() => pollOnce().finally(() => scheduleNextPoll()), ms);
+}
+
+// Pull remote JSON; merge into local using LWW timestamps.
+async function pollOnce() {
+  if (!STATE.sync.readUrl) return;
+  try {
+    const res = await fetch(STATE.sync.readUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const remote = await res.json();
+    if (!remote || !remote.workspace) return;   // empty / not-yet-populated
+    mergeRemote(remote);
+    STATE.sync.lastSync = Date.now();
+    STATE.sync.status = 'polling';
+    updateStatusBar();
+    saveLocal();
+    render();
+  } catch (e) {
+    console.warn('poll failed', e);
+    STATE.sync.status = 'error';
+    updateStatusBar();
+  }
+}
+
+// Push local workspace + our presence heartbeat.
+async function pushRemote() {
+  if (!STATE.sync.writeUrl) return;
+  const payload = {
+    workspace: STATE.workspace,
+    presence: {
+      ...(STATE.workspace.presence || {}),
+      [STATE.sync.userId]: {
+        name: STATE.sync.userName,
+        color: colorFor(STATE.sync.userName),
+        cellRef: STATE.ui.selection ? `${STATE.ui.activeModule}:${STATE.ui.selection.rowId}:${STATE.ui.selection.field}` : null,
+        lastSeen: Date.now()
+      }
+    },
+    ts: Date.now()
+  };
+  try {
+    STATE.sync.status = 'pushing'; updateStatusBar();
+    const res = await fetch(STATE.sync.writeUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    STATE.sync.lastSync = Date.now();
+    STATE.sync.status = 'polling';
+    updateStatusBar();
+  } catch (e) {
+    console.warn('push failed', e);
+    STATE.sync.status = 'error';
+    updateStatusBar();
+  }
+}
+
+// Merge a remote workspace into local using LWW per row+field.
+function mergeRemote(remote) {
+  const rw = remote.workspace;
+  if (!rw) return;
+  // Merge each plan's each module row-by-row by rowId.
+  PLANS.forEach(p => {
+    if (!rw.plans || !rw.plans[p]) return;
+    MODULES.forEach(m => {
+      const remoteRows = rw.plans[p].rows[m.key] || [];
+      const localRows = STATE.workspace.plans[p].rows[m.key] || [];
+      const byId = new Map(localRows.map(r => [r.id, r]));
+      remoteRows.forEach(rem => {
+        const loc = byId.get(rem.id);
+        if (!loc) {
+          localRows.push(rem);
+        } else {
+          // Per-field LWW using field-level ts if present, else row-level.
+          const remTs = rem._ts || {};
+          const locTs = loc._ts || {};
+          for (const k of Object.keys(rem)) {
+            if (k === 'id' || k === '_ts') continue;
+            if ((remTs[k] || 0) > (locTs[k] || 0)) {
+              loc[k] = rem[k];
+              loc._ts = loc._ts || {};
+              loc._ts[k] = remTs[k];
+            }
+          }
+        }
+      });
+      STATE.workspace.plans[p].rows[m.key] = localRows;
+    });
+  });
+  // Merge presence.
+  STATE.workspace.presence = { ...(STATE.workspace.presence || {}), ...(remote.presence || {}) };
+}
+
+// Called by every mutation to stamp field-level timestamps.
+function stampField(row, field) {
+  row._ts = row._ts || {};
+  row._ts[field] = Date.now();
+}
+
+/* ---------- MODULES: column definitions per module ----------
+   To add or extend a module:
+     1. Add an entry to MODULES at the top (INIT section)
+     2. Add a matching entry here with its columns
+     3. If the module has custom calc, add a case in calcModuleTotals()
+   Each column: { key, label, type, source? }
+     type: text | select | number | month | derived
+     source (for select): dot-path into STATE.workspace.dims or refs
+   ------------------------------------------------------------ */
+
+const CHARTFIELD_COLS = [
+  { key: 'bu',      label: 'BU',      type: 'select', source: 'dims.bu' },
+  { key: 'bizLine', label: 'BizLine', type: 'select', source: 'dims.bizLine' },
+  { key: 'market',  label: 'Market',  type: 'select', source: 'dims.market' },
+  { key: 'project', label: 'Project', type: 'select', source: 'dims.project' },
+  { key: 'account', label: 'Account', type: 'select', source: 'dims.account' }
+];
+
+const MONTH_COLS = MONTHS.map(m => ({ key: 'm_' + m, label: m, type: 'month' }));
+
+const MODULE_COLS = {
+  HC: [
+    { key: 'name',        label: 'Name',       type: 'text' },
+    { key: 'function',    label: 'Function',   type: 'text' },
+    { key: 'seniority',   label: 'Seniority',  type: 'select', source: 'inline.seniority', options: ['Junior','Mid','Senior','Principal'] },
+    { key: 'country',     label: 'Country',    type: 'select', source: 'refs.benefitsLoadPct' },
+    ...CHARTFIELD_COLS,
+    { key: 'salary',      label: 'Salary',     type: 'number' },
+    { key: 'bonusPct',    label: 'Bonus %',    type: 'number' },
+    { key: 'capPct',      label: 'CapEx %',    type: 'number' },
+    { key: 'startMo',     label: 'Start Mo',   type: 'number' },
+    { key: 'endMo',       label: 'End Mo',     type: 'number' },
+    { key: 'annualCost',  label: 'Annual Cost',type: 'derived' },
+    { key: 'capExAnnual', label: 'CapEx',      type: 'derived' },
+    { key: 'opExAnnual',  label: 'OpEx',       type: 'derived' }
+  ],
+  VENDOR: [
+    { key: 'description', label: 'Description', type: 'text' },
+    { key: 'parentCo',    label: 'Parent Co',   type: 'text' },
+    { key: 'vendor',      label: 'Vendor',      type: 'select', source: 'refs.vendorCatalog' },
+    ...CHARTFIELD_COLS,
+    ...MONTH_COLS,
+    { key: 'annualCost',  label: 'Annual',      type: 'derived' }
+  ]
+  // Stubs (Contractors, T&E, Other, D&A) render an emptystate — see renderGrid().
+};
+
+// Field-source resolver for select dropdowns.
+function resolveSource(sourceStr) {
+  if (!sourceStr) return [];
+  const [root, key] = sourceStr.split('.');
+  if (root === 'dims') return STATE.workspace.dims[key] || [];
+  if (root === 'refs') {
+    const r = STATE.workspace.refs[key];
+    if (Array.isArray(r)) return r;
+    if (r && typeof r === 'object') return Object.keys(r);
+    return [];
+  }
+  if (root === 'inline') return null;   // handled via col.options
+  return [];
+}
+
+/* ---------- CALC: per-module row calculations + derived fields ---------- */
+
+// HC: annual cost = salary + bonus + benefits, prorated to months in role.
+// CapEx = capPct * annualCost, OpEx = remainder.
+function calcHCRow(row) {
+  const salary = +row.salary || 0;
+  const bonusPct = +row.bonusPct || 0;
+  const capPct = Math.max(0, Math.min(1, +row.capPct || 0));
+  const startMo = Math.max(1, Math.min(12, +row.startMo || 1));
+  const endMo = Math.max(startMo, Math.min(12, +row.endMo || 12));
+  const monthsInRole = endMo - startMo + 1;
+  const country = row.country || 'US';
+  const benefitsPct = (STATE.workspace.refs.benefitsLoadPct || {})[country] || 0;
+
+  const annualFull = salary * (1 + bonusPct + benefitsPct);
+  const annualProrated = annualFull * (monthsInRole / 12);
+  const capEx = annualProrated * capPct;
+  const opEx = annualProrated - capEx;
+  return { annualCost: round2(annualProrated), capExAnnual: round2(capEx), opExAnnual: round2(opEx) };
+}
+
+// Vendor / T&E / Other / Contractor: annual cost = sum of monthly columns.
+function calcMonthlyRow(row) {
+  let total = 0;
+  MONTHS.forEach(m => { total += +row['m_' + m] || 0; });
+  return { annualCost: round2(total) };
+}
+
+// Router: given a module and a row, return derived-field map.
+function calcRow(moduleKey, row) {
+  switch (moduleKey) {
+    case 'HC': return calcHCRow(row);
+    case 'VENDOR': return calcMonthlyRow(row);
+    // TODO: extend for CTR, TE, OTHER, DA when their modules ship.
+    default: return {};
+  }
+}
+
+// Rollup helper — sum a derived field across a module's rows.
+function moduleTotal(moduleKey, planKey, field) {
+  const rows = STATE.workspace.plans[planKey].rows[moduleKey] || [];
+  return rows.reduce((sum, r) => sum + (calcRow(moduleKey, r)[field] || 0), 0);
+}
+
+function round2(n) { return Math.round(n * 100) / 100; }
+function fmtNum(n) {
+  if (n === '' || n === undefined || n === null) return '';
+  const v = +n; if (isNaN(v)) return String(n);
+  return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+/* ---------- P&L WALK: chartfield × month rollup preview ----------
+   v0.1 provides a functional rollup of every module's annualCost by
+   chartfield combo. Not yet a full P&L walk with subtotal hierarchy
+   (gross margin / opex / EBITDA) — that's a good second-pass task once
+   more modules ship and the subtotal template is decided per firm.
+   ------------------------------------------------------------------ */
+
+function buildPnLRollup(planKey) {
+  const buckets = {};
+  MODULES.forEach(m => {
+    const rows = STATE.workspace.plans[planKey].rows[m.key] || [];
+    rows.forEach(r => {
+      const key = [r.bu||'—', r.bizLine||'—', r.market||'—', r.project||'—', r.account||'—'].join(' | ');
+      const derived = calcRow(m.key, r);
+      const val = derived.annualCost || 0;
+      buckets[key] = (buckets[key] || 0) + val;
+    });
+  });
+  return Object.entries(buckets).map(([k, v]) => ({ key: k, value: v })).sort((a, b) => b.value - a.value);
+}
+
+function renderPnLPreview(planKey) {
+  const roll = buildPnLRollup(planKey);
+  const total = roll.reduce((s, r) => s + r.value, 0);
+  const rowsHTML = roll.map(r => `
+    <tr>
+      <td>${escapeHtml(r.key)}</td>
+      <td class="num">${fmtNum(r.value)}</td>
+    </tr>`).join('');
+  const container = document.getElementById('grid-container');
+  container.innerHTML = `
+    <h2>P&amp;L Walk Preview — ${planKey}</h2>
+    <p class="sub">Rollup of every module by chartfield combination (BU | BizLine | Market | Project | Account). Full subtotal hierarchy (gross margin / opex / EBITDA) is a second-pass extension.</p>
+    <table class="grid" style="margin: 8px 16px;">
+      <thead><tr><th>Chartfield combination</th><th class="month">Annual cost</th></tr></thead>
+      <tbody>${rowsHTML || '<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:20px">No rows yet — add data in a module tab.</td></tr>'}
+        <tr><td class="total" style="text-align:right">TOTAL</td><td class="total">${fmtNum(total)}</td></tr>
+      </tbody>
+    </table>
+  `;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- GRID: spreadsheet-style component ----------
+   Behaviors implemented:
+     - Click to select, arrow keys navigate
+     - Enter or double-click to edit; blur / enter to commit
+     - Tab / shift-tab to move horizontally
+     - Delete / Backspace to clear cell
+     - Ctrl/Cmd + C copies selected cell; Ctrl/Cmd + V pastes
+     - Add / delete row buttons in toolbar
+   Not yet: shift-click range select, multi-cell paste with tab/newline
+   split. These are worth adding when moving beyond the prototype.
+   ------------------------------------------------------------ */
+
+function renderGrid(moduleKey, planKey) {
+  const module = MODULES.find(m => m.key === moduleKey);
+  const container = document.getElementById('grid-container');
+  if (!module) { container.innerHTML = ''; return; }
+
+  if (module.stub) {
+    container.innerHTML = `
+      <div class="emptystate">
+        <h3>${module.label} — stubbed</h3>
+        <p>The module registry has an entry for <strong>${module.key}</strong> but no column definition yet. Wire it up in <code>MODULE_COLS</code> and, if it needs custom calc, add a case in <code>calcRow()</code>.</p>
+        <div class="todo">
+          <strong>To ship this module:</strong>
+          <ul>
+            <li>Add a <code>MODULE_COLS.${module.key}</code> entry (columns: text, select, number, month, derived).</li>
+            <li>${moduleKey === 'CTR' ? 'Follow HC pattern (rate × hours × months, CapEx split). Consider folding into a shared "labor" component with HC once both are proven.' : ''}
+                ${moduleKey === 'TE' || moduleKey === 'OTHER' ? 'Follow VENDOR pattern (chartfields + monthly amounts). These three share one row shape — build once as a shared "expense_rows" component with a type discriminator (this is called out in the technical brief).' : ''}
+                ${moduleKey === 'DA' ? 'D&A needs an asset register + schedule generator (straight-line over useful life from in-service date). This is unique — build alongside a small assets table.' : ''}</li>
+            <li>Add its aggregation to <code>buildPnLRollup()</code>.</li>
+          </ul>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const plan = STATE.workspace.plans[planKey];
+  const rows = plan.rows[moduleKey] || [];
+  const cols = MODULE_COLS[moduleKey];
+  if (!cols) { container.innerHTML = '<div class="emptystate"><h3>No columns defined</h3></div>'; return; }
+
+  const headerHTML = cols.map(c => `<th class="${c.type === 'month' || c.type === 'number' || c.type === 'derived' ? 'month' : ''}">${c.label}</th>`).join('');
+  const bodyHTML = rows.map((row, ri) => renderRow(row, ri, cols, moduleKey)).join('');
+
+  container.innerHTML = `
+    <div class="gridtoolbar">
+      <button id="btn-addrow">+ Add row</button>
+      <button id="btn-delrow">Delete selected row</button>
+      <span class="info">${rows.length} rows · module <strong>${module.label}</strong> · plan <strong>${planKey}</strong></span>
+    </div>
+    <table class="grid">
+      <thead><tr>${headerHTML}</tr></thead>
+      <tbody id="grid-body">${bodyHTML}</tbody>
+    </table>`;
+
+  document.getElementById('btn-addrow').onclick = () => addRow(moduleKey, planKey);
+  document.getElementById('btn-delrow').onclick = () => deleteSelectedRow(moduleKey, planKey);
+  wireGridEvents(moduleKey, planKey);
+  document.getElementById('foot-rows').textContent = rows.length;
+}
+
+function renderRow(row, ri, cols, moduleKey) {
+  const derived = calcRow(moduleKey, row);
+  const tds = cols.map(c => {
+    if (c.type === 'derived') {
+      return `<td class="num total">${fmtNum(derived[c.key] || 0)}</td>`;
+    }
+    const val = row[c.key] !== undefined && row[c.key] !== null ? row[c.key] : '';
+    const cls = ['editable'];
+    if (c.type === 'month' || c.type === 'number') cls.push('num');
+    return `<td class="${cls.join(' ')}" data-row="${row.id}" data-field="${c.key}" data-type="${c.type}">${escapeHtml(String(val))}</td>`;
+  }).join('');
+  return `<tr data-row="${row.id}">${tds}</tr>`;
+}
+
+function wireGridEvents(moduleKey, planKey) {
+  const body = document.getElementById('grid-body');
+  if (!body) return;
+
+  body.addEventListener('click', e => {
+    const td = e.target.closest('td.editable');
+    if (!td) return;
+    selectCell(td);
+  });
+
+  body.addEventListener('dblclick', e => {
+    const td = e.target.closest('td.editable');
+    if (!td) return;
+    beginEdit(td, moduleKey, planKey);
+  });
+
+  document.addEventListener('keydown', gridKeyHandler);
+  // Store the handler's context so we can detach on re-render if needed.
+  window._trestleGridCtx = { moduleKey, planKey };
+}
+
+function gridKeyHandler(e) {
+  // Do nothing if focus is in an input outside the grid (settings, refdata).
+  const active = document.activeElement;
+  if (active && active.tagName === 'INPUT' && !active.closest('td')) return;
+  if (active && active.tagName === 'TEXTAREA') return;
+
+  const sel = document.querySelector('td.editable.selected');
+  if (!sel) return;
+
+  const ctx = window._trestleGridCtx || {};
+  if (e.key === 'Enter' && !active.closest('td.editing')) {
+    e.preventDefault();
+    beginEdit(sel, ctx.moduleKey, ctx.planKey);
+    return;
+  }
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (active.closest('td.editing')) return;
+    e.preventDefault();
+    commitCell(sel, '', ctx.moduleKey, ctx.planKey);
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+    e.preventDefault();
+    const val = sel.textContent;
+    navigator.clipboard.writeText(val).catch(() => {});
+    sel.classList.add('flash'); setTimeout(() => sel.classList.remove('flash'), 400);
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+    e.preventDefault();
+    navigator.clipboard.readText().then(text => {
+      commitCell(sel, text.trim(), ctx.moduleKey, ctx.planKey);
+    }).catch(() => {});
+    return;
+  }
+  // Navigation
+  let dr = 0, dc = 0;
+  if (e.key === 'ArrowUp') dr = -1;
+  else if (e.key === 'ArrowDown') dr = 1;
+  else if (e.key === 'ArrowLeft') dc = -1;
+  else if (e.key === 'ArrowRight') dc = 1;
+  else if (e.key === 'Tab') { dc = e.shiftKey ? -1 : 1; }
+  else return;
+  e.preventDefault();
+  moveSelection(sel, dr, dc);
+}
+
+function selectCell(td) {
+  document.querySelectorAll('td.editable.selected').forEach(el => el.classList.remove('selected'));
+  td.classList.add('selected');
+  STATE.ui.selection = { rowId: td.dataset.row, field: td.dataset.field };
+}
+
+function moveSelection(td, dr, dc) {
+  const tr = td.parentElement;
+  const rows = Array.from(tr.parentElement.children);
+  const ri = rows.indexOf(tr);
+  const ci = Array.from(tr.children).indexOf(td);
+  const targetRow = rows[ri + dr];
+  if (!targetRow) return;
+  const targetCell = targetRow.children[ci + dc];
+  if (!targetCell || !targetCell.classList.contains('editable')) {
+    // Skip non-editable columns
+    let nextCi = ci + dc;
+    while (targetRow.children[nextCi]) {
+      if (targetRow.children[nextCi].classList.contains('editable')) {
+        selectCell(targetRow.children[nextCi]); return;
+      }
+      nextCi += dc || 1;
+    }
+    return;
+  }
+  selectCell(targetCell);
+}
+
+function beginEdit(td, moduleKey, planKey) {
+  if (td.classList.contains('editing')) return;
+  const field = td.dataset.field;
+  const type = td.dataset.type;
+  const cols = MODULE_COLS[moduleKey];
+  const col = cols.find(c => c.key === field);
+  const current = td.textContent;
+
+  td.classList.add('editing');
+  if (col.type === 'select') {
+    const options = col.options || resolveSource(col.source) || [];
+    const sel = document.createElement('select');
+    sel.innerHTML = ['', ...options].map(o => `<option ${o === current ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('');
+    td.innerHTML = ''; td.appendChild(sel);
+    sel.focus();
+    sel.onchange = () => commitCell(td, sel.value, moduleKey, planKey);
+    sel.onblur = () => { if (td.classList.contains('editing')) commitCell(td, sel.value, moduleKey, planKey); };
+  } else {
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = current;
+    td.innerHTML = ''; td.appendChild(inp);
+    inp.focus(); inp.select();
+    inp.onblur = () => commitCell(td, inp.value, moduleKey, planKey);
+    inp.onkeydown = e => {
+      if (e.key === 'Enter') { e.preventDefault(); commitCell(td, inp.value, moduleKey, planKey); moveSelection(td, 1, 0); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancelEdit(td, current); }
+      else if (e.key === 'Tab') { e.preventDefault(); commitCell(td, inp.value, moduleKey, planKey); moveSelection(td, 0, e.shiftKey ? -1 : 1); }
+    };
+  }
+}
+
+function cancelEdit(td, prevValue) {
+  td.classList.remove('editing');
+  td.textContent = prevValue;
+}
+
+function commitCell(td, newValue, moduleKey, planKey) {
+  const rowId = td.dataset.row;
+  const field = td.dataset.field;
+  const rows = STATE.workspace.plans[planKey].rows[moduleKey];
+  const row = rows.find(r => r.id === rowId);
+  if (!row) return;
+  const before = row[field];
+
+  // Type coercion for number-ish fields
+  const cols = MODULE_COLS[moduleKey];
+  const col = cols.find(c => c.key === field);
+  let coerced = newValue;
+  if (col && (col.type === 'number' || col.type === 'month')) {
+    coerced = newValue === '' ? '' : (isNaN(+newValue) ? newValue : +newValue);
+  }
+  if (before === coerced) { td.classList.remove('editing'); td.textContent = String(newValue); return; }
+
+  row[field] = coerced;
+  stampField(row, field);
+  STATE.workspace.plans[planKey].updatedAt = Date.now();
+  STATE.workspace.plans[planKey].changeLog.push({
+    user: STATE.sync.userName, module: moduleKey, rowId, field,
+    before: before === undefined ? null : before, after: coerced, ts: Date.now()
+  });
+  // Keep changelog bounded
+  if (STATE.workspace.plans[planKey].changeLog.length > 500) {
+    STATE.workspace.plans[planKey].changeLog = STATE.workspace.plans[planKey].changeLog.slice(-500);
+  }
+
+  STATE.ui.dirty = true;
+  saveLocal();
+  render();
+  // Best-effort background push (throttled by user via poll interval).
+  pushRemote();
+}
+
+function addRow(moduleKey, planKey) {
+  const rows = STATE.workspace.plans[planKey].rows[moduleKey];
+  rows.push({ id: newId('r'), _ts: {} });
+  STATE.ui.dirty = true;
+  saveLocal();
+  render();
+}
+
+function deleteSelectedRow(moduleKey, planKey) {
+  if (!STATE.ui.selection) { alert('Select a cell in the row to delete.'); return; }
+  const rowId = STATE.ui.selection.rowId;
+  const rows = STATE.workspace.plans[planKey].rows[moduleKey];
+  const idx = rows.findIndex(r => r.id === rowId);
+  if (idx < 0) return;
+  if (!confirm('Delete this row?')) return;
+  rows.splice(idx, 1);
+  STATE.ui.dirty = true;
+  saveLocal();
+  render();
+}
+
+/* ---------- UI: planbar / tabbar / status / panels ---------- */
+
+function renderTabbar() {
+  const bar = document.getElementById('tabbar');
+  bar.innerHTML = MODULES.map(m => {
+    const cls = m.key === STATE.ui.activeModule ? 'active' : '';
+    const badge = m.stub ? '<span class="badge stub">stub</span>' : '';
+    return `<button class="${cls}" data-module="${m.key}">${m.label}${badge}</button>`;
+  }).join('');
+  bar.querySelectorAll('button').forEach(b => {
+    b.onclick = () => { STATE.ui.activeModule = b.dataset.module; render(); };
+  });
+}
+
+function renderPlanbar() {
+  document.querySelectorAll('.planbar button[data-plan]').forEach(b => {
+    b.classList.toggle('active', b.dataset.plan === STATE.ui.activePlan);
+    b.onclick = () => { STATE.ui.activePlan = b.dataset.plan; render(); };
+  });
+}
+
+function renderPresence() {
+  const el = document.getElementById('presence');
+  const now = Date.now();
+  const p = STATE.workspace.presence || {};
+  const items = Object.entries(p)
+    .filter(([id]) => id !== STATE.sync.userId)
+    .map(([id, u]) => {
+      const stale = (now - (u.lastSeen || 0)) > 30_000;
+      return `<span class="who ${stale ? 'stale' : ''}" title="${escapeHtml(u.name || id)}${u.cellRef ? ' @ ' + u.cellRef : ''}${stale ? ' (stale)' : ''}" style="background:${u.color || '#5A8BC4'}">${initials(u.name || '?')}</span>`;
+    }).join('');
+  el.innerHTML = items;
+}
+
+function updateStatusBar() {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  const cls = { offline: 'off', polling: 'ok', pushing: 'ok', error: 'err' }[STATE.sync.status] || 'off';
+  dot.className = 'dot ' + cls;
+  label.textContent = STATE.sync.status;
+  document.getElementById('dirty-label').textContent = STATE.ui.dirty ? '● unsaved' : 'saved';
+  document.getElementById('foot-plan').textContent = STATE.ui.activePlan;
+  document.getElementById('foot-module').textContent = STATE.ui.activeModule;
+  document.getElementById('foot-user').textContent = STATE.sync.userName || '—';
+  document.getElementById('foot-lastsync').textContent = STATE.sync.lastSync
+    ? new Date(STATE.sync.lastSync).toLocaleTimeString() : 'never';
+}
+
+function renderSettingsPanel() {
+  const s = STATE.sync;
+  const p = document.getElementById('settings-panel');
+  p.innerHTML = `
+    <h3>Settings</h3>
+    <label>Your name (for change log + presence)</label>
+    <input type="text" id="s-name" value="${escapeHtml(s.userName || '')}" placeholder="e.g. Jane Doe">
+
+    <h4>Sync (Variant B — polled shared JSON)</h4>
+    <label>Read URL (GET, returns { workspace, presence })</label>
+    <input type="text" id="s-read" value="${escapeHtml(s.readUrl || '')}" placeholder="https://.../plan.json">
+    <div class="hint">Any public-readable JSON: GitHub raw file, published Google Sheet range, S3 object, etc.</div>
+
+    <label>Write endpoint (POST, receives { workspace, presence, ts })</label>
+    <input type="text" id="s-write" value="${escapeHtml(s.writeUrl || '')}" placeholder="https://script.google.com/.../exec">
+    <div class="hint">Needs a credentialed target — Apps Script web app with team-roster validation is the simplest ($0, ~5 min setup).</div>
+
+    <label>Poll interval (seconds, 3-60)</label>
+    <input type="number" id="s-poll" min="3" max="60" value="${s.pollSec || 10}">
+
+    <div class="btnrow">
+      <button id="s-save">Save &amp; start sync</button>
+      <button class="secondary" id="s-stop">Stop sync</button>
+    </div>
+
+    <div class="note">
+      <span class="title">Not configured?</span>
+      Leave read / write URLs blank to work offline. All data persists to localStorage; export JSON to share manually.
+    </div>
+
+    <h4>Backups</h4>
+    <div id="backups-list"></div>
+    <div class="btnrow">
+      <button class="secondary" id="s-backup-now">Snapshot now</button>
+    </div>
+
+    <div class="btnrow" style="margin-top: 20px">
+      <button class="secondary" id="s-close">Close</button>
+    </div>
+  `;
+  document.getElementById('s-save').onclick = () => {
+    STATE.sync.userName = document.getElementById('s-name').value.trim() || 'Anonymous';
+    STATE.sync.readUrl = document.getElementById('s-read').value.trim();
+    STATE.sync.writeUrl = document.getElementById('s-write').value.trim();
+    STATE.sync.pollSec = Math.max(3, Math.min(60, +document.getElementById('s-poll').value || 10));
+    saveLocal();
+    startSync();
+    render();
+    alert('Settings saved.');
+  };
+  document.getElementById('s-stop').onclick = () => { stopSync(); STATE.sync.status = 'offline'; updateStatusBar(); };
+  document.getElementById('s-close').onclick = () => { p.hidden = true; };
+  document.getElementById('s-backup-now').onclick = () => { backupLocal(); renderBackupsList(); };
+  renderBackupsList();
+}
+
+function renderBackupsList() {
+  const el = document.getElementById('backups-list');
+  if (!el) return;
+  const raw = localStorage.getItem(LS_BACKUPS_KEY);
+  const backups = raw ? JSON.parse(raw) : [];
+  if (backups.length === 0) { el.innerHTML = '<div class="hint">No snapshots yet.</div>'; return; }
+  el.innerHTML = backups.map((b, i) => {
+    const when = new Date(b.ts).toLocaleString();
+    return `<div style="display:flex;gap:6px;margin:4px 0;font-size:11px;color:var(--body)">
+      <span style="flex:1;font-family:var(--mono)">${when}</span>
+      <button class="secondary" data-restore="${i}" style="padding:2px 8px;font-size:10px">Restore</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('button[data-restore]').forEach(b => {
+    b.onclick = () => {
+      const i = +b.dataset.restore;
+      if (!confirm(`Restore snapshot from ${new Date(backups[i].ts).toLocaleString()}? Current state will be overwritten.`)) return;
+      STATE.workspace = migrateWorkspace(backups[i].workspace);
+      saveLocal(); render();
+    };
+  });
+}
+
+function renderRefDataPanel() {
+  const w = STATE.workspace;
+  const p = document.getElementById('ref-data-panel');
+  p.innerHTML = `
+    <h3>Reference data</h3>
+    <div class="hint">Shared lookups used across every plan. Edit as JSON — validated on save.</div>
+
+    <h4>Chartfield dimensions</h4>
+    <textarea id="r-dims">${escapeHtml(JSON.stringify(w.dims, null, 2))}</textarea>
+
+    <h4>Reference sets</h4>
+    <textarea id="r-refs">${escapeHtml(JSON.stringify(w.refs, null, 2))}</textarea>
+
+    <div class="btnrow">
+      <button id="r-save">Save reference data</button>
+      <button class="secondary" id="r-close">Close</button>
+    </div>
+
+    <div class="note">
+      <span class="title">Versioning</span>
+      When you publish a change, bump <code>refs.version</code>. Plans should be able to pin to a version — that's a next-pass extension (add <code>refsVersion</code> to each plan on save).
+    </div>
+  `;
+  document.getElementById('r-save').onclick = () => {
+    try {
+      const dims = JSON.parse(document.getElementById('r-dims').value);
+      const refs = JSON.parse(document.getElementById('r-refs').value);
+      w.dims = dims; w.refs = refs;
+      STATE.ui.dirty = true; saveLocal(); render();
+      alert('Reference data saved.');
+    } catch (e) { alert('Invalid JSON: ' + e.message); }
+  };
+  document.getElementById('r-close').onclick = () => { p.hidden = true; };
+}
+
+// Main render — cheap enough to call on every state change.
+function render() {
+  renderPlanbar();
+  renderTabbar();
+  renderGrid(STATE.ui.activeModule, STATE.ui.activePlan);
+  renderPresence();
+  updateStatusBar();
+}
+
+/* ---------- BOOT: load state, wire toolbar, start sync ---------- */
+
+function boot() {
+  loadLocal();
+
+  // Ensure user identity
+  if (!STATE.sync.userId) STATE.sync.userId = newId('u');
+  if (!STATE.sync.userName) STATE.sync.userName = 'Analyst ' + STATE.sync.userId.slice(-4);
+
+  // Toolbar wiring
+  document.getElementById('btn-settings').onclick = () => {
+    const p = document.getElementById('settings-panel');
+    document.getElementById('ref-data-panel').hidden = true;
+    p.hidden = !p.hidden;
+    if (!p.hidden) renderSettingsPanel();
+  };
+  document.getElementById('btn-refdata').onclick = () => {
+    const p = document.getElementById('ref-data-panel');
+    document.getElementById('settings-panel').hidden = true;
+    p.hidden = !p.hidden;
+    if (!p.hidden) renderRefDataPanel();
+  };
+  document.getElementById('btn-export').onclick = exportJSON;
+  document.getElementById('btn-import').onclick = () => document.getElementById('import-file').click();
+  document.getElementById('import-file').onchange = e => {
+    if (e.target.files[0]) importJSON(e.target.files[0]);
+    e.target.value = '';
+  };
+  document.getElementById('btn-pnl').onclick = () => renderPnLPreview(STATE.ui.activePlan);
+
+  // Auto-backup loop (every 30s if dirty)
+  setInterval(() => { if (STATE.ui.dirty) backupLocal(); }, 30_000);
+
+  // Seed a starter row on very first boot so the grid isn't empty on load.
+  if (STATE.workspace.plans.AOP.rows.HC.length === 0) {
+    STATE.workspace.plans.AOP.rows.HC.push({
+      id: newId('r'), _ts: {},
+      name: 'Sample Analyst', function: 'Investments', seniority: 'Senior', country: 'US',
+      bu: 'Investments', bizLine: 'Direct', market: 'US', project: 'Run the Firm', account: 'Salary',
+      salary: 180000, bonusPct: 0.25, capPct: 0.4, startMo: 1, endMo: 12
+    });
+    STATE.workspace.plans.AOP.rows.VENDOR.push({
+      id: newId('r'), _ts: {},
+      description: 'Market data subscription', parentCo: 'Bloomberg LP', vendor: 'Bloomberg',
+      bu: 'Investments', bizLine: 'Direct', market: 'US', project: 'Run the Firm', account: 'ProfServices',
+      m_Jan: 8500, m_Feb: 8500, m_Mar: 8500, m_Apr: 8500, m_May: 8500, m_Jun: 8500,
+      m_Jul: 8500, m_Aug: 8500, m_Sep: 8500, m_Oct: 8500, m_Nov: 8500, m_Dec: 8500
+    });
+    saveLocal();
+  }
+
+  render();
+  if (STATE.sync.readUrl) startSync();
+}
+
+// Kick off after DOM parse.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+
+</script>
+</body>
+</html>
